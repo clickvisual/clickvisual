@@ -36,7 +36,7 @@ var CmdRun = &cobra.Command{
 
 		path := flagSQLFile
 		if strings.TrimSpace(path) == "" {
-			path = "scripts/migration/database.sql"
+			path = "./config/database.sql"
 		}
 		abs, _ := filepath.Abs(path)
 		elog.Info("使用 SQL 文件", elog.String("path", abs))
@@ -77,9 +77,15 @@ func init() {
 	cmd.RootCommand.AddCommand(CmdRun)
 }
 
+// SQLStatement 表示一个SQL语句及其类型
+type SQLStatement struct {
+	SQL  string
+	Type string // "insert", "other"
+}
+
 // splitSQL 将包含多条语句的 SQL 文本拆分为独立可执行语句
-func splitSQL(sqlText string) ([]string, error) {
-	res := make([]string, 0)
+func splitSQL(sqlText string) ([]SQLStatement, error) {
+	res := make([]SQLStatement, 0)
 	sb := strings.Builder{}
 	scanner := bufio.NewScanner(strings.NewReader(sqlText))
 	scanner.Buffer(make([]byte, 0, 1024*1024), 1024*1024*64)
@@ -97,7 +103,11 @@ func splitSQL(sqlText string) ([]string, error) {
 			stmt = strings.TrimSuffix(stmt, ";")
 			stmt = strings.TrimSpace(stmt)
 			if stmt != "" {
-				res = append(res, stmt)
+				stmtType := "other"
+				if strings.HasPrefix(strings.ToUpper(stmt), "INSERT") {
+					stmtType = "insert"
+				}
+				res = append(res, SQLStatement{SQL: stmt, Type: stmtType})
 			}
 			sb.Reset()
 		}
@@ -105,7 +115,11 @@ func splitSQL(sqlText string) ([]string, error) {
 	// 处理最后未以分号结尾的语句
 	last := strings.TrimSpace(sb.String())
 	if last != "" {
-		res = append(res, last)
+		stmtType := "other"
+		if strings.HasPrefix(strings.ToUpper(last), "INSERT") {
+			stmtType = "insert"
+		}
+		res = append(res, SQLStatement{SQL: last, Type: stmtType})
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
@@ -113,8 +127,43 @@ func splitSQL(sqlText string) ([]string, error) {
 	return res, nil
 }
 
+// checkDataExists 检查特定数据是否已存在
+func checkDataExists(tx *sql.Tx, sqlStmt string) (bool, error) {
+	// 检查 cv_user 表中的 clickvisual 用户
+	if strings.Contains(sqlStmt, "cv_user") && strings.Contains(sqlStmt, "clickvisual") {
+		var count int
+		err := tx.QueryRow("SELECT COUNT(*) FROM cv_user WHERE id = 1 AND username = 'clickvisual'").Scan(&count)
+		if err != nil {
+			return false, err
+		}
+		return count > 0, nil
+	}
+
+	// 检查 cv_pms_casbin_rule 表中的规则
+	if strings.Contains(sqlStmt, "cv_pms_casbin_rule") {
+		var count int
+		if strings.Contains(sqlStmt, "VALUES (1,") {
+			// 检查 id=1 的策略规则
+			err := tx.QueryRow("SELECT COUNT(*) FROM cv_pms_casbin_rule WHERE id = 1").Scan(&count)
+			if err != nil {
+				return false, err
+			}
+		} else if strings.Contains(sqlStmt, "VALUES (2,") {
+			// 检查 id=2 的用户角色关联
+			err := tx.QueryRow("SELECT COUNT(*) FROM cv_pms_casbin_rule WHERE id = 2").Scan(&count)
+			if err != nil {
+				return false, err
+			}
+		}
+		return count > 0, nil
+	}
+
+	// 其他INSERT语句默认执行
+	return false, nil
+}
+
 // execInTx 在一个事务中顺序执行多条语句
-func execInTx(db *sql.DB, stmts []string) error {
+func execInTx(db *sql.DB, stmts []SQLStatement) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -124,12 +173,25 @@ func execInTx(db *sql.DB, stmts []string) error {
 			_ = tx.Rollback()
 		}
 	}()
-	for _, s := range stmts {
-		if strings.TrimSpace(s) == "" {
+	for _, stmt := range stmts {
+		if strings.TrimSpace(stmt.SQL) == "" {
 			continue
 		}
-		if _, err = tx.Exec(s); err != nil {
-			return fmt.Errorf("执行失败: %v, SQL: %s", err, s)
+
+		// 对于INSERT语句，先检查数据是否已存在
+		if stmt.Type == "insert" {
+			exists, err := checkDataExists(tx, stmt.SQL)
+			if err != nil {
+				return fmt.Errorf("检查数据存在性失败: %v, SQL: %s", err, stmt.SQL)
+			}
+			if exists {
+				elog.Info("数据已存在，跳过执行", elog.String("sql", stmt.SQL))
+				continue
+			}
+		}
+
+		if _, err = tx.Exec(stmt.SQL); err != nil {
+			return fmt.Errorf("执行失败: %v, SQL: %s", err, stmt.SQL)
 		}
 	}
 	if err = tx.Commit(); err != nil {

@@ -34,44 +34,6 @@ func databaseCutting(input []string) (output []string) {
 }
 
 var templateTableAnalysisField = map[string][]view.IndexItem{
-	// "app_stdout": {
-	// 	{
-	// 		Field: "application",
-	// 		Typ:   0,
-	// 	},
-	// 	{
-	// 		Field: "category",
-	// 		Typ:   0,
-	// 	},
-	// 	{
-	// 		Field: "level",
-	// 		Typ:   1,
-	// 	},
-	// 	{
-	// 		Field: "env",
-	// 		Typ:   0,
-	// 	},
-	// 	{
-	// 		Field: "lv",
-	// 		Typ:   0,
-	// 	},
-	// 	{
-	// 		Field: "method",
-	// 		Typ:   0,
-	// 	},
-	// 	{
-	// 		Field: "msg",
-	// 		Typ:   0,
-	// 	},
-	// 	{
-	// 		Field: "status",
-	// 		Typ:   1,
-	// 	},
-	// 	{
-	// 		Field: "step",
-	// 		Typ:   0,
-	// 	},
-	// },
 	"app_stdout": {
 		{
 			Field: "addr",
@@ -184,5 +146,4 @@ var templateTableAnalysisField = map[string][]view.IndexItem{
 			Typ:   0,
 		},
 	},
-	// "ingress_stderr": {},
 }
