@@ -17,6 +17,6 @@ jobs:
       - name: Install obsutil
         run: cd docs && wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -zxvf obsutil_linux_amd64.tar.gz && chmod 755 ./obsutil_linux_amd64_5.5.12/obsutil
       - name: Config obsutil
-        run: cd docs && ./obsutil_linux_amd64_5.5.12/obsutil config -i ${{ secrets.OBS_ACCESS_KEY_ID }} -k ${{ secrets.OBS_ACCESS_KEY_SECRET }} -e https://obs.cn-north-4.myhuaweicloud.com
+        run: cd docs && ./obsutil_linux_amd64_5.7.9/obsutil config -i ${{ secrets.OBS_ACCESS_KEY_ID }} -k ${{ secrets.OBS_ACCESS_KEY_SECRET }} -e https://obs.cn-north-4.myhuaweicloud.com
       - name: Upload docs by obsutil
-        run: cd docs && ./obsutil_linux_amd64_5.5.12/obsutil cp ./docs/.vuepress/dist obs://open-read/clickvisual/dist -f -r -flat
+        run: cd docs && ./obsutil_linux_amd64_5.7.9/obsutil cp ./docs/.vuepress/dist obs://open-read/clickvisual/dist -f -r -flat
