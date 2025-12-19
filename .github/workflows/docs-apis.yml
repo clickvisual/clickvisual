@@ -28,7 +28,7 @@ jobs:
           redoc-cli bundle ./api/docs/swagger.json ./api/docs/index.html
           mv redoc-static.html ./api/docs/index.html
       - name: install obsutil
-        run: wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -zxvf obsutil_linux_amd64.tar.gz && chmod 755 ./obsutil_linux_amd64_5.5.12/obsutil
+        run: wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz && tar -zxvf obsutil_linux_amd64.tar.gz && chmod 755 ./obsutil_linux_amd64_5.7.9/obsutil
       - name: config obsutil
         run: ./obsutil_linux_amd64_5.7.9/obsutil config -i ${{ secrets.OBS_ACCESS_KEY_ID }} -k ${{ secrets.OBS_ACCESS_KEY_SECRET }} -e https://obs.cn-north-4.myhuaweicloud.com
       - name: upload docs by obsutil
