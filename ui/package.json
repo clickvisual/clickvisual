@@ -11,7 +11,7 @@
     "dev": "npm run start",
     "gh-pages": "gh-pages -d dist",
     "i18n-remove": "pro i18n-remove --locale=zh-CN --write",
-    "postinstall": "max setup",
+    "postinstall": "patch-package && max setup",
     "lint": "max setup && npm run lint:js && npm run lint:style && npm run lint:prettier",
     "lint-staged": "lint-staged",
     "lint-staged:js": "eslint --ext .js,.jsx,.ts,.tsx ",
@@ -118,10 +118,11 @@
     "prettier": "^2.3.2",
     "puppeteer-core": "^8.0.0",
     "stylelint": "^13.0.0",
-    "typescript": "^4.2.2"
+    "typescript": "^4.2.2",
+    "patch-package": "^8.0.0"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=24.0.0"
   },
   "gitHooks": {
     "commit-msg": "fabric verify-commit"

@@ -1,3 +1,8 @@
+@import (reference) "./styles/var.less";
+
+// 设计系统字体：Fira Sans 适配数据/看板，中文回退到系统字体
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&display=swap");
+
 html,
 body,
 #root {
@@ -7,12 +12,13 @@ body,
 .colorWeak {
   filter: invert(80%);
 }
+
 .ant-design-pro {
-  color: #41464beb;
+  color: @font-color;
   font-size: 16px;
-  font-family: "-apple-system", "BlinkMacSystemFont", "PingFang SC", "Helvetica",
-    "Tahoma", "Arial", "Microsoft YaHei", "微软雅黑", "黑体", "Heiti",
-    "sans-serif", "SimSun", "宋体", "serif";
+  line-height: 1.6;
+  font-family: "Fira Sans", -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Helvetica Neue", "Microsoft YaHei", "微软雅黑", sans-serif;
 }
 
 .ant-layout {
@@ -70,6 +76,7 @@ canvas {
 }
 
 body {
+  margin: 0;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -78,6 +85,39 @@ body {
 ul,
 ol {
   list-style: none;
+}
+
+/* ========== 无障碍与交互（ui-ux-pro-max） ========== */
+/* 键盘焦点：可见焦点环，不依赖 outline: none */
+.ant-btn:focus-visible,
+.ant-input:focus-visible,
+.ant-select-selector:focus-visible,
+.ant-picker:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
+  outline: @focus-ring-width solid @focus-ring-color;
+  outline-offset: 2px;
+}
+
+/* 可点击元素统一指针与过渡 */
+.ant-btn,
+.ant-menu-item,
+.ant-dropdown-trigger,
+[role="button"],
+[data-clickable="true"] {
+  cursor: pointer;
+  transition: color @transition-duration @transition-easing,
+    background-color @transition-duration @transition-easing,
+    border-color @transition-duration @transition-easing,
+    box-shadow @transition-duration @transition-easing;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ant-btn,
+  .ant-menu-item,
+  * {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 // Compatible with IE11
@@ -92,10 +132,6 @@ ol {
 */
 .ant-pro-top-nav-header-wide {
   max-width: none !important;
-}
-
-body {
-  margin: 0;
 }
 
 .ant-layout {
@@ -125,7 +161,7 @@ body {
 
 .ant-menu-item-selected,
 .ant-menu-submenu-selected {
-  color: #ee722f !important;
+  color: @primary-color !important;
 }
 
 // 弹窗定位

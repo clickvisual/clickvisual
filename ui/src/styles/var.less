@@ -1,3 +1,4 @@
+// ========== 主色（品牌橙） ==========
 // #ee722e
 @primary-color: hsl(21, 85%, 56%);
 // #ef7c3e
@@ -8,13 +9,21 @@
 @primary-color-8: hsl(21, 88%, 94%);
 // #fef5f0
 @primary-color-1: hsl(21, 88%, 97%);
-// #41464beb
-@font-color: #41464beb;
-// #41464b
-@font-bord-color: #41464b;
-// #fff
-@font-color-white: hsl(0, 0%, 255%);
-// #d94646
-@font-color-error: hsl(0, 66%, 56%);
 
-@border-color: hsla(0, 0%, 0%, 0.1);
+// ========== 文字（满足 4.5:1 对比度） ==========
+// 正文：纯色保证可读性，避免透明导致对比度不足
+@font-color: #41464b;
+@font-bord-color: #41464b;
+@font-color-white: #fff;
+// 次要文字（至少 4.5:1）
+@font-color-secondary: #475569;
+@font-color-error: #dc2626;
+
+@border-color: rgba(0, 0, 0, 0.08);
+
+// ========== 交互与无障碍（ui-ux-pro-max） ==========
+@transition-duration: 0.2s;
+@transition-easing: ease;
+// 键盘焦点环，与主色区分可见
+@focus-ring-color: @primary-color;
+@focus-ring-width: 2px;

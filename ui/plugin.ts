@@ -18,6 +18,7 @@ export default (api: IApi) => {
     {
       name: "keywords",
       content: "ClickVisual, clickvisual, CLICKVISUAL, Clickhouse, shimo",
+      unsupport: true,
     },
     { name: "author", content: "@clickvisual" },
   ]);
