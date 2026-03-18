@@ -1,5 +1,5 @@
 # UI build stage
-FROM node:16-alpine3.17 as js-builder
+FROM node:20-alpine3.17 AS js-builder
 
 ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /clickvisual
@@ -18,7 +18,7 @@ RUN cd ui-v2 && npm run build
 
 
 # API build stage
-FROM golang:1.21.0-alpine3.17 as go-builder
+FROM golang:1.21.0-alpine3.17 AS go-builder
 ARG GOPROXY=goproxy.cn
 
 ENV GOPROXY=https://${GOPROXY},direct

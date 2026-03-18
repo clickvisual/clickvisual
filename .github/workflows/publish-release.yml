@@ -5,7 +5,7 @@ on:
     tags:
       - "v**"
     branches:
-      - 'fix/ci'
+      - 'fix/release'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
