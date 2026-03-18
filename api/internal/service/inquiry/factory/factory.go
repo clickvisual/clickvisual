@@ -94,3 +94,14 @@ func ResultAppend(input []string, k, v string, withQuote bool) []string {
 	}
 	return input
 }
+
+// RemoveEmptyValues 删除日志中的空值字段
+func RemoveEmptyValues(logs []map[string]interface{}) {
+	for _, logMap := range logs {
+		for key, value := range logMap {
+			if value == nil || value == "" {
+				delete(logMap, key)
+			}
+		}
+	}
+}

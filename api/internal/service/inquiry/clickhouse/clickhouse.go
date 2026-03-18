@@ -756,7 +756,7 @@ func (c *ClickHouseX) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery,
 			}
 		}
 	}
-	removeEmptyValues(res.Logs)
+	factory.RemoveEmptyValues(res.Logs)
 	res.Limited = param.PageSize
 	// Read the index data
 	conds := egorm.Conds{}
@@ -786,16 +786,6 @@ func (c *ClickHouseX) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery,
 		res.DefaultFields = append(res.DefaultFields, k.GetFieldName())
 	}
 	return
-}
-
-func removeEmptyValues(logs []map[string]interface{}) {
-	for _, logMap := range logs {
-		for key, value := range logMap {
-			if value == nil || value == "" {
-				delete(logMap, key)
-			}
-		}
-	}
 }
 
 func (c *ClickHouseX) Chart(param view.ReqQuery) (res []*view.HighChart, q string, err error) {
