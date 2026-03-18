@@ -1,11 +1,12 @@
 # UI build stage
-FROM node:20-alpine3.17 AS js-builder
+FROM node:20-alpine AS js-builder
 
 ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /clickvisual
 COPY ui/package.json ui/yarn.lock ./
+COPY ui/patches ./patches
 RUN yarn install --frozen-lockfile --network-timeout 100000
-ENV NODE_ENV production
+ENV NODE_ENV=production
 COPY ui .
 RUN yarn build
 

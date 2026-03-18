@@ -62,3 +62,4 @@ test/
 .cursor/
 openspec/
 .claude/
+.pensieve/
