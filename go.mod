@@ -8,7 +8,7 @@ require (
 	github.com/casbin/casbin/v2 v2.51.0
 	github.com/casbin/gorm-adapter/v3 v3.7.4
 	github.com/clickvisual/casbin-redis-watcher v0.0.1
-	github.com/clickvisual/prom2click v0.0.4-0.20230725081057-8faff41f6c43
+	github.com/clickvisual/prom2click v0.0.4-0.20260318024337-39accb824361
 	github.com/databendcloud/databend-go v0.2.1
 	github.com/ego-component/egorm v1.0.4
 	github.com/ego-component/ek8s v1.1.0
