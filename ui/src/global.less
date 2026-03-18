@@ -1,6 +1,7 @@
 @import (reference) "./styles/var.less";
 
-// 设计系统字体：Fira Sans 适配数据/看板，中文回退到系统字体（字体走本地/系统回退，避免构建期拉取外网资源）
+// 设计系统字体：Fira Sans 适配数据/看板，中文回退到系统字体
+// 注意：字体通过 plugin.ts 以 <link> 标签加载，避免 less 编译时请求外部资源导致 Docker 构建失败
 
 html,
 body,
