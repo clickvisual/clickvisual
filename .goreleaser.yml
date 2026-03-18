@@ -1,3 +1,4 @@
+version: 2
 # This is an example .goreleaser.yml file with some sane defaults.
 # Make sure to check the documentation at http://goreleaser.com
 before:
@@ -21,12 +22,14 @@ builds:
       - -s -w -extldflags -static -X github.com/gotomicro/ego/core/eapp.appName={{.ProjectName}} -X github.com/gotomicro/ego/core/eapp.buildAppVersion={{.Version}} -X github.com/gotomicro/ego/core/eapp.buildTime={{.Date}}
 archives:
   - id: clickvisual
-    builds:
+    ids:
       - clickvisual
     name_template: "clickvisual-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     files:
       - LICENSE
-      - scripts/migration
+      - src: scripts/migration/*
+        dst: scripts/migration
+        strip_parent: true
       - docker-compose.yml
       - src: config/*
         dst: config
@@ -34,7 +37,7 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:

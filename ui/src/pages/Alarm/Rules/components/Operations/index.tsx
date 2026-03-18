@@ -7,10 +7,8 @@ import { PlusOutlined, RedoOutlined, SearchOutlined } from "@ant-design/icons";
 import { useModel } from "@umijs/max";
 import { useDebounceFn } from "ahooks";
 import { Button, Input, Select, Space, Tooltip } from "antd";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useIntl } from "umi";
-
-const { Option } = Select;
 
 export interface urlStateType {
   iid?: string | number;
@@ -24,6 +22,8 @@ export interface urlStateType {
 const Operations = () => {
   const [urlState, setUrlState] = useUrlState<urlStateType>();
   const { operations, alarmDraw, doGetAlarms } = useModel("alarm");
+  const [localInputName, setLocalInputName] = useState<string>("");
+  const [localAlarmId, setLocalAlarmId] = useState<string>("");
 
   const {
     tableList,
@@ -43,8 +43,16 @@ const Operations = () => {
 
   const handleSearch = useDebounceFn(
     (isReload?: Boolean) => {
+      // 同步本地输入值到 operations
+      operations.onChangeInputName(localInputName || undefined);
+      operations.onChangeAlarmId(
+        localAlarmId ? parseInt(localAlarmId) : undefined
+      );
+
       doGetAlarms.run({
         ...operations.searchQuery,
+        name: localInputName || undefined,
+        alarmId: localAlarmId ? parseInt(localAlarmId) : undefined,
         isReload: isReload ? 1 : undefined,
         did: operations.searchQuery.tid
           ? undefined
@@ -53,11 +61,10 @@ const Operations = () => {
           operations.searchQuery.tid || operations.searchQuery.did
             ? undefined
             : operations.searchQuery.iid,
-        alarmId: operations.searchQuery.alarmId || undefined,
       });
       setUrlState({
-        name: operations.inputName || undefined,
-        alarmId: operations.alarmId || undefined,
+        name: localInputName || undefined,
+        alarmId: localAlarmId || undefined,
       });
     },
     { wait: DEBOUNCE_WAIT }
@@ -70,8 +77,8 @@ const Operations = () => {
       iid: params.tid || params.did ? undefined : params.iid,
     });
     setUrlState({
-      name: operations.inputName || undefined,
-      alarmId: operations.alarmId || undefined,
+      name: localInputName || undefined,
+      alarmId: localAlarmId || undefined,
     });
   };
 
@@ -92,8 +99,14 @@ const Operations = () => {
       urlState.did && operations.onChangeSelectDid(parseInt(urlState.did));
       urlState.tid && operations.onChangeSelectTid(parseInt(urlState.tid));
       urlState.status && operations.onChangeStatusId(parseInt(urlState.status));
-      urlState.name && operations.onChangeInputName(urlState.name);
-      urlState.alarmId && operations.onChangeAlarmId(urlState.alarmId);
+      if (urlState.name) {
+        setLocalInputName(urlState.name);
+        operations.onChangeInputName(urlState.name);
+      }
+      if (urlState.alarmId) {
+        setLocalAlarmId(urlState.alarmId);
+        operations.onChangeAlarmId(urlState.alarmId);
+      }
     });
   }, []);
 
@@ -271,25 +284,21 @@ const Operations = () => {
         <Input
           allowClear
           className={alarmStyles.selectedBar}
-          value={operations.inputName}
+          value={localInputName}
           placeholder={`${i18n.formatMessage({
             id: "alarm.rules.form.placeholder.alarmName",
           })}`}
-          onChange={(env) => operations.onChangeInputName(env.target.value)}
+          onChange={(e) => setLocalInputName(e.target.value)}
           onPressEnter={() => handleSearch()}
         />
         <Input
           allowClear
           className={alarmStyles.selectedBar}
-          value={operations.alarmId}
+          value={localAlarmId}
           placeholder={`${i18n.formatMessage({
             id: "alarm.rules.form.placeholder.alarmId",
           })}`}
-          onChange={(env) =>
-            operations.onChangeAlarmId(
-              env.target.value && parseInt(env.target.value)
-            )
-          }
+          onChange={(e) => setLocalAlarmId(e.target.value)}
           onPressEnter={() => handleSearch()}
         />
         <Button

@@ -481,16 +481,18 @@ func (c *ClickHouseX) CreateDatabase(name, cluster string) error {
 	if err != nil {
 		return errors.Wrap(err, "isCluster error")
 	}
+	var sql string
 	if isCluster == ModeCluster {
 		if cluster == "" {
 			return errors.New("cluster is required")
 		}
-		_, err = c.db.Exec(fmt.Sprintf("CREATE DATABASE `%s` ON CLUSTER '%s'", name, cluster))
+		sql = fmt.Sprintf("CREATE DATABASE `%s` ON CLUSTER '%s'", name, cluster)
 	} else {
-		_, err = c.db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", name))
+		sql = fmt.Sprintf("CREATE DATABASE `%s`", name)
 	}
+	_, err = c.db.Exec(sql)
 	if err != nil {
-		elog.Error("updateSwitcher", elog.Any("err", err.Error()), elog.String("step", "Exec"), elog.String("name", name))
+		elog.Error("CreateDatabase", l.E(err), l.A("step", "exec"), l.A("name", name), l.S("sql", sql))
 		return err
 	}
 	return nil
@@ -2164,11 +2166,21 @@ func (c *ClickHouseX) groupBySQL(param view.ReqQuery) (sql string) {
 func (c *ClickHouseX) doQueryWithRetry(sql string, isShowNull bool) (res []map[string]interface{}, err error) {
 	res, err = c.doQuery(sql, isShowNull)
 	if err != nil {
-		if strings.Contains(err.Error(), "Authentication failed: password is incorrect") {
-			return c.doQuery(sql, isShowNull)
+		elog.Error("doQueryFailed", elog.Any("step", "doQuery"), elog.Any("sql", sql), l.E(err))
+		// if strings.Contains(err.Error(), "password is incorrect") {
+		elog.Error("doQueryWithRetry", elog.Any("step", "doQuery"), elog.Any("sql", sql), l.E(err))
+		// 重试十次
+		maxRetries := 10
+		for i := 0; i < maxRetries; i++ {
+			res, err = c.doQuery(sql, isShowNull)
+			if err == nil || !strings.Contains(err.Error(), "password is incorrect") {
+				return res, err
+			}
+			elog.Error("doQueryWithRetry", elog.Any("step", "retry"), elog.Any("attempt", i+1), elog.Any("sql", sql), l.E(err))
+			// }
 		}
 	}
-	return res, nil
+	return res, err
 }
 
 func (c *ClickHouseX) doQuery(sql string, isShowNull bool) (res []map[string]interface{}, err error) {
