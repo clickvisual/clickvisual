@@ -156,6 +156,7 @@ func (s *srvStorage) CreateByEgoTemplate(uid int, databaseInfo db2.BaseDatabase,
 	if err != nil {
 		return fmt.Errorf("create by ego app stdout error: %w", err)
 	}
+	time.Sleep(1 * time.Second)
 	err = s.createByEgoIngressStdout(uid, databaseInfo, param)
 	if err != nil {
 		return fmt.Errorf("create by ego ingress stdout error: %w", err)
@@ -198,8 +199,8 @@ func (s *srvStorage) createByEgoAppStdout(uid int, databaseInfo db2.BaseDatabase
 		RawLogField:       "content",
 		RawLogFieldParent: "contents",
 	}
-	cp.Topics = param.TopicsIngressStdout
-	cp.TableName = "ingress_stdout"
+	cp.Topics = param.TopicsApp
+	cp.TableName = "app_stdout"
 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}
@@ -241,8 +242,8 @@ func (s *srvStorage) createByEgoIngressStdout(uid int, databaseInfo db2.BaseData
 		RawLogField:       "content",
 		RawLogFieldParent: "contents",
 	}
-	cp.Topics = param.TopicsApp
-	cp.TableName = "app_stdout"
+	cp.Topics = param.TopicsIngressStdout
+	cp.TableName = "ingress_stdout"
 	if err = s.createByEgoTemplateItem(uid, databaseInfo, cp); err != nil {
 		return err
 	}

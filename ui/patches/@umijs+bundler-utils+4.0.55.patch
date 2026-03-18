@@ -1,0 +1,18 @@
+diff --git a/node_modules/@umijs/bundler-utils/dist/index.js b/node_modules/@umijs/bundler-utils/dist/index.js
+index f9e6f69..a8248f4 100644
+--- a/node_modules/@umijs/bundler-utils/dist/index.js
++++ b/node_modules/@umijs/bundler-utils/dist/index.js
+@@ -39,7 +39,12 @@ var import_utils = require("@umijs/utils");
+ var import_path = require("path");
+ var import_es_module_lexer = require("../compiled/es-module-lexer");
+ var import_esbuild = require("../compiled/esbuild");
+-__reExport(src_exports, require("./https"), module.exports);
++// Lazy-load https to avoid loading spdy/http-deceiver (uses removed process.binding('http_parser') on Node 22+)
++function getHttps() { return require("./https"); }
++Object.defineProperty(src_exports, "createHttpsServer", { get: function() { return getHttps().createHttpsServer; }, enumerable: true });
++Object.defineProperty(src_exports, "resolveHttpsConfig", { get: function() { return getHttps().resolveHttpsConfig; }, enumerable: true });
++Object.defineProperty(module.exports, "createHttpsServer", { get: function() { return getHttps().createHttpsServer; }, enumerable: true });
++Object.defineProperty(module.exports, "resolveHttpsConfig", { get: function() { return getHttps().resolveHttpsConfig; }, enumerable: true });
+ __reExport(src_exports, require("./proxy"), module.exports);
+ __reExport(src_exports, require("./types"), module.exports);
+ var babelCodeFrame = (0, import_utils.importLazy)(require.resolve("../compiled/babel/code-frame"));
