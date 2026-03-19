@@ -266,6 +266,8 @@ github.com/clickvisual/prom2click v0.0.4-0.20230725081057-8faff41f6c43 h1:EcxFOz
 github.com/clickvisual/prom2click v0.0.4-0.20230725081057-8faff41f6c43/go.mod h1:p4z5WF/aaFFRfuV1ii4L9MzOWpGWnH7G9im4hTY59NM=
 github.com/clickvisual/prom2click v0.0.4-0.20260318024337-39accb824361 h1:v0YEEZ/QB+s5UUz+kHA/ZcGOmDunum3KSjoojdY3ExM=
 github.com/clickvisual/prom2click v0.0.4-0.20260318024337-39accb824361/go.mod h1:p4z5WF/aaFFRfuV1ii4L9MzOWpGWnH7G9im4hTY59NM=
+github.com/clickvisual/prom2click v0.0.4-0.20260319035048-dcfd860c4523 h1:hk74Vzlm+ND+9HSCa6gaqSPLDaeSagmNrT0Unue+4WQ=
+github.com/clickvisual/prom2click v0.0.4-0.20260319035048-dcfd860c4523/go.mod h1:p4z5WF/aaFFRfuV1ii4L9MzOWpGWnH7G9im4hTY59NM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
