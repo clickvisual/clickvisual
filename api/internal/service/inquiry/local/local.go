@@ -220,6 +220,7 @@ func (l Local) GetLogs(query view.ReqQuery, i int) (resp view.RespQuery, err err
 	} else {
 		resp.Logs = tmpLogs
 	}
+	factory.RemoveEmptyValues(resp.Logs)
 	sort.Slice(resp.Logs, func(i, j int) bool {
 		return resp.Logs[i][db.TimeFieldSecond].(int64) > resp.Logs[j][db.TimeFieldSecond].(int64)
 	})

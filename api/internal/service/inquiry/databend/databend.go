@@ -437,6 +437,7 @@ func (c *Databend) GetLogs(param view2.ReqQuery, tid int) (res view2.RespQuery, 
 			}
 		}
 	}
+	factory.RemoveEmptyValues(res.Logs)
 	res.HiddenFields = econf.GetStringSlice("app.hiddenFields")
 	res.DefaultFields = econf.GetStringSlice("app.defaultFields")
 	for _, k := range res.Keys {

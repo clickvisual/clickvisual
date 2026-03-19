@@ -756,6 +756,7 @@ func (c *ClickHouseX) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery,
 			}
 		}
 	}
+	factory.RemoveEmptyValues(res.Logs)
 	res.Limited = param.PageSize
 	// Read the index data
 	conds := egorm.Conds{}
