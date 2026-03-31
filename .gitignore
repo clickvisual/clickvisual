@@ -62,3 +62,7 @@ test/
 .cursor/
 .claude/
 .worktrees/
+task_plan.md
+progress.md
+findings.md
+v2/stitch/
