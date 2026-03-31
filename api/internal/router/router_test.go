@@ -1,0 +1,101 @@
+package router
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/ui/v2dist"
+)
+
+func TestIsV2Asset(t *testing.T) {
+	cases := []struct {
+		name string
+		path string
+		want bool
+	}{
+		{name: "v2 root", path: "/v2", want: true},
+		{name: "v2 root slash", path: "/v2/", want: true},
+		{name: "v2 nested route", path: "/v2/reports", want: true},
+		{name: "v1 route", path: "/query", want: false},
+		{name: "api route", path: "/api/v2/base/users", want: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := isV2Asset(tc.path); got != tc.want {
+				t.Fatalf("isV2Asset(%q) = %v, want %v", tc.path, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestNoRouteServesV2Index(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.NoRoute(core.Handle(func(c *core.Context) {
+		if isV2Asset(c.Request.URL.Path) {
+			v2dist.Serve(c, c.Request.URL.Path)
+			return
+		}
+		c.Status(http.StatusNotFound)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/v2/reports", nil)
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, resp.Code)
+	}
+	if !strings.Contains(resp.Body.String(), "<div id=\"root\"></div>") {
+		t.Fatalf("expected v2 app html shell, got %q", resp.Body.String())
+	}
+}
+
+func TestNoRouteDoesNotServeV2IndexForV1Path(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.NoRoute(core.Handle(func(c *core.Context) {
+		if isV2Asset(c.Request.URL.Path) {
+			v2dist.Serve(c, c.Request.URL.Path)
+			return
+		}
+		c.Status(http.StatusNotFound)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/query", nil)
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusNotFound {
+		t.Fatalf("expected status %d, got %d", http.StatusNotFound, resp.Code)
+	}
+}
+
+func TestNoRouteServesV2StaticFile(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.NoRoute(core.Handle(func(c *core.Context) {
+		if isV2Asset(c.Request.URL.Path) {
+			v2dist.Serve(c, c.Request.URL.Path)
+			return
+		}
+		c.Status(http.StatusNotFound)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/v2/clickvisual-v2-probe.txt", nil)
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, resp.Code)
+	}
+	if !strings.Contains(resp.Body.String(), "clickvisual-v2-static-ok") {
+		t.Fatalf("expected probe content, got %q", resp.Body.String())
+	}
+}

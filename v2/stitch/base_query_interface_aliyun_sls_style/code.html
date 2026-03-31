@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LogFlow | ClickHouse Log Engine</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f2f3ff",
+              "surface-container-highest": "#dae2fd",
+              "surface-bright": "#faf8ff",
+              "tertiary-fixed": "#d0e4ff",
+              "on-tertiary-fixed": "#001d35",
+              "secondary-container": "#d5e3fc",
+              "primary": "#a33e00",
+              "surface-dim": "#d2d9f4",
+              "surface-container": "#eaedff",
+              "on-surface": "#131b2e",
+              "on-tertiary-container": "#003155",
+              "surface": "#faf8ff",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed": "#360f00",
+              "tertiary-fixed-dim": "#9ccaff",
+              "on-surface-variant": "#5a4136",
+              "secondary-fixed": "#d5e3fc",
+              "surface-container-high": "#e2e7ff",
+              "inverse-primary": "#ffb596",
+              "secondary-fixed-dim": "#b9c7df",
+              "error-container": "#ffdad6",
+              "on-error-container": "#93000a",
+              "on-primary": "#ffffff",
+              "inverse-surface": "#283044",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#3a485b",
+              "on-tertiary-fixed-variant": "#00497b",
+              "on-secondary-container": "#57657a",
+              "primary-container": "#ff6600",
+              "surface-variant": "#dae2fd",
+              "on-primary-fixed-variant": "#7c2e00",
+              "error": "#ba1a1a",
+              "on-error": "#ffffff",
+              "tertiary-container": "#009cfc",
+              "secondary": "#515f74",
+              "primary-fixed": "#ffdbcd",
+              "primary-fixed-dim": "#ffb596",
+              "outline-variant": "#e3bfb1",
+              "on-background": "#131b2e",
+              "surface-tint": "#a33e00",
+              "on-secondary-fixed": "#0d1c2e",
+              "inverse-on-surface": "#eef0ff",
+              "background": "#faf8ff",
+              "tertiary": "#0062a1",
+              "on-secondary": "#ffffff",
+              "outline": "#8e7164",
+              "on-primary-container": "#561d00"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(250, 248, 255, 0.7);
+            backdrop-filter: blur(12px);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #dae2fd; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ffdbcd; }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 z-50 bg-[#faf8ff]/70 dark:bg-slate-950/70 backdrop-blur-xl flex flex-col h-full py-6 shadow-[20px_0_40px_rgba(19,27,46,0.04)]">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dataset</span>
+</div>
+<div>
+<h1 class="text-lg font-black tracking-tighter text-[#131b2e] font-headline">ClickHouse</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Log Engine</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-[#131b2e]/70 px-4 py-3 mx-2 flex items-center gap-3 hover:bg-[#dae2fd] rounded-xl transition-all font-headline text-sm font-medium" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="bg-[#ffdbcd]/30 text-[#a33e00] rounded-xl px-4 py-3 mx-2 flex items-center gap-3 translate-x-1 transition-transform duration-200 font-headline text-sm font-medium" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span> Query
+            </a>
+<a class="text-[#131b2e]/70 px-4 py-3 mx-2 flex items-center gap-3 hover:bg-[#dae2fd] rounded-xl transition-all font-headline text-sm font-medium" href="#">
+<span class="material-symbols-outlined">assessment</span> Reports
+            </a>
+<a class="text-[#131b2e]/70 px-4 py-3 mx-2 flex items-center gap-3 hover:bg-[#dae2fd] rounded-xl transition-all font-headline text-sm font-medium" href="#">
+<span class="material-symbols-outlined">notifications_active</span> Alerts
+            </a>
+<a class="text-[#131b2e]/70 px-4 py-3 mx-2 flex items-center gap-3 hover:bg-[#dae2fd] rounded-xl transition-all font-headline text-sm font-medium" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+            </a>
+</nav>
+<div class="mt-auto px-4 space-y-1 border-t border-outline-variant/10 pt-4">
+<a class="text-[#131b2e]/70 px-4 py-2 flex items-center gap-3 hover:bg-[#dae2fd] rounded-xl transition-all font-headline text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-lg">contact_support</span> Support
+            </a>
+<a class="text-[#131b2e]/70 px-4 py-2 flex items-center gap-3 hover:bg-[#dae2fd] rounded-xl transition-all font-headline text-xs font-medium" href="#">
+<span class="material-symbols-outlined text-lg">menu_book</span> Documentation
+            </a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="w-full h-16 sticky top-0 z-40 bg-[#faf8ff] backdrop-blur-xl flex items-center justify-between px-8 w-full no-border">
+<div class="flex items-center gap-8">
+<span class="font-headline text-2xl font-bold text-[#131b2e]">LogFlow</span>
+<div class="relative group">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 material-symbols-outlined">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-primary-container transition-all" placeholder="Search saved queries..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-[#dae2fd] rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:bg-[#dae2fd] rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant/20 mx-2"></div>
+<div class="flex items-center gap-3 pl-2">
+<div class="text-right hidden sm:block">
+<p class="text-xs font-bold text-on-surface leading-none">Admin User</p>
+<p class="text-[10px] text-on-surface-variant">ClickHouse Pro</p>
+</div>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full border-2 border-primary-fixed" data-alt="close up professional headshot of a developer with a clean modern aesthetic background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYG1w_-62wWa6Dq1f1SCoU4kZ0iiqq7ycULtDFSqkz443b_RYOet6k7NFtqMMkUPVW4YL7V5Mia83Ydy5cZKsMx_DpDsnxi_yG556_Knq8ISg8X9Qp3NftF8wDGMDJzg9rSVQoAUnPQ4x3gqd2FWzfUMomp4PjVsaX79UI6xBvh-1fsUQbg6i4TRtXWhfk04NGUq1-crK0eCfB73U_WNyTFg2R6RTNEobjmCaMeHkVfJzSdp4vc63yKB4rLIkujQzEyizmNyomltA"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<section class="p-8 flex-1 space-y-6">
+<!-- Breadcrumbs & Actions -->
+<div class="flex items-center justify-between">
+<nav class="flex items-center gap-2 text-sm font-medium">
+<span class="text-on-surface-variant">Exploration</span>
+<span class="text-outline">/</span>
+<span class="text-on-surface font-bold">Query Editor</span>
+</nav>
+<div class="flex items-center gap-3">
+<div class="flex bg-surface-container-highest rounded-full p-1">
+<button class="px-4 py-1.5 text-xs font-bold bg-surface-container-lowest rounded-full shadow-sm text-on-surface">Live Stream</button>
+<button class="px-4 py-1.5 text-xs font-medium text-on-surface-variant hover:text-on-surface">History</button>
+</div>
+<button class="flex items-center gap-2 bg-surface-container-highest px-4 py-2 rounded-full text-xs font-bold hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-sm">save</span> Save Query
+                    </button>
+</div>
+</div>
+<!-- Query Section -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Query Editor Main -->
+<div class="col-span-12 lg:col-span-9 space-y-4">
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm relative overflow-hidden group">
+<!-- AI completion glow -->
+<div class="absolute -right-20 -top-20 w-64 h-64 bg-tertiary-container/5 blur-[80px] pointer-events-none"></div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-bold uppercase tracking-tighter text-outline bg-surface-container-low px-2 py-1 rounded">SQL Console</span>
+<div class="flex items-center gap-2 text-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-sm text-tertiary">auto_awesome</span>
+<span>AI Autocomplete Active</span>
+</div>
+</div>
+<!-- Time Picker -->
+<div class="flex items-center gap-2 bg-surface-container-low rounded-full px-3 py-1 text-xs font-bold">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>Last 15m</span>
+<span class="material-symbols-outlined text-sm cursor-pointer hover:text-primary transition-colors">expand_more</span>
+</div>
+</div>
+<div class="min-h-[160px] font-mono text-sm leading-relaxed p-2 text-on-surface">
+<span class="text-primary font-bold">SELECT</span> timestamp, service_name, level, message<br/>
+<span class="text-primary font-bold">FROM</span> system_logs<br/>
+<span class="text-primary font-bold">WHERE</span> level = <span class="text-tertiary">'ERROR'</span><br/>
+<span class="text-primary font-bold">AND</span> message <span class="text-primary font-bold">LIKE</span> <span class="text-tertiary">'%Connection%'</span><br/>
+<span class="text-primary font-bold">ORDER BY</span> timestamp <span class="text-primary font-bold">DESC</span><br/>
+<span class="text-primary font-bold">LIMIT</span> <span class="text-secondary">50</span>
+<span class="inline-block w-[2px] h-5 bg-primary-container animate-pulse align-middle ml-1"></span>
+</div>
+<div class="mt-4 flex items-center justify-between pt-4 border-t border-outline-variant/10">
+<div class="flex gap-2">
+<button class="p-2 hover:bg-surface-container-low rounded-lg transition-colors" title="Format SQL">
+<span class="material-symbols-outlined text-lg">format_indent_increase</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-lg transition-colors" title="Share Query">
+<span class="material-symbols-outlined text-lg">share</span>
+</button>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 bg-surface-container-highest text-on-surface font-bold rounded-full hover:bg-surface-container-high transition-all text-sm">Dry Run</button>
+<button class="px-8 py-2.5 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded-full shadow-lg shadow-primary-container/20 hover:scale-[1.02] active:scale-95 transition-all text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">play_arrow</span> Run Query
+                                </button>
+</div>
+</div>
+</div>
+<!-- AI Insights Banner -->
+<div class="bg-tertiary/5 border border-tertiary-container/10 rounded-xl p-4 flex items-start gap-4">
+<div class="w-10 h-10 bg-tertiary rounded-full flex items-center justify-center text-white flex-shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-1">
+<h4 class="text-sm font-bold text-on-surface">AI Log Summary</h4>
+<span class="text-[10px] font-bold text-tertiary bg-tertiary-container/20 px-2 py-0.5 rounded-full uppercase">Insight Generated</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                Found <span class="font-bold text-on-surface">500 logs</span> in the last 15 minutes. The most common error is <span class="font-bold text-error">ConnectionTimeout</span> (78% of occurrences), originating primarily from <span class="font-bold text-on-surface">service-api-gateway</span> in the <span class="font-bold text-on-surface">us-east-1</span> region.
+                            </p>
+</div>
+<button class="text-tertiary hover:bg-tertiary/10 p-1 rounded-lg transition-all">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<!-- Field Browser Sidebar -->
+<div class="col-span-12 lg:col-span-3 space-y-4 sticky top-24">
+<div class="bg-surface-container-low rounded-xl p-4 h-[calc(100vh-250px)] flex flex-col">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Field Browser</h3>
+<span class="text-[10px] font-medium text-outline">24 Fields</span>
+</div>
+<div class="relative mb-4">
+<span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-outline material-symbols-outlined text-sm">filter_list</span>
+<input class="w-full pl-8 pr-3 py-1.5 bg-surface-container-lowest border-none rounded-lg text-xs focus:ring-1 focus:ring-primary-container" placeholder="Filter fields..." type="text"/>
+</div>
+<div class="flex-1 overflow-y-auto space-y-1 pr-2">
+<!-- Category -->
+<div class="pt-2 pb-1 text-[10px] font-bold text-outline uppercase tracking-tighter">System Defaults</div>
+<div class="group flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-highest cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-secondary">calendar_month</span>
+<span class="text-xs font-medium">timestamp</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100">add_circle</span>
+</div>
+<div class="group flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-highest cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary">priority_high</span>
+<span class="text-xs font-medium">level</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100">add_circle</span>
+</div>
+<div class="group flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-highest cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-tertiary">notes</span>
+<span class="text-xs font-medium">message</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100">add_circle</span>
+</div>
+<!-- Category -->
+<div class="pt-4 pb-1 text-[10px] font-bold text-outline uppercase tracking-tighter">Application Context</div>
+<div class="group flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-highest cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-secondary">hub</span>
+<span class="text-xs font-medium">service_name</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100">add_circle</span>
+</div>
+<div class="group flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-highest cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-secondary">dns</span>
+<span class="text-xs font-medium">host_id</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100">add_circle</span>
+</div>
+<div class="group flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-highest cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-secondary">fingerprint</span>
+<span class="text-xs font-medium">trace_id</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100">add_circle</span>
+</div>
+<div class="group flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-highest cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-secondary">public</span>
+<span class="text-xs font-medium">region</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100">add_circle</span>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-outline-variant/20">
+<button class="w-full py-2 bg-surface-container-highest text-on-surface font-bold text-[10px] rounded-lg hover:bg-surface-container-high transition-all uppercase tracking-widest">Discover New Fields</button>
+</div>
+</div>
+</div>
+<!-- Results Table -->
+<div class="col-span-12 lg:col-span-9">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<!-- Table Header/Toolbar -->
+<div class="px-6 py-4 flex items-center justify-between border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<h2 class="text-sm font-bold text-on-surface">Results <span class="ml-2 font-normal text-on-surface-variant/60">50 rows scanned (1.2ms)</span></h2>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-surface-container-low rounded-lg transition-colors text-outline">
+<span class="material-symbols-outlined text-lg">download</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-lg transition-colors text-outline">
+<span class="material-symbols-outlined text-lg">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- High Performance Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/40">
+<th class="p-3 text-[10px] font-bold text-outline uppercase tracking-widest w-12 text-center"></th>
+<th class="p-3 text-[10px] font-bold text-outline uppercase tracking-widest min-w-[140px]">Timestamp</th>
+<th class="p-3 text-[10px] font-bold text-outline uppercase tracking-widest w-24">Level</th>
+<th class="p-3 text-[10px] font-bold text-outline uppercase tracking-widest">Message</th>
+<th class="p-3 text-[10px] font-bold text-outline uppercase tracking-widest w-40">Service</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group cursor-pointer">
+<td class="p-3 text-center text-outline">
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</td>
+<td class="p-3 text-xs font-medium font-mono text-on-surface-variant">2023-11-20 14:02:44.128</td>
+<td class="p-3">
+<span class="bg-error-container text-on-error-container text-[10px] font-bold px-2 py-0.5 rounded uppercase">Error</span>
+</td>
+<td class="p-3 text-xs leading-relaxed text-on-surface">
+<span class="font-bold text-primary">ConnectionTimeoutException</span>: Failed to connect to database 'orders_db' after 5000ms.
+                                        </td>
+<td class="p-3 text-xs font-medium text-secondary">api-gateway-v2</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group cursor-pointer bg-surface-container-low/20">
+<td class="p-3 text-center text-outline">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</td>
+<td class="p-3 text-xs font-medium font-mono text-on-surface-variant">2023-11-20 14:02:42.990</td>
+<td class="p-3">
+<span class="bg-surface-container-highest text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded uppercase">Info</span>
+</td>
+<td class="p-3 text-xs leading-relaxed text-on-surface-variant">
+                                            Retrying connection attempt #3 for host node-01.internal...
+                                        </td>
+<td class="p-3 text-xs font-medium text-secondary">worker-pool-main</td>
+</tr>
+<!-- Row 3 (Highlighted Error) -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group cursor-pointer">
+<td class="p-3 text-center text-outline">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</td>
+<td class="p-3 text-xs font-medium font-mono text-on-surface-variant">2023-11-20 14:02:41.005</td>
+<td class="p-3">
+<span class="bg-error-container text-on-error-container text-[10px] font-bold px-2 py-0.5 rounded uppercase">Error</span>
+</td>
+<td class="p-3 text-xs leading-relaxed text-on-surface">
+<span class="font-bold text-primary">RedisError</span>: Could not establish connection to cluster 'cache-cluster-prod'.
+                                        </td>
+<td class="p-3 text-xs font-medium text-secondary">session-service</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group cursor-pointer bg-surface-container-low/20">
+<td class="p-3 text-center text-outline">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</td>
+<td class="p-3 text-xs font-medium font-mono text-on-surface-variant">2023-11-20 14:02:39.120</td>
+<td class="p-3">
+<span class="bg-surface-container-highest text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded uppercase">Info</span>
+</td>
+<td class="p-3 text-xs leading-relaxed text-on-surface-variant">
+                                            User ID 198273 authenticated successfully. Redirecting to dashboard.
+                                        </td>
+<td class="p-3 text-xs font-medium text-secondary">auth-module</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination -->
+<div class="px-6 py-4 bg-surface-container-low/20 flex items-center justify-between">
+<div class="flex items-center gap-4 text-xs font-medium text-on-surface-variant">
+<span>Showing 1-50 of 500 items</span>
+<div class="flex items-center gap-2">
+<span>Show</span>
+<select class="bg-surface-container-lowest border-none py-1 pl-2 pr-6 rounded text-xs focus:ring-1 focus:ring-primary-container">
+<option>50</option>
+<option>100</option>
+<option>500</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-lg">first_page</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary-container text-white font-bold text-xs">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-xs transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-xs transition-colors">3</button>
+<span class="mx-1 text-outline">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-xs transition-colors">10</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-lg">last_page</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center group hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">add</span>
+<span class="absolute right-full mr-4 bg-on-surface text-surface text-[10px] font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-widest">New Query</span>
+</button>
+</main>
+</body></html>

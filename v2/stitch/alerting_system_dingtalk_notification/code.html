@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LogFlow | Alerts Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-low": "#f2f3ff",
+                        "surface-container-highest": "#dae2fd",
+                        "surface-bright": "#faf8ff",
+                        "tertiary-fixed": "#d0e4ff",
+                        "on-tertiary-fixed": "#001d35",
+                        "secondary-container": "#d5e3fc",
+                        "primary": "#a33e00",
+                        "surface-dim": "#d2d9f4",
+                        "surface-container": "#eaedff",
+                        "on-surface": "#131b2e",
+                        "on-tertiary-container": "#003155",
+                        "surface": "#faf8ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed": "#360f00",
+                        "tertiary-fixed-dim": "#9ccaff",
+                        "on-surface-variant": "#5a4136",
+                        "secondary-fixed": "#d5e3fc",
+                        "surface-container-high": "#e2e7ff",
+                        "inverse-primary": "#ffb596",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#283044",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "on-tertiary-fixed-variant": "#00497b",
+                        "on-secondary-container": "#57657a",
+                        "primary-container": "#ff6600",
+                        "surface-variant": "#dae2fd",
+                        "on-primary-fixed-variant": "#7c2e00",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#009cfc",
+                        "secondary": "#515f74",
+                        "primary-fixed": "#ffdbcd",
+                        "primary-fixed-dim": "#ffb596",
+                        "outline-variant": "#e3bfb1",
+                        "on-background": "#131b2e",
+                        "surface-tint": "#a33e00",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "inverse-on-surface": "#eef0ff",
+                        "background": "#faf8ff",
+                        "tertiary": "#0062a1",
+                        "on-secondary": "#ffffff",
+                        "outline": "#8e7164",
+                        "on-primary-container": "#561d00"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed">
+<!-- Sidebar Navigation Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 z-50 bg-[#faf8ff]/70 backdrop-blur-xl flex flex-col py-6 shadow-[20px_0_40px_rgba(19,27,46,0.04)]">
+<div class="px-8 mb-10 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dataset</span>
+</div>
+<div>
+<h1 class="text-lg font-black tracking-tighter text-[#131b2e] font-headline">ClickHouse</h1>
+<p class="text-[10px] uppercase tracking-widest text-[#131b2e]/50 font-bold">Log Engine</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-[#131b2e]/70 px-4 py-3 mx-2 flex items-center gap-3 font-headline font-medium text-sm hover:bg-[#dae2fd] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="text-[#131b2e]/70 px-4 py-3 mx-2 flex items-center gap-3 font-headline font-medium text-sm hover:bg-[#dae2fd] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">terminal</span>
+<span>Query</span>
+</a>
+<a class="text-[#131b2e]/70 px-4 py-3 mx-2 flex items-center gap-3 font-headline font-medium text-sm hover:bg-[#dae2fd] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span>Reports</span>
+</a>
+<!-- Active State: Alerts -->
+<a class="bg-[#ffdbcd]/30 text-[#a33e00] rounded-xl px-4 py-3 mx-2 flex items-center gap-3 font-headline font-medium text-sm translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+<span>Alerts</span>
+</a>
+<a class="text-[#131b2e]/70 px-4 py-3 mx-2 flex items-center gap-3 font-headline font-medium text-sm hover:bg-[#dae2fd] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-4 space-y-4">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>New Query</span>
+</button>
+<div class="pt-4 border-t border-outline-variant/10">
+<a class="text-[#131b2e]/70 px-4 py-2 flex items-center gap-3 font-headline font-medium text-xs hover:bg-[#dae2fd] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-lg">contact_support</span>
+<span>Support</span>
+</a>
+<a class="text-[#131b2e]/70 px-4 py-2 flex items-center gap-3 font-headline font-medium text-xs hover:bg-[#dae2fd] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-lg">menu_book</span>
+<span>Documentation</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="w-full h-16 sticky top-0 z-40 bg-[#faf8ff] backdrop-blur-xl flex items-center justify-between px-8">
+<div class="flex items-center gap-8">
+<div class="relative group">
+<div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-on-surface-variant/50">
+<span class="material-symbols-outlined text-sm">search</span>
+</div>
+<input class="bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm w-80 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search rules, logs or history..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-[#dae2fd] rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:bg-[#dae2fd] rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">help</span>
+</button>
+<button class="p-2 hover:bg-[#dae2fd] rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden ml-2 bg-primary-fixed border-2 border-surface">
+<img alt="User profile avatar" data-alt="close-up profile portrait of a smiling software engineer with glasses in a minimalist professional style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbF4_dcSrpCO6TC3DARbTdCH4-no6YTO0hDgFU681FFyxRPWpGtsA94t1taZITr_0ilXSaq63L67YeH0erQiJPYcXlys88lIe2169rOB1Eb6ait0kz-gBPiCcLN2INbcm-Y6XogE4lctG_krxgYJC9GxS5m-I4gz1Tj08JY8XIfkHP2wez7jpr0n_qTe0YlRcQwcV4w2MTKUdZ6hhLdsHMIL5AuO1extrcX251wraqKkUVVfeU_XEz-lBw9YfHMzXYJP5QxxSEhIc"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-8 space-y-10">
+<!-- Hero Header & AI Suggestion -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-1">
+<div class="flex items-center gap-2 text-primary font-bold text-sm tracking-widest uppercase">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">emergency</span>
+<span>Alerting Intelligence</span>
+</div>
+<h2 class="text-4xl font-black font-headline tracking-tighter text-on-surface">Alert Rules &amp; Monitoring</h2>
+<p class="text-on-surface-variant/70 max-w-lg">Manage real-time detection rules and notification flows for your ClickHouse clusters.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-3 bg-white border border-outline-variant/30 rounded-full font-bold text-sm text-tertiary flex items-center gap-2 shadow-sm hover:bg-tertiary-fixed transition-all group">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform">auto_awesome</span>
+<span>AI Rule Suggestions</span>
+</button>
+<button class="px-6 py-3 bg-gradient-to-br from-primary to-primary-container text-white rounded-full font-bold text-sm shadow-xl shadow-primary/20 hover:scale-[0.97] transition-all flex items-center gap-2">
+<span class="material-symbols-outlined">add_alert</span>
+<span>Create New Rule</span>
+</button>
+</div>
+</section>
+<!-- Main Asymmetric Content Grid -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Alert Rules List (70%) -->
+<div class="col-span-12 lg:col-span-8 space-y-6">
+<div class="bg-surface-container-lowest rounded-3xl p-6 shadow-[0_20px_40px_rgba(19,27,46,0.02)] border border-outline-variant/5">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-xl font-bold font-headline flex items-center gap-2">
+<span class="w-2 h-6 bg-primary rounded-full"></span>
+                                Active Alert Rules
+                            </h3>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-lg text-xs font-bold text-on-surface-variant">All Rules (12)</span>
+<span class="px-3 py-1 bg-error-container/30 rounded-lg text-xs font-bold text-error">Critical (3)</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-separate border-spacing-y-3">
+<thead class="text-xs uppercase tracking-widest text-on-surface-variant/50">
+<tr>
+<th class="px-4 py-2 font-black">Rule Name</th>
+<th class="px-4 py-2 font-black">Severity</th>
+<th class="px-4 py-2 font-black">Status</th>
+<th class="px-4 py-2 font-black">Destination</th>
+<th class="px-4 py-2 font-black">Actions</th>
+</tr>
+</thead>
+<tbody>
+<!-- Row 1 -->
+<tr class="group hover:bg-primary-fixed/20 transition-all rounded-xl">
+<td class="px-4 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface">API Error Spike</span>
+<span class="text-xs text-on-surface-variant/60">ERROR count &gt; 100 in 5m</span>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="px-3 py-1 bg-error text-white text-[10px] font-black uppercase rounded-full">Critical</span>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2 text-sm text-green-600 font-medium">
+<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                                Active
+                                            </div>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-xs text-blue-600">chat_bubble</span>
+</div>
+<span class="text-xs font-medium">DingTalk</span>
+</div>
+</td>
+<td class="px-4 py-4 text-right">
+<button class="p-2 hover:bg-surface-container rounded-lg transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-primary-fixed/20 transition-all rounded-xl">
+<td class="px-4 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface">Latency P99 Threshold</span>
+<span class="text-xs text-on-surface-variant/60">duration &gt; 500ms for 10m</span>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="px-3 py-1 bg-primary-container text-white text-[10px] font-black uppercase rounded-full">High</span>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2 text-sm text-on-surface-variant/50 font-medium">
+<span class="w-2 h-2 bg-on-surface-variant/30 rounded-full"></span>
+                                                Silenced
+                                            </div>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 bg-red-100 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-xs text-red-600">mail</span>
+</div>
+<span class="text-xs font-medium">Email</span>
+</div>
+</td>
+<td class="px-4 py-4 text-right">
+<button class="p-2 hover:bg-surface-container rounded-lg transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-primary-fixed/20 transition-all rounded-xl">
+<td class="px-4 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface">Database Connections</span>
+<span class="text-xs text-on-surface-variant/60">active_queries &gt; 50</span>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-black uppercase rounded-full">Warning</span>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2 text-sm text-green-600 font-medium">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                                Active
+                                            </div>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 bg-indigo-100 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-xs text-indigo-600">webhook</span>
+</div>
+<span class="text-xs font-medium">Webhook</span>
+</div>
+</td>
+<td class="px-4 py-4 text-right">
+<button class="p-2 hover:bg-surface-container rounded-lg transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Rule Editor Preview/Form -->
+<div class="bg-white rounded-3xl p-8 border border-outline-variant/10 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+<div class="relative z-10 flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold font-headline">New Rule: Threshold Configuration</h3>
+<span class="text-xs font-medium text-tertiary px-3 py-1 bg-tertiary-fixed rounded-full">Editor v2.4</span>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant/60">Metric Selection</label>
+<div class="bg-surface-container-highest p-4 rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-surface-container-high transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<span class="font-bold">Error Count</span>
+</div>
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant/60">Condition</label>
+<div class="flex items-center gap-3">
+<div class="flex-1 bg-surface-container-highest p-4 rounded-2xl flex items-center justify-center font-black text-xl">
+                                            &gt;
+                                        </div>
+<div class="flex-[3] bg-surface-container-highest p-4 rounded-2xl">
+<input class="bg-transparent border-none w-full text-center font-black text-xl focus:ring-0" type="number" value="100"/>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant/60">Notification Channel</label>
+<div class="flex flex-wrap gap-4">
+<button class="px-4 py-3 rounded-2xl border-2 border-primary bg-primary-fixed/20 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-bold text-sm">DingTalk</span>
+</button>
+<button class="px-4 py-3 rounded-2xl border-2 border-transparent bg-surface-container-low flex items-center gap-3 hover:border-outline-variant/30 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">mail</span>
+<span class="font-bold text-sm">Email</span>
+</button>
+<button class="px-4 py-3 rounded-2xl border-2 border-transparent bg-surface-container-low flex items-center gap-3 hover:border-outline-variant/30 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">sms</span>
+<span class="font-bold text-sm">Slack</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Notification History & Sidebar Panels (30%) -->
+<div class="col-span-12 lg:col-span-4 space-y-8">
+<!-- Notification History Timeline -->
+<div class="bg-surface-container-low rounded-3xl p-6 h-fit">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold font-headline">Recent Deliveries</h3>
+<button class="text-xs font-bold text-primary hover:underline">View All</button>
+</div>
+<div class="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/20">
+<!-- Timeline Item 1 -->
+<div class="relative pl-8 space-y-1">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-error flex items-center justify-center border-4 border-surface-container-low">
+<span class="material-symbols-outlined text-[10px] text-white" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div class="flex justify-between items-start">
+<span class="font-bold text-sm">API Error Spike triggered</span>
+<span class="text-[10px] font-medium text-on-surface-variant/60">2m ago</span>
+</div>
+<p class="text-xs text-on-surface-variant/70">DingTalk: Delivered successfully.</p>
+</div>
+<!-- Timeline Item 2 -->
+<div class="relative pl-8 space-y-1">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary-container flex items-center justify-center border-4 border-surface-container-low">
+<span class="material-symbols-outlined text-[10px] text-white" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="flex justify-between items-start">
+<span class="font-bold text-sm">Resolved: Latency Spike</span>
+<span class="text-[10px] font-medium text-on-surface-variant/60">45m ago</span>
+</div>
+<p class="text-xs text-on-surface-variant/70">System auto-recovered after 12m.</p>
+</div>
+<!-- Timeline Item 3 -->
+<div class="relative pl-8 space-y-1 opacity-60">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-on-surface-variant flex items-center justify-center border-4 border-surface-container-low">
+<span class="material-symbols-outlined text-[10px] text-white">notifications_off</span>
+</div>
+<div class="flex justify-between items-start">
+<span class="font-bold text-sm">Rule Silenced: DB Conn</span>
+<span class="text-[10px] font-medium text-on-surface-variant/60">2h ago</span>
+</div>
+<p class="text-xs text-on-surface-variant/70">Action by Admin: Maintenance window.</p>
+</div>
+</div>
+</div>
+<!-- AI Insights Card -->
+<div class="bg-gradient-to-br from-tertiary to-tertiary-container rounded-3xl p-6 text-white shadow-xl shadow-tertiary/20 relative overflow-hidden group">
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
+<span class="material-symbols-outlined text-[120px]">psychology</span>
+</div>
+<div class="relative z-10 flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined animate-pulse">colors_spark</span>
+<span class="text-xs font-black uppercase tracking-widest">AI Suggestion</span>
+</div>
+<h4 class="text-lg font-bold font-headline leading-tight">Abnormal Pattern Detected in <span class="underline decoration-tertiary-fixed decoration-2">prod_auth_logs</span></h4>
+<p class="text-sm text-white/80 leading-relaxed">Failed logins increased by 40% between 02:00-04:00 UTC. Recommended rule:</p>
+<div class="bg-white/10 backdrop-blur-md rounded-xl p-3 text-xs font-mono border border-white/20">
+                                status = 'FAIL' &gt; 45 in 10m
+                            </div>
+<button class="mt-2 w-full bg-white text-tertiary font-bold py-2 rounded-xl text-sm hover:bg-tertiary-fixed transition-colors">
+                                Apply Suggestion
+                            </button>
+</div>
+</div>
+<!-- System Status Card -->
+<div class="bg-surface-container-highest rounded-3xl p-6 border border-outline-variant/10">
+<h3 class="font-bold font-headline mb-4">Detection Engine</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Log Processing Rate</span>
+<span class="text-sm font-black text-primary">12.4k/s</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-full w-[65%] rounded-full"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Active Workers</span>
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-highest bg-green-500"></div>
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-highest bg-green-500"></div>
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-highest bg-green-500"></div>
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-highest bg-surface-container-low flex items-center justify-center text-[8px] font-bold">+2</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Only on Dashboard/Main screens as per mandate) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined transition-transform group-hover:rotate-90">add</span>
+<div class="absolute right-16 px-4 py-2 bg-on-surface text-white text-xs font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+            Quick Alert Rule
+        </div>
+</button>
+</body></html>

@@ -1,0 +1,286 @@
+# ClickVisual v2 Progress
+
+## 2026-03-30 Session
+
+- 读取 `multi-agent-spec-orchestration`、`planning-with-files-zh`、`brainstorming` 技能说明，确认本轮需先建持久化状态，再做设计确认。
+- 扫描仓库，确认目前没有规划文件，也没有已落地的 OpenSpec 文档。
+- 读取 `v2/stitch/chronos_amber/DESIGN.md`、`ui/package.json`、`ui/config/routes.ts`，确认：
+  - 当前正式前端仍是 Umi + Ant Design Pro
+  - `v2/` 仅为静态设计资产
+  - v2 落地前需要先决定技术载体与首期范围
+- 创建 `task_plan.md`、`findings.md`、`progress.md` 作为后续恢复与调度依据。
+- 完成第一轮拆分审查，确认当前最关键的分流点不是某个页面，而是：
+  - v2 是否挂载在现有 `ui/` 老栈中渐进演进
+  - 还是新建独立前端承接完整新体验
+- 该决策会影响 spec 是否拆成“平台壳层/设计系统”与“五大业务模块”两个层次。
+- 用户已确认选择“独立新前端应用”路线。
+- 用户已确认首期范围为完整五模块可运行壳子。
+- 用户已确认允许在 spec 中同步设计 `v2` 专用接口/聚合接口。
+- 已补建 OpenSpec active change：`openspec/changes/2026-03-30-clickvisual-v2-shell/`
+- 已将 proposal、design、tasks 写入 OpenSpec，后续执行以其为真源
+- 用户已将当前任务优先级调整为“先实现定时任务报表数据推送”，因此 OpenSpec `tasks.md` 已改为报表主链路优先，其它模块后置。
+- 已完成实现计划，计划文件为 `docs/superpowers/plans/2026-03-30-v2-report-push-implementation.md`
+- 用户已确认开始执行，执行模式默认采用 Subagent-Driven
+- 当前 active task：OpenSpec `T1`，目标是建立 `ui-v2` 最小应用壳层与报表入口
+- OpenSpec `T1` 已完成：
+  - 已建立 `ui-v2` 最小工程壳层
+  - `/v2/reports` 可渲染“定时报表”
+  - 规格一致性 review 已通过
+  - 代码质量 review 修正后已通过
+  - 本地复核 `cd ui-v2 && npm test` 通过
+
+## Next
+
+- 当前 OpenSpec `T8` 与 `T9` 已完成
+- 当前分配范围已完成
+- 如继续推进，下一步将进入真实接口接入、AI 动作后端化或更深的业务交互实现
+
+## Design Review
+
+- 用户已确认采用方案 A：
+  - 独立新前端应用
+  - `v2` 专用聚合接口
+  - 五个业务模块按垂直域组织
+- 用户已确认第 1 段设计：
+  - 平台共享层 + 五个垂直业务域的总体架构与模块边界
+- 用户已确认第 2 段设计：
+  - 前端只维护页面态与意图态
+  - 后端提供按页面能力组织的 `v2` 聚合接口
+  - AI action 采用结构化输入输出，不走自由聊天模型
+- 用户已确认第 3、4、5 段设计，并要求补正到 OpenSpec 主任务流中。
+- 已修正 `multi-agent-spec-orchestration` skill 及其 OpenSpec / recovery 参考文档，新增 OpenSpec discovery gate 和“无 active change 也不得绕过”的硬规则。
+- 已对齐恢复层状态：
+  - OpenSpec `tasks.md` 继续作为任务真源
+  - `task_plan.md` 已同步标记 `T2` 为当前执行任务
+  - 本轮开始进入 `T2` 实现派发与 review 流程
+- OpenSpec `T2` 已完成：
+  - 后端已为 `/v2` 与 `/v2/*` 建立独立静态入口占位，不再与旧版入口混淆
+  - `ui-v2` 已加入版本切换器、偏好记忆与根路由默认落点
+  - 前后端均补齐子路径兼容处理
+  - 规格一致性 review 已通过
+  - 代码质量 review 无阻塞问题，但保留一项后续增强建议：如需更强回归保护，可把当前精简版 NoRoute 测试进一步提升为更贴近 `GetServerRouter()` 的集成测试
+  - 已完成本地验证：
+    - `go test ./api/internal/router -run 'Test(IsV2Asset|NoRouteServesV2Index|NoRouteDoesNotServeV2IndexForV1Path)' -v`
+    - `cd ui-v2 && npm test -- report-route.test.tsx version-switcher.test.tsx`
+- OpenSpec `T3` 已释放：
+  - 目标是为报表主链路补齐共享壳层，而不是提前进入报表接口与表单实现
+  - 当前实现边界收敛为布局、导航、时间范围和通用页面状态
+- OpenSpec `T3` 已完成：
+  - `ui-v2` 已具备报表优先的共享壳层布局与主导航
+  - 时间范围切换器与共享时间范围状态已接入报表页
+  - 通用页面状态组件已建立，并在报表页以空态占位方式复用
+  - 保留导航入口已兼容子路径，并对齐 OpenSpec 的 canonical route model
+  - 规格一致性 review 已通过
+  - 代码质量 review 已通过
+  - 本地验证 `cd ui-v2 && npm test` 通过，6 个 test files / 9 个 tests 全部通过
+- OpenSpec `T4` 已完成：
+  - 已定义报表列表、报表配置、调度配置、执行预览、钉钉投递对象与推送结果的前端契约
+  - 已建立对应 mock 数据与读取 API，并由 `ReportSchedulePage` 实际消费，形成最小页面契约闭环
+  - 已补齐失败兜底，避免工作区加载异常时页面永久停留在 loading
+  - 规格一致性 review 先发现“报表编辑配置”和“钉钉投递对象未进入页面契约”的缺口，现已补齐
+  - 代码质量 review 最终无阻塞问题，保留两项后续优化：
+    - `workspace` 中未消费的 `executions` 可在后续按需下沉
+    - 路由测试仍偏依赖具体文案，后续可替换为更稳定的行为断言
+  - 本地验证通过：
+    - `cd ui-v2 && npm test -- report-page report-route report-contracts`
+    - `cd ui-v2 && npm test`
+- OpenSpec `T5` 进行中：
+  - 已新增 `ReportScheduleForm` 与 `ChannelSelector`，可编辑 cron 并选择钉钉渠道
+  - 已新增 `saveReportSchedule` mock API，并在页面内完成保存后状态回显
+  - 已新增 `ReportPushStatusCard`，当前支持 `idle / success / error` 三态展示
+  - 已支持在报表列表中切换当前工作区，配置、调度、钉钉投递对象与执行历史会随选中报表联动
+  - 已为 `saveReportSchedule` 加入最小校验：未选择 `channelIds` 时返回错误，并在页面中回显失败状态
+  - 已为 mock store 增加 reset 能力，避免测试间串扰
+  - 已新增后端 `api/v2/reports/configs` 最小骨架，支持保存与读取报表调度配置
+  - 前端 `saveReportSchedule` 已从纯 mock 写入切换为真实 HTTP client，直接调用 `/api/v2/reports/configs`
+  - 已新增后端 `/api/v2/reports/workspace` 聚合读取接口，返回报表列表、编辑配置、调度配置、执行预览、执行历史、投递对象与推送摘要
+  - 已新增后端独立读取接口：
+    - `/api/v2/reports/list`
+    - `/api/v2/reports/editor`
+    - `/api/v2/reports/delivery`
+    - `/api/v2/reports/channels`
+    - `/api/v2/reports/preview`
+    - `/api/v2/reports/executions`
+    - `/api/v2/reports/preview-run`
+  - 前端 `getReportWorkspace` 已切换为真实 HTTP client 读取 `/api/v2/reports/workspace`
+  - 前端 `listReportItems`、`getReportEditorDraft`、`getReportSendSummary`、`listReportChannels`、`getReportExecutionPreview`、`listReportRecentExecutions` 已切换到真实接口读取
+  - 已新增“执行预览”动作：前端按钮触发 `/api/v2/reports/preview-run`，成功后会刷新预览文案并把最新一条手动执行插入执行历史
+  - 当前采取“真实接口优先，测试与极端场景保留 jsdom/mock 回退”的过渡模式；保存成功后仍同步刷新本地 mock store，保证切换报表时状态不回退
+  - 已新增后端测试：
+    - `api/internal/api/apiv2/report/report_test.go`
+  - 已新增后端模型与服务骨架：
+    - `api/internal/pkg/model/view/report.go`
+    - `api/internal/service/report/service.go`
+    - `api/internal/api/apiv2/report/report.go`
+    - `api/internal/router/v2.go` 已挂载 `/api/v2/reports/configs`
+  - 已新增前端测试：
+    - `tests/ReportScheduleForm.test.tsx`
+    - `tests/report-page.test.tsx`
+  - 本地验证通过：
+    - `go test ./api/internal/api/apiv2/report -v`
+    - `go test ./api/internal/router -run 'Test(IsV2Asset|NoRouteServesV2Index|NoRouteDoesNotServeV2IndexForV1Path)' -v`
+    - `cd ui-v2 && npm test -- report-page`
+    - `cd ui-v2 && npm test -- report-page report-route`
+    - `cd ui-v2 && npm test -- report-page ReportScheduleForm report-route`
+    - `cd ui-v2 && npm test`
+  - 本轮已补齐“用户可见效果”缺口：
+    - 新增 `ui-v2/vite.config.ts`，构建产物直接输出到 `api/internal/ui/v2dist/dist`
+    - 后端 `api/internal/ui/v2dist` 已从“仅返回占位 index.html”升级为“真实静态文件优先，SPA 路由回退 index.html”
+    - `router.NoRoute` 对 `/v2/*` 已改为通过 `v2dist.Serve` 分流
+    - 已新增稳定静态探针 `clickvisual-v2-probe.txt`，用于验证 `/v2` 静态文件服务
+  - 新增验证通过：
+    - `cd ui-v2 && npm run build`
+    - `go test ./api/internal/router -run 'Test(IsV2Asset|NoRouteServesV2Index|NoRouteServesV2StaticFile|NoRouteDoesNotServeV2IndexForV1Path)' -v`
+  - 本轮继续推进“真实执行动作”：
+    - 后端 `report` 服务已为 `preview-run` 增加最小真实执行链路，不再只插入一条固定 mock 记录
+    - 新增 `api/internal/service/report/sender.go`，按报表渠道类型发送预览内容；对 `access_token=mock` 保持演示环境成功短路，对真实 webhook 走实际 HTTP 投递
+    - `preview-run` 现在会生成报表预览内容、逐渠道发送、回写执行记录状态，并累加 `delivery` 推送汇总
+    - 当前前端在执行预览后会同步刷新执行预览文案、执行历史和推送成功率；当渠道发送失败时，会显示“预览执行结果”而不是误报成功
+  - 新增验证通过：
+    - `go test ./api/internal/service/report -v`
+    - `go test ./api/internal/api/apiv2/report -v`
+    - `cd ui-v2 && npm test`
+    - `cd ui-v2 && npm run build`
+  - 本轮继续推进“真实定时调度”：
+    - 新增 `api/internal/service/report/scheduler.go`，为 `report` 域建立独立内存 cron 调度器，采用秒级 parser 注册已启用报表任务
+    - `service.Init()` / `service.Close()` 已接入 `report.StartScheduler()` / `report.StopScheduler()`，服务启动后会自动装载已启用报表
+    - `saveReportSchedule` 对应的后端 `UpsertSchedule` 现在会在保存成功后自动重载该报表的 cron 注册
+    - 手动执行与定时执行已统一复用同一条执行器，区别仅在 `trigger` 和 `operatorName`，避免出现两套行为分叉
+    - 已新增 scheduler 测试，覆盖：
+      - `RunScheduled` 生成 `schedule/system` 执行记录
+      - scheduler 启动后能够注册已启用报表并触发定时执行
+  - 新增验证通过：
+    - `go test ./api/internal/service/report ./api/internal/api/apiv2/report -v`
+    - `cd ui-v2 && npm test`
+  - 本轮已补齐“调度状态可视化”：
+    - 后端 `report workspace` 聚合返回运行态快照，包含：
+      - scheduler 是否已注册
+      - 当前任务是否处于暂停状态
+      - 下次执行时间
+      - 最近一次定时执行摘要（状态、时间、执行人/触发方式）
+    - 前端 `/v2/reports` 已显式展示调度注册状态、下次执行时间、最近一次定时执行结果，不再只靠隐含文案
+    - 运行态优先复用现有 `executions` 与 scheduler 内存状态，没有扩到新的 DB 持久化模型
+  - 新增验证通过：
+    - `go test ./api/internal/service/report ./api/internal/api/apiv2/report -v`
+    - `cd ui-v2 && npm test -- report-page report-route`
+  - 本轮完成 OpenSpec `T7` 收口：
+    - 已整合共享视觉底座子代理产出，`AppShell` / `VersionSwitcher` / `TimeRangeSwitcher` 已统一到玻璃侧栏、轻玻璃顶栏、`Space Grotesk + Inter` 与 kinetic orange 风格
+    - `overview/query/alert/settings` 四个非报表模块已升级为贴近 `v2/stitch` 的高保真前端壳层
+    - `report` 页面已按 `scheduled_reports_dingtalk_push/code.html` 重做布局与视觉，同时保留真实的工作区切换、保存调度、预览执行、运行态回刷与降级提示链路
+    - 新增全局 `styles.css` 统一 design token 与布局类，避免五个模块继续各自漂移
+  - 新增验证通过：
+    - `cd ui-v2 && npm test`
+    - `cd ui-v2 && npm run build`
+  - 本轮完成 OpenSpec `T8`：
+    - 新增共享 `AiActionPanel` 与 `ModuleRuntimeState`，统一承接结构化 AI 动作入口、`loading / empty / error` 演示态、失败反馈与降级说明
+    - `overview/query/alert/settings` 四个模块已接入统一 AI 动作与运行态门面；当聚合数据失败时，会显式展示错误提示并保留可继续验证的页面结构
+    - `PageState` 已切到统一视觉样式，避免状态卡继续沿用旧 inline 样式
+    - 已新增页面级测试，覆盖非报表模块的 AI 动作、降级态与可用性断言
+  - 本轮完成 OpenSpec `T9`：
+    - 报表主链路后端验证通过：
+      - `go test ./api/internal/service/report ./api/internal/api/apiv2/report -v`
+    - 完整壳子前端验证通过：
+      - `cd ui-v2 && npm test`
+      - `cd ui-v2 && npm run build`
+  - 本轮继续推进“报表主链路收口”：
+    - 已新增保存调度与执行预览的进行中状态反馈，避免重复点击
+    - `workspace` 刷新失败时会保留当前已加载内容，并展示降级提示，而不是直接把页面清空
+    - 报表页上下文的 `v1/v2` 切换回归已纳入测试覆盖
+    - 在审核中发现并修复 `scheduler` 激活时保存调度可能发生的死锁
+  - 新增验证通过：
+    - `go test ./api/internal/service/report ./api/internal/api/apiv2/report -v`
+    - `cd ui-v2 && npm test`
+    - `cd ui-v2 && npm run build`
+  - 已开始 OpenSpec `T7`：
+    - `overview`、`query`、`alert`、`settings` 已从保留链接升级为真实 React 路由入口
+    - 新增共享壳层卡片组件，统一展示当前阶段、摘要与下一步，避免四个模块各写一套临时占位
+    - `v2` 主导航已全部切为真实 `NavLink`，可以直接进入剩余四个模块
+  - 新增验证通过：
+    - `cd ui-v2 && npm test -- domain-routes app-shell-layout`
+    - `cd ui-v2 && npm test`
+    - `cd ui-v2 && npm run build`
+  - 用户已明确否定当前 `ui-v2` 的视觉质量，并指定 `v2/stitch/` 为新的设计真源
+  - 已确认新的执行方向为“方案 A”：五个模块全部一起统一视觉重做，而不是继续在当前朴素壳层上增量美容
+  - 本轮完成 OpenSpec `T7-B`：
+    - `overview` 页面已从单卡片占位升级为接近设计稿信息架构的结构化壳层，包含：
+      - `KPI 概览区`
+      - `趋势 / 热点区`
+      - `AI 建议区`
+      - `最近事件`
+      - `最近报表 / 告警`
+    - `query` 页面已补齐查询主工作台骨架，包含：
+      - `顶部筛选区`
+      - `查询输入区`
+      - `结果区`
+      - `查询辅助区`
+      - 并复用共享时间范围状态展示当前时间范围
+    - 新增共享壳层组件：
+      - `ShellSection`
+      - `ShellMetricCard`
+  - 已补齐路由测试断言，确保 `overview/query` 的关键结构可被稳定识别
+
+## 2026-03-31 Session
+
+- 依据 `multi-agent-spec-orchestration` 执行恢复：
+  - 确认仓库存在 `openspec/config.yaml`
+  - 确认当前没有覆盖 reports 真实闭环的 active change
+  - 恢复 `task_plan.md`、`progress.md`、`findings.md` 后发现它们仍停留在上一个 v2 壳层任务
+- 扫描现有 reports 代码，确认：
+  - `api/internal/service/report` 仍以内存 seed 为主
+  - `preview-run` 与 scheduler 已具备演示级真实发送
+  - 报表内容未真实查询 ClickHouse
+  - 报表定义、调度配置、执行记录未真实落库
+- 扫描仓库可复用能力，确认：
+  - 可复用现有 ClickHouse 查询能力
+  - 可复用 `cv_alarm_channel` 钉钉渠道
+  - 不应复用 `bigdata node/cv_bd_crontab` 作为 reports 主模型
+- 已完成设计问答并得到用户确认：
+  - 完整产品闭环
+  - 独立 reports 建模
+  - 本期只支持真实 `ClickHouse SQL`
+  - 直接复用 `cv_alarm_channel`
+- 已完成设计输出并写入 durable 文件：
+  - `openspec/changes/2026-03-31-reports-clickhouse-dingtalk/proposal.md`
+  - `openspec/changes/2026-03-31-reports-clickhouse-dingtalk/design.md`
+  - `openspec/changes/2026-03-31-reports-clickhouse-dingtalk/tasks.md`
+  - `docs/superpowers/specs/2026-03-31-reports-clickhouse-dingtalk-design.md`
+- 当前 active task：O3
+- 当前阶段：planning
+- 当前下一步：等待用户审阅 written spec；若获批，则进入实现计划
+
+- 用户已确认 spec 无需修改，可继续进入实现计划阶段。
+- 已根据 sidecar 拆分审查结果重排 OpenSpec `tasks.md`：
+  - 将 schema / repository / API contract / executor / ClickHouse / channel+retry / scheduler / frontend / layered verification 拆成更明确的顺序
+  - 避免把 API 契约、前端对接、scheduler 与执行状态机混在同一任务中
+- 已写入实现计划：
+  - `docs/superpowers/plans/2026-03-31-reports-clickhouse-dingtalk-implementation.md`
+- 当前 active task：O5
+- 当前阶段：planning 完成，待进入 Subagent-Driven 执行
+- 当前下一步：按实现计划释放第一个实现批次
+
+## Next
+
+- 请用户审阅：
+  - 已完成
+- 下一步：
+  - 默认进入 Subagent-Driven 执行
+  - 首批任务应从 schema / migration / repository 起步
+  - 新增验证通过：
+    - `cd ui-v2 && npm test -- domain-routes app-shell-layout app-shell-shared report-route version-switcher`
+  - 本轮继续推进 OpenSpec `T6-A`：
+    - `/v2/reports` 已把“保存调度 / 执行预览”统一收敛为同类任务状态反馈，新增进行中态并禁用关键按钮，避免重复点击
+    - 保存调度成功后若 workspace 刷新失败，页面会保留已加载内容并展示降级提示，不再把当前工作区清空
+    - 已补齐报表页上下文的版本切换回归测试，覆盖子路径场景下从 `/v2/reports` 返回 `v1` 仍指向正确入口
+  - 新增验证通过：
+    - `cd ui-v2 && npm test -- report-page version-switcher ReportScheduleForm report-route`
+  - 额外说明：
+    - `go test ./api/internal/service -v` 仍存在仓库原有无关失败用例，当前失败集中在 ClickHouse 连接与历史时间精度测试，不属于本轮报表改动引入的问题
+  - 本轮完成“调度状态可视化”批次：
+    - `workspace` 聚合返回 `runtime`，包含 scheduler 注册状态、暂停状态、下次执行时间与最近一次定时执行摘要
+    - `/v2/reports` 已显式展示“注册状态 / 下次执行时间 / 最近一次定时执行结果 / 最近一次触发方式与执行人”
+    - 保存调度后页面会主动刷新 workspace，避免运行态继续显示旧值
+    - 审核时发现 `UpsertSchedule` 在 scheduler 激活场景下存在死锁风险：持有 `service.mu` 写锁时调用 `scheduler.Reload()`，而后者会再读 `service.mu`
+    - 该死锁已修复，并新增专门回归测试覆盖“scheduler 激活时保存调度不会卡死”
+  - 新增验证通过：
+    - `go test ./api/internal/service/report ./api/internal/api/apiv2/report -v`
+    - `cd ui-v2 && npm test -- report-page report-route`

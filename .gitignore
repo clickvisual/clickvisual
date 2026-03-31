@@ -60,5 +60,5 @@ test/
 
 .github/workflows/clickvisual.code-workspace
 .cursor/
-openspec/
 .claude/
+.worktrees/
