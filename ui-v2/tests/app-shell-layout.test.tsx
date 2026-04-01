@@ -37,8 +37,7 @@ describe("v2 app shell", () => {
     expect(screen.getByTestId("app-shell-sidebar")).toHaveClass("cv-shell__sidebar");
     expect(screen.getByTestId("app-shell-topbar")).toHaveClass("cv-shell__topbar");
     expect(screen.getByText("ClickHouse")).toBeInTheDocument();
-    expect(screen.getByText("The Kinetic Architect")).toBeInTheDocument();
-    await screen.findByRole("heading", { name: "报表任务（Mock）" });
+    await screen.findByRole("heading", { name: "定时报表" });
 
     const reportsLink = screen.getByRole("link", { name: "定时报表" });
     expect(reportsLink).toHaveAttribute("aria-current", "page");

@@ -34,6 +34,7 @@ type Service struct {
 	channels   []view.RespReportChannel
 	sender     previewSender
 	now        func() time.Time
+	sleep      func(time.Duration)
 	nextExecID int
 	scheduler  *Scheduler
 }
@@ -52,6 +53,7 @@ func newService() *Service {
 		channels:   cloneChannelList(seed.channels),
 		sender:     newHTTPPreviewSender(),
 		now:        time.Now,
+		sleep:      time.Sleep,
 		nextExecID: nextExecutionID(seed.executions),
 	}
 }
@@ -69,6 +71,14 @@ func UpsertSchedule(req view.ReqReportSchedule) (view.RespReportSchedule, error)
 
 func GetSchedule(nodeID int) (view.RespReportSchedule, error) {
 	return defaultService.GetSchedule(nodeID)
+}
+
+func UpsertReport(req view.ReqReportDefinition) (view.RespReportDefinition, error) {
+	return defaultService.UpsertReport(req)
+}
+
+func GetReport(reportID int) (view.RespReportDefinition, error) {
+	return defaultService.GetReport(reportID)
 }
 
 func GetWorkspace(reportID int) (view.RespReportWorkspace, error) {
@@ -115,18 +125,176 @@ func StopScheduler() {
 	defaultService.StopScheduler()
 }
 
+func (s *Service) UpsertReport(req view.ReqReportDefinition) (view.RespReportDefinition, error) {
+	normalizedReq, err := normalizeReportDefinition(req, s.now())
+	if err != nil {
+		return view.RespReportDefinition{}, err
+	}
+	req = normalizedReq
+
+	if s.useDB() {
+		return s.upsertReportFromDB(req)
+	}
+	if strings.TrimSpace(req.Name) == "" {
+		return view.RespReportDefinition{}, fmt.Errorf("name 不能为空")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	now := s.now().Format(time.RFC3339)
+	status := req.Status
+	if status == "" {
+		status = "enabled"
+	}
+	queryMode := req.QueryMode
+	if queryMode == "" {
+		queryMode = "sql"
+	}
+	outputFormat := req.OutputFormat
+	if outputFormat == "" {
+		outputFormat = "markdown"
+	}
+	templateKey := req.TemplateKey
+	if templateKey == "" {
+		templateKey = "default-template"
+	}
+
+	if req.ReportID > 0 {
+		item, found := s.reportItem(req.ReportID)
+		if !found {
+			return view.RespReportDefinition{}, fmt.Errorf("report not found: %d", req.ReportID)
+		}
+		editor := s.editors[req.ReportID]
+		item.Name = req.Name
+		item.Desc = req.Desc
+		item.Status = status
+		item.DutyUID = req.DutyUID
+		item.UpdatedAt = now
+		for idx := range s.list {
+			if s.list[idx].ID == req.ReportID {
+				s.list[idx] = item
+				break
+			}
+		}
+		editor.ReportID = req.ReportID
+		editor.NodeID = item.NodeID
+		editor.Name = req.Name
+		editor.Desc = req.Desc
+		editor.QueryMode = queryMode
+		editor.QueryText = req.QueryText
+		editor.TemplateKey = templateKey
+		editor.OutputFormat = outputFormat
+		s.editors[req.ReportID] = editor
+
+		return view.RespReportDefinition{
+			ReportID:     req.ReportID,
+			Name:         req.Name,
+			Desc:         req.Desc,
+			Status:       status,
+			QueryMode:    queryMode,
+			QueryText:    req.QueryText,
+			TemplateKey:  templateKey,
+			OutputFormat: outputFormat,
+			DutyUID:      req.DutyUID,
+			CreatorUID:   req.CreatorUID,
+			UpdatedAt:    now,
+		}, nil
+	}
+
+	newID := 1001
+	for _, item := range s.list {
+		if item.ID >= newID {
+			newID = item.ID + 1
+		}
+	}
+	s.list = append(s.list, view.RespReportListItem{
+		ID:        newID,
+		NodeID:    newID,
+		Name:      req.Name,
+		Desc:      req.Desc,
+		Status:    status,
+		DutyUID:   req.DutyUID,
+		UpdatedAt: now,
+	})
+	s.editors[newID] = view.RespReportEditorDraft{
+		ReportID:            newID,
+		NodeID:              newID,
+		Name:                req.Name,
+		Desc:                req.Desc,
+		QueryMode:           queryMode,
+		QueryText:           req.QueryText,
+		TemplateKey:         templateKey,
+		OutputFormat:        outputFormat,
+		RecipientChannelIDs: []int{},
+	}
+
+	return view.RespReportDefinition{
+		ReportID:     newID,
+		Name:         req.Name,
+		Desc:         req.Desc,
+		Status:       status,
+		QueryMode:    queryMode,
+		QueryText:    req.QueryText,
+		TemplateKey:  templateKey,
+		OutputFormat: outputFormat,
+		DutyUID:      req.DutyUID,
+		CreatorUID:   req.CreatorUID,
+		UpdatedAt:    now,
+	}, nil
+}
+
+func (s *Service) GetReport(reportID int) (view.RespReportDefinition, error) {
+	if s.useDB() {
+		return s.getReportFromDB(reportID)
+	}
+	if reportID == 0 {
+		return view.RespReportDefinition{}, fmt.Errorf("reportId 不能为空")
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	item, found := s.reportItem(reportID)
+	if !found {
+		return view.RespReportDefinition{}, fmt.Errorf("report not found: %d", reportID)
+	}
+	editor := s.editors[reportID]
+
+	return view.RespReportDefinition{
+		ReportID:     item.ID,
+		Name:         item.Name,
+		Desc:         item.Desc,
+		Status:       item.Status,
+		QueryMode:    editor.QueryMode,
+		QueryText:    editor.QueryText,
+		TemplateKey:  editor.TemplateKey,
+		OutputFormat: editor.OutputFormat,
+		DutyUID:      item.DutyUID,
+		CreatorUID:   0,
+		UpdatedAt:    item.UpdatedAt,
+	}, nil
+}
+
 func (s *Service) UpsertSchedule(req view.ReqReportSchedule) (view.RespReportSchedule, error) {
+	if s.useDB() {
+		return s.upsertScheduleFromDB(req)
+	}
 	if req.NodeID == 0 {
 		return view.RespReportSchedule{}, fmt.Errorf("nodeId 不能为空")
 	}
 	if len(req.ChannelIDs) == 0 {
 		return view.RespReportSchedule{}, fmt.Errorf("channelIds 不能为空")
 	}
+	item, found := s.reportItem(req.NodeID)
+	if !found {
+		return view.RespReportSchedule{}, fmt.Errorf("report not found: %d", req.NodeID)
+	}
 
 	resp := view.RespReportSchedule{
 		NodeID:        req.NodeID,
-		Desc:          req.Desc,
-		DutyUID:       req.DutyUID,
+		Desc:          item.Desc,
+		DutyUID:       item.DutyUID,
 		Cron:          req.Cron,
 		Typ:           req.Typ,
 		ChannelIDs:    append([]int(nil), req.ChannelIDs...),
@@ -153,6 +321,9 @@ func (s *Service) UpsertSchedule(req view.ReqReportSchedule) (view.RespReportSch
 }
 
 func (s *Service) GetSchedule(nodeID int) (view.RespReportSchedule, error) {
+	if s.useDB() {
+		return s.getScheduleFromDB(nodeID)
+	}
 	if nodeID == 0 {
 		return view.RespReportSchedule{}, fmt.Errorf("nodeId 不能为空")
 	}
@@ -169,6 +340,9 @@ func (s *Service) GetSchedule(nodeID int) (view.RespReportSchedule, error) {
 }
 
 func (s *Service) GetWorkspace(reportID int) (view.RespReportWorkspace, error) {
+	if s.useDB() {
+		return s.getWorkspaceFromDB(reportID)
+	}
 	s.mu.RLock()
 	activeID, err := s.resolveReportID(reportID)
 	if err != nil {
@@ -206,6 +380,9 @@ func (s *Service) GetWorkspace(reportID int) (view.RespReportWorkspace, error) {
 }
 
 func (s *Service) ListReports() ([]view.RespReportListItem, error) {
+	if s.useDB() {
+		return s.listReportsFromDB()
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -213,6 +390,9 @@ func (s *Service) ListReports() ([]view.RespReportListItem, error) {
 }
 
 func (s *Service) GetEditor(reportID int) (view.RespReportEditorDraft, error) {
+	if s.useDB() {
+		return s.getEditorFromDB(reportID)
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -225,6 +405,9 @@ func (s *Service) GetEditor(reportID int) (view.RespReportEditorDraft, error) {
 }
 
 func (s *Service) GetDelivery(reportID int) (view.RespReportSendSummary, error) {
+	if s.useDB() {
+		return s.getDeliveryFromDB(reportID)
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -237,6 +420,9 @@ func (s *Service) GetDelivery(reportID int) (view.RespReportSendSummary, error) 
 }
 
 func (s *Service) ListChannels() ([]view.RespReportChannel, error) {
+	if s.useDB() {
+		return s.listChannelsFromDB()
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -244,6 +430,9 @@ func (s *Service) ListChannels() ([]view.RespReportChannel, error) {
 }
 
 func (s *Service) GetPreview(reportID int) (view.RespReportExecutionPreview, error) {
+	if s.useDB() {
+		return s.getPreviewFromDB(reportID)
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -256,6 +445,9 @@ func (s *Service) GetPreview(reportID int) (view.RespReportExecutionPreview, err
 }
 
 func (s *Service) ListExecutions(reportID int) ([]view.RespReportExecutionRecord, error) {
+	if s.useDB() {
+		return s.listExecutionsFromDB(reportID)
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -276,6 +468,9 @@ func (s *Service) RunScheduled(reportID int) (view.RespReportPreviewRunResult, e
 }
 
 func (s *Service) executeReport(reportID int, trigger string) (view.RespReportPreviewRunResult, error) {
+	if s.useDB() {
+		return s.executeReportFromDB(reportID, trigger)
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -403,6 +598,9 @@ func (s *Service) buildScheduleRuntime(item view.RespReportListItem, executions 
 }
 
 func (s *Service) resolveReportID(reportID int) (int, error) {
+	if s.useDB() {
+		return s.resolveReportIDFromDB(reportID)
+	}
 	if reportID == 0 {
 		if len(s.list) == 0 {
 			return 0, fmt.Errorf("report workspace not found: empty list")
@@ -665,35 +863,21 @@ func (s *Service) findChannel(channelID int) (view.RespReportChannel, bool) {
 }
 
 func buildPreviewPushContent(item view.RespReportListItem, editor view.RespReportEditorDraft, schedule view.RespReportSchedule, startedAt time.Time) (string, string) {
-	title := fmt.Sprintf("报表预览｜%s", item.Name)
-	var builder strings.Builder
-	builder.WriteString(fmt.Sprintf("### %s\n", title))
-	builder.WriteString(fmt.Sprintf("- 报表名称：%s\n", item.Name))
-	builder.WriteString(fmt.Sprintf("- 执行时间：%s\n", startedAt.Format("2006-01-02 15:04:05")))
-	builder.WriteString(fmt.Sprintf("- 调度表达式：%s\n", schedule.Cron))
-	builder.WriteString(fmt.Sprintf("- 输出格式：%s\n", editor.OutputFormat))
-	builder.WriteString(fmt.Sprintf("- 查询模式：%s\n", strings.ToUpper(editor.QueryMode)))
-	builder.WriteString(fmt.Sprintf("- 模板：%s\n", editor.TemplateKey))
-	builder.WriteString(fmt.Sprintf("- 说明：%s\n", editor.Desc))
-	if editor.QueryText != "" {
-		builder.WriteString("\n> 查询预览\n>\n")
-		for _, line := range strings.Split(editor.QueryText, "\n") {
-			builder.WriteString("> ")
-			builder.WriteString(line)
-			builder.WriteString("\n")
-		}
-	}
-	return title, builder.String()
+	title := fmt.Sprintf("统计预览｜%s", item.Name)
+	return title, ""
 }
 
 func executionStatus(successCount int, failedCount int) string {
+	if successCount > 0 && failedCount > 0 {
+		return "partial"
+	}
 	if failedCount > 0 {
 		return "failed"
 	}
 	if successCount > 0 {
 		return "success"
 	}
-	return "unknown"
+	return "failed"
 }
 
 func buildExecutionMessage(trigger string, successCount int, failedCount int) string {

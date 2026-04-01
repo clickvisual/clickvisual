@@ -8,8 +8,47 @@ import (
 	reportservice "github.com/clickvisual/clickvisual/api/internal/service/report"
 )
 
+// ReportUpsert godoc
+// @Summary      保存报表定义
+// @Tags         REPORT
+// @Accept       json
+// @Produce      json
+// @Router       /api/v2/reports [post]
+func ReportUpsert(c *core.Context) {
+	var req view.ReqReportDefinition
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+
+	resp, err := reportservice.UpsertReport(req)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
+// ReportGet godoc
+// @Summary      获取报表定义
+// @Tags         REPORT
+// @Accept       json
+// @Produce      json
+// @Router       /api/v2/reports/{report-id} [get]
+func ReportGet(c *core.Context) {
+	reportID := cast.ToInt(c.Param("report-id"))
+	resp, err := reportservice.GetReport(reportID)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
 // ConfigUpsert godoc
-// @Summary      保存报表调度配置
+// @Summary      保存报表调度配置（仅调度）
 // @Tags         REPORT
 // @Accept       json
 // @Produce      json
@@ -31,7 +70,7 @@ func ConfigUpsert(c *core.Context) {
 }
 
 // ConfigGet godoc
-// @Summary      获取报表调度配置
+// @Summary      获取报表调度配置（仅调度）
 // @Tags         REPORT
 // @Accept       json
 // @Produce      json
@@ -180,6 +219,53 @@ func PreviewRun(c *core.Context) {
 	}
 
 	resp, err := reportservice.RunPreview(req.ReportID)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
+func ReportSourceInstances(c *core.Context) {
+	resp, err := reportservice.ListSourceInstances()
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
+func ReportSourceDatabases(c *core.Context) {
+	instanceID := cast.ToInt(c.Param("instance-id"))
+	resp, err := reportservice.ListSourceDatabases(instanceID)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
+func ReportSourceTables(c *core.Context) {
+	instanceID := cast.ToInt(c.Param("instance-id"))
+	database := c.Param("database")
+	resp, err := reportservice.ListSourceTables(instanceID, database)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
+func ReportTableColumns(c *core.Context) {
+	instanceID := cast.ToInt(c.Param("instance-id"))
+	database := c.Param("database")
+	table := c.Param("table")
+
+	resp, err := reportservice.ListTableColumns(instanceID, database, table)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return

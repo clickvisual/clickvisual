@@ -76,7 +76,19 @@ const seedReportEditorDraftMockById: Record<number, ReportEditorDraft> = {
       "SELECT service, count() AS requests, quantile(0.95)(latency) AS p95 FROM logs WHERE env = 'prod' GROUP BY service",
     templateKey: "daily-core-kpi",
     outputFormat: "markdown",
-    recipientChannelIds: [201]
+    recipientChannelIds: [201],
+    builder: {
+      instanceId: 1,
+      database: "dev_log",
+      table: "app_stdout",
+      timeField: "time",
+      timeRange: "1d",
+      where: "env = 'prod'",
+      metrics: [
+        { key: "count", label: "总量" },
+        { key: "custom", label: "P95 延迟", expression: "quantile(0.95)(latency)" }
+      ]
+    }
   },
   1002: {
     reportId: 1002,
@@ -87,7 +99,8 @@ const seedReportEditorDraftMockById: Record<number, ReportEditorDraft> = {
     queryText: "service:* AND level:error | stats count() by service, error_code",
     templateKey: "weekly-anomaly",
     outputFormat: "image",
-    recipientChannelIds: [201]
+    recipientChannelIds: [201],
+    builder: null
   }
 };
 

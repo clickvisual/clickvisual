@@ -100,6 +100,8 @@ func v2(r *gin.RouterGroup) {
 	}
 	// The report module - report
 	{
+		r.POST("/reports", core.Handle(report.ReportUpsert))
+		r.GET("/reports/:report-id", core.Handle(report.ReportGet))
 		r.GET("/reports/list", core.Handle(report.ReportList))
 		r.GET("/reports/editor", core.Handle(report.EditorGet))
 		r.GET("/reports/delivery", core.Handle(report.DeliveryGet))
@@ -108,6 +110,10 @@ func v2(r *gin.RouterGroup) {
 		r.POST("/reports/preview-run", core.Handle(report.PreviewRun))
 		r.GET("/reports/executions", core.Handle(report.ExecutionList))
 		r.GET("/reports/workspace", core.Handle(report.WorkspaceGet))
+		r.GET("/reports/instances", core.Handle(report.ReportSourceInstances))
+		r.GET("/reports/instances/:instance-id/databases", core.Handle(report.ReportSourceDatabases))
+		r.GET("/reports/instances/:instance-id/databases/:database/tables", core.Handle(report.ReportSourceTables))
+		r.GET("/reports/instances/:instance-id/databases/:database/tables/:table/columns", core.Handle(report.ReportTableColumns))
 		r.POST("/reports/configs", core.Handle(report.ConfigUpsert))
 		r.GET("/reports/configs/:node-id", core.Handle(report.ConfigGet))
 	}

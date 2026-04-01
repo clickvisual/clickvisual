@@ -227,14 +227,6 @@ textarea {
   padding: 24px 28px 40px;
 }
 
-.cv-shell__hero {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: flex-end;
-  margin-bottom: 24px;
-}
-
 .cv-shell__eyebrow {
   margin: 0 0 10px;
   font-size: 12px;
@@ -257,15 +249,6 @@ textarea {
   max-width: 760px;
   color: var(--cv-text-soft);
   line-height: 1.6;
-}
-
-.cv-shell__status {
-  padding: 12px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.74);
-  box-shadow: inset 0 0 0 1px rgba(163, 62, 0, 0.08);
-  color: var(--cv-orange-strong);
-  font-weight: 700;
 }
 
 .cv-shell__canvas {
@@ -529,6 +512,11 @@ textarea {
   gap: 20px;
 }
 
+.cv-report-grid--compact {
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.76fr);
+  gap: 14px;
+}
+
 .cv-query-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.88fr);
@@ -586,6 +574,230 @@ textarea {
 .cv-panel-description {
   margin: 8px 0 0;
   line-height: 1.6;
+}
+
+.cv-report-page .cv-page-header {
+  margin-bottom: 4px;
+}
+
+.cv-report-page .cv-page-title {
+  font-size: clamp(26px, 3.6vw, 36px);
+}
+
+.cv-report-page .cv-page-description {
+  margin-top: 6px;
+  max-width: 620px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.cv-report-page .cv-panel {
+  padding: 14px;
+}
+
+.cv-report-page .cv-panel-header {
+  margin-bottom: 10px;
+}
+
+.cv-report-page .cv-panel-title {
+  font-size: 17px;
+}
+
+.cv-report-page .cv-panel-description {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.cv-report-page .cv-section-stack {
+  gap: 10px;
+}
+
+.cv-section-stack--tight {
+  gap: 8px;
+}
+
+.cv-report-page .cv-form-grid {
+  gap: 10px;
+}
+
+.cv-report-page .cv-form-row {
+  gap: 4px;
+}
+
+.cv-report-page .cv-form-two-up {
+  gap: 10px;
+}
+
+.cv-report-page .cv-input,
+.cv-report-page .cv-textarea {
+  border-radius: 12px;
+  padding: 9px 11px;
+  font-size: 14px;
+  background: rgba(255, 252, 248, 0.94);
+  box-shadow: inset 0 0 0 1px rgba(223, 151, 85, 0.18);
+}
+
+.cv-report-page .cv-code {
+  padding: 12px;
+  border-radius: 14px;
+  line-height: 1.35;
+  font-size: 13px;
+}
+
+.cv-report-page .cv-kv {
+  gap: 4px;
+}
+
+.cv-report-page .cv-kv-row {
+  gap: 10px;
+  padding-bottom: 6px;
+}
+
+.cv-report-page .cv-status-card {
+  border-radius: 12px;
+  padding: 9px 11px;
+  background: rgba(255, 249, 242, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(223, 151, 85, 0.16);
+}
+
+.cv-status-card--compact {
+  display: grid;
+  gap: 4px;
+}
+
+.cv-report-page .cv-table th,
+.cv-report-page .cv-table td {
+  padding: 8px 6px;
+  font-size: 13px;
+}
+
+.cv-table-wrap--compact {
+  margin-top: -4px;
+}
+
+.cv-report-hero {
+  padding: 12px 14px;
+  color: #8d4517;
+  background:
+    radial-gradient(circle at top right, rgba(255, 215, 176, 0.7), transparent 32%),
+    linear-gradient(135deg, #fff8ef 0%, #ffeddc 55%, #ffdcbc 100%);
+  border-color: rgba(223, 151, 85, 0.24);
+}
+
+.cv-report-page .cv-report-hero .cv-panel-description,
+.cv-report-page .cv-report-hero .cv-kv-value,
+.cv-report-page .cv-report-hero .cv-muted,
+.cv-report-page .cv-report-hero .cv-page-description {
+  color: rgba(120, 61, 22, 0.78);
+}
+
+.cv-report-hero__chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cv-report-hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cv-report-stat {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 252, 247, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(223, 151, 85, 0.16);
+}
+
+.cv-report-stat__label {
+  font-size: 11px;
+  color: rgba(120, 61, 22, 0.62);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cv-report-stat__value {
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+.cv-report-inline-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cv-report-inline-summary__item {
+  display: grid;
+  gap: 4px;
+  padding: 9px 11px;
+  border-radius: 12px;
+  background: rgba(255, 248, 240, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(223, 151, 85, 0.16);
+}
+
+.cv-report-inline-summary__label {
+  font-size: 11px;
+  color: var(--cv-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cv-report-code {
+  max-height: 180px;
+}
+
+.cv-report-execution {
+  display: grid;
+  gap: 4px;
+}
+
+.cv-report-page .cv-chip,
+.cv-report-page .cv-pill,
+.cv-report-page .cv-badge {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.cv-report-page .cv-chip {
+  background: rgba(255, 241, 225, 0.95);
+  color: #c86f2a;
+  box-shadow: inset 0 0 0 1px rgba(223, 151, 85, 0.18);
+}
+
+.cv-report-page .cv-pill {
+  background: rgba(255, 247, 238, 0.95);
+  color: #9e5d2a;
+  box-shadow: inset 0 0 0 1px rgba(223, 151, 85, 0.16);
+}
+
+.cv-report-page .cv-badge {
+  background: rgba(255, 244, 232, 0.95);
+  color: #b96523;
+}
+
+.cv-report-page .cv-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.cv-report-page .cv-muted {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.cv-report-page .cv-link-button {
+  font-size: 13px;
+}
+
+.cv-report-page .cv-header-actions {
+  gap: 8px;
 }
 
 .cv-badge-row,

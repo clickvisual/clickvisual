@@ -36,7 +36,8 @@ func TestRunPreviewSendsToWebhookAndUpdatesDelivery(t *testing.T) {
 	assert.Equal(t, 1, resp.Delivery.Failed)
 	assert.Contains(t, resp.Preview.Message, "1 个渠道推送成功")
 	assert.Contains(t, payloads[0], "日报-核心指标概览")
-	assert.Contains(t, payloads[0], "daily-core-kpi")
+	assert.Contains(t, payloads[0], "统计预览")
+	assert.NotContains(t, payloads[0], "daily-core-kpi")
 }
 
 func TestRunPreviewRecordsFailureWhenWebhookSendFails(t *testing.T) {
@@ -165,4 +166,22 @@ func TestGetWorkspaceIncludesPausedRuntimeWhenSchedulerNotRegistered(t *testing.
 		assert.Equal(t, "schedule", workspace.Runtime.LastScheduledExecution.Trigger)
 		assert.Equal(t, "system", workspace.Runtime.LastScheduledExecution.OperatorName)
 	}
+}
+
+func TestBuildEmptyWorkspaceReturnsSafeDefaultState(t *testing.T) {
+	channels := []view.RespReportChannel{
+		{ID: 201, Key: "ops-dingtalk", Name: "运营群", Typ: "dingtalk", Enabled: true},
+	}
+
+	workspace := buildEmptyWorkspace(channels)
+
+	assert.Zero(t, workspace.ActiveReportID)
+	assert.Empty(t, workspace.List)
+	assert.Empty(t, workspace.Executions)
+	assert.Equal(t, channels, workspace.Channels)
+	assert.False(t, workspace.Preview.CanRun)
+	assert.Empty(t, workspace.Schedule.ChannelIDs)
+	assert.Empty(t, workspace.Delivery.Channels)
+	assert.False(t, workspace.Runtime.Registered)
+	assert.False(t, workspace.Runtime.Paused)
 }

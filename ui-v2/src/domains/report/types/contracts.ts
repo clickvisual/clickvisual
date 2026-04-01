@@ -30,6 +30,7 @@ export interface ReportScheduleConfig {
 
 export type ReportQueryMode = "sql" | "dsl";
 export type ReportOutputFormat = "markdown" | "image" | "excel";
+export type ReportBuilderTimeRange = "1h" | "1d";
 
 export interface ReportEditorDraft {
   reportId: number;
@@ -41,6 +42,7 @@ export interface ReportEditorDraft {
   templateKey: string;
   outputFormat: ReportOutputFormat;
   recipientChannelIds: number[];
+  builder?: ReportBuilderInput | null;
 }
 
 export type PushChannelType = "dingtalk";
@@ -124,4 +126,62 @@ export interface ReportWorkspace {
   delivery: ReportSendResultSummary;
   channels: ReportPushChannel[];
   runtime: ReportScheduleRuntime;
+}
+
+export interface ReportMetricInput {
+  key: string;
+  label: string;
+  expression?: string;
+}
+
+export interface ReportBuilderInput {
+  instanceId: number;
+  database: string;
+  table: string;
+  timeField: string;
+  timeRange: ReportBuilderTimeRange;
+  where: string;
+  metrics: ReportMetricInput[];
+}
+
+export interface ReportCreatePayload {
+  reportId?: number;
+  name: string;
+  desc?: string;
+  builder: ReportBuilderInput;
+}
+
+export interface ReportDefinition {
+  reportId: number;
+  name: string;
+  desc: string;
+  status: ReportTaskStatus;
+  queryMode: ReportQueryMode;
+  queryText: string;
+  templateKey: string;
+  outputFormat: ReportOutputFormat;
+  dutyUid: number;
+  creatorUid: number;
+  updatedAt: string;
+  builder?: ReportBuilderInput | null;
+}
+
+export interface ReportSourceTable {
+  name: string;
+}
+
+export interface ReportSourceDatabase {
+  name: string;
+}
+
+export interface ReportSourceInstance {
+  id: number;
+  name: string;
+  desc: string;
+}
+
+export interface ReportSourceColumn {
+  field: string;
+  type: string;
+  comment?: string;
 }

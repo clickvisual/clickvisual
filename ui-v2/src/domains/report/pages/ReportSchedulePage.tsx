@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import {
+  createReport,
   getReportWorkspace,
+  listReportSourceDatabases,
+  listReportSourceInstances,
+  listReportSourceTables,
+  listReportTableColumns,
   runReportPreview,
   saveReportSchedule
 } from "../api/report";
+import ReportCreateForm from "../components/ReportCreateForm";
 import ReportPushStatusCard from "../components/ReportPushStatusCard";
 import ReportScheduleForm from "../components/ReportScheduleForm";
 import type {
+  ReportCreatePayload,
   ReportEditorDraft,
   ReportExecutionPreview,
   ReportExecutionRecord,
@@ -14,6 +21,10 @@ import type {
   ReportPushChannel,
   ReportScheduleConfig,
   ReportScheduleRuntime,
+  ReportSourceColumn,
+  ReportSourceDatabase,
+  ReportSourceInstance,
+  ReportSourceTable,
   ReportSendResultSummary
 } from "../types/contracts";
 import {
@@ -92,6 +103,23 @@ export default function ReportSchedulePage() {
     "idle" | "pending" | "success" | "error"
   >("idle");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [createStatus, setCreateStatus] = useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
+  const [createMessage, setCreateMessage] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editStatus, setEditStatus] = useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
+  const [editMessage, setEditMessage] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [sourceInstances, setSourceInstances] = useState<ReportSourceInstance[]>([]);
+  const [sourceDatabases, setSourceDatabases] = useState<ReportSourceDatabase[]>([]);
+  const [sourceTables, setSourceTables] = useState<ReportSourceTable[]>([]);
+  const [sourceColumns, setSourceColumns] = useState<ReportSourceColumn[]>([]);
+  const [loadingSourceDatabases, setLoadingSourceDatabases] = useState(false);
+  const [loadingSourceTables, setLoadingSourceTables] = useState(false);
+  const [loadingSourceColumns, setLoadingSourceColumns] = useState(false);
   const [previewStatus, setPreviewStatus] = useState<
     "idle" | "pending" | "success" | "error"
   >("idle");
@@ -134,6 +162,10 @@ export default function ReportSchedulePage() {
       setErrorMessage(null);
       setSaveStatus("idle");
       setSaveMessage(null);
+      setCreateStatus("idle");
+      setCreateMessage(null);
+      setEditStatus("idle");
+      setEditMessage(null);
       setPreviewStatus("idle");
       setPreviewMessage(null);
 
@@ -254,47 +286,231 @@ export default function ReportSchedulePage() {
     }
   }
 
+  async function handleOpenCreateReport() {
+    if (createStatus === "pending" || editStatus === "pending") {
+      return;
+    }
+
+    setCreateStatus("idle");
+    setCreateMessage(null);
+    try {
+      const instances = await listReportSourceInstances();
+      setSourceInstances(instances);
+      setSourceDatabases([]);
+      setSourceTables([]);
+      setSourceColumns([]);
+      setLoadingSourceDatabases(false);
+      setLoadingSourceTables(false);
+      setLoadingSourceColumns(false);
+      setEditOpen(false);
+      setCreateOpen(true);
+    } catch (error) {
+      setCreateStatus("error");
+      setCreateMessage(
+        error instanceof Error ? error.message : "加载数据源失败"
+      );
+    }
+  }
+
+  async function handleLoadColumns(
+    instanceId: number,
+    database: string,
+    table: string
+  ) {
+    setLoadingSourceColumns(true);
+    try {
+      const columns = await listReportTableColumns(instanceId, database, table);
+      setSourceColumns(columns);
+    } finally {
+      setLoadingSourceColumns(false);
+    }
+  }
+
+  async function handleInstanceChange(instanceId: number) {
+    setLoadingSourceDatabases(true);
+    setLoadingSourceTables(true);
+    setLoadingSourceColumns(false);
+    try {
+      const databases = await listReportSourceDatabases(instanceId);
+      setSourceTables([]);
+      setSourceColumns([]);
+
+      let preferredIndex = 0;
+      let preferredTables: ReportSourceTable[] = [];
+      for (let index = 0; index < databases.length; index += 1) {
+        const tables = await listReportSourceTables(instanceId, databases[index].name);
+        if (tables.length > 0) {
+          preferredIndex = index;
+          preferredTables = tables;
+          break;
+        }
+      }
+
+      if (databases.length > 0 && preferredIndex > 0) {
+        setSourceDatabases([
+          databases[preferredIndex],
+          ...databases.slice(0, preferredIndex),
+          ...databases.slice(preferredIndex + 1)
+        ]);
+      } else {
+        setSourceDatabases(databases);
+      }
+
+      setSourceTables(preferredTables);
+    } finally {
+      setLoadingSourceDatabases(false);
+      setLoadingSourceTables(false);
+    }
+  }
+
+  async function handleDatabaseChange(instanceId: number, database: string) {
+    setLoadingSourceTables(true);
+    setLoadingSourceColumns(false);
+    setSourceTables([]);
+    setSourceColumns([]);
+    try {
+      const tables = await listReportSourceTables(instanceId, database);
+      setSourceTables(tables);
+    } finally {
+      setLoadingSourceTables(false);
+    }
+  }
+
+  async function handleCreateReport(payload: ReportCreatePayload) {
+    setCreateStatus("pending");
+    setCreateMessage(null);
+
+    try {
+      const created = await createReport(payload);
+      setCreateOpen(false);
+      setSelectedReportId(created.reportId);
+      await loadWorkspace(created.reportId);
+      setCreateStatus("success");
+      setCreateMessage("报表已创建");
+    } catch (error) {
+      setCreateStatus("error");
+      setCreateMessage(
+        error instanceof Error ? error.message : "创建报表失败"
+      );
+    }
+  }
+
+  async function handleOpenEditReport() {
+    if (!editor) {
+      return;
+    }
+    if (!editor.builder) {
+      setEditStatus("error");
+      setEditMessage("当前报表缺少可编辑的 builder 配置，请重新创建。");
+      return;
+    }
+
+    setEditStatus("idle");
+    setEditMessage(null);
+    setCreateOpen(false);
+    setLoadingSourceDatabases(true);
+    setLoadingSourceTables(true);
+    setLoadingSourceColumns(true);
+    try {
+      const instances = await listReportSourceInstances();
+      setSourceInstances(instances);
+      const instanceId = editor.builder.instanceId || instances[0]?.id || 0;
+      const databases = await listReportSourceDatabases(instanceId);
+      setSourceDatabases(databases);
+      const tables = editor.builder.database
+        ? await listReportSourceTables(instanceId, editor.builder.database)
+        : [];
+      setSourceTables(tables);
+      const columns =
+        editor.builder.database && editor.builder.table
+          ? await listReportTableColumns(
+              instanceId,
+              editor.builder.database,
+              editor.builder.table
+            )
+          : [];
+      setSourceColumns(columns);
+      setEditOpen(true);
+    } catch (error) {
+      setEditStatus("error");
+      setEditMessage(
+        error instanceof Error ? error.message : "加载报表编辑上下文失败"
+      );
+    } finally {
+      setLoadingSourceDatabases(false);
+      setLoadingSourceTables(false);
+      setLoadingSourceColumns(false);
+    }
+  }
+
+  async function handleEditReport(payload: ReportCreatePayload) {
+    setEditStatus("pending");
+    setEditMessage(null);
+
+    try {
+      const updated = await createReport(payload);
+      setEditOpen(false);
+      setSelectedReportId(updated.reportId);
+      await loadWorkspace(updated.reportId);
+      setEditStatus("success");
+      setEditMessage("报表已更新");
+    } catch (error) {
+      setEditStatus("error");
+      setEditMessage(
+        error instanceof Error ? error.message : "更新报表失败"
+      );
+    }
+  }
+
   return (
-    <section className="cv-section-stack">
+    <section className="cv-section-stack cv-report-page">
       <header className="cv-page-header">
         <div>
           <h1 className="cv-page-title">定时报表</h1>
           <p className="cv-page-description">
-            对齐 `scheduled_reports_dingtalk_push` 设计稿重做，保留当前报表配置、保存调度、执行预览、运行态回刷与 v1/v2 共存切换链路。
+            保留真实配置、调度、预览执行与运行态回刷链路，同时把工作区压缩到更适合持续操作的密度。
           </p>
         </div>
         <div className="cv-header-actions">
           <button type="button" className="cv-secondary-button">
             导出统计
           </button>
-          <button type="button" className="cv-action-button">
-            创建报表
+          <button
+            type="button"
+            className="cv-action-button"
+            onClick={handleOpenCreateReport}
+            disabled={createStatus === "pending"}
+          >
+            {createStatus === "pending" ? "创建中..." : "创建报表"}
           </button>
         </div>
       </header>
 
-      <section className="cv-panel cv-panel-dark">
+      <section className="cv-panel cv-panel-dark cv-report-hero">
         <div className="cv-panel-header">
           <div>
             <h2 className="cv-panel-title">自动化推送工作台</h2>
             <p className="cv-panel-description">
-              当前时间范围：{getTimeRangeLabel(timeRange)}。支持基于查询模板生成日报/周报，并投递到钉钉渠道。
+              支持基于查询模板生成日报/周报，并投递到钉钉渠道。
             </p>
           </div>
-          <span className="cv-chip">Report Push First</span>
+          <div className="cv-report-hero__chips">
+            <span className="cv-chip">Report Push</span>
+            <span className="cv-pill">{getTimeRangeLabel(timeRange)}</span>
+          </div>
         </div>
-        <div className="cv-grid-3">
-          <div>
-            <div className="cv-muted">活跃报表任务</div>
-            <div className="cv-hero-number">{reportList.length}</div>
+        <div className="cv-report-hero__stats">
+          <div className="cv-report-stat">
+            <div className="cv-report-stat__label">活跃报表任务</div>
+            <div className="cv-report-stat__value">{reportList.length}</div>
           </div>
-          <div>
-            <div className="cv-muted">推送成功率</div>
-            <div className="cv-hero-number">{successRate}</div>
+          <div className="cv-report-stat">
+            <div className="cv-report-stat__label">推送成功率</div>
+            <div className="cv-report-stat__value">{successRate}</div>
           </div>
-          <div>
-            <div className="cv-muted">当前激活任务</div>
-            <div className="cv-hero-number" style={{ fontSize: "38px" }}>
+          <div className="cv-report-stat">
+            <div className="cv-report-stat__label">当前激活任务</div>
+            <div className="cv-report-stat__value">
               {activeReportId ? `#${activeReportId}` : "未选择"}
             </div>
           </div>
@@ -307,134 +523,79 @@ export default function ReportSchedulePage() {
           {errorMessage}
         </div>
       ) : null}
+      {createMessage ? (
+        <div
+          className="cv-status-card"
+          role={createStatus === "error" ? "alert" : "status"}
+        >
+          {createStatus === "error"
+            ? `创建报表失败：${createMessage}`
+            : createMessage}
+        </div>
+      ) : null}
+      {editMessage ? (
+        <div
+          className="cv-status-card"
+          role={editStatus === "error" ? "alert" : "status"}
+        >
+          {editStatus === "error"
+            ? `编辑报表失败：${editMessage}`
+            : editMessage}
+        </div>
+      ) : null}
+      {createOpen ? (
+        <ReportCreateForm
+          instances={sourceInstances}
+          databases={sourceDatabases}
+          tables={sourceTables}
+          columns={sourceColumns}
+          isLoadingDatabases={loadingSourceDatabases}
+          isLoadingTables={loadingSourceTables}
+          isLoadingColumns={loadingSourceColumns}
+          isSubmitting={createStatus === "pending"}
+          onInstanceChange={handleInstanceChange}
+          onDatabaseChange={handleDatabaseChange}
+          onLoadColumns={handleLoadColumns}
+          onSubmit={handleCreateReport}
+        />
+      ) : null}
+      {editOpen && editor?.builder ? (
+        <ReportCreateForm
+          mode="edit"
+          initialValue={{
+            reportId: editor.reportId,
+            name: editor.name,
+            builder: editor.builder
+          }}
+          instances={sourceInstances}
+          databases={sourceDatabases}
+          tables={sourceTables}
+          columns={sourceColumns}
+          isLoadingDatabases={loadingSourceDatabases}
+          isLoadingTables={loadingSourceTables}
+          isLoadingColumns={loadingSourceColumns}
+          isSubmitting={editStatus === "pending"}
+          onInstanceChange={handleInstanceChange}
+          onDatabaseChange={handleDatabaseChange}
+          onLoadColumns={handleLoadColumns}
+          onSubmit={handleEditReport}
+        />
+      ) : null}
 
       {!loading && reportList.length > 0 ? (
-        <div className="cv-report-grid">
+        <div className="cv-report-grid cv-report-grid--compact">
           <div className="cv-section-stack">
-            <section className="cv-panel cv-panel-soft">
-              <div className="cv-panel-header">
-                <div>
-                  <h2 className="cv-panel-title">报表配置</h2>
-                  <p className="cv-panel-description">
-                    以设计稿的左侧构建器布局承接查询模式、模板、输出格式与说明。
-                  </p>
-                </div>
-                <span className="cv-badge">可运行壳子</span>
-              </div>
-              {editor ? (
-                <div className="cv-form-grid">
-                  <div className="cv-form-two-up">
-                    <div className="cv-form-row">
-                      <span className="cv-label">报表名称</span>
-                      <div className="cv-input">报表名称：{editor.name}</div>
-                    </div>
-                    <div className="cv-form-row">
-                      <span className="cv-label">模板</span>
-                      <div className="cv-input">{editor.templateKey}</div>
-                    </div>
-                  </div>
-                  <div className="cv-form-two-up">
-                    <div className="cv-form-row">
-                      <span className="cv-label">查询模式</span>
-                      <div className="cv-input">查询模式：{editor.queryMode.toUpperCase()}</div>
-                    </div>
-                    <div className="cv-form-row">
-                      <span className="cv-label">输出格式</span>
-                      <div className="cv-input">输出格式：{editor.outputFormat}</div>
-                    </div>
-                  </div>
-                  <div className="cv-form-row">
-                    <span className="cv-label">查询语句</span>
-                    <pre className="cv-code">{editor.queryText}</pre>
-                  </div>
-                  <div className="cv-form-row">
-                    <span className="cv-label">配置说明</span>
-                    <div className="cv-input">配置说明：{editor.desc}</div>
-                  </div>
-                </div>
-              ) : null}
-            </section>
-
-            {schedule && workspace ? (
-              <section className="cv-panel">
-                <div className="cv-panel-header">
-                  <div>
-                    <h2 className="cv-panel-title">调度配置</h2>
-                    <p className="cv-panel-description">
-                      保留真实保存链路，视觉上对齐设计稿的配置面板与 DingTalk 推送分区。
-                    </p>
-                  </div>
-                </div>
-                <div className="cv-section-stack">
-                  <div className="cv-input">调度表达式：{schedule.cron}</div>
-                  {runtime ? (
-                    <div className="cv-kv">
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">注册状态</span>
-                        <span className="cv-kv-value">
-                          注册状态：{getSchedulerRegistrationLabel(runtime)}
-                        </span>
-                      </div>
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">下次执行时间</span>
-                        <span className="cv-kv-value">
-                          下次执行时间：{formatDateTime(runtime.nextRunAt)}
-                        </span>
-                      </div>
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">最近一次定时执行</span>
-                        <span className="cv-kv-value">
-                          最近一次定时执行：{getLatestScheduledStatusLabel(runtime)}
-                        </span>
-                      </div>
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">最近一次定时执行时间</span>
-                        <span className="cv-kv-value">
-                          最近一次定时执行时间：
-                          {formatDateTime(
-                            runtime.lastScheduledExecution?.endedAt ||
-                              runtime.lastScheduledExecution?.startedAt
-                          )}
-                        </span>
-                      </div>
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">最近一次触发方式 / 执行人</span>
-                        <span className="cv-kv-value">
-                          最近一次触发方式 / 执行人：
-                          {runtime.lastScheduledExecution
-                            ? `${runtime.lastScheduledExecution.trigger} / ${runtime.lastScheduledExecution.operatorName}`
-                            : "未记录"}
-                        </span>
-                      </div>
-                    </div>
-                  ) : null}
-                  <ReportScheduleForm
-                    initialValue={schedule}
-                    channels={workspace.channels}
-                    isSubmitting={saveStatus === "pending"}
-                    onSubmit={handleSaveSchedule}
-                  />
-                  <ReportPushStatusCard
-                    actionLabel="保存调度"
-                    status={saveStatus}
-                    message={saveMessage ?? undefined}
-                    idleMessage="尚未保存调度"
-                  />
-                </div>
-              </section>
-            ) : null}
-
             <section className="cv-panel">
               <div className="cv-panel-header">
                 <div>
-                  <h2 className="cv-panel-title">报表任务（Mock）</h2>
+                  <h2 className="cv-panel-title">报表任务</h2>
                   <p className="cv-panel-description">
-                    当前工作区通过 mock + 契约层驱动，切换任务会刷新配置、调度和运行态。
+                    切换任务会刷新当前报表的配置、调度状态、执行历史和投递汇总。
                   </p>
                 </div>
                 <span className="cv-chip">{activeReportId ? `Active #${activeReportId}` : "No Active"}</span>
               </div>
-              <div className="cv-table-wrap">
+              <div className="cv-table-wrap cv-table-wrap--compact">
                 <table className="cv-table">
                   <thead>
                     <tr>
@@ -451,7 +612,11 @@ export default function ReportSchedulePage() {
                           <strong>{item.name}</strong>
                           <span className="cv-muted">{item.desc}</span>
                         </td>
-                        <td>{item.status === "enabled" ? "启用" : "停用"}</td>
+                        <td>
+                          <span className={item.status === "enabled" ? "cv-badge" : "cv-pill"}>
+                            {item.status === "enabled" ? "启用" : "停用"}
+                          </span>
+                        </td>
                         <td>{item.updatedAt}</td>
                         <td>
                           <button
@@ -470,6 +635,130 @@ export default function ReportSchedulePage() {
                 </table>
               </div>
             </section>
+
+            <section className="cv-panel cv-panel-soft">
+              <div className="cv-panel-header">
+                <div>
+                  <h2 className="cv-panel-title">报表配置</h2>
+                  <p className="cv-panel-description">
+                    以设计稿的左侧构建器布局承接查询模式、模板、输出格式与说明。
+                  </p>
+                </div>
+                <div className="cv-header-actions">
+                  <button
+                    type="button"
+                    className="cv-secondary-button"
+                    onClick={handleOpenEditReport}
+                    disabled={!editor?.builder || editStatus === "pending"}
+                  >
+                    {editStatus === "pending" ? "保存中..." : "编辑报表"}
+                  </button>
+                  <span className="cv-badge">可运行壳子</span>
+                </div>
+              </div>
+              {editor ? (
+                <div className="cv-form-grid">
+                  <div className="cv-form-two-up">
+                    <div className="cv-form-row">
+                      <span className="cv-label">报表名称</span>
+                      <div className="cv-input">{editor.name}</div>
+                    </div>
+                    <div className="cv-form-row">
+                      <span className="cv-label">模板</span>
+                      <div className="cv-input">{editor.templateKey}</div>
+                    </div>
+                  </div>
+                  <div className="cv-form-two-up">
+                    <div className="cv-form-row">
+                      <span className="cv-label">查询模式</span>
+                      <div className="cv-input">{editor.queryMode.toUpperCase()}</div>
+                    </div>
+                    <div className="cv-form-row">
+                      <span className="cv-label">输出格式</span>
+                      <div className="cv-input">{editor.outputFormat}</div>
+                    </div>
+                  </div>
+                  <div className="cv-form-row">
+                    <span className="cv-label">查询语句</span>
+                    <pre className="cv-code cv-report-code">{editor.queryText}</pre>
+                  </div>
+                  <div className="cv-form-row">
+                    <span className="cv-label">配置说明</span>
+                    <div className="cv-input">{editor.desc}</div>
+                  </div>
+                </div>
+              ) : null}
+            </section>
+
+            {schedule && workspace ? (
+              <section className="cv-panel">
+                <div className="cv-panel-header">
+                  <div>
+                    <h2 className="cv-panel-title">调度配置</h2>
+                    <p className="cv-panel-description">
+                      保留真实保存链路，视觉上对齐设计稿的配置面板与 DingTalk 推送分区。
+                    </p>
+                  </div>
+                </div>
+                <div className="cv-section-stack">
+                  <div className="cv-report-inline-summary">
+                    <div className="cv-report-inline-summary__item">
+                      <span className="cv-report-inline-summary__label">Cron</span>
+                      <strong>{schedule.cron || "未设置"}</strong>
+                    </div>
+                    <div className="cv-report-inline-summary__item">
+                      <span className="cv-report-inline-summary__label">渠道</span>
+                      <strong>{schedule.channelIds.length}</strong>
+                    </div>
+                  </div>
+                  {runtime ? (
+                    <div className="cv-kv">
+                      <div className="cv-kv-row">
+                        <span className="cv-kv-key">注册状态</span>
+                        <span className="cv-kv-value">{getSchedulerRegistrationLabel(runtime)}</span>
+                      </div>
+                      <div className="cv-kv-row">
+                        <span className="cv-kv-key">下次执行时间</span>
+                        <span className="cv-kv-value">{formatDateTime(runtime.nextRunAt)}</span>
+                      </div>
+                      <div className="cv-kv-row">
+                        <span className="cv-kv-key">最近一次定时执行</span>
+                        <span className="cv-kv-value">{getLatestScheduledStatusLabel(runtime)}</span>
+                      </div>
+                      <div className="cv-kv-row">
+                        <span className="cv-kv-key">最近一次定时执行时间</span>
+                        <span className="cv-kv-value">
+                          {formatDateTime(
+                            runtime.lastScheduledExecution?.endedAt ||
+                              runtime.lastScheduledExecution?.startedAt
+                          )}
+                        </span>
+                      </div>
+                      <div className="cv-kv-row">
+                        <span className="cv-kv-key">最近一次触发方式 / 执行人</span>
+                        <span className="cv-kv-value">
+                          {runtime.lastScheduledExecution
+                            ? `${runtime.lastScheduledExecution.trigger} / ${runtime.lastScheduledExecution.operatorName}`
+                            : "未记录"}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                  <ReportScheduleForm
+                    initialValue={schedule}
+                    channels={workspace.channels}
+                    isSubmitting={saveStatus === "pending"}
+                    onSubmit={handleSaveSchedule}
+                  />
+                  <ReportPushStatusCard
+                    actionLabel="保存调度"
+                    status={saveStatus}
+                    message={saveMessage ?? undefined}
+                  idleMessage="尚未保存调度"
+                  />
+                </div>
+              </section>
+            ) : null}
           </div>
 
           <div className="cv-section-stack">
@@ -483,10 +772,11 @@ export default function ReportSchedulePage() {
                     </p>
                   </div>
                 </div>
-                <div className="cv-section-stack">
+                <div className="cv-section-stack cv-section-stack--tight">
                   {selectedChannels.map((channel) => (
-                    <div key={channel.id} className="cv-status-card">
-                      {channel.name}（{channel.key}）
+                    <div key={channel.id} className="cv-status-card cv-status-card--compact">
+                      <strong>{channel.name}</strong>
+                      <div className="cv-muted">{channel.key}</div>
                     </div>
                   ))}
                 </div>
@@ -503,8 +793,8 @@ export default function ReportSchedulePage() {
                     </p>
                   </div>
                 </div>
-                <div className="cv-section-stack">
-                  <div className="cv-input">执行预览：{preview.message}</div>
+                <div className="cv-section-stack cv-section-stack--tight">
+                  <div className="cv-input">{preview.message}</div>
                   <div className="cv-kv">
                     <div className="cv-kv-row">
                       <span className="cv-kv-key">下次执行</span>
@@ -543,9 +833,9 @@ export default function ReportSchedulePage() {
                     </p>
                   </div>
                 </div>
-                <div className="cv-section-stack">
+                <div className="cv-section-stack cv-section-stack--tight">
                   {summary.channels.map((item) => (
-                    <div key={item.channelId} className="cv-kv">
+                    <div key={item.channelId} className="cv-kv cv-status-card cv-status-card--compact">
                       <div className="cv-kv-row">
                         <span className="cv-kv-key">渠道</span>
                         <span className="cv-kv-value">{item.channelTyp} / #{item.channelId}</span>
@@ -576,14 +866,16 @@ export default function ReportSchedulePage() {
                     </p>
                   </div>
                 </div>
-                <div className="cv-section-stack">
+                <div className="cv-section-stack cv-section-stack--tight">
                   {executions.map((item) => (
-                    <div key={item.id} className="cv-status-card">
-                      <strong>
-                        {item.trigger} / {item.status} / {item.operatorName}
-                      </strong>
-                      <div className={getStatusTone(item.status)} style={{ marginTop: 8 }}>
-                        {getExecutionStatusLabel(item.status)} · {item.startedAt}
+                    <div key={item.id} className="cv-status-card cv-status-card--compact">
+                      <div className="cv-report-execution">
+                        <strong>
+                          {item.trigger} / {item.status} / {item.operatorName}
+                        </strong>
+                        <div className={getStatusTone(item.status)}>
+                          {getExecutionStatusLabel(item.status)} · {item.startedAt}
+                        </div>
                       </div>
                     </div>
                   ))}

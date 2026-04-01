@@ -20,9 +20,9 @@ func TestReportConfigSaveAndGet(t *testing.T) {
 		body := m.Exec(
 			gintest.WithUri("/reports/configs"),
 			gintest.WithJsonBody(view.ReqReportSchedule{
-				NodeID:        31001,
-				Desc:          "核心指标日报任务",
-				DutyUID:       10086,
+				NodeID:        1001,
+				Desc:          "这段描述不应再由 configs 写入",
+				DutyUID:       99999,
 				Cron:          "0 0 9 * * *",
 				Typ:           0,
 				ChannelIDs:    []int{201},
@@ -31,15 +31,21 @@ func TestReportConfigSaveAndGet(t *testing.T) {
 				RetryInterval: 300,
 			}),
 		)
-		assert.JSONEq(t, `{"code":0,"msg":"succ","data":{"nodeId":31001,"desc":"核心指标日报任务","dutyUid":10086,"cron":"0 0 9 * * *","typ":0,"channelIds":[201],"isRetry":1,"retryTimes":2,"retryInterval":300}}`, string(body))
+		assert.Contains(t, string(body), `"nodeId":1001`)
+		assert.Contains(t, string(body), `"cron":"0 0 9 * * *"`)
+		assert.Contains(t, string(body), `"channelIds":[201]`)
+		assert.NotContains(t, string(body), `"dutyUid":99999`)
+		assert.NotContains(t, string(body), `"desc":"这段描述不应再由 configs 写入"`)
 		return nil
 	}, gintest.WithRoutePath("/reports/configs"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
 	_ = save.Run()
 
 	get := gintest.Init()
 	get.GET(core.Handle(ConfigGet), func(m *gintest.Mock) error {
-		body := m.Exec(gintest.WithUri("/reports/configs/31001"))
-		assert.JSONEq(t, `{"code":0,"msg":"succ","data":{"nodeId":31001,"desc":"核心指标日报任务","dutyUid":10086,"cron":"0 0 9 * * *","typ":0,"channelIds":[201],"isRetry":1,"retryTimes":2,"retryInterval":300}}`, string(body))
+		body := m.Exec(gintest.WithUri("/reports/configs/1001"))
+		assert.Contains(t, string(body), `"nodeId":1001`)
+		assert.Contains(t, string(body), `"cron":"0 0 9 * * *"`)
+		assert.Contains(t, string(body), `"channelIds":[201]`)
 		return nil
 	}, gintest.WithRoutePath("/reports/configs/:node-id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
 	_ = get.Run()
@@ -171,4 +177,113 @@ func TestReportPreviewRun(t *testing.T) {
 		return nil
 	}, gintest.WithRoutePath("/reports/preview-run"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
 	_ = obj.Run()
+}
+
+func TestReportDefinitionUpsertAndGet(t *testing.T) {
+	reportservice.ResetForTest()
+
+	upsert := gintest.Init()
+	upsert.POST(core.Handle(ReportUpsert), func(m *gintest.Mock) error {
+		body := m.Exec(
+			gintest.WithUri("/reports"),
+			gintest.WithJsonBody(view.ReqReportDefinition{
+				ReportID:     1001,
+				Name:         "日报-核心指标概览-v2",
+				Desc:         "定义接口更新描述",
+				Status:       "enabled",
+				QueryMode:    "sql",
+				QueryText:    "select 1",
+				TemplateKey:  "daily-core-kpi",
+				OutputFormat: "markdown",
+				DutyUID:      10086,
+			}),
+		)
+		assert.Contains(t, string(body), `"reportId":1001`)
+		assert.Contains(t, string(body), `"name":"日报-核心指标概览-v2"`)
+		assert.Contains(t, string(body), `"queryText":"select 1"`)
+		return nil
+	}, gintest.WithRoutePath("/reports"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = upsert.Run()
+
+	get := gintest.Init()
+	get.GET(core.Handle(ReportGet), func(m *gintest.Mock) error {
+		body := m.Exec(gintest.WithUri("/reports/1001"))
+		assert.Contains(t, string(body), `"reportId":1001`)
+		assert.Contains(t, string(body), `"name":"日报-核心指标概览-v2"`)
+		assert.Contains(t, string(body), `"queryText":"select 1"`)
+		return nil
+	}, gintest.WithRoutePath("/reports/:report-id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = get.Run()
+}
+
+func TestReportUpsertBuildsSQLFromBuilderPayload(t *testing.T) {
+	reportservice.ResetForTest()
+
+	obj := gintest.Init()
+	obj.POST(core.Handle(ReportUpsert), func(m *gintest.Mock) error {
+		body := m.Exec(
+			gintest.WithUri("/reports"),
+			gintest.WithJsonBody(map[string]interface{}{
+				"name": "错误日志小时报",
+				"builder": map[string]interface{}{
+					"instanceId": 1,
+					"database":   "default",
+					"table":      "logs",
+					"timeField":  "event_time",
+					"timeRange":  "1h",
+					"where":      "level = 'error'",
+					"metrics": []map[string]string{
+						{"key": "count", "label": "总量"},
+						{"key": "custom", "label": "去重 Trace", "expression": "uniq(trace_id)"},
+					},
+				},
+			}),
+		)
+		assert.Contains(t, string(body), `"code":0`)
+		assert.Contains(t, string(body), `"queryMode":"sql"`)
+		assert.Contains(t, string(body), `"queryText":"WITH`)
+		return nil
+	}, gintest.WithRoutePath("/reports"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = obj.Run()
+}
+
+func TestReportTableColumns(t *testing.T) {
+	reportservice.ResetForTest()
+
+	obj := gintest.Init()
+	obj.GET(core.Handle(ReportTableColumns), func(m *gintest.Mock) error {
+		body := m.Exec(gintest.WithUri("/reports/instances/1/databases/default/tables/logs/columns"))
+		assert.Contains(t, string(body), `"code":0`)
+		assert.Contains(t, string(body), `"field":"event_time"`)
+		return nil
+	}, gintest.WithRoutePath("/reports/instances/:instance-id/databases/:database/tables/:table/columns"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = obj.Run()
+}
+
+func TestReportSourceMetadata(t *testing.T) {
+	reportservice.ResetForTest()
+
+	instances := gintest.Init()
+	instances.GET(core.Handle(ReportSourceInstances), func(m *gintest.Mock) error {
+		body := m.Exec(gintest.WithUri("/reports/instances"))
+		assert.Contains(t, string(body), `"name":"生产 ClickHouse"`)
+		return nil
+	}, gintest.WithRoutePath("/reports/instances"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = instances.Run()
+
+	databases := gintest.Init()
+	databases.GET(core.Handle(ReportSourceDatabases), func(m *gintest.Mock) error {
+		body := m.Exec(gintest.WithUri("/reports/instances/1/databases"))
+		assert.Contains(t, string(body), `"name":"default"`)
+		return nil
+	}, gintest.WithRoutePath("/reports/instances/:instance-id/databases"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = databases.Run()
+
+	tables := gintest.Init()
+	tables.GET(core.Handle(ReportSourceTables), func(m *gintest.Mock) error {
+		body := m.Exec(gintest.WithUri("/reports/instances/1/databases/default/tables"))
+		assert.Contains(t, string(body), `"name":"logs"`)
+		return nil
+	}, gintest.WithRoutePath("/reports/instances/:instance-id/databases/:database/tables"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = tables.Run()
 }

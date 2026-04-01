@@ -1,15 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   getReportEditorDraft,
   getReportExecutionPreview,
   getReportScheduleConfig,
   getReportSendSummary,
+  getReportWorkspace,
   listReportChannels,
   listReportItems,
   listReportRecentExecutions
 } from "../src/domains/report/api/report";
 
 describe("report contracts and mock reader", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   it("returns list items and aligned schedule fields", async () => {
     const list = await listReportItems();
     expect(list.length).toBeGreaterThan(0);
@@ -93,5 +99,69 @@ describe("report contracts and mock reader", () => {
         })
       ])
     });
+  });
+
+  it("normalizes workspace schedule from nodeId to reportId", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          code: 0,
+          msg: "succ",
+          data: {
+            activeReportId: 4,
+            list: [],
+            editor: {
+              reportId: 4,
+              nodeId: 4,
+              name: "错误日志小时报",
+              desc: "desc",
+              queryMode: "sql",
+              queryText: "SELECT 1",
+              templateKey: "report-builder-default",
+              outputFormat: "markdown",
+              recipientChannelIds: []
+            },
+            schedule: {
+              nodeId: 4,
+              desc: "desc",
+              dutyUid: 0,
+              cron: "",
+              typ: 0,
+              channelIds: null,
+              isRetry: 0,
+              retryTimes: 0,
+              retryInterval: 0
+            },
+            preview: {
+              reportId: 4,
+              canRun: false,
+              nextRunAt: "",
+              lastRunAt: "",
+              message: ""
+            },
+            executions: [],
+            delivery: {
+              reportId: 4,
+              total: 0,
+              success: 0,
+              failed: 0,
+              channels: []
+            },
+            channels: [],
+            runtime: {
+              registered: false,
+              paused: false,
+              nextRunAt: ""
+            }
+          }
+        })
+      }))
+    );
+
+    const workspace = await getReportWorkspace(4);
+    expect(workspace.schedule.reportId).toBe(4);
+    expect(workspace.schedule.channelIds).toEqual([]);
   });
 });

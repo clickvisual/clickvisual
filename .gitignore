@@ -66,3 +66,9 @@ task_plan.md
 progress.md
 findings.md
 v2/stitch/
+
+.playwright-cli/
+docs/superpowers/
+.air.toml
+openspec/*
+tmp/*

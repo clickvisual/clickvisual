@@ -30,6 +30,11 @@ export function getV1Href(pathname?: string) {
   return `${basePath}/query`;
 }
 
+export function getV2Href(pathname?: string) {
+  const basePath = getV2BasePath(pathname) || pathname?.replace(/\/query\/?$/, "") || "";
+  return `${basePath}/v2/reports`;
+}
+
 export default function VersionSwitcher() {
   const [lastPreferredVersion] = useState(getPreferredUiVersion);
 

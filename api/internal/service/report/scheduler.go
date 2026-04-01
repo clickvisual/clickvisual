@@ -26,16 +26,32 @@ func NewScheduler(service *Service) *Scheduler {
 }
 
 func (s *Scheduler) Start() error {
-	s.service.mu.RLock()
-	reports := append([]int(nil), s.service.enabledReportIDsLocked()...)
-	s.service.mu.RUnlock()
+	var (
+		reports []int
+		err     error
+	)
+	// Start first so newly added entries can calculate Next immediately.
+	s.cron.Start()
+	if s.service.useDB() {
+		reports, err = s.service.enabledReportIDsFromDB()
+		if err != nil {
+			ctx := s.cron.Stop()
+			<-ctx.Done()
+			return err
+		}
+	} else {
+		s.service.mu.RLock()
+		reports = append([]int(nil), s.service.enabledReportIDsLocked()...)
+		s.service.mu.RUnlock()
+	}
 
 	for _, reportID := range reports {
-		if err := s.Reload(reportID); err != nil {
+		if err = s.Reload(reportID); err != nil {
+			ctx := s.cron.Stop()
+			<-ctx.Done()
 			return err
 		}
 	}
-	s.cron.Start()
 	return nil
 }
 
@@ -53,23 +69,41 @@ func (s *Scheduler) Reload(reportID int) error {
 		delete(s.entryID, reportID)
 	}
 
-	s.service.mu.RLock()
-	item, ok := s.service.reportItem(reportID)
-	if !ok {
+	spec := ""
+	if s.service.useDB() {
+		report, err := s.service.getReportByIDFromDB(reportID)
+		if err != nil {
+			// Report was removed or unavailable; treat as unload.
+			return nil
+		}
+		schedule, found, err := s.service.getScheduleByReportIDFromDB(reportID)
+		if err != nil {
+			return err
+		}
+		if !found || report.Status != "enabled" || schedule.Status != "enabled" {
+			_ = s.service.syncScheduleNextRun(reportID, time.Time{})
+			return nil
+		}
+		spec = schedule.Cron
+	} else {
+		s.service.mu.RLock()
+		item, ok := s.service.reportItem(reportID)
+		if !ok {
+			s.service.mu.RUnlock()
+			return fmt.Errorf("report not found: %d", reportID)
+		}
+		schedule, ok := s.service.schedules[reportID]
+		if !ok {
+			s.service.mu.RUnlock()
+			return fmt.Errorf("report schedule not found: %d", reportID)
+		}
+		if item.Status != "enabled" {
+			s.service.mu.RUnlock()
+			return nil
+		}
+		spec = schedule.Cron
 		s.service.mu.RUnlock()
-		return fmt.Errorf("report not found: %d", reportID)
 	}
-	schedule, ok := s.service.schedules[reportID]
-	if !ok {
-		s.service.mu.RUnlock()
-		return fmt.Errorf("report schedule not found: %d", reportID)
-	}
-	if item.Status != "enabled" {
-		s.service.mu.RUnlock()
-		return nil
-	}
-	spec := schedule.Cron
-	s.service.mu.RUnlock()
 
 	entryID, err := s.cron.AddFunc(spec, func() {
 		if _, runErr := s.service.RunScheduled(reportID); runErr != nil {
@@ -80,6 +114,12 @@ func (s *Scheduler) Reload(reportID int) error {
 		return err
 	}
 	s.entryID[reportID] = entryID
+	if s.service.useDB() {
+		next := s.cron.Entry(entryID).Next
+		if err = s.service.syncScheduleNextRun(reportID, next); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

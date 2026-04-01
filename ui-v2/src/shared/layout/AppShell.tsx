@@ -5,7 +5,6 @@ import {
   TimeRangeSwitcher
 } from "../components/TimeRangeSwitcher";
 import {
-  getTimeRangeLabel,
   TimeRangeProvider,
   useTimeRange,
 } from "../state/TimeRangeContext";
@@ -86,18 +85,6 @@ function ShellFrame({ children }: { children: ReactNode }) {
           </div>
         </header>
         <div className="cv-shell__workspace">
-          <section className="cv-shell__hero">
-            <div>
-              <div className="cv-shell__eyebrow">The Kinetic Architect</div>
-              <h1 className="cv-shell__headline">ClickVisual v2 控制台</h1>
-              <p className="cv-shell__subhead">
-                面向 ClickHouse 日志检索、告警和报表的一体化工作区。共享底座保持玻璃侧栏、无描边层次和橘色动作焦点，供五个模块直接复用。
-              </p>
-            </div>
-            <div className="cv-shell__status">
-              当前时间范围：{getTimeRangeLabel(timeRange)}
-            </div>
-          </section>
           <main data-testid="app-shell-main" className="cv-shell__content">
             <div className="cv-shell__canvas">{children}</div>
           </main>

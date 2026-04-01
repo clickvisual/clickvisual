@@ -5,6 +5,19 @@ import type {
   ReportScheduleConfig
 } from "../types/contracts";
 
+const cronPresets = [
+  { key: "", label: "手动填写", cron: "" },
+  { key: "daily-10", label: "每天早上 10 点", cron: "0 0 10 * * *" },
+  { key: "weekly-mon-10", label: "每周一早上 10 点", cron: "0 0 10 * * 1" },
+  { key: "weekday-10", label: "工作日早上 10 点", cron: "0 0 10 * * 1-5" }
+] as const;
+
+type CronPresetKey = (typeof cronPresets)[number]["key"];
+
+function findPresetKey(cron: string): CronPresetKey {
+  return cronPresets.find((preset) => preset.cron === cron)?.key ?? "";
+}
+
 interface ReportScheduleFormProps {
   initialValue: ReportScheduleConfig;
   channels: ReportPushChannel[];
@@ -19,10 +32,12 @@ export default function ReportScheduleForm({
   onSubmit
 }: ReportScheduleFormProps) {
   const [cron, setCron] = useState(initialValue.cron);
+  const [presetKey, setPresetKey] = useState(findPresetKey(initialValue.cron));
   const [channelIds, setChannelIds] = useState(initialValue.channelIds);
 
   useEffect(() => {
     setCron(initialValue.cron);
+    setPresetKey(findPresetKey(initialValue.cron));
     setChannelIds(initialValue.channelIds);
   }, [initialValue]);
 
@@ -38,17 +53,46 @@ export default function ReportScheduleForm({
 
   return (
     <form onSubmit={handleSubmit} className="cv-form-grid">
-      <label className="cv-form-row">
-        <span className="cv-label">Cron</span>
-        <input
-          aria-label="Cron"
-          name="cron"
-          value={cron}
-          className="cv-input"
-          disabled={isSubmitting}
-          onChange={(event) => setCron(event.target.value)}
-        />
-      </label>
+      <div className="cv-form-two-up">
+        <label className="cv-form-row">
+          <span className="cv-label">常用计划</span>
+          <select
+            aria-label="常用计划"
+            value={presetKey}
+            className="cv-input"
+            disabled={isSubmitting}
+            onChange={(event) => {
+              const nextPresetKey = event.target.value as CronPresetKey;
+              setPresetKey(nextPresetKey);
+              const nextPreset = cronPresets.find((preset) => preset.key === nextPresetKey);
+              if (nextPreset && nextPreset.cron) {
+                setCron(nextPreset.cron);
+              }
+            }}
+          >
+            {cronPresets.map((preset) => (
+              <option key={preset.key || "custom"} value={preset.key}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="cv-form-row">
+          <span className="cv-label">Cron</span>
+          <input
+            aria-label="Cron"
+            name="cron"
+            value={cron}
+            className="cv-input"
+            disabled={isSubmitting}
+            onChange={(event) => {
+              const nextCron = event.target.value;
+              setCron(nextCron);
+              setPresetKey(findPresetKey(nextCron));
+            }}
+          />
+        </label>
+      </div>
       <ChannelSelector
         channels={channels}
         selectedChannelIds={channelIds}

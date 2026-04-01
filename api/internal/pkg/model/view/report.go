@@ -1,9 +1,54 @@
 package view
 
+type ReqReportDefinition struct {
+	ReportID     int               `json:"reportId" form:"reportId"`
+	Name         string            `json:"name" form:"name"`
+	Desc         string            `json:"desc" form:"desc"`
+	Status       string            `json:"status" form:"status"`
+	QueryMode    string            `json:"queryMode" form:"queryMode"`
+	QueryText    string            `json:"queryText" form:"queryText"`
+	TemplateKey  string            `json:"templateKey" form:"templateKey"`
+	OutputFormat string            `json:"outputFormat" form:"outputFormat"`
+	DutyUID      int               `json:"dutyUid" form:"dutyUid"`
+	CreatorUID   int               `json:"creatorUid" form:"creatorUid"`
+	Builder      *ReqReportBuilder `json:"builder" form:"builder"`
+}
+
+type ReqReportMetric struct {
+	Key        string `json:"key" form:"key"`
+	Label      string `json:"label" form:"label"`
+	Expression string `json:"expression" form:"expression"`
+}
+
+type ReqReportBuilder struct {
+	InstanceID int               `json:"instanceId" form:"instanceId"`
+	Database   string            `json:"database" form:"database"`
+	Table      string            `json:"table" form:"table"`
+	TimeField  string            `json:"timeField" form:"timeField"`
+	TimeRange  string            `json:"timeRange" form:"timeRange"`
+	Where      string            `json:"where" form:"where"`
+	Metrics    []ReqReportMetric `json:"metrics" form:"metrics"`
+}
+
+type RespReportDefinition struct {
+	ReportID     int               `json:"reportId"`
+	Name         string            `json:"name"`
+	Desc         string            `json:"desc"`
+	Status       string            `json:"status"`
+	QueryMode    string            `json:"queryMode"`
+	QueryText    string            `json:"queryText"`
+	TemplateKey  string            `json:"templateKey"`
+	OutputFormat string            `json:"outputFormat"`
+	DutyUID      int               `json:"dutyUid"`
+	CreatorUID   int               `json:"creatorUid"`
+	UpdatedAt    string            `json:"updatedAt"`
+	Builder      *ReqReportBuilder `json:"builder,omitempty"`
+}
+
 type ReqReportSchedule struct {
 	NodeID        int    `json:"nodeId" form:"nodeId"`
-	Desc          string `json:"desc" form:"desc"`
-	DutyUID       int    `json:"dutyUid" form:"dutyUid"`
+	Desc          string `json:"desc" form:"desc"`       // Deprecated: 报表定义字段，请改用 /api/v2/reports
+	DutyUID       int    `json:"dutyUid" form:"dutyUid"` // Deprecated: 报表定义字段，请改用 /api/v2/reports
 	Cron          string `json:"cron" form:"cron"`
 	Typ           int    `json:"typ" form:"typ"`
 	ChannelIDs    []int  `json:"channelIds" form:"channelIds"`
@@ -35,15 +80,16 @@ type RespReportListItem struct {
 }
 
 type RespReportEditorDraft struct {
-	ReportID            int    `json:"reportId"`
-	NodeID              int    `json:"nodeId"`
-	Name                string `json:"name"`
-	Desc                string `json:"desc"`
-	QueryMode           string `json:"queryMode"`
-	QueryText           string `json:"queryText"`
-	TemplateKey         string `json:"templateKey"`
-	OutputFormat        string `json:"outputFormat"`
-	RecipientChannelIDs []int  `json:"recipientChannelIds"`
+	ReportID            int               `json:"reportId"`
+	NodeID              int               `json:"nodeId"`
+	Name                string            `json:"name"`
+	Desc                string            `json:"desc"`
+	QueryMode           string            `json:"queryMode"`
+	QueryText           string            `json:"queryText"`
+	TemplateKey         string            `json:"templateKey"`
+	OutputFormat        string            `json:"outputFormat"`
+	RecipientChannelIDs []int             `json:"recipientChannelIds"`
+	Builder             *ReqReportBuilder `json:"builder,omitempty"`
 }
 
 type RespReportChannel struct {
@@ -122,4 +168,18 @@ type RespReportPreviewRunResult struct {
 	Preview   RespReportExecutionPreview `json:"preview"`
 	Execution RespReportExecutionRecord  `json:"execution"`
 	Delivery  RespReportSendSummary      `json:"delivery"`
+}
+
+type RespReportSourceInstance struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Desc string `json:"desc"`
+}
+
+type RespReportSourceDatabase struct {
+	Name string `json:"name"`
+}
+
+type RespReportSourceTable struct {
+	Name string `json:"name"`
 }

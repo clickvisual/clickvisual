@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { routes } from "../src/app/router";
 import {
   getV1Href,
+  getV2Href,
   getV2BasePath,
   getPreferredUiVersion,
   setPreferredUiVersion
@@ -26,6 +27,8 @@ describe("v2 version switcher", () => {
     expect(getV2BasePath("/console/v2/reports")).toBe("/console");
     expect(getV1Href("/console/v2/reports")).toBe("/console/query");
     expect(getV1Href("/v2/reports")).toBe("/query");
+    expect(getV2Href("/console/query")).toBe("/console/v2/reports");
+    expect(getV2Href("/query")).toBe("/v2/reports");
   });
 
   it("redirects /v2 to the report page and records v2 as preferred version", async () => {
@@ -40,7 +43,7 @@ describe("v2 version switcher", () => {
     expect(
       screen.getByRole("heading", { name: "定时报表" })
     ).toBeInTheDocument();
-    await screen.findByRole("heading", { name: "报表任务（Mock）" });
+    await screen.findByRole("heading", { name: "报表任务" });
     expect(window.localStorage.getItem(VERSION_STORAGE_KEY)).toBe("v2");
   });
 
@@ -53,7 +56,7 @@ describe("v2 version switcher", () => {
 
     render(<RouterProvider router={memoryRouter} />);
 
-    await screen.findByRole("heading", { name: "报表任务（Mock）" });
+    await screen.findByRole("heading", { name: "报表任务" });
 
     const link = screen.getByRole("link", { name: "返回上次使用的 v1" });
 
@@ -75,7 +78,7 @@ describe("v2 version switcher", () => {
 
     render(<RouterProvider router={memoryRouter} />);
 
-    await screen.findByRole("heading", { name: "报表任务（Mock）" });
+    await screen.findByRole("heading", { name: "报表任务" });
 
     const link = screen.getByRole("link", { name: "返回上次使用的 v1" });
 
