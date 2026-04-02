@@ -45,6 +45,7 @@ dist/
 
 ### file
 package-lock.json
+!ui-v2/package-lock.json
 api/docs/index.html
 
 /data/helm/clickvisual/default.toml
