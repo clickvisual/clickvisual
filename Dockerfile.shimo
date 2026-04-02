@@ -1,19 +1,26 @@
-# UI build stage
+# UI v1 (ant-design-pro / Umi)
 FROM reg.smvm.cn/appbase/node:16-alpine3.18-pptr as js-builder
 
 ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /clickvisual
 COPY ui/package.json ui/yarn.lock ./ui/
-COPY ui-v2/package.json ui-v2/package-lock.json ./ui-v2/
 RUN cd ui && yarn install --frozen-lockfile --network-timeout 100000
-RUN cd ui-v2 && npm install
 
 ENV PUBLIC_PATH=/mdp/clickvisual/
-
 ENV NODE_ENV production
 COPY ui ./ui
-COPY ui-v2 ./ui-v2
 RUN cd ui && yarn build
+
+
+# UI v2 (Vite — Node 18+; plain Node image, no Puppeteer stack)
+FROM reg.smvm.cn/appbase/node:20-alpine3.22 as js-builder-v2
+
+WORKDIR /clickvisual
+COPY ui-v2/package.json ui-v2/package-lock.json ./ui-v2/
+RUN cd ui-v2 && npm ci
+
+ENV NODE_ENV production
+COPY ui-v2 ./ui-v2
 RUN cd ui-v2 && npm run build
 
 
@@ -31,7 +38,7 @@ COPY go.mod go.sum ./
 RUN go mod download -x
 COPY . .
 COPY --from=js-builder /clickvisual/ui/dist ./api/internal/ui/dist
-COPY --from=js-builder /clickvisual/ui-v2/api/internal/ui/v2dist/dist ./api/internal/ui/v2dist/dist
+COPY --from=js-builder-v2 /clickvisual/api/internal/ui/v2dist/dist ./api/internal/ui/v2dist/dist
 RUN ls -rlt ./api/internal/ui/dist && make build.api
 
 
