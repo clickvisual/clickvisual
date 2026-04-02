@@ -13,8 +13,7 @@ RUN cd ui && yarn build
 
 
 # UI v2 (Vite — Node 18+; plain Node image, no Puppeteer stack)
-FROM reg.smvm.cn/appbase/node:20-alpine3.22 as js-builder-v2
-
+FROM reg.smvm.cn/appbase/node:22-bookworm-slim as js-builder-v2
 WORKDIR /clickvisual
 COPY ui-v2/package.json ui-v2/package-lock.json ./ui-v2/
 RUN cd ui-v2 && npm ci
