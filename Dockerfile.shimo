@@ -1,5 +1,5 @@
 # UI build stage
-FROM node:16-alpine3.17 as js-builder
+FROM reg.smvm.cn/appbase/node:16-alpine3.18-pptr as js-builder
 
 ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /clickvisual
@@ -18,7 +18,7 @@ RUN cd ui-v2 && npm run build
 
 
 # API build stage
-FROM golang:1.21.0-alpine3.17 as go-builder
+FROM reg.smvm.cn/appbase/golang-build:1.24-alpine3.22 as go-builder
 ARG GOPROXY=goproxy.cn
 
 ENV GOPROXY=https://${GOPROXY},direct
@@ -36,7 +36,7 @@ RUN ls -rlt ./api/internal/ui/dist && make build.api
 
 
 # Fianl running stage
-FROM alpine:3.17
+FROM reg.smvm.cn/appbase/alpine:3.16.9 as final
 LABEL maintainer="clickvisual@shimo.im"
 
 WORKDIR /clickvisual

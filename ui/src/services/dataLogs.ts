@@ -74,6 +74,7 @@ export interface CreatedLogLibraryRequestAsString {
 export interface CreatedTableTemplateType {
   brokers: string;
   databaseId: number;
+  days: number;
   topicsApp: string;
   topicsEgo: string;
   topicsIngressStderr: string;

@@ -211,7 +211,7 @@ func (s *srvStorage) createByEgoIngressStdout(uid int, databaseInfo db2.BaseData
 	cp := view.ReqStorageCreate{
 		CreateType:              constx.TableCreateTypeJSONAsString,
 		Typ:                     1,
-		Days:                    3,
+		Days:                    param.Days,
 		Brokers:                 param.Brokers,
 		Consumers:               1,
 		KafkaSkipBrokenMessages: 1000,

@@ -34,9 +34,9 @@ type ReqStorageCreate struct {
 }
 
 type ReqCreateStorageByTemplateEgo struct {
-	Brokers    string `form:"brokers" binding:"required"`
-	DatabaseId int    `form:"databaseId" binding:"required"`
-
+	Brokers             string `form:"brokers" binding:"required"`
+	DatabaseId          int    `form:"databaseId" binding:"required"`
+	Days                int    `form:"days" binding:"required"`
 	TopicsApp           string `form:"topicsApp" binding:"required"`
 	TopicsEgo           string `form:"topicsEgo" binding:"required"`
 	TopicsIngressStdout string `form:"topicsIngressStdout" binding:"required"`

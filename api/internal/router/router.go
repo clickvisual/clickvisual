@@ -29,7 +29,7 @@ func GetServerRouter() *egin.Component {
 	serveFromSubPath := econf.GetBool("app.serveFromSubPath")
 	r := invoker.Gin
 	r.Use(invoker.Session)
-	r.NoRoute(egin.Gzip(egin.DefaultCompression, egin.WithGzipExcludedExtensions([]string{"", ".html"})), core.Handle(func(c *core.Context) {
+	r.NoRoute(egin.Gzip(egin.DefaultCompression, egin.WithGzipExcludedExtensions([]string{"", ".html", ".htm"})), core.Handle(func(c *core.Context) {
 		prefix := "/api/"
 		if serveFromSubPath {
 			prefix = appSubUrl + prefix
@@ -38,12 +38,28 @@ func GetServerRouter() *egin.Component {
 			c.JSONE(http.StatusNotFound, "", nil)
 			return
 		}
-		maxAge := econf.GetInt("server.http.maxAge")
-		if maxAge == 0 {
-			maxAge = 31536000
+
+		shouldGzip := false
+		gzipExtensions := []string{".js", ".css", ".svg", ".ttf", ".woff", ".woff2", ".json"}
+		for _, ext := range gzipExtensions {
+			if strings.HasSuffix(c.Request.URL.Path, ext) {
+				shouldGzip = true
+				break
+			}
 		}
-		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d, public", maxAge))
-		c.Header("Expires", time.Now().AddDate(1, 0, 0).Format("Mon, 01 Jan 2006 00:00:00 GMT"))
+		if shouldGzip {
+			maxAge := econf.GetInt("server.http.maxAge")
+			if maxAge == 0 {
+				maxAge = 31536000
+			}
+			c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
+			c.Header("Expires", time.Now().AddDate(1, 0, 0).Format("Mon, 01 Jan 2006 00:00:00 GMT"))
+		} else {
+			maxAge := 60
+			c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
+			c.Header("Expires", time.Now().Add(time.Minute).Format(time.RFC1123))
+		}
+
 		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
 		if isV2Asset(path) {
 			v2dist.Serve(c, path)
