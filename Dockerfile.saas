@@ -1,0 +1,66 @@
+# UI v1 (ant-design-pro / Umi)
+FROM reg.smvm.cn/appbase/node:16-alpine3.18-pptr as js-builder
+
+ENV NODE_OPTIONS=--max_old_space_size=8000
+WORKDIR /clickvisual
+COPY ui/package.json ui/yarn.lock ./
+
+RUN yarn -v
+
+ENV PUBLIC_PATH=/clickvisual/
+
+RUN yarn install --frozen-lockfile --network-timeout 100000
+ENV NODE_ENV production
+COPY ui .
+RUN yarn build
+
+
+
+# UI v2 (Vite — Node 18+; plain Node image, no Puppeteer stack)
+FROM reg.smvm.cn/appbase/node:22-bookworm-slim as js-builder-v2
+WORKDIR /clickvisual
+
+ENV PUBLIC_PATH=/clickvisual/
+
+COPY ui-v2/package.json ui-v2/package-lock.json ./ui-v2/
+RUN cd ui-v2 && npm ci
+
+ENV NODE_ENV production
+COPY ui-v2 ./ui-v2
+RUN cd ui-v2 && npm run build
+
+
+# API build stage
+FROM reg.smvm.cn/appbase/golang-build:1.24-alpine3.22 as go-builder
+ARG GOPROXY=goproxy.cn
+
+ENV GOPROXY=https://${GOPROXY},direct
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN apk add --no-cache make bash tzdata
+
+WORKDIR /clickvisual
+
+COPY go.mod go.sum ./
+RUN go mod download -x
+COPY . .
+COPY --from=js-builder /clickvisual/dist ./api/internal/ui/dist
+COPY --from=js-builder-v2 /clickvisual/api/internal/ui/v2dist/dist ./api/internal/ui/v2dist/dist
+RUN ls -rlt ./api/internal/ui/dist && make build.api
+
+
+# Fianl running stage
+FROM reg.smvm.cn/appbase/alpine:3.16.9 as final
+LABEL maintainer="clickvisual@shimo.im"
+
+WORKDIR /clickvisual
+
+COPY --from=go-builder /clickvisual/bin/clickvisual ./bin/
+COPY --from=go-builder /clickvisual/config ./config
+
+EXPOSE 9001
+EXPOSE 9003
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN apk --update add --no-cache tzdata
+
+CMD ["sh", "-c", "./${APP} server"]
+CMD ["sh", "-c", "./bin/clickvisual server"]
