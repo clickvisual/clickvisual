@@ -3,13 +3,17 @@ FROM reg.smvm.cn/appbase/node:16-alpine3.18-pptr as js-builder
 
 ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /clickvisual
-COPY ui/package.json ui/yarn.lock ./ui/
-RUN cd ui && yarn install --frozen-lockfile --network-timeout 100000
+COPY ui/package.json ui/yarn.lock ./
+
+RUN yarn -v
 
 ENV PUBLIC_PATH=/mdp/clickvisual/
+
+RUN yarn install --frozen-lockfile --network-timeout 100000
 ENV NODE_ENV production
-COPY ui ./ui
-RUN cd ui && yarn build
+COPY ui .
+RUN yarn build
+
 
 
 # UI v2 (Vite — Node 18+; plain Node image, no Puppeteer stack)
