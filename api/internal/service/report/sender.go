@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +19,8 @@ type previewSender interface {
 type httpPreviewSender struct {
 	client *http.Client
 }
+
+var blankParagraphPattern = regexp.MustCompile(`(?:\n[ \t]*){3,}`)
 
 func newHTTPPreviewSender() previewSender {
 	return &httpPreviewSender{
@@ -38,6 +41,7 @@ func (s *httpPreviewSender) Send(channel view.RespReportChannel, title string, t
 
 	switch channel.Typ {
 	case "dingtalk":
+		text = formatDingTalkMarkdownText(text)
 		payload := map[string]interface{}{
 			"msgtype": "markdown",
 			"markdown": map[string]string{
@@ -70,4 +74,23 @@ func (s *httpPreviewSender) Send(channel view.RespReportChannel, title string, t
 	default:
 		return fmt.Errorf("unsupported report channel type: %s", channel.Typ)
 	}
+}
+
+func formatDingTalkMarkdownText(text string) string {
+	normalized := strings.ReplaceAll(text, "\r\n", "\n")
+	lines := strings.Split(normalized, "\n")
+	paragraphs := make([]string, 0, len(lines))
+	for _, line := range lines {
+		trimmedRight := strings.TrimRight(line, " \t")
+		if strings.TrimSpace(trimmedRight) == "" {
+			if len(paragraphs) == 0 || paragraphs[len(paragraphs)-1] == "" {
+				continue
+			}
+			paragraphs = append(paragraphs, "")
+			continue
+		}
+		paragraphs = append(paragraphs, trimmedRight)
+	}
+	formatted := strings.TrimSpace(strings.Join(paragraphs, "\n\n"))
+	return blankParagraphPattern.ReplaceAllString(formatted, "\n\n")
 }

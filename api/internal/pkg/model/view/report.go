@@ -18,6 +18,15 @@ type ReqReportMetric struct {
 	Key        string `json:"key" form:"key"`
 	Label      string `json:"label" form:"label"`
 	Expression string `json:"expression" form:"expression"`
+	GroupBy    string `json:"groupBy" form:"groupBy"`
+	Limit      int    `json:"limit" form:"limit"`
+}
+
+type ReqReportBlock struct {
+	Key     string            `json:"key" form:"key"`
+	Label   string            `json:"label" form:"label"`
+	Where   string            `json:"where" form:"where"`
+	Metrics []ReqReportMetric `json:"metrics" form:"metrics"`
 }
 
 type ReqReportBuilder struct {
@@ -28,6 +37,7 @@ type ReqReportBuilder struct {
 	TimeRange  string            `json:"timeRange" form:"timeRange"`
 	Where      string            `json:"where" form:"where"`
 	Metrics    []ReqReportMetric `json:"metrics" form:"metrics"`
+	Blocks     []ReqReportBlock  `json:"blocks" form:"blocks"`
 }
 
 type RespReportDefinition struct {
@@ -168,6 +178,10 @@ type RespReportPreviewRunResult struct {
 	Preview   RespReportExecutionPreview `json:"preview"`
 	Execution RespReportExecutionRecord  `json:"execution"`
 	Delivery  RespReportSendSummary      `json:"delivery"`
+}
+
+type RespReportDeleteResult struct {
+	ReportID int `json:"reportId"`
 }
 
 type RespReportSourceInstance struct {

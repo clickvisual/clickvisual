@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  createReport,
   getReportEditorDraft,
   getReportExecutionPreview,
   getReportScheduleConfig,
@@ -66,6 +67,17 @@ describe("report contracts and mock reader", () => {
       templateKey: expect.any(String),
       outputFormat: expect.stringMatching(/markdown|image|excel/),
       recipientChannelIds: expect.arrayContaining([expect.any(Number)])
+    });
+    expect(editor.builder?.blocks).toBeDefined();
+    expect(editor.builder?.blocks?.[0]).toMatchObject({
+      key: expect.any(String),
+      label: expect.any(String),
+      where: expect.any(String),
+      metrics: expect.any(Array)
+    });
+    expect(editor.builder?.blocks?.[0].metrics[0]).toMatchObject({
+      groupBy: expect.any(String),
+      limit: expect.any(Number)
     });
 
     const preview = await getReportExecutionPreview(1001);
@@ -163,5 +175,47 @@ describe("report contracts and mock reader", () => {
     const workspace = await getReportWorkspace(4);
     expect(workspace.schedule.reportId).toBe(4);
     expect(workspace.schedule.channelIds).toEqual([]);
+  });
+
+  it("normalizes legacy builder into a default block and saves blocks payload", async () => {
+    const legacyEditor = await getReportEditorDraft(1001);
+    expect(legacyEditor.builder?.blocks).toHaveLength(1);
+    expect(legacyEditor.builder?.blocks?.[0]).toMatchObject({
+      key: "default",
+      label: "默认条件块",
+      where: "env = 'prod'"
+    });
+
+    const created = await createReport({
+      name: "多条件报表",
+      builder: {
+        instanceId: 1,
+        database: "logger",
+        table: "logs",
+        timeField: "event_time",
+        timeRange: "1d",
+        where: "",
+        metrics: [],
+        blocks: [
+          {
+            key: "error",
+            label: "Error 日志",
+            where: "level = 'error'",
+            metrics: [{ key: "count", label: "总量" }]
+          }
+        ]
+      }
+    });
+
+    expect(created.builder?.blocks).toHaveLength(1);
+    expect(created.builder?.blocks?.[0]).toMatchObject({
+      key: "error",
+      label: "Error 日志",
+      where: "level = 'error'"
+    });
+    expect(created.builder?.blocks?.[0].metrics[0]).toMatchObject({
+      groupBy: "",
+      limit: 3
+    });
   });
 });

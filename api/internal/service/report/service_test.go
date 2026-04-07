@@ -185,3 +185,19 @@ func TestBuildEmptyWorkspaceReturnsSafeDefaultState(t *testing.T) {
 	assert.False(t, workspace.Runtime.Registered)
 	assert.False(t, workspace.Runtime.Paused)
 }
+
+func TestDeleteReportRemovesTaskAndResolvesNextWorkspace(t *testing.T) {
+	ResetForTest()
+
+	_, err := defaultService.DeleteReport(1001)
+	require.NoError(t, err)
+
+	list, err := defaultService.ListReports()
+	require.NoError(t, err)
+	require.Len(t, list, 1)
+	assert.Equal(t, 1002, list[0].ID)
+
+	workspace, err := defaultService.GetWorkspace(0)
+	require.NoError(t, err)
+	assert.Equal(t, 1002, workspace.ActiveReportID)
+}

@@ -47,6 +47,23 @@ func ReportGet(c *core.Context) {
 	c.JSONOK(resp)
 }
 
+// ReportDelete godoc
+// @Summary      删除报表定义
+// @Tags         REPORT
+// @Accept       json
+// @Produce      json
+// @Router       /api/v2/reports/{report-id} [delete]
+func ReportDelete(c *core.Context) {
+	reportID := cast.ToInt(c.Param("report-id"))
+	resp, err := reportservice.DeleteReport(reportID)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
 // ConfigUpsert godoc
 // @Summary      保存报表调度配置（仅调度）
 // @Tags         REPORT

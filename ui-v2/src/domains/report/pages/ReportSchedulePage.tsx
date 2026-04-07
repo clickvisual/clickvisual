@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   createReport,
+  deleteReport,
   getReportWorkspace,
   listReportSourceDatabases,
   listReportSourceInstances,
@@ -85,7 +87,14 @@ function getStatusTone(status: ReportExecutionRecord["status"]) {
 }
 
 export default function ReportSchedulePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { reportId: reportIdParam } = useParams<{ reportId?: string }>();
   const { timeRange } = useTimeRange();
+  const routeReportId = useMemo(() => {
+    const parsed = Number(reportIdParam);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  }, [reportIdParam]);
   const [workspace, setWorkspace] = useState<{
     activeReportId: number;
     list: ReportListItem[];
@@ -124,7 +133,12 @@ export default function ReportSchedulePage() {
     "idle" | "pending" | "success" | "error"
   >("idle");
   const [previewMessage, setPreviewMessage] = useState<string | null>(null);
-  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+  const [deleteStatus, setDeleteStatus] = useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
+  const [confirmDeleteReportId, setConfirmDeleteReportId] = useState<number | null>(null);
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(routeReportId);
 
   async function loadWorkspace(
     reportId?: number,
@@ -155,6 +169,10 @@ export default function ReportSchedulePage() {
   }
 
   useEffect(() => {
+    setSelectedReportId(routeReportId);
+  }, [routeReportId]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function load() {
@@ -168,6 +186,9 @@ export default function ReportSchedulePage() {
       setEditMessage(null);
       setPreviewStatus("idle");
       setPreviewMessage(null);
+      setDeleteStatus("idle");
+      setDeleteMessage(null);
+      setConfirmDeleteReportId(null);
 
       try {
         const data = await getReportWorkspace(selectedReportId ?? undefined);
@@ -205,6 +226,13 @@ export default function ReportSchedulePage() {
   const executions = workspace?.executions ?? [];
   const summary = workspace?.delivery ?? null;
   const runtime = workspace?.runtime ?? null;
+  const activeReportName =
+    editor?.name ??
+    reportList.find((item) => item.id === activeReportId)?.name ??
+    "未选择报表任务";
+  const activeReportDisplay = activeReportId
+    ? `${activeReportName} #${activeReportId}`
+    : activeReportName;
   const selectedChannels =
     schedule && workspace
       ? workspace.channels.filter((channel) =>
@@ -215,6 +243,20 @@ export default function ReportSchedulePage() {
     summary && summary.total > 0
       ? `${Math.round((summary.success / summary.total) * 100)}%`
       : "0%";
+  const reportRouteBase = useMemo(() => {
+    const matched = location.pathname.match(/^(.*\/v2)(?:\/.*)?$/);
+    return matched?.[1] ?? "/v2";
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (activeReportId && String(activeReportId) !== reportIdParam) {
+      navigate(`${reportRouteBase}/reports/${activeReportId}`, { replace: true });
+      return;
+    }
+    if (!activeReportId && reportIdParam) {
+      navigate(reportRouteBase, { replace: true });
+    }
+  }, [activeReportId, navigate, reportIdParam, reportRouteBase]);
 
   async function handleSaveSchedule(nextSchedule: ReportScheduleConfig) {
     setSaveStatus("pending");
@@ -287,7 +329,7 @@ export default function ReportSchedulePage() {
   }
 
   async function handleOpenCreateReport() {
-    if (createStatus === "pending" || editStatus === "pending") {
+    if (createStatus === "pending" || editStatus === "pending" || deleteStatus === "pending") {
       return;
     }
 
@@ -462,6 +504,35 @@ export default function ReportSchedulePage() {
     }
   }
 
+  async function handleDeleteReport(reportId: number) {
+    if (deleteStatus === "pending") {
+      return;
+    }
+
+    const nextList = reportList.filter((item) => item.id !== reportId);
+    const nextActiveReportId =
+      activeReportId === reportId ? nextList[0]?.id ?? null : activeReportId ?? nextList[0]?.id ?? null;
+
+    setDeleteStatus("pending");
+    setDeleteMessage(null);
+
+    try {
+      await deleteReport(reportId);
+      setConfirmDeleteReportId(null);
+      setCreateOpen(false);
+      setEditOpen(false);
+      setSelectedReportId(nextActiveReportId);
+      await loadWorkspace(nextActiveReportId ?? undefined);
+      setDeleteStatus("success");
+      setDeleteMessage("报表已删除");
+    } catch (error) {
+      setDeleteStatus("error");
+      setDeleteMessage(
+        error instanceof Error ? error.message : "删除报表失败"
+      );
+    }
+  }
+
   return (
     <section className="cv-section-stack cv-report-page">
       <header className="cv-page-header">
@@ -509,9 +580,9 @@ export default function ReportSchedulePage() {
             <div className="cv-report-stat__value">{successRate}</div>
           </div>
           <div className="cv-report-stat">
-            <div className="cv-report-stat__label">当前激活任务</div>
+            <div className="cv-report-stat__label">当前任务</div>
             <div className="cv-report-stat__value">
-              {activeReportId ? `#${activeReportId}` : "未选择"}
+              {activeReportDisplay}
             </div>
           </div>
         </div>
@@ -543,6 +614,16 @@ export default function ReportSchedulePage() {
             : editMessage}
         </div>
       ) : null}
+      {deleteMessage ? (
+        <div
+          className="cv-status-card"
+          role={deleteStatus === "error" ? "alert" : "status"}
+        >
+          {deleteStatus === "error"
+            ? `删除报表失败：${deleteMessage}`
+            : deleteMessage}
+        </div>
+      ) : null}
       {createOpen ? (
         <ReportCreateForm
           instances={sourceInstances}
@@ -559,29 +640,6 @@ export default function ReportSchedulePage() {
           onSubmit={handleCreateReport}
         />
       ) : null}
-      {editOpen && editor?.builder ? (
-        <ReportCreateForm
-          mode="edit"
-          initialValue={{
-            reportId: editor.reportId,
-            name: editor.name,
-            builder: editor.builder
-          }}
-          instances={sourceInstances}
-          databases={sourceDatabases}
-          tables={sourceTables}
-          columns={sourceColumns}
-          isLoadingDatabases={loadingSourceDatabases}
-          isLoadingTables={loadingSourceTables}
-          isLoadingColumns={loadingSourceColumns}
-          isSubmitting={editStatus === "pending"}
-          onInstanceChange={handleInstanceChange}
-          onDatabaseChange={handleDatabaseChange}
-          onLoadColumns={handleLoadColumns}
-          onSubmit={handleEditReport}
-        />
-      ) : null}
-
       {!loading && reportList.length > 0 ? (
         <div className="cv-report-grid cv-report-grid--compact">
           <div className="cv-section-stack">
@@ -593,7 +651,7 @@ export default function ReportSchedulePage() {
                     切换任务会刷新当前报表的配置、调度状态、执行历史和投递汇总。
                   </p>
                 </div>
-                <span className="cv-chip">{activeReportId ? `Active #${activeReportId}` : "No Active"}</span>
+                <span className="cv-chip">{activeReportId ? activeReportDisplay : "No Active"}</span>
               </div>
               <div className="cv-table-wrap cv-table-wrap--compact">
                 <table className="cv-table">
@@ -607,34 +665,105 @@ export default function ReportSchedulePage() {
                   </thead>
                   <tbody>
                     {reportList.map((item) => (
-                      <tr key={item.id}>
-                        <td>
-                          <strong>{item.name}</strong>
-                          <span className="cv-muted">{item.desc}</span>
-                        </td>
-                        <td>
-                          <span className={item.status === "enabled" ? "cv-badge" : "cv-pill"}>
-                            {item.status === "enabled" ? "启用" : "停用"}
-                          </span>
-                        </td>
-                        <td>{item.updatedAt}</td>
-                        <td>
-                          <button
-                            type="button"
-                            className="cv-link-button"
-                            aria-pressed={activeReportId === item.id}
-                            aria-label={`切换到报表 ${item.name}`}
-                            onClick={() => setSelectedReportId(item.id)}
-                          >
-                            切换任务
-                          </button>
-                        </td>
-                      </tr>
+                      <Fragment key={item.id}>
+                        <tr key={item.id}>
+                          <td>
+                            <strong>{item.name}</strong>
+                            <span className="cv-muted">{item.desc}</span>
+                          </td>
+                          <td>
+                            <span className={item.status === "enabled" ? "cv-badge" : "cv-pill"}>
+                              {item.status === "enabled" ? "启用" : "停用"}
+                            </span>
+                          </td>
+                          <td>{item.updatedAt}</td>
+                          <td>
+                            <div className="cv-header-actions">
+                              <button
+                                type="button"
+                                className="cv-link-button"
+                                aria-pressed={activeReportId === item.id}
+                                aria-label={`切换到报表 ${item.name}`}
+                                onClick={() => setSelectedReportId(item.id)}
+                              >
+                                切换任务
+                              </button>
+                              <button
+                                type="button"
+                                className="cv-secondary-button"
+                                aria-label={`删除报表 ${item.name}`}
+                                disabled={deleteStatus === "pending"}
+                                onClick={() =>
+                                  setConfirmDeleteReportId((current) =>
+                                    current === item.id ? null : item.id
+                                  )
+                                }
+                              >
+                                删除
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        {confirmDeleteReportId === item.id ? (
+                          <tr key={`${item.id}-confirm`}>
+                            <td colSpan={4}>
+                              <div className="cv-status-card cv-status-card--compact">
+                                <strong>{`确认删除报表「${item.name}」？`}</strong>
+                                <span className="cv-muted">
+                                  删除后会一起清理该报表的调度配置和执行历史，且无法恢复。
+                                </span>
+                                <div className="cv-header-actions">
+                                  <button
+                                    type="button"
+                                    className="cv-action-button"
+                                    aria-label={`确认删除 报表 ${item.name}`}
+                                    disabled={deleteStatus === "pending"}
+                                    onClick={() => void handleDeleteReport(item.id)}
+                                  >
+                                    {deleteStatus === "pending" ? "删除中..." : "确认删除"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="cv-secondary-button"
+                                    disabled={deleteStatus === "pending"}
+                                    onClick={() => setConfirmDeleteReportId(null)}
+                                  >
+                                    取消
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : null}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
               </div>
             </section>
+
+            {editOpen && editor?.builder ? (
+              <ReportCreateForm
+                mode="edit"
+                initialValue={{
+                  reportId: editor.reportId,
+                  name: editor.name,
+                  builder: editor.builder
+                }}
+                instances={sourceInstances}
+                databases={sourceDatabases}
+                tables={sourceTables}
+                columns={sourceColumns}
+                isLoadingDatabases={loadingSourceDatabases}
+                isLoadingTables={loadingSourceTables}
+                isLoadingColumns={loadingSourceColumns}
+                isSubmitting={editStatus === "pending"}
+                onInstanceChange={handleInstanceChange}
+                onDatabaseChange={handleDatabaseChange}
+                onLoadColumns={handleLoadColumns}
+                onSubmit={handleEditReport}
+              />
+            ) : null}
 
             <section className="cv-panel cv-panel-soft">
               <div className="cv-panel-header">
@@ -643,6 +772,10 @@ export default function ReportSchedulePage() {
                   <p className="cv-panel-description">
                     以设计稿的左侧构建器布局承接查询模式、模板、输出格式与说明。
                   </p>
+                  <div className="cv-report-active-task">
+                    <span className="cv-report-active-task__label">当前任务</span>
+                    <strong className="cv-report-active-task__name">{activeReportDisplay}</strong>
+                  </div>
                 </div>
                 <div className="cv-header-actions">
                   <button

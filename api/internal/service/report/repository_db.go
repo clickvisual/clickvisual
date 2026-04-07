@@ -142,6 +142,44 @@ func (s *Service) getReportFromDB(reportID int) (view.RespReportDefinition, erro
 	return toRespReportDefinition(report), nil
 }
 
+func (s *Service) deleteReportFromDB(reportID int) (view.RespReportDeleteResult, error) {
+	if reportID == 0 {
+		return view.RespReportDeleteResult{}, fmt.Errorf("reportId 不能为空")
+	}
+	if _, err := s.getReportByIDFromDB(reportID); err != nil {
+		return view.RespReportDeleteResult{}, err
+	}
+
+	err := invoker.Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("report_id = ?", reportID).Delete(&dbmodel.ReportSchedule{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("report_id = ?", reportID).Delete(&dbmodel.ReportExecution{}).Error; err != nil {
+			return err
+		}
+		result := tx.Where("id = ?", reportID).Delete(&dbmodel.Report{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("report not found: %d", reportID)
+		}
+		return nil
+	})
+	if err != nil {
+		return view.RespReportDeleteResult{}, err
+	}
+
+	s.mu.RLock()
+	shouldUnload := s.scheduler != nil
+	s.mu.RUnlock()
+	if shouldUnload {
+		s.scheduler.Remove(reportID)
+	}
+
+	return view.RespReportDeleteResult{ReportID: reportID}, nil
+}
+
 func (s *Service) upsertScheduleFromDB(req view.ReqReportSchedule) (view.RespReportSchedule, error) {
 	if req.NodeID == 0 {
 		return view.RespReportSchedule{}, fmt.Errorf("nodeId 不能为空")
@@ -698,42 +736,84 @@ func runRenderStage(report dbmodel.Report, schedule dbmodel.ReportSchedule, star
 	reportItem := toRespReportListItem(report)
 	editor := toRespReportEditor(report, schedule)
 	scheduleResp := toRespReportSchedule(report, schedule)
-	title, text := buildPreviewPushContent(reportItem, editor, scheduleResp, startedAt)
+	title, text := buildPreviewPushContentWithRows(reportItem, editor, scheduleResp, startedAt, queryRows)
 	text = strings.TrimSpace(text + "\n\n" + renderQueryRowsAsMarkdown(queryRows))
 	return title, text, nil
 }
 
 func renderQueryRowsAsMarkdown(rows []map[string]interface{}) string {
 	if len(rows) == 0 {
-		return "### 查询结果\n\n无数据"
+		return "### 📋 查询结果\n\n无数据"
 	}
 	var builder strings.Builder
-	builder.WriteString("### 查询结果\n\n")
+	builder.WriteString("### 📋 查询结果\n\n")
 	// Limit markdown body size to keep webhook payloads bounded.
 	const maxRows = 20
 	if len(rows) > maxRows {
 		rows = rows[:maxRows]
 	}
-	for _, row := range rows {
-		columns := orderedQueryResultColumns(row)
-		for _, column := range columns {
-			builder.WriteString("- ")
-			builder.WriteString(queryResultColumnLabel(column))
-			builder.WriteString("：")
-			builder.WriteString(markdownEscape(formatQueryResultValue(column, row[column])))
+	groupedRows, groupOrder := groupRowsByBlockLabel(rows)
+	for groupIndex, blockLabel := range groupOrder {
+		if groupIndex > 0 {
 			builder.WriteString("\n")
 		}
-		builder.WriteString("\n")
+		if blockLabel != "" {
+			builder.WriteString("#### ")
+			builder.WriteString(markdownEscape(blockLabel))
+			builder.WriteString("\n\n")
+		}
+		blockRows := groupedRows[blockLabel]
+		for rowIndex := 0; rowIndex < len(blockRows); rowIndex++ {
+			row := blockRows[rowIndex]
+			if isStructuredMetricRow(row) {
+				if isTopNMetricRow(row) {
+					topNRows := []map[string]interface{}{row}
+					for rowIndex+1 < len(blockRows) && isSameTopNMetric(blockRows[rowIndex+1], row) {
+						rowIndex++
+						topNRows = append(topNRows, blockRows[rowIndex])
+					}
+					builder.WriteString(renderTopNMetricSummaryGroup(topNRows))
+					continue
+				}
+				builder.WriteString(renderMetricSummaryBlock(row))
+				continue
+			}
+			columns := orderedQueryResultColumns(row)
+			for _, column := range columns {
+				builder.WriteString("  - ")
+				builder.WriteString(queryResultColumnLabel(column))
+				builder.WriteString("：")
+				builder.WriteString(markdownEscape(formatQueryResultValue(column, row[column])))
+				builder.WriteString("\n")
+			}
+			builder.WriteString("\n")
+		}
 	}
 	return strings.TrimSpace(builder.String())
 }
 
+func groupRowsByBlockLabel(rows []map[string]interface{}) (map[string][]map[string]interface{}, []string) {
+	groupedRows := make(map[string][]map[string]interface{}, len(rows))
+	groupOrder := make([]string, 0, len(rows))
+	for _, row := range rows {
+		blockLabel := strings.TrimSpace(fmt.Sprint(row["block_label"]))
+		if _, exists := groupedRows[blockLabel]; !exists {
+			groupOrder = append(groupOrder, blockLabel)
+		}
+		groupedRows[blockLabel] = append(groupedRows[blockLabel], row)
+	}
+	return groupedRows, groupOrder
+}
+
 func orderedQueryResultColumns(row map[string]interface{}) []string {
 	preferred := []string{
+		"metric_kind",
 		"metric_name",
 		"current_value",
 		"previous_value",
 		"ratio_vs_yesterday",
+		"top_key",
+		"top_value",
 	}
 	columns := make([]string, 0, len(row))
 	seen := make(map[string]struct{}, len(row))
@@ -745,6 +825,9 @@ func orderedQueryResultColumns(row map[string]interface{}) []string {
 	}
 	extras := make([]string, 0, len(row))
 	for key := range row {
+		if key == "block_label" || key == "block_key" {
+			continue
+		}
 		if _, ok := seen[key]; ok {
 			continue
 		}
@@ -754,6 +837,152 @@ func orderedQueryResultColumns(row map[string]interface{}) []string {
 	return append(columns, extras...)
 }
 
+func isStructuredMetricRow(row map[string]interface{}) bool {
+	if isTopNMetricRow(row) {
+		return true
+	}
+	_, hasMetricName := row["metric_name"]
+	_, hasCurrentValue := row["current_value"]
+	return hasMetricName && hasCurrentValue
+}
+
+func isTopNMetricRow(row map[string]interface{}) bool {
+	return strings.TrimSpace(fmt.Sprint(row["metric_kind"])) == "topn"
+}
+
+func isSameTopNMetric(left map[string]interface{}, right map[string]interface{}) bool {
+	return isTopNMetricRow(left) &&
+		isTopNMetricRow(right) &&
+		strings.TrimSpace(fmt.Sprint(left["block_key"])) == strings.TrimSpace(fmt.Sprint(right["block_key"])) &&
+		strings.TrimSpace(fmt.Sprint(left["metric_name"])) == strings.TrimSpace(fmt.Sprint(right["metric_name"]))
+}
+
+func renderMetricSummaryBlock(row map[string]interface{}) string {
+	if isTopNMetricRow(row) {
+		return renderTopNMetricSummaryBlock(row)
+	}
+	var builder strings.Builder
+	metricName := strings.TrimSpace(fmt.Sprint(row["metric_name"]))
+	builder.WriteString("  ∘ ")
+	if metricName != "" {
+		builder.WriteString(markdownEscape(metricName))
+	} else {
+		builder.WriteString("指标")
+	}
+	if currentValue, ok := row["current_value"]; ok {
+		builder.WriteString("：当前 ")
+		builder.WriteString(markdownEscape(formatQueryResultValue("current_value", currentValue)))
+	}
+	if previousValue, ok := row["previous_value"]; ok {
+		builder.WriteString("，昨日 ")
+		builder.WriteString(markdownEscape(formatQueryResultValue("previous_value", previousValue)))
+	}
+	if ratio, ok := row["ratio_vs_yesterday"]; ok {
+		builder.WriteString("，环比 ")
+		builder.WriteString(metricTrendBadge(ratio))
+		builder.WriteString(" ")
+		builder.WriteString(markdownEscape(formatQueryResultValue("ratio_vs_yesterday", ratio)))
+	}
+
+	extras := orderedQueryResultColumns(row)
+	for _, column := range extras {
+		if column == "metric_name" ||
+			column == "current_value" ||
+			column == "previous_value" ||
+			column == "ratio_vs_yesterday" ||
+			column == "metric_kind" ||
+			column == "top_key" ||
+			column == "top_value" ||
+			column == "item_order" {
+			continue
+		}
+		builder.WriteString("，")
+		builder.WriteString(queryResultColumnLabel(column))
+		builder.WriteString("：")
+		builder.WriteString(markdownEscape(formatQueryResultValue(column, row[column])))
+	}
+	builder.WriteString("\n")
+	return builder.String()
+}
+
+func renderTopNMetricSummaryBlock(row map[string]interface{}) string {
+	return renderTopNMetricSummaryGroup([]map[string]interface{}{row})
+}
+
+func renderTopNMetricSummaryGroup(rows []map[string]interface{}) string {
+	var builder strings.Builder
+	if len(rows) == 0 {
+		return ""
+	}
+	metricName := strings.TrimSpace(fmt.Sprint(rows[0]["metric_name"]))
+	if metricName != "" {
+		builder.WriteString("  ∘ ")
+		builder.WriteString(markdownEscape(metricName))
+		builder.WriteString("\n")
+	}
+	for _, row := range rows {
+		builder.WriteString("    ")
+		if rankValue, ok := toFloat64(row["item_order"]); ok && rankValue > 0 {
+			builder.WriteString(strconv.Itoa(int(rankValue)))
+			builder.WriteString(". ")
+		} else {
+			builder.WriteString("• ")
+		}
+		builder.WriteString(markdownEscape(formatQueryResultValue("top_key", row["top_key"])))
+		builder.WriteString("：")
+		builder.WriteString(markdownEscape(formatQueryResultValue("top_value", row["top_value"])))
+		builder.WriteString("\n")
+	}
+	return builder.String()
+}
+
+func metricTrendBadge(value interface{}) string {
+	ratio, ok := normalizeRatioValue(value)
+	if !ok {
+		return "⚪"
+	}
+	switch {
+	case ratio > 0:
+		return "🔴"
+	case ratio < 0:
+		return "🟢"
+	default:
+		return "🟡"
+	}
+}
+
+func normalizeRatioValue(value interface{}) (float64, bool) {
+	switch v := value.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case string:
+		trimmed := strings.TrimSpace(strings.TrimSuffix(v, "%"))
+		if trimmed == "" {
+			return 0, false
+		}
+		if strings.Contains(v, "%") {
+			parsed, err := strconv.ParseFloat(trimmed, 64)
+			if err != nil {
+				return 0, false
+			}
+			return parsed / 100, true
+		}
+		parsed, err := strconv.ParseFloat(trimmed, 64)
+		if err != nil {
+			return 0, false
+		}
+		return parsed, true
+	default:
+		return 0, false
+	}
+}
+
 func queryResultColumnLabel(column string) string {
 	switch column {
 	case "metric_name":
@@ -761,9 +990,13 @@ func queryResultColumnLabel(column string) string {
 	case "current_value":
 		return "当前值"
 	case "previous_value":
-		return "昨日同期"
+		return "昨日"
 	case "ratio_vs_yesterday":
 		return "环比"
+	case "top_key":
+		return "分组值"
+	case "top_value":
+		return "数值"
 	default:
 		return column
 	}

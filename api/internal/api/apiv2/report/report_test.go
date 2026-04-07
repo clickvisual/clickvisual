@@ -216,6 +216,18 @@ func TestReportDefinitionUpsertAndGet(t *testing.T) {
 	_ = get.Run()
 }
 
+func TestReportDelete(t *testing.T) {
+	reportservice.ResetForTest()
+
+	obj := gintest.Init()
+	obj.DELETE(core.Handle(ReportDelete), func(m *gintest.Mock) error {
+		body := m.Exec(gintest.WithUri("/reports/1001"))
+		assert.JSONEq(t, `{"code":0,"msg":"succ","data":{"reportId":1001}}`, string(body))
+		return nil
+	}, gintest.WithRoutePath("/reports/:report-id"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = obj.Run()
+}
+
 func TestReportUpsertBuildsSQLFromBuilderPayload(t *testing.T) {
 	reportservice.ResetForTest()
 

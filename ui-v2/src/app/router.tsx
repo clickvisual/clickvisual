@@ -21,6 +21,10 @@ export const routes = [
         element: <ReportSchedulePage />
       },
       {
+        path: "reports/:reportId",
+        element: <ReportSchedulePage />
+      },
+      {
         path: "overview",
         element: <OverviewPage />
       },

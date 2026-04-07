@@ -46,18 +46,28 @@ describe("report create form", () => {
     fireEvent.click(screen.getByRole("button", { name: "确认创建" }));
 
     await waitFor(() =>
-      expect(onSubmit).toHaveBeenCalledWith({
-        name: "错误日志小时报",
-        builder: {
-          instanceId: 1,
-          database: "default",
-          table: "logs",
-          timeField: "event_time",
-          timeRange: "1h",
-          where: "level = 'error'",
-          metrics: [{ key: "count", label: "总量" }]
-        }
-      })
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "错误日志小时报",
+          builder: expect.objectContaining({
+            instanceId: 1,
+            database: "default",
+            table: "logs",
+            timeField: "event_time",
+            timeRange: "1h",
+            where: "level = 'error'",
+            metrics: [{ key: "count", label: "总量", groupBy: "", limit: 3 }],
+            blocks: [
+              {
+                key: "default",
+                label: "默认条件块",
+                where: "level = 'error'",
+                metrics: [{ key: "count", label: "总量", groupBy: "", limit: 3 }]
+              }
+            ]
+          })
+        })
+      )
     );
     expect(onLoadColumns).toHaveBeenCalledWith(1, "default", "logs");
   });
@@ -306,5 +316,294 @@ describe("report create form", () => {
 
     expect(onInstanceChange).toHaveBeenCalledTimes(1);
     expect(onLoadColumns).toHaveBeenCalledTimes(1);
+  });
+
+  it("submits blocks payload and supports adding or copying blocks", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ReportCreateForm
+        mode="edit"
+        initialValue={{
+          reportId: 1001,
+          name: "小时报",
+          builder: {
+            instanceId: 1,
+            database: "default",
+            table: "logs",
+            timeField: "event_time",
+            timeRange: "1h",
+            where: "level = 'error'",
+            metrics: [{ key: "count", label: "总量" }],
+            blocks: [
+              {
+                key: "error",
+                label: "Error 日志",
+                where: "level = 'error'",
+                metrics: [{ key: "count", label: "总量" }]
+              }
+            ]
+          }
+        }}
+        instances={[
+          {
+            id: 1,
+            name: "生产集群",
+            desc: "主实例"
+          }
+        ]}
+        databases={[{ name: "default" }]}
+        tables={[{ name: "logs" }]}
+        columns={[
+          { field: "event_time", type: "DateTime" },
+          { field: "level", type: "String" }
+        ]}
+        isSubmitting={false}
+        onInstanceChange={vi.fn().mockResolvedValue(undefined)}
+        onDatabaseChange={vi.fn().mockResolvedValue(undefined)}
+        onLoadColumns={vi.fn().mockResolvedValue(undefined)}
+        onSubmit={onSubmit}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "复制当前条件块" }));
+    fireEvent.click(screen.getByRole("button", { name: "新增条件块" }));
+
+    expect(screen.getAllByLabelText("条件块名称")).toHaveLength(3);
+
+    fireEvent.click(screen.getByRole("button", { name: "确认保存" }));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder: expect.objectContaining({
+            blocks: expect.arrayContaining([
+              expect.objectContaining({
+                label: expect.any(String),
+                metrics: expect.any(Array)
+              })
+            ])
+          })
+        })
+      )
+    );
+  });
+
+  it("disables block creation after reaching the max block count", () => {
+    render(
+      <ReportCreateForm
+        mode="edit"
+        initialValue={{
+          reportId: 1001,
+          name: "小时报",
+          builder: {
+            instanceId: 1,
+            database: "default",
+            table: "logs",
+            timeField: "event_time",
+            timeRange: "1h",
+            where: "",
+            metrics: [{ key: "count", label: "总量" }],
+            blocks: Array.from({ length: 5 }, (_, index) => ({
+              key: `block-${index + 1}`,
+              label: `条件块 ${index + 1}`,
+              where: "",
+              metrics: [{ key: "count", label: "总量" }]
+            }))
+          }
+        }}
+        instances={[
+          {
+            id: 1,
+            name: "生产集群",
+            desc: "主实例"
+          }
+        ]}
+        databases={[{ name: "default" }]}
+        tables={[{ name: "logs" }]}
+        columns={[{ field: "event_time", type: "DateTime" }]}
+        isSubmitting={false}
+        onInstanceChange={vi.fn().mockResolvedValue(undefined)}
+        onDatabaseChange={vi.fn().mockResolvedValue(undefined)}
+        onLoadColumns={vi.fn().mockResolvedValue(undefined)}
+        onSubmit={vi.fn().mockResolvedValue(undefined)}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "新增条件块" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "复制当前条件块" })).toBeDisabled();
+  });
+
+  it("shows metric guide and submits custom metrics", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ReportCreateForm
+        instances={[
+          {
+            id: 1,
+            name: "生产集群",
+            desc: "主实例"
+          }
+        ]}
+        databases={[{ name: "default" }]}
+        tables={[{ name: "logs" }]}
+        columns={[{ field: "event_time", type: "DateTime" }]}
+        isSubmitting={false}
+        onInstanceChange={vi.fn().mockResolvedValue(undefined)}
+        onDatabaseChange={vi.fn().mockResolvedValue(undefined)}
+        onLoadColumns={vi.fn().mockResolvedValue(undefined)}
+        onSubmit={onSubmit}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "填写说明" }));
+    expect(screen.getByRole("note")).toHaveTextContent(
+      "表达式只填 ClickHouse 聚合表达式，不要写 SELECT、FROM、WHERE。"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "新增指标" }));
+    fireEvent.change(screen.getByLabelText("指标名称 1-2"), {
+      target: { value: "平均耗时" }
+    });
+    fireEvent.change(screen.getByLabelText("表达式 1-2"), {
+      target: { value: "avg(duration)" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "确认创建" }));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder: expect.objectContaining({
+            metrics: [
+              { key: "count", label: "总量", groupBy: "", limit: 3 },
+              {
+                key: "custom",
+                label: "平均耗时",
+                expression: "avg(duration)",
+                groupBy: "",
+                limit: 3
+              }
+            ],
+            blocks: [
+              expect.objectContaining({
+                metrics: [
+                  { key: "count", label: "总量", groupBy: "", limit: 3 },
+                  {
+                    key: "custom",
+                    label: "平均耗时",
+                    expression: "avg(duration)",
+                    groupBy: "",
+                    limit: 3
+                  }
+                ]
+              })
+            ]
+          })
+        })
+      )
+    );
+  });
+
+  it("submits topn metrics", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ReportCreateForm
+        instances={[
+          {
+            id: 1,
+            name: "生产集群",
+            desc: "主实例"
+          }
+        ]}
+        databases={[{ name: "default" }]}
+        tables={[{ name: "logs" }]}
+        columns={[
+          { field: "event_time", type: "DateTime" },
+          { field: "pod", type: "String" }
+        ]}
+        isSubmitting={false}
+        onInstanceChange={vi.fn().mockResolvedValue(undefined)}
+        onDatabaseChange={vi.fn().mockResolvedValue(undefined)}
+        onLoadColumns={vi.fn().mockResolvedValue(undefined)}
+        onSubmit={onSubmit}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "新增指标" }));
+    fireEvent.change(screen.getByLabelText("指标名称 1-2"), {
+      target: { value: "Top3 Pod" }
+    });
+    fireEvent.change(screen.getByLabelText("指标类型 1-2"), {
+      target: { value: "topn" }
+    });
+    fireEvent.change(screen.getByLabelText("分组字段 1-2"), {
+      target: { value: "pod" }
+    });
+    fireEvent.change(screen.getByLabelText("TopN 1-2"), {
+      target: { value: "3" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "确认创建" }));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder: expect.objectContaining({
+            blocks: [
+              expect.objectContaining({
+                metrics: [
+                  { key: "count", label: "总量", groupBy: "", limit: 3 },
+                  {
+                    key: "topn",
+                    label: "Top3 Pod",
+                    groupBy: "pod",
+                    limit: 3
+                  }
+                ]
+              })
+            ]
+          })
+        })
+      )
+    );
+  });
+
+  it("filters topn group-by options by groupable column types", async () => {
+    render(
+      <ReportCreateForm
+        instances={[
+          {
+            id: 1,
+            name: "生产集群",
+            desc: "主实例"
+          }
+        ]}
+        databases={[{ name: "default" }]}
+        tables={[{ name: "logs" }]}
+        columns={[
+          { field: "event_time", type: "DateTime" },
+          { field: "pod", type: "String" },
+          { field: "level", type: "LowCardinality(String)" },
+          { field: "duration", type: "Float64" }
+        ]}
+        isSubmitting={false}
+        onInstanceChange={vi.fn().mockResolvedValue(undefined)}
+        onDatabaseChange={vi.fn().mockResolvedValue(undefined)}
+        onLoadColumns={vi.fn().mockResolvedValue(undefined)}
+        onSubmit={vi.fn().mockResolvedValue(undefined)}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "新增指标" }));
+    fireEvent.change(screen.getByLabelText("指标类型 1-2"), {
+      target: { value: "topn" }
+    });
+
+    const groupBySelect = screen.getByLabelText("分组字段 1-2");
+    expect(groupBySelect).toHaveTextContent("pod");
+    expect(groupBySelect).toHaveTextContent("level");
+    expect(groupBySelect).not.toHaveTextContent("event_time");
+    expect(groupBySelect).not.toHaveTextContent("duration");
   });
 });

@@ -123,6 +123,16 @@ func (s *Scheduler) Reload(reportID int) error {
 	return nil
 }
 
+func (s *Scheduler) Remove(reportID int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if entryID, ok := s.entryID[reportID]; ok {
+		s.cron.Remove(entryID)
+		delete(s.entryID, reportID)
+	}
+}
+
 func (s *Scheduler) Snapshot(reportID int) (bool, time.Time) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

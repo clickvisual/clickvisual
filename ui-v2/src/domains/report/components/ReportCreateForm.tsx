@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type {
-  ReportBuilderTimeRange,
+  ReportBlockInput,
   ReportBuilderInput,
+  ReportBuilderTimeRange,
   ReportCreatePayload,
   ReportMetricInput,
   ReportSourceColumn,
@@ -31,19 +32,111 @@ type Props = {
   onSubmit: (payload: ReportCreatePayload) => Promise<void>;
 };
 
+function buildCountOnlyMetrics(): ReportMetricInput[] {
+  return [{ key: "count", label: "总量", groupBy: "", limit: 3 }];
+}
+
+function metricExpressionValue(metric: ReportMetricInput): string {
+  if (stringsEqualIgnoreCase(metric.key, "topn")) {
+    return "";
+  }
+  const expression = metric.expression?.trim() ?? "";
+  if (expression) {
+    return expression;
+  }
+  return stringsEqualIgnoreCase(metric.key, "count") || !metric.key ? "count(*)" : "";
+}
+
+function metricLimitValue(metric: ReportMetricInput): number {
+  return typeof metric.limit === "number" && metric.limit > 0 ? metric.limit : 3;
+}
+
+function stringsEqualIgnoreCase(left: string, right: string): boolean {
+  return left.trim().toLowerCase() === right.trim().toLowerCase();
+}
+
+function normalizeMetric(metric: ReportMetricInput): ReportMetricInput {
+  const label = metric.label.trim();
+  if (stringsEqualIgnoreCase(metric.key, "topn")) {
+    return {
+      key: "topn",
+      label: label || "TopN",
+      groupBy: metric.groupBy?.trim() ?? "",
+      limit: metricLimitValue(metric)
+    };
+  }
+  const expression = metricExpressionValue(metric).trim();
+  if (stringsEqualIgnoreCase(expression, "count(*)")) {
+    return {
+      key: "count",
+      label: label || "总量",
+      groupBy: "",
+      limit: 3
+    };
+  }
+  return {
+    key: "custom",
+    label,
+    expression,
+    groupBy: "",
+    limit: 3
+  };
+}
+
+function createEmptyMetric(): ReportMetricInput {
+  return {
+    key: "custom",
+    label: "",
+    expression: "",
+    groupBy: "",
+    limit: 3
+  };
+}
+
+function buildDefaultBlock(index = 0): ReportBlockInput {
+  return {
+    key: index === 0 ? "default" : `block_${index + 1}`,
+    label: index === 0 ? "默认条件块" : `条件块 ${index + 1}`,
+    where: index === 0 ? "level = 'error'" : "",
+    metrics: buildCountOnlyMetrics()
+  };
+}
+
+function normalizeBlocks(builder?: ReportBuilderInput | null): ReportBlockInput[] {
+  if (builder?.blocks && builder.blocks.length > 0) {
+    return builder.blocks.map((block, index) => ({
+      key: block.key || (index === 0 ? "default" : `block_${index + 1}`),
+      label: block.label || (index === 0 ? "默认条件块" : `条件块 ${index + 1}`),
+      where: block.where || "",
+      metrics: block.metrics?.length ? block.metrics : buildCountOnlyMetrics()
+    }));
+  }
+  if (builder) {
+    return [
+      {
+        key: "default",
+        label: "默认条件块",
+        where: builder.where || "level = 'error'",
+        metrics: builder.metrics?.length ? builder.metrics : buildCountOnlyMetrics()
+      }
+    ];
+  }
+  return [buildDefaultBlock()];
+}
+
 function buildPreview(
   database: string,
   table: string,
   timeField: string,
   timeRange: ReportBuilderTimeRange,
-  where: string,
-  metrics: ReportMetricInput[]
+  blocks: ReportBlockInput[]
 ) {
-  if (!database || !table || !timeField || metrics.length === 0) {
+  if (!database || !table || !timeField || blocks.length === 0) {
     return "选择实例、数据库、数据表和时间字段后显示 SQL 预览。";
   }
   const duration = timeRange === "1d" ? "1 DAY" : "1 HOUR";
-  const whereClause = where.trim() ? ` AND (${where.trim()})` : "";
+  const firstBlock = blocks[0];
+  const whereClause = firstBlock?.where.trim() ? ` AND (${firstBlock.where.trim()})` : "";
   return [
     "WITH now() AS current_end,",
     `current_end - INTERVAL ${duration} AS current_start,`,
@@ -51,12 +144,55 @@ function buildPreview(
     `previous_end - INTERVAL ${duration} AS previous_start`,
     `SELECT * FROM \`${database}\`.\`${table}\``,
     `WHERE ${timeField} >= current_start AND ${timeField} < current_end${whereClause}`,
-    `-- metrics: ${metrics.map((metric) => metric.label).join(", ")}`
+    `-- metrics: ${blocks
+      .flatMap((block) => block.metrics.map((metric) => `${block.label}:${metric.label}`))
+      .join(", ")}`
   ].join("\n");
 }
 
-function buildCountOnlyMetrics(): ReportMetricInput[] {
-  return [{ key: "count", label: "总量" }];
+function isGroupableColumnType(columnType: string): boolean {
+  const normalized = columnType.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+  return (
+    normalized.includes("string") ||
+    normalized.includes("enum") ||
+    normalized.includes("ipv4") ||
+    normalized.includes("ipv6") ||
+    normalized.includes("uuid") ||
+    normalized.includes("bool")
+  );
+}
+
+function sortedGroupByOptions(columns: ReportSourceColumn[], currentValue: string): string[] {
+  const preferred = ["pod", "host", "service", "app", "level", "namespace", "container"];
+  const fieldSet = new Set(
+    columns
+      .filter((column) => isGroupableColumnType(column.type ?? ""))
+      .map((column) => column.field?.trim() ?? "")
+      .filter(Boolean)
+  );
+  if (currentValue.trim()) {
+    fieldSet.add(currentValue.trim());
+  }
+
+  const fields = Array.from(fieldSet);
+  fields.sort((left, right) => {
+    const leftPreferred = preferred.indexOf(left);
+    const rightPreferred = preferred.indexOf(right);
+    if (leftPreferred !== -1 || rightPreferred !== -1) {
+      if (leftPreferred === -1) {
+        return 1;
+      }
+      if (rightPreferred === -1) {
+        return -1;
+      }
+      return leftPreferred - rightPreferred;
+    }
+    return left.localeCompare(right);
+  });
+  return fields;
 }
 
 export default function ReportCreateForm({
@@ -94,8 +230,10 @@ export default function ReportCreateForm({
   const [timeRange, setTimeRange] = useState<ReportBuilderTimeRange>(
     initialValue?.builder.timeRange ?? "1h"
   );
-  const [where, setWhere] = useState(initialValue?.builder.where ?? "level = 'error'");
-  const [metrics, setMetrics] = useState<ReportMetricInput[]>(buildCountOnlyMetrics());
+  const [blocks, setBlocks] = useState<ReportBlockInput[]>(() =>
+    normalizeBlocks(initialValue?.builder)
+  );
+  const [metricGuideOpenBlockKey, setMetricGuideOpenBlockKey] = useState<string | null>(null);
   const onInstanceChangeRef = useRef(onInstanceChange);
   const onLoadColumnsRef = useRef(onLoadColumns);
   const requestedDatabasesInstanceIdRef = useRef<number | null>(null);
@@ -120,8 +258,8 @@ export default function ReportCreateForm({
     setTable(initialValue.builder.table);
     setTimeField(initialValue.builder.timeField);
     setTimeRange(initialValue.builder.timeRange);
-    setWhere(initialValue.builder.where);
-    setMetrics(buildCountOnlyMetrics());
+    setBlocks(normalizeBlocks(initialValue.builder));
+    setMetricGuideOpenBlockKey(null);
   }, [
     initialValue?.reportId,
     initialValue?.name,
@@ -130,7 +268,8 @@ export default function ReportCreateForm({
     initialValue?.builder.table,
     initialValue?.builder.timeField,
     initialValue?.builder.timeRange,
-    initialValue?.builder.where
+    initialValue?.builder.where,
+    initialValue?.builder.blocks
   ]);
 
   useEffect(() => {
@@ -187,11 +326,20 @@ export default function ReportCreateForm({
     }
   }, [safeColumns, timeField]);
 
-  const preview = buildPreview(database, table, timeField, timeRange, where, metrics);
-  const noTables =
-    Boolean(database) && !isLoadingTables && safeTables.length === 0;
-  const noColumns =
-    Boolean(table) && !isLoadingColumns && safeColumns.length === 0;
+  const preview = buildPreview(database, table, timeField, timeRange, blocks);
+  const noTables = Boolean(database) && !isLoadingTables && safeTables.length === 0;
+  const noColumns = Boolean(table) && !isLoadingColumns && safeColumns.length === 0;
+  const hasInvalidMetrics = blocks.some(
+    (block) =>
+      block.metrics.length === 0 ||
+      block.metrics.some(
+        (metric) =>
+          metric.label.trim() === "" ||
+          (stringsEqualIgnoreCase(metric.key, "topn")
+            ? (metric.groupBy?.trim() ?? "") === "" || metricLimitValue(metric) <= 0
+            : metricExpressionValue(metric).trim() === "")
+      )
+  );
   const submitDisabled =
     isSubmitting ||
     safeInstances.length === 0 ||
@@ -200,7 +348,8 @@ export default function ReportCreateForm({
     isLoadingColumns ||
     !database ||
     !table ||
-    !timeField;
+    !timeField ||
+    hasInvalidMetrics;
 
   return (
     <section className="cv-panel cv-panel-soft">
@@ -210,7 +359,7 @@ export default function ReportCreateForm({
             {mode === "edit" ? "编辑真实报表" : "创建真实报表"}
           </h2>
           <p className="cv-panel-description">
-            选择实例、库、表和时间字段，只填写 WHERE 条件与指标，系统自动组装 SQL。
+            选择实例、库、表和时间字段，按条件块配置范围与指标，系统自动组装 SQL。
           </p>
         </div>
       </div>
@@ -235,8 +384,15 @@ export default function ReportCreateForm({
               table,
               timeField,
               timeRange,
-              where,
-              metrics
+              where: blocks[0]?.where ?? "",
+              metrics:
+                blocks[0]?.metrics.map(normalizeMetric) ?? buildCountOnlyMetrics(),
+              blocks: blocks.map((block) => ({
+                ...block,
+                label: block.label.trim(),
+                where: block.where,
+                metrics: block.metrics.map(normalizeMetric)
+              }))
             }
           });
         }}
@@ -379,38 +535,357 @@ export default function ReportCreateForm({
           </div>
         ) : null}
 
-        <label className="cv-form-row">
-          <span className="cv-label">WHERE 条件</span>
-          <textarea
-            aria-label="WHERE 条件"
-            className="cv-input"
-            value={where}
-            onChange={(event) => setWhere(event.target.value)}
-            rows={3}
-          />
-        </label>
+        <div className="cv-form-row">
+          <span className="cv-label">条件块</span>
+          <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+            <button
+              type="button"
+              className="cv-action-button"
+              disabled={blocks.length >= 5}
+              onClick={() =>
+                setBlocks((current) => [...current, buildDefaultBlock(current.length)])
+              }
+            >
+              新增条件块
+            </button>
+            <button
+              type="button"
+              className="cv-action-button"
+              disabled={blocks.length === 0 || blocks.length >= 5}
+              onClick={() =>
+                setBlocks((current) => {
+                  const source = current[current.length - 1] ?? buildDefaultBlock();
+                  return [
+                    ...current,
+                    {
+                      ...source,
+                      key: `${source.key}_copy_${current.length + 1}`,
+                      label: `${source.label} 副本`
+                    }
+                  ];
+                })
+              }
+            >
+              复制当前条件块
+            </button>
+          </div>
 
-        <label className="cv-form-row">
-          <span className="cv-label">统计指标</span>
-          <input aria-label="统计指标" className="cv-input" value="总量=count(*)" readOnly />
-        </label>
+          {blocks.map((block, index) => (
+            <div
+              key={block.key || index}
+              style={{
+                border: "1px solid rgba(15, 23, 42, 0.12)",
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 12
+              }}
+            >
+              <label className="cv-form-row">
+                <span className="cv-label">条件块名称</span>
+                <input
+                  aria-label="条件块名称"
+                  className="cv-input"
+                  value={block.label}
+                  onChange={(event) =>
+                    setBlocks((current) =>
+                      current.map((item, itemIndex) =>
+                        itemIndex === index ? { ...item, label: event.target.value } : item
+                      )
+                    )
+                  }
+                />
+              </label>
+
+              <label className="cv-form-row">
+                <span className="cv-label">WHERE 条件</span>
+                <textarea
+                  aria-label="WHERE 条件"
+                  className="cv-input"
+                  value={block.where}
+                  onChange={(event) =>
+                    setBlocks((current) =>
+                      current.map((item, itemIndex) =>
+                        itemIndex === index ? { ...item, where: event.target.value } : item
+                      )
+                    )
+                  }
+                  rows={3}
+                />
+              </label>
+
+              <div className="cv-form-row">
+                <span className="cv-label">统计指标</span>
+                <div className="cv-section-stack cv-section-stack--tight">
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="cv-secondary-button"
+                      onClick={() =>
+                        setMetricGuideOpenBlockKey((current) =>
+                          current === block.key ? null : block.key
+                        )
+                      }
+                    >
+                      填写说明
+                    </button>
+                    <button
+                      type="button"
+                      className="cv-secondary-button"
+                      onClick={() =>
+                        setBlocks((current) =>
+                          current.map((item, itemIndex) =>
+                            itemIndex === index
+                              ? { ...item, metrics: [...item.metrics, createEmptyMetric()] }
+                              : item
+                          )
+                        )
+                      }
+                    >
+                      新增指标
+                    </button>
+                  </div>
+
+                  {metricGuideOpenBlockKey === block.key ? (
+                    <div className="cv-status-card cv-status-card--compact" role="note">
+                      <strong>怎么填写</strong>
+                      <span className="cv-muted">
+                        指标名称是推送里展示的名字，比如“总量”“平均耗时”“独立用户数”。
+                      </span>
+                      <span className="cv-muted">
+                        表达式只填 ClickHouse 聚合表达式，不要写 SELECT、FROM、WHERE。
+                      </span>
+                      <span className="cv-muted">
+                        可直接参考：`count(*)`、`avg(duration)`、`sum(bytes)`、`uniq(user_id)`。
+                      </span>
+                      <span className="cv-muted">
+                        如果要看 TopN，例如 Top3 Pod，把指标类型改成“排行 TopN”，再填写分组字段如 `pod` 和数量。
+                      </span>
+                    </div>
+                  ) : null}
+
+                  {block.metrics.map((metric, metricIndex) => (
+                    <div
+                      key={`${block.key || index}-metric-${metricIndex}`}
+                      className="cv-form-two-up"
+                    >
+                      <label className="cv-form-row">
+                        <span className="cv-label">指标名称</span>
+                        <input
+                          aria-label={`指标名称 ${index + 1}-${metricIndex + 1}`}
+                          className="cv-input"
+                          placeholder="例如：总量、平均耗时"
+                          value={metric.label}
+                          onChange={(event) =>
+                            setBlocks((current) =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index
+                                  ? {
+                                      ...item,
+                                      metrics: item.metrics.map((itemMetric, itemMetricIndex) =>
+                                        itemMetricIndex === metricIndex
+                                          ? { ...itemMetric, label: event.target.value }
+                                          : itemMetric
+                                      )
+                                    }
+                                  : item
+                              )
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="cv-form-row">
+                        <span className="cv-label">指标类型</span>
+                        <select
+                          aria-label={`指标类型 ${index + 1}-${metricIndex + 1}`}
+                          className="cv-input"
+                          value={stringsEqualIgnoreCase(metric.key, "topn") ? "topn" : "aggregate"}
+                          onChange={(event) =>
+                            setBlocks((current) =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index
+                                  ? {
+                                      ...item,
+                                      metrics: item.metrics.map((itemMetric, itemMetricIndex) =>
+                                        itemMetricIndex === metricIndex
+                                          ? event.target.value === "topn"
+                                            ? {
+                                                key: "topn",
+                                                label: itemMetric.label,
+                                                groupBy: itemMetric.groupBy ?? "",
+                                                limit: metricLimitValue(itemMetric),
+                                                expression: ""
+                                              }
+                                            : {
+                                                key:
+                                                  stringsEqualIgnoreCase(
+                                                    metricExpressionValue(itemMetric),
+                                                    "count(*)"
+                                                  )
+                                                    ? "count"
+                                                    : "custom",
+                                                label: itemMetric.label,
+                                                expression:
+                                                  metricExpressionValue(itemMetric) || "count(*)",
+                                                groupBy: "",
+                                                limit: 3
+                                              }
+                                          : itemMetric
+                                      )
+                                    }
+                                  : item
+                              )
+                            )
+                          }
+                        >
+                          <option value="aggregate">聚合指标</option>
+                          <option value="topn">排行 TopN</option>
+                        </select>
+                      </label>
+
+                      <label className="cv-form-row">
+                        <span className="cv-label">
+                          {stringsEqualIgnoreCase(metric.key, "topn") ? "分组字段" : "表达式"}
+                        </span>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          {stringsEqualIgnoreCase(metric.key, "topn") ? (
+                            <select
+                              aria-label={`分组字段 ${index + 1}-${metricIndex + 1}`}
+                              className="cv-input"
+                              value={metric.groupBy ?? ""}
+                              onChange={(event) =>
+                                setBlocks((current) =>
+                                  current.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? {
+                                          ...item,
+                                          metrics: item.metrics.map(
+                                            (itemMetric, itemMetricIndex) =>
+                                              itemMetricIndex === metricIndex
+                                                ? {
+                                                    ...itemMetric,
+                                                    key: "topn",
+                                                    groupBy: event.target.value
+                                                  }
+                                                : itemMetric
+                                          )
+                                        }
+                                      : item
+                                  )
+                                )
+                              }
+                            >
+                              <option value="">选择字段</option>
+                              {sortedGroupByOptions(safeColumns, metric.groupBy ?? "").map((field) => (
+                                <option key={field} value={field}>
+                                  {field}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              aria-label={`表达式 ${index + 1}-${metricIndex + 1}`}
+                              className="cv-input"
+                              placeholder="例如：count(*) 或 avg(duration)"
+                              value={metricExpressionValue(metric)}
+                              onChange={(event) =>
+                                setBlocks((current) =>
+                                  current.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? {
+                                          ...item,
+                                          metrics: item.metrics.map((itemMetric, itemMetricIndex) =>
+                                            itemMetricIndex === metricIndex
+                                              ? {
+                                                  ...itemMetric,
+                                                  key: "custom",
+                                                  expression: event.target.value
+                                                }
+                                              : itemMetric
+                                          )
+                                        }
+                                      : item
+                                  )
+                                )
+                              }
+                            />
+                          )}
+                          {stringsEqualIgnoreCase(metric.key, "topn") ? (
+                            <input
+                              aria-label={`TopN ${index + 1}-${metricIndex + 1}`}
+                              className="cv-input"
+                              style={{ maxWidth: 96 }}
+                              type="number"
+                              min={1}
+                              max={10}
+                              value={metricLimitValue(metric)}
+                              onChange={(event) =>
+                                setBlocks((current) =>
+                                  current.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? {
+                                          ...item,
+                                          metrics: item.metrics.map(
+                                            (itemMetric, itemMetricIndex) =>
+                                              itemMetricIndex === metricIndex
+                                                ? {
+                                                    ...itemMetric,
+                                                    key: "topn",
+                                                    limit: Number(event.target.value || "0")
+                                                  }
+                                                : itemMetric
+                                          )
+                                        }
+                                      : item
+                                  )
+                                )
+                              }
+                            />
+                          ) : null}
+                          <button
+                            type="button"
+                            className="cv-secondary-button"
+                            disabled={block.metrics.length <= 1}
+                            onClick={() =>
+                              setBlocks((current) =>
+                                current.map((item, itemIndex) =>
+                                  itemIndex === index
+                                    ? {
+                                        ...item,
+                                        metrics: item.metrics.filter(
+                                          (_itemMetric, itemMetricIndex) =>
+                                            itemMetricIndex !== metricIndex
+                                        )
+                                      }
+                                    : item
+                                )
+                              )
+                            }
+                          >
+                            删除
+                          </button>
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
         <div className="cv-form-row">
           <span className="cv-label">SQL 预览</span>
           <pre className="cv-code">{preview}</pre>
         </div>
 
-        <button
-          type="submit"
-          className="cv-action-button"
-          disabled={submitDisabled}
-        >
+        <button type="submit" className="cv-action-button" disabled={submitDisabled}>
           {isSubmitting
             ? mode === "edit"
               ? "保存中..."
               : "创建中..."
             : mode === "edit"
-              ? "保存修改"
+              ? "确认保存"
               : "确认创建"}
         </button>
       </form>
