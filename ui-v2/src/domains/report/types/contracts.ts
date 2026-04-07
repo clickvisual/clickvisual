@@ -132,6 +132,15 @@ export interface ReportMetricInput {
   key: string;
   label: string;
   expression?: string;
+  groupBy?: string;
+  limit?: number;
+}
+
+export interface ReportBlockInput {
+  key: string;
+  label: string;
+  where: string;
+  metrics: ReportMetricInput[];
 }
 
 export interface ReportBuilderInput {
@@ -142,6 +151,7 @@ export interface ReportBuilderInput {
   timeRange: ReportBuilderTimeRange;
   where: string;
   metrics: ReportMetricInput[];
+  blocks: ReportBlockInput[];
 }
 
 export interface ReportCreatePayload {

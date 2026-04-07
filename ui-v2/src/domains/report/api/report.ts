@@ -11,6 +11,7 @@ import {
 } from "../mocks/reportMockData";
 import { client } from "../../../shared/http/client";
 import type {
+  ReportBlockInput,
   ReportBuilderTimeRange,
   ReportCreatePayload,
   ReportDefinition,
@@ -44,6 +45,10 @@ interface ReportPreviewRunResponse {
   preview: ReportExecutionPreview;
   execution: ReportExecutionRecord;
   delivery: ReportSendResultSummary;
+}
+
+interface ReportDeleteResponse {
+  reportId: number;
 }
 
 type ReportScheduleApiPayload = ReportScheduleResponse & {
@@ -90,7 +95,7 @@ function normalizeWorkspace(workspace: ReportWorkspaceApiPayload): ReportWorkspa
     ...workspace,
     editor: {
       ...workspace.editor,
-      builder: workspace.editor.builder ?? null
+      builder: normalizeReportBuilder(workspace.editor.builder)
     },
     schedule: normalizeScheduleConfig(workspace.schedule)
   };
@@ -98,6 +103,57 @@ function normalizeWorkspace(workspace: ReportWorkspaceApiPayload): ReportWorkspa
 
 function normalizeList<T>(value: T[] | null | undefined): T[] {
   return Array.isArray(value) ? value : [];
+}
+
+function normalizeReportBlocks(builder: ReportCreatePayload["builder"] | ReportDefinition["builder"] | ReportEditorDraft["builder"]) {
+  if (!builder) {
+    return [];
+  }
+  if (Array.isArray(builder.blocks) && builder.blocks.length > 0) {
+    return builder.blocks.map((block, index) => ({
+      key: block.key || `block_${index + 1}`,
+      label: block.label || `条件块 ${index + 1}`,
+      where: block.where || "",
+      metrics:
+        Array.isArray(block.metrics) && block.metrics.length > 0
+          ? block.metrics.map((metric) => ({
+              ...metric,
+              groupBy: metric.groupBy || "",
+              limit: typeof metric.limit === "number" ? metric.limit : 3
+            }))
+          : [{ key: "count", label: "总量", groupBy: "", limit: 3 }]
+    }));
+  }
+  return [
+    {
+      key: "default",
+      label: "默认条件块",
+      where: builder.where || "",
+      metrics:
+        Array.isArray(builder.metrics) && builder.metrics.length > 0
+          ? builder.metrics.map((metric) => ({
+              ...metric,
+              groupBy: metric.groupBy || "",
+              limit: typeof metric.limit === "number" ? metric.limit : 3
+            }))
+          : [{ key: "count", label: "总量", groupBy: "", limit: 3 }]
+    }
+  ];
+}
+
+function normalizeReportBuilder(
+  builder: ReportCreatePayload["builder"] | ReportDefinition["builder"] | ReportEditorDraft["builder"]
+) {
+  if (!builder) {
+    return null;
+  }
+  const blocks = normalizeReportBlocks(builder);
+  return {
+    ...builder,
+    where: builder.where || "",
+    metrics: Array.isArray(builder.metrics) ? builder.metrics : [],
+    blocks
+  };
 }
 
 export async function listReportItems(): Promise<ReportListItem[]> {
@@ -112,17 +168,23 @@ export async function listReportItems(): Promise<ReportListItem[]> {
 }
 
 function previewQueryText(payload: ReportCreatePayload) {
-  const { database, table, timeField, timeRange, where, metrics } = payload.builder;
+  const builder = normalizeReportBuilder(payload.builder)!;
+  const { database, table, timeField, timeRange, blocks } = builder;
   const duration = timeRange === "1d" ? "1 DAY" : "1 HOUR";
-  const whereClause = where.trim() ? ` AND (${where.trim()})` : "";
+  const metrics = blocks.flatMap((block) => block.metrics.map((metric) => `${block.label}:${metric.label}`));
+  const whereClause = blocks
+    .map((block) => block.where.trim())
+    .filter(Boolean)
+    .map((item) => `(${item})`)
+    .join(" OR ");
   return [
     "WITH now() AS current_end,",
     `current_end - INTERVAL ${duration} AS current_start,`,
     "current_end - INTERVAL 1 DAY AS previous_end,",
     `previous_end - INTERVAL ${duration} AS previous_start`,
     `SELECT * FROM \`${database}\`.\`${table}\``,
-    `WHERE ${timeField} >= current_start AND ${timeField} < current_end${whereClause}`,
-    `-- metrics: ${metrics.map((metric) => metric.label).join(", ")}`
+    `WHERE ${timeField} >= current_start AND ${timeField} < current_end${whereClause ? ` AND (${whereClause})` : ""}`,
+    `-- metrics: ${metrics.join(", ")}`
   ].join(" ");
 }
 
@@ -226,7 +288,7 @@ export async function createReport(
         dutyUid: 0,
         creatorUid: 0,
         updatedAt,
-        builder: clone(payload.builder)
+        builder: normalizeReportBuilder(clone(payload.builder))
       };
 
       const listItem = {
@@ -254,7 +316,7 @@ export async function createReport(
         templateKey: "report-builder-default",
         outputFormat: "markdown",
         recipientChannelIds: [],
-        builder: clone(payload.builder)
+        builder: normalizeReportBuilder(clone(payload.builder))
       };
       reportScheduleMockById[nextID] = {
         reportId: nextID,
@@ -289,6 +351,28 @@ export async function createReport(
         nextRunAt: ""
       };
       return created;
+    }
+    throw error;
+  }
+}
+
+export async function deleteReport(reportId: number): Promise<void> {
+  try {
+    await client.delete<ReportDeleteResponse>(`/api/v2/reports/${reportId}`);
+  } catch (error) {
+    if (typeof window !== "undefined" && window.navigator.userAgent.includes("jsdom")) {
+      const nextIndex = reportListMock.findIndex((item) => item.id === reportId);
+      if (nextIndex < 0) {
+        throw new Error(`report mock not found: ${reportId}`);
+      }
+      reportListMock.splice(nextIndex, 1);
+      delete reportEditorDraftMockById[reportId];
+      delete reportScheduleMockById[reportId];
+      delete reportExecutionPreviewMockById[reportId];
+      delete reportRecentExecutionsMockById[reportId];
+      delete reportSendSummaryMockById[reportId];
+      delete reportScheduleRuntimeMockById[reportId];
+      return;
     }
     throw error;
   }
@@ -352,11 +436,15 @@ export async function getReportEditorDraft(
     );
     return {
       ...raw,
-      builder: raw.builder ?? null
+      builder: normalizeReportBuilder(raw.builder)
     };
   } catch (error) {
     if (typeof window !== "undefined" && window.navigator.userAgent.includes("jsdom")) {
-      return clone(findByReportId(reportEditorDraftMockById, reportId));
+      const draft = clone(findByReportId(reportEditorDraftMockById, reportId));
+      return {
+        ...draft,
+        builder: normalizeReportBuilder(draft.builder)
+      };
     }
     throw error;
   }

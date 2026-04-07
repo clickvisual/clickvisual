@@ -102,6 +102,7 @@ func v2(r *gin.RouterGroup) {
 	{
 		r.POST("/reports", core.Handle(report.ReportUpsert))
 		r.GET("/reports/:report-id", core.Handle(report.ReportGet))
+		r.DELETE("/reports/:report-id", core.Handle(report.ReportDelete))
 		r.GET("/reports/list", core.Handle(report.ReportList))
 		r.GET("/reports/editor", core.Handle(report.EditorGet))
 		r.GET("/reports/delivery", core.Handle(report.DeliveryGet))

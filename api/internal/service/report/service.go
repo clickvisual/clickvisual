@@ -81,6 +81,10 @@ func GetReport(reportID int) (view.RespReportDefinition, error) {
 	return defaultService.GetReport(reportID)
 }
 
+func DeleteReport(reportID int) (view.RespReportDeleteResult, error) {
+	return defaultService.DeleteReport(reportID)
+}
+
 func GetWorkspace(reportID int) (view.RespReportWorkspace, error) {
 	return defaultService.GetWorkspace(reportID)
 }
@@ -274,6 +278,40 @@ func (s *Service) GetReport(reportID int) (view.RespReportDefinition, error) {
 		CreatorUID:   0,
 		UpdatedAt:    item.UpdatedAt,
 	}, nil
+}
+
+func (s *Service) DeleteReport(reportID int) (view.RespReportDeleteResult, error) {
+	if s.useDB() {
+		return s.deleteReportFromDB(reportID)
+	}
+	if reportID == 0 {
+		return view.RespReportDeleteResult{}, fmt.Errorf("reportId 不能为空")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, found := s.reportItem(reportID); !found {
+		return view.RespReportDeleteResult{}, fmt.Errorf("report not found: %d", reportID)
+	}
+
+	nextList := make([]view.RespReportListItem, 0, len(s.list)-1)
+	for _, item := range s.list {
+		if item.ID != reportID {
+			nextList = append(nextList, item)
+		}
+	}
+	s.list = nextList
+	delete(s.editors, reportID)
+	delete(s.schedules, reportID)
+	delete(s.previews, reportID)
+	delete(s.executions, reportID)
+	delete(s.deliveries, reportID)
+	if s.scheduler != nil {
+		s.scheduler.Remove(reportID)
+	}
+
+	return view.RespReportDeleteResult{ReportID: reportID}, nil
 }
 
 func (s *Service) UpsertSchedule(req view.ReqReportSchedule) (view.RespReportSchedule, error) {
@@ -863,8 +901,102 @@ func (s *Service) findChannel(channelID int) (view.RespReportChannel, bool) {
 }
 
 func buildPreviewPushContent(item view.RespReportListItem, editor view.RespReportEditorDraft, schedule view.RespReportSchedule, startedAt time.Time) (string, string) {
+	return buildPreviewPushContentWithRows(item, editor, schedule, startedAt, nil)
+}
+
+func buildPreviewPushContentWithRows(item view.RespReportListItem, editor view.RespReportEditorDraft, schedule view.RespReportSchedule, startedAt time.Time, queryRows []map[string]interface{}) (string, string) {
 	title := fmt.Sprintf("统计预览｜%s", item.Name)
-	return title, ""
+	description := reportDescription(item, editor)
+	source, timeRangeLabel, scopeLabel := reportScopeLabels(editor.Builder)
+
+	sections := make([]string, 0, 5)
+	sections = append(sections, fmt.Sprintf("## %s", markdownEscape(item.Name)))
+	sections = append(sections, fmt.Sprintf("%s 统计结果如下", startedAt.Format("2006-01-02")))
+
+	if summary := summarizeReportContent(buildSummaryInput(item, editor, startedAt, queryRows)); strings.TrimSpace(summary) != "" {
+		sections = append(sections, "### ⚠️ 变化提示\n"+summary)
+	}
+
+	sections = append(sections, fmt.Sprintf("### 📊 核心概览\n- 说明：%s\n- 数据源：%s\n- 时间范围：%s\n- 数据范围：%s",
+		markdownEscape(description),
+		markdownEscape(source),
+		markdownEscape(timeRangeLabel),
+		markdownEscape(scopeLabel),
+	))
+
+	windowLabel := "按报表触发时间统计"
+	if windowStart, ok := reportWindowStart(editor.Builder, startedAt); ok {
+		windowLabel = fmt.Sprintf("%s ~ %s", windowStart.Format("2006-01-02 15:04:05"), startedAt.Format("2006-01-02 15:04:05"))
+	}
+	sections = append(sections, fmt.Sprintf("### ⏱️ 执行信息\n- 统计窗口：%s\n- 发送时间：%s",
+		markdownEscape(windowLabel),
+		startedAt.Format("2006-01-02 15:04:05"),
+	))
+
+	return title, strings.Join(sections, "\n\n")
+}
+
+func reportDescription(item view.RespReportListItem, editor view.RespReportEditorDraft) string {
+	for _, candidate := range []string{editor.Desc, item.Desc, editor.Name, item.Name} {
+		if strings.TrimSpace(candidate) != "" {
+			return candidate
+		}
+	}
+	return "按报表配置统计"
+}
+
+func reportScopeLabels(builder *view.ReqReportBuilder) (source string, timeRangeLabel string, scopeLabel string) {
+	if builder == nil {
+		return "按查询配置统计", "按查询配置统计", "按查询配置统计"
+	}
+	source = "按查询配置统计"
+	if strings.TrimSpace(builder.Database) != "" && strings.TrimSpace(builder.Table) != "" {
+		source = fmt.Sprintf("%s.%s", builder.Database, builder.Table)
+	}
+	timeRangeLabel = "按查询配置统计"
+	if strings.TrimSpace(builder.TimeRange) != "" {
+		timeRangeLabel = fmt.Sprintf("最近%s", builder.TimeRange)
+	}
+	if len(builder.Blocks) > 1 {
+		return source, timeRangeLabel, "多条件汇总"
+	}
+	scopeLabel = normalizeScopeLabel(builder.Where)
+	if len(builder.Blocks) == 1 {
+		scopeLabel = normalizeScopeLabel(builder.Blocks[0].Where)
+	}
+	return source, timeRangeLabel, scopeLabel
+}
+
+func normalizeScopeLabel(raw string) string {
+	normalized := strings.ToLower(strings.Join(strings.Fields(strings.TrimSpace(raw)), ""))
+	switch normalized {
+	case "", "1=1", "(1=1)":
+		return "全部数据"
+	default:
+		return "按报表配置统计"
+	}
+}
+
+func reportWindowStart(builder *view.ReqReportBuilder, startedAt time.Time) (time.Time, bool) {
+	if builder == nil {
+		return time.Time{}, false
+	}
+	duration, err := reportDuration(builder.TimeRange)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return startedAt.Add(-duration), true
+}
+
+func summarizeReportContent(input reportSummaryInput) string {
+	if reportContentSummarizer == nil {
+		return ""
+	}
+	summary, err := reportContentSummarizer.Summarize(input)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(summary)
 }
 
 func executionStatus(successCount int, failedCount int) string {

@@ -274,7 +274,55 @@ export function buildReportWorkspaceMock(reportId = 1001): ReportWorkspace {
     reportListMock.find((item) => item.id === reportId) ?? reportListMock[0];
 
   if (!active) {
-    throw new Error("report mock not found: empty list");
+    return {
+      activeReportId: 0,
+      list: [],
+      editor: {
+        reportId: 0,
+        nodeId: 0,
+        name: "",
+        desc: "",
+        queryMode: "sql",
+        queryText: "",
+        templateKey: "",
+        outputFormat: "markdown",
+        recipientChannelIds: [],
+        builder: null
+      },
+      schedule: {
+        reportId: 0,
+        desc: "",
+        dutyUid: 0,
+        cron: "",
+        typ: 0,
+        args: [],
+        isRetry: 0,
+        retryTimes: 0,
+        retryInterval: 0,
+        channelIds: []
+      },
+      preview: {
+        reportId: 0,
+        canRun: false,
+        nextRunAt: "",
+        lastRunAt: "",
+        message: ""
+      },
+      executions: [],
+      delivery: {
+        reportId: 0,
+        total: 0,
+        success: 0,
+        failed: 0,
+        channels: []
+      },
+      channels: clone(reportChannelsMock),
+      runtime: {
+        registered: false,
+        paused: false,
+        nextRunAt: ""
+      }
+    };
   }
 
   return {

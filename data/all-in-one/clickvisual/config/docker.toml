@@ -19,7 +19,16 @@ port = 19011
 
 [logger]
 level = "debug"
+writer = "stderr"
 name = "clickvisual.log"
+
+[report.summary.ai]
+enabled = false
+baseURL = "https://api.openai.com"
+apiKey = ""
+model = ""
+timeout = 5
+maxRows = 5
 
 [mysql]
 connMaxLifetime = "300s"

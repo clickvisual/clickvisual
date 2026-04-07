@@ -83,5 +83,10 @@ export const client = {
       method: "POST",
       body: JSON.stringify(payload)
     });
+  },
+  delete<T>(path: string) {
+    return requestJson<T>(path, {
+      method: "DELETE"
+    });
   }
 };
