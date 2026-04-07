@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	reportQueryWindowPattern = regexp.MustCompile(`WITH toDateTime\('([^']+)'\) AS current_start, toDateTime\('([^']+)'\) AS current_end`)
-	reportQueryTargetPattern = regexp.MustCompile("FROM `([^`]+)`\\.`([^`]+)` WHERE ([^ ]+) >= current_start AND ([^ ]+) < current_end(?: AND \\((.*?)\\))?")
-	reportMetricPattern      = regexp.MustCompile(`SELECT \d+ AS block_order, \d+ AS metric_order, 0 AS item_order, 'aggregate' AS metric_kind, '((?:\\'|[^'])*)' AS metric_name, (.+?) AS current_value, \(SELECT .+? AS previous_value FROM`)
+	reportQueryWindowPattern         = regexp.MustCompile(`WITH toDateTime\('([^']+)'\) AS current_start, toDateTime\('([^']+)'\) AS current_end`)
+	reportQueryTargetPattern         = regexp.MustCompile("FROM `([^`]+)`\\.`([^`]+)` WHERE ([^ ]+) >= current_start AND ([^ ]+) < current_end(?: AND \\((.*?)\\))?")
+	reportQueryCombinedTargetPattern = regexp.MustCompile("FROM `([^`]+)`\\.`([^`]+)` WHERE \\(\\(([^ ]+) >= current_start AND ([^ ]+) < current_end\\) OR \\(([^ ]+) >= previous_start AND ([^ ]+) < previous_end\\)\\)(?: AND \\((.*?)\\))?")
+	reportMetricPattern              = regexp.MustCompile(`SELECT \d+ AS block_order, \d+ AS metric_order, 0 AS item_order, 'aggregate' AS metric_kind, '(?:\\'|[^'])*' AS block_key, '(?:\\'|[^'])*' AS block_label, '((?:\\'|[^'])*)' AS metric_name, .*?toFloat64\((.+?)\) AS metric_value`)
 )
 
 func countOnlyReportMetrics() []view.ReqReportMetric {
@@ -143,14 +144,17 @@ func inferReportBuilder(queryText string) *view.ReqReportBuilder {
 
 	targetMatch := reportQueryTargetPattern.FindStringSubmatch(queryText)
 	if len(targetMatch) < 5 || targetMatch[3] != targetMatch[4] {
-		return nil
+		targetMatch = reportQueryCombinedTargetPattern.FindStringSubmatch(queryText)
+		if len(targetMatch) < 7 || targetMatch[3] != targetMatch[4] || targetMatch[3] != targetMatch[5] || targetMatch[3] != targetMatch[6] {
+			return nil
+		}
 	}
 
 	builder := &view.ReqReportBuilder{
 		Database:   targetMatch[1],
 		Table:      targetMatch[2],
 		TimeField:  targetMatch[3],
-		Where:      targetMatch[5],
+		Where:      targetMatch[len(targetMatch)-1],
 		InstanceID: 0,
 	}
 
@@ -273,19 +277,18 @@ func buildReportQuery(req view.ReqReportBuilder, now time.Time) (string, error) 
 					return "", exprErr
 				}
 				parts = append(parts, fmt.Sprintf(
-					`SELECT %d AS block_order, %d AS metric_order, 0 AS item_order, 'aggregate' AS metric_kind, '%s' AS block_key, '%s' AS block_label, '%s' AS metric_name, toFloat64(%s) AS current_value, (SELECT toFloat64(%s) FROM %s WHERE %s >= previous_start AND %s < previous_end%s) AS previous_value, CAST(NULL AS Nullable(String)) AS top_key, CAST(NULL AS Nullable(Float64)) AS top_value FROM %s WHERE %s >= current_start AND %s < current_end%s`,
+					`SELECT %d AS block_order, %d AS metric_order, 0 AS item_order, 'aggregate' AS metric_kind, '%s' AS block_key, '%s' AS block_label, '%s' AS metric_name, current_value, previous_value, CAST(NULL AS Nullable(String)) AS top_key, CAST(NULL AS Nullable(Float64)) AS top_value FROM (SELECT anyIf(metric_value, window_name = 'current') AS current_value, anyIf(metric_value, window_name = 'previous') AS previous_value FROM (SELECT windows.window_name, CAST(aggregated.metric_value AS Nullable(Float64)) AS metric_value FROM (SELECT 'current' AS window_name UNION ALL SELECT 'previous' AS window_name) AS windows LEFT JOIN (SELECT if(%s >= current_start AND %s < current_end, 'current', 'previous') AS window_name, toFloat64(%s) AS metric_value FROM %s WHERE ((%s >= current_start AND %s < current_end) OR (%s >= previous_start AND %s < previous_end))%s GROUP BY window_name) AS aggregated ON windows.window_name = aggregated.window_name))`,
 					blockIndex,
 					metricIndex,
 					escapeSQLString(blockKey),
 					escapeSQLString(blockLabel),
 					escapeSQLString(label),
-					expression,
+					req.TimeField,
+					req.TimeField,
 					expression,
 					quoteTable(req.Database, req.Table),
 					req.TimeField,
 					req.TimeField,
-					whereClause,
-					quoteTable(req.Database, req.Table),
 					req.TimeField,
 					req.TimeField,
 					whereClause,

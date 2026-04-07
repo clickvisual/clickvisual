@@ -37,7 +37,9 @@ func TestBuildReportQuery(t *testing.T) {
 				"`default`.`logs`",
 				"level = 'error'",
 				"ratio_vs_yesterday",
-				"toFloat64(count(*)) AS current_value",
+				"anyIf(metric_value, window_name = 'current') AS current_value",
+				"anyIf(metric_value, window_name = 'previous') AS previous_value",
+				"toFloat64(count(*)) AS metric_value",
 			},
 		},
 		{
@@ -54,7 +56,7 @@ func TestBuildReportQuery(t *testing.T) {
 			wantSQL: []string{
 				"toDateTime('2026-03-30 18:00:00') AS current_start",
 				"toDateTime('2026-03-29 18:00:00') AS previous_start",
-				"toFloat64(count(*)) AS current_value",
+				"toFloat64(count(*)) AS metric_value",
 			},
 		},
 		{
@@ -87,6 +89,25 @@ func TestBuildReportQuery(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBuildReportQueryOptimizesCustomAggregateWithSingleScan(t *testing.T) {
+	queryText, err := buildReportQuery(view.ReqReportBuilder{
+		Database:  "default",
+		Table:     "logs",
+		TimeField: "event_time",
+		TimeRange: "1h",
+		Where:     "level = 'error'",
+		Metrics: []view.ReqReportMetric{
+			{Key: "custom", Label: "平均耗时", Expression: "avg(duration)"},
+		},
+	}, time.Date(2026, 3, 31, 18, 0, 0, 0, time.FixedZone("CST", 8*3600)))
+
+	require.NoError(t, err)
+	assert.Contains(t, queryText, "toFloat64(avg(duration)) AS metric_value")
+	assert.Contains(t, queryText, "anyIf(metric_value, window_name = 'current') AS current_value")
+	assert.Contains(t, queryText, "WHERE ((event_time >= current_start AND event_time < current_end) OR (event_time >= previous_start AND event_time < previous_end))")
+	assert.NotContains(t, queryText, "(SELECT toFloat64(avg(duration)) FROM `default`.`logs`")
 }
 
 func TestResolveReportBuilder(t *testing.T) {
