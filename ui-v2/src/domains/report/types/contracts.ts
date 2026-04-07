@@ -83,6 +83,8 @@ export interface ReportExecutionRecord {
   endedAt?: string;
   durationSeconds: number;
   operatorName: string;
+  errorMessage?: string;
+  channelResults: ReportChannelSendDetail[];
 }
 
 export interface ReportScheduleExecutionSummary {
@@ -106,6 +108,14 @@ export interface ReportChannelSendSummary {
   success: number;
   failed: number;
   lastSentAt: string;
+}
+
+export interface ReportChannelSendDetail extends ReportChannelSendSummary {
+  attempts?: number;
+  retried?: number;
+  retryTimes?: number;
+  retryInterval?: number;
+  errors?: string[];
 }
 
 export interface ReportSendResultSummary {

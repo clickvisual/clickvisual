@@ -1,6 +1,7 @@
 package v2dist
 
 import (
+	"bytes"
 	"embed"
 	"io/fs"
 	"mime"
@@ -23,7 +24,7 @@ func Serve(c *core.Context, requestPath string) {
 }
 
 func ServeIndex(c *core.Context) {
-	serveFile(c, "index.html")
+	serveIndex(c, c.Request.URL.Path)
 }
 
 func resolveFilePath(requestPath string) string {
@@ -47,6 +48,20 @@ func serveFile(c *core.Context, filePath string) bool {
 	if err != nil {
 		return false
 	}
+	writeResponse(c, filePath, data)
+	return true
+}
+
+func serveIndex(c *core.Context, requestPath string) bool {
+	data, err := readFile("index.html")
+	if err != nil {
+		return false
+	}
+	writeResponse(c, "index.html", rewriteIndexAssetPaths(data, requestPath))
+	return true
+}
+
+func writeResponse(c *core.Context, filePath string, data []byte) {
 	contentType := mime.TypeByExtension(path.Ext(filePath))
 	if contentType == "" {
 		contentType = http.DetectContentType(data)
@@ -56,10 +71,9 @@ func serveFile(c *core.Context, filePath string) bool {
 	}
 	c.Header("Content-Type", contentType)
 	c.Status(http.StatusOK)
-	if _, err = c.Writer.Write(data); err != nil {
+	if _, err := c.Writer.Write(data); err != nil {
 		c.Error(err)
 	}
-	return true
 }
 
 func readFile(filePath string) ([]byte, error) {
@@ -68,4 +82,19 @@ func readFile(filePath string) ([]byte, error) {
 		return nil, err
 	}
 	return fs.ReadFile(distFS, filePath)
+}
+
+func rewriteIndexAssetPaths(data []byte, requestPath string) []byte {
+	assetBase := []byte(`"` + getV2AssetBasePath(requestPath) + `assets/`)
+	rewritten := bytes.ReplaceAll(data, []byte(`"./assets/`), assetBase)
+	return bytes.ReplaceAll(rewritten, []byte(`'./assets/`), append([]byte{'\''}, assetBase[1:]...))
+}
+
+func getV2AssetBasePath(requestPath string) string {
+	cleaned := path.Clean("/" + requestPath)
+	v2Index := strings.Index(cleaned, "/v2")
+	if v2Index < 0 {
+		return "/v2/"
+	}
+	return cleaned[:v2Index] + "/v2/"
 }

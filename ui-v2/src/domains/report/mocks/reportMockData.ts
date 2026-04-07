@@ -145,7 +145,16 @@ const seedReportRecentExecutionsMockById: Record<number, ReportExecutionRecord[]
         startedAt: "2026-03-30T09:00:00+08:00",
         endedAt: "2026-03-30T09:00:06+08:00",
         durationSeconds: 6,
-        operatorName: "system"
+        operatorName: "system",
+        channelResults: [
+          {
+            channelId: 201,
+            channelTyp: "dingtalk",
+            success: 1,
+            failed: 0,
+            lastSentAt: "2026-03-30T09:00:06+08:00"
+          }
+        ]
       },
       {
         id: 50002,
@@ -155,7 +164,22 @@ const seedReportRecentExecutionsMockById: Record<number, ReportExecutionRecord[]
         startedAt: "2026-03-29T15:10:00+08:00",
         endedAt: "2026-03-29T15:10:12+08:00",
         durationSeconds: 12,
-        operatorName: "张三"
+        operatorName: "张三",
+        errorMessage: "发送阶段失败: 钉钉 webhook 返回 HTTP 500",
+        channelResults: [
+          {
+            channelId: 201,
+            channelTyp: "dingtalk",
+            success: 0,
+            failed: 1,
+            lastSentAt: "2026-03-29T15:10:12+08:00",
+            attempts: 2,
+            retried: 1,
+            retryTimes: 1,
+            retryInterval: 3,
+            errors: ["attempt 1/2: timeout", "attempt 2/2: HTTP 500"]
+          }
+        ]
       }
     ],
     1002: [
@@ -167,7 +191,8 @@ const seedReportRecentExecutionsMockById: Record<number, ReportExecutionRecord[]
         startedAt: "2026-03-24T10:00:00+08:00",
         endedAt: "2026-03-24T10:00:12+08:00",
         durationSeconds: 12,
-        operatorName: "system"
+        operatorName: "system",
+        channelResults: []
       }
     ]
   };

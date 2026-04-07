@@ -121,14 +121,16 @@ type RespReportExecutionPreview struct {
 }
 
 type RespReportExecutionRecord struct {
-	ID              int    `json:"id"`
-	ReportID        int    `json:"reportId"`
-	Status          string `json:"status"`
-	Trigger         string `json:"trigger"`
-	StartedAt       string `json:"startedAt"`
-	EndedAt         string `json:"endedAt"`
-	DurationSeconds int    `json:"durationSeconds"`
-	OperatorName    string `json:"operatorName"`
+	ID              int                            `json:"id"`
+	ReportID        int                            `json:"reportId"`
+	Status          string                         `json:"status"`
+	Trigger         string                         `json:"trigger"`
+	StartedAt       string                         `json:"startedAt"`
+	EndedAt         string                         `json:"endedAt"`
+	DurationSeconds int                            `json:"durationSeconds"`
+	OperatorName    string                         `json:"operatorName"`
+	ErrorMessage    string                         `json:"errorMessage"`
+	ChannelResults  []RespReportChannelSendSummary `json:"channelResults"`
 }
 
 type RespReportScheduleExecutionSummary struct {
@@ -147,11 +149,16 @@ type RespReportScheduleRuntime struct {
 }
 
 type RespReportChannelSendSummary struct {
-	ChannelID  int    `json:"channelId"`
-	ChannelTyp string `json:"channelTyp"`
-	Success    int    `json:"success"`
-	Failed     int    `json:"failed"`
-	LastSentAt string `json:"lastSentAt"`
+	ChannelID     int      `json:"channelId"`
+	ChannelTyp    string   `json:"channelTyp"`
+	Success       int      `json:"success"`
+	Failed        int      `json:"failed"`
+	LastSentAt    string   `json:"lastSentAt"`
+	Attempts      int      `json:"attempts"`
+	Retried       int      `json:"retried"`
+	RetryTimes    int      `json:"retryTimes"`
+	RetryInterval int      `json:"retryInterval"`
+	Errors        []string `json:"errors,omitempty"`
 }
 
 type RespReportSendSummary struct {

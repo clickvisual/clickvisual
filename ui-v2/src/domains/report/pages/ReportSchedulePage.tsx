@@ -86,6 +86,10 @@ function getStatusTone(status: ReportExecutionRecord["status"]) {
   }
 }
 
+function getExecutionTriggerLabel(trigger: ReportExecutionRecord["trigger"]) {
+  return trigger === "schedule" ? "定时执行" : "手动执行";
+}
+
 export default function ReportSchedulePage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -139,6 +143,7 @@ export default function ReportSchedulePage() {
   const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
   const [confirmDeleteReportId, setConfirmDeleteReportId] = useState<number | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<number | null>(routeReportId);
+  const [selectedExecution, setSelectedExecution] = useState<ReportExecutionRecord | null>(null);
 
   async function loadWorkspace(
     reportId?: number,
@@ -786,7 +791,6 @@ export default function ReportSchedulePage() {
                   >
                     {editStatus === "pending" ? "保存中..." : "编辑报表"}
                   </button>
-                  <span className="cv-badge">可运行壳子</span>
                 </div>
               </div>
               {editor ? (
@@ -1001,7 +1005,12 @@ export default function ReportSchedulePage() {
                 </div>
                 <div className="cv-section-stack cv-section-stack--tight">
                   {executions.map((item) => (
-                    <div key={item.id} className="cv-status-card cv-status-card--compact">
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="cv-status-card cv-status-card--compact cv-report-execution-card"
+                      onClick={() => setSelectedExecution(item)}
+                    >
                       <div className="cv-report-execution">
                         <strong>
                           {item.trigger} / {item.status} / {item.operatorName}
@@ -1009,12 +1018,116 @@ export default function ReportSchedulePage() {
                         <div className={getStatusTone(item.status)}>
                           {getExecutionStatusLabel(item.status)} · {item.startedAt}
                         </div>
+                        {item.status === "failed" && item.errorMessage ? (
+                          <div className="cv-muted">{item.errorMessage}</div>
+                        ) : null}
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </section>
             ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {selectedExecution ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setSelectedExecution(null)}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-execution-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="report-execution-dialog-title" className="cv-panel-title">
+                  执行记录详情
+                </h2>
+                <p className="cv-panel-description">
+                  {getExecutionTriggerLabel(selectedExecution.trigger)} · {selectedExecution.operatorName}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                onClick={() => setSelectedExecution(null)}
+              >
+                关闭
+              </button>
+            </div>
+
+            <div className="cv-section-stack cv-section-stack--tight">
+              <div className="cv-kv">
+                <div className="cv-kv-row">
+                  <span className="cv-kv-key">状态</span>
+                  <span className={`cv-kv-value ${getStatusTone(selectedExecution.status)}`}>
+                    {getExecutionStatusLabel(selectedExecution.status)}
+                  </span>
+                </div>
+                <div className="cv-kv-row">
+                  <span className="cv-kv-key">开始时间</span>
+                  <span className="cv-kv-value">{formatDateTime(selectedExecution.startedAt)}</span>
+                </div>
+                <div className="cv-kv-row">
+                  <span className="cv-kv-key">结束时间</span>
+                  <span className="cv-kv-value">{formatDateTime(selectedExecution.endedAt)}</span>
+                </div>
+                <div className="cv-kv-row">
+                  <span className="cv-kv-key">耗时</span>
+                  <span className="cv-kv-value">{selectedExecution.durationSeconds}s</span>
+                </div>
+              </div>
+
+              <section className="cv-status-card cv-status-card--compact">
+                <strong>失败原因</strong>
+                <div className="cv-muted">
+                  {selectedExecution.errorMessage || "本次执行未记录失败原因。"}
+                </div>
+              </section>
+
+              <section className="cv-section-stack cv-section-stack--tight">
+                <strong>渠道结果</strong>
+                {selectedExecution.channelResults.length > 0 ? (
+                  selectedExecution.channelResults.map((channel) => (
+                    <div
+                      key={`${selectedExecution.id}-${channel.channelId}`}
+                      className="cv-status-card cv-status-card--compact"
+                    >
+                      <strong>
+                        {channel.channelTyp} / #{channel.channelId}
+                      </strong>
+                      <div className="cv-muted">
+                        成功 {channel.success}，失败 {channel.failed}，最近发送 {formatDateTime(channel.lastSentAt)}
+                      </div>
+                      {(channel.attempts || channel.retryTimes || channel.retryInterval) ? (
+                        <div className="cv-muted">
+                          尝试 {channel.attempts ?? 0} 次，重试 {channel.retried ?? 0} 次，重试策略 {channel.retryTimes ?? 0} 次 / {channel.retryInterval ?? 0}s
+                        </div>
+                      ) : null}
+                      {channel.errors && channel.errors.length > 0 ? (
+                        <div className="cv-report-error-list">
+                          {channel.errors.map((error, index) => (
+                            <div key={`${channel.channelId}-${index}`} className="cv-muted">
+                              {error}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))
+                ) : (
+                  <div className="cv-status-card cv-status-card--compact">
+                    <span className="cv-muted">当前执行未记录渠道明细。</span>
+                  </div>
+                )}
+              </section>
+            </div>
           </div>
         </div>
       ) : null}

@@ -551,6 +551,7 @@ func (s *Service) executeReport(reportID int, trigger string) (view.RespReportPr
 		if err != nil {
 			failedCount++
 			channelResult.Failed = 1
+			channelResult.Errors = []string{err.Error()}
 		} else {
 			successCount++
 			channelResult.Success = 1
@@ -572,6 +573,15 @@ func (s *Service) executeReport(reportID int, trigger string) (view.RespReportPr
 		EndedAt:         finishedAt.Format(time.RFC3339),
 		DurationSeconds: int(finishedAt.Sub(startedAt).Seconds()),
 		OperatorName:    executionOperator(trigger),
+		ChannelResults:  make([]view.RespReportChannelSendSummary, 0, len(channelResults)),
+	}
+	if failedCount > 0 {
+		execution.ErrorMessage = fmt.Sprintf("%s执行失败，%d 个渠道推送失败", executionOperator(trigger), failedCount)
+	}
+	for _, channelID := range schedule.ChannelIDs {
+		if result, ok := channelResults[channelID]; ok {
+			execution.ChannelResults = append(execution.ChannelResults, result)
+		}
 	}
 	s.nextExecID++
 	s.executions[activeID] = append([]view.RespReportExecutionRecord{execution}, s.executions[activeID]...)
@@ -748,6 +758,15 @@ func defaultSeed() seedData {
 					EndedAt:         "2026-03-30T09:00:06+08:00",
 					DurationSeconds: 6,
 					OperatorName:    "system",
+					ChannelResults: []view.RespReportChannelSendSummary{
+						{
+							ChannelID:  201,
+							ChannelTyp: "dingtalk",
+							Success:    1,
+							Failed:     0,
+							LastSentAt: "2026-03-30T09:00:06+08:00",
+						},
+					},
 				},
 				{
 					ID:              50002,
@@ -758,6 +777,21 @@ func defaultSeed() seedData {
 					EndedAt:         "2026-03-29T15:10:12+08:00",
 					DurationSeconds: 12,
 					OperatorName:    "张三",
+					ErrorMessage:    "发送阶段失败: 钉钉 webhook 返回 HTTP 500",
+					ChannelResults: []view.RespReportChannelSendSummary{
+						{
+							ChannelID:     201,
+							ChannelTyp:    "dingtalk",
+							Success:       0,
+							Failed:        1,
+							LastSentAt:    "2026-03-29T15:10:12+08:00",
+							Attempts:      2,
+							Retried:       1,
+							RetryTimes:    1,
+							RetryInterval: 3,
+							Errors:        []string{"attempt 1/2: timeout", "attempt 2/2: HTTP 500"},
+						},
+					},
 				},
 			},
 			1002: {
