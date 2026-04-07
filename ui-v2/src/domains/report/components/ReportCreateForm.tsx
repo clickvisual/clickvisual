@@ -569,6 +569,11 @@ export default function ReportCreateForm({
               复制当前条件块
             </button>
           </div>
+          {blocks.length <= 1 ? (
+            <div className="cv-status-card cv-status-card--compact" role="note">
+              <span className="cv-muted">至少保留一个条件块，最后一个条件块不能删除。</span>
+            </div>
+          ) : null}
 
           {blocks.map((block, index) => (
             <div
@@ -580,6 +585,36 @@ export default function ReportCreateForm({
                 marginBottom: 12
               }}
             >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 12,
+                  marginBottom: 12
+                }}
+              >
+                <strong>{block.label || `条件块 ${index + 1}`}</strong>
+                <button
+                  type="button"
+                  className="cv-secondary-button"
+                  disabled={blocks.length <= 1}
+                  onClick={() => {
+                    if (blocks.length <= 1) {
+                      return;
+                    }
+                    setBlocks((current) =>
+                      current.filter((_item, itemIndex) => itemIndex !== index)
+                    );
+                    setMetricGuideOpenBlockKey((current) =>
+                      current === block.key ? null : current
+                    );
+                  }}
+                >
+                  删除条件块
+                </button>
+              </div>
+
               <label className="cv-form-row">
                 <span className="cv-label">条件块名称</span>
                 <input

@@ -537,6 +537,8 @@ func (s *Service) executeReportFromDB(reportID int, trigger string) (view.RespRe
 			EndedAt:         formatUnix(runningExec.EndedAt),
 			DurationSeconds: runningExec.DurationSeconds,
 			OperatorName:    runningExec.OperatorName,
+			ErrorMessage:    runningExec.ErrorMessage,
+			ChannelResults:  parseChannelResults(runningExec.ChannelResults),
 		},
 		Delivery: delivery,
 	}, nil
@@ -1304,6 +1306,8 @@ func toRespExecutionList(executions []dbmodel.ReportExecution) []view.RespReport
 			EndedAt:         formatUnix(execution.EndedAt),
 			DurationSeconds: execution.DurationSeconds,
 			OperatorName:    execution.OperatorName,
+			ErrorMessage:    execution.ErrorMessage,
+			ChannelResults:  parseChannelResults(execution.ChannelResults),
 		})
 	}
 	return resp
@@ -1350,11 +1354,16 @@ func parseChannelResults(raw string) []view.RespReportChannelSendSummary {
 		resp := make([]view.RespReportChannelSendSummary, 0, len(withDetails))
 		for _, item := range withDetails {
 			resp = append(resp, view.RespReportChannelSendSummary{
-				ChannelID:  item.ChannelID,
-				ChannelTyp: item.ChannelTyp,
-				Success:    item.Success,
-				Failed:     item.Failed,
-				LastSentAt: item.LastSentAt,
+				ChannelID:     item.ChannelID,
+				ChannelTyp:    item.ChannelTyp,
+				Success:       item.Success,
+				Failed:        item.Failed,
+				LastSentAt:    item.LastSentAt,
+				Attempts:      item.Attempts,
+				Retried:       item.Retried,
+				RetryTimes:    item.RetryTimes,
+				RetryInterval: item.RetryInterval,
+				Errors:        append([]string(nil), item.Errors...),
 			})
 		}
 		return resp
