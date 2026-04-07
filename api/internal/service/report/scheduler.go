@@ -9,6 +9,8 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+var reportScheduleLocation = loadReportScheduleLocation()
+
 type Scheduler struct {
 	service *Service
 	cron    *cron.Cron
@@ -20,9 +22,17 @@ type Scheduler struct {
 func NewScheduler(service *Service) *Scheduler {
 	return &Scheduler{
 		service: service,
-		cron:    cron.New(cron.WithSeconds()),
+		cron:    cron.New(cron.WithSeconds(), cron.WithLocation(reportScheduleLocation)),
 		entryID: make(map[int]cron.EntryID),
 	}
+}
+
+func loadReportScheduleLocation() *time.Location {
+	location, err := time.LoadLocation("Asia/Shanghai")
+	if err == nil {
+		return location
+	}
+	return time.FixedZone("CST", 8*60*60)
 }
 
 func (s *Scheduler) Start() error {
