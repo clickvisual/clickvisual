@@ -3,7 +3,6 @@ package source
 import (
 	"database/sql"
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/gotomicro/ego/core/elog"
@@ -101,26 +100,24 @@ func (c *Databend) doQuery(ins *sql.DB, sql string) (res []map[string]interface{
 	defer func() { _ = rows.Close() }()
 	cts, _ := rows.ColumnTypes()
 	var (
-		fields = make([]string, len(cts))
-		values = make([]interface{}, len(cts))
+		fields   = make([]string, len(cts))
+		values   = make([]interface{}, len(cts))
+		scanArgs = make([]interface{}, len(cts))
 	)
 	for idx, field := range cts {
 		fields[idx] = field.Name()
+		scanArgs[idx] = &values[idx]
 	}
 	for rows.Next() {
 		line := make(map[string]interface{}, 0)
-		for idx := range values {
-			fieldValue := reflect.ValueOf(&values[idx]).Elem()
-			values[idx] = fieldValue.Addr().Interface()
-		}
-		if err = rows.Scan(values...); err != nil {
+		if err = rows.Scan(scanArgs...); err != nil {
 			elog.Error("Databend", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
 			return
 		}
 		elog.Debug("Databend", elog.Any("fields", fields), elog.Any("values", values))
 		for k := range fields {
 			elog.Debug("Databend", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
-			line[fields[k]] = values[k]
+			line[fields[k]] = normalizeScannedValue(values[k])
 		}
 		res = append(res, line)
 	}

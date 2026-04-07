@@ -18,6 +18,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
+	"github.com/clickvisual/clickvisual/api/internal/ui/v2dist"
 )
 
 func GetServerRouter() *egin.Component {
@@ -60,6 +61,10 @@ func GetServerRouter() *egin.Component {
 		}
 
 		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
+		if isV2Asset(path) {
+			v2dist.Serve(c, path)
+			return
+		}
 		c.FileFromFS(path, r.HTTPEmbedFs())
 	}))
 	apiPrefix := ""
@@ -93,4 +98,11 @@ func GetAgentRouter() *egin.Component {
 	g.GET("/api/v1/search", core.Handle(k8sAgent.Search))
 	g.GET("/api/v1/charts", core.Handle(k8sAgent.Charts))
 	return g
+}
+
+func isV2Asset(path string) bool {
+	if path == "/v2" {
+		return true
+	}
+	return strings.HasPrefix(path, "/v2/")
 }

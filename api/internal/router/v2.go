@@ -11,6 +11,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/pandas"
+	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/report"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
@@ -96,5 +97,24 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/alert/settings/:instance-id", core.Handle(alert.SettingInfo))
 		r.POST("/alert/metrics-samples", core.Handle(alert.CreateMetricsSamples))
 		r.PATCH("/alert/settings/:instance-id", core.Handle(alert.SettingUpdate))
+	}
+	// The report module - report
+	{
+		r.POST("/reports", core.Handle(report.ReportUpsert))
+		r.GET("/reports/:report-id", core.Handle(report.ReportGet))
+		r.GET("/reports/list", core.Handle(report.ReportList))
+		r.GET("/reports/editor", core.Handle(report.EditorGet))
+		r.GET("/reports/delivery", core.Handle(report.DeliveryGet))
+		r.GET("/reports/channels", core.Handle(report.ChannelList))
+		r.GET("/reports/preview", core.Handle(report.PreviewGet))
+		r.POST("/reports/preview-run", core.Handle(report.PreviewRun))
+		r.GET("/reports/executions", core.Handle(report.ExecutionList))
+		r.GET("/reports/workspace", core.Handle(report.WorkspaceGet))
+		r.GET("/reports/instances", core.Handle(report.ReportSourceInstances))
+		r.GET("/reports/instances/:instance-id/databases", core.Handle(report.ReportSourceDatabases))
+		r.GET("/reports/instances/:instance-id/databases/:database/tables", core.Handle(report.ReportSourceTables))
+		r.GET("/reports/instances/:instance-id/databases/:database/tables/:table/columns", core.Handle(report.ReportTableColumns))
+		r.POST("/reports/configs", core.Handle(report.ConfigUpsert))
+		r.GET("/reports/configs/:node-id", core.Handle(report.ConfigGet))
 	}
 }
