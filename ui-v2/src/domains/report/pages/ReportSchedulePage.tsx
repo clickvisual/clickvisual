@@ -1018,9 +1018,6 @@ export default function ReportSchedulePage() {
                         <div className={getStatusTone(item.status)}>
                           {getExecutionStatusLabel(item.status)} · {item.startedAt}
                         </div>
-                        {item.status === "failed" && item.errorMessage ? (
-                          <div className="cv-muted">{item.errorMessage}</div>
-                        ) : null}
                       </div>
                     </button>
                   ))}
