@@ -76,6 +76,8 @@ var reportDistributedEnginePattern = regexp.MustCompile(`Distributed\(\s*'([^']+
 var reportAccelerationSchemaInit sync.Once
 var reportAccelerationSchemaErr error
 
+const reportTimeZoneName = "Asia/Shanghai"
+
 type reportAccelerationTopology struct {
 	UseCluster       bool
 	ClusterName      string
@@ -128,7 +130,7 @@ func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, to
 	if topology.UseCluster {
 		clusterSuffix = fmt.Sprintf(" ON CLUSTER '%s'", escapeSQLString(topology.ClusterName))
 	}
-	localEngineSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s%s (bucket_time DateTime, block_key String, metric_name String, group_kind UInt8, group_value String, sum_value Float64, count_value UInt64, uniq_state AggregateFunction(uniq, String)) ENGINE = AggregatingMergeTree PARTITION BY toDate(bucket_time) ORDER BY (bucket_time, block_key, metric_name, group_kind, group_value) TTL bucket_time + INTERVAL %d DAY", targetLocalRef, clusterSuffix, ttlDays)
+	localEngineSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s%s (bucket_time DateTime('%s'), block_key String, metric_name String, group_kind UInt8, group_value String, sum_value Float64, count_value UInt64, uniq_state AggregateFunction(uniq, String)) ENGINE = AggregatingMergeTree PARTITION BY toDate(bucket_time) ORDER BY (bucket_time, block_key, metric_name, group_kind, group_value) TTL bucket_time + INTERVAL %d DAY", targetLocalRef, clusterSuffix, reportTimeZoneName, ttlDays)
 	createTableSQLs = append(createTableSQLs, localEngineSQL)
 	if topology.UseCluster {
 		createTableSQLs = append(createTableSQLs, fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s%s AS %s ENGINE = Distributed('%s', '%s', '%s', rand())", targetRef, clusterSuffix, targetLocalRef, escapeSQLString(topology.ClusterName), escapeSQLString(builder.Database), escapeSQLString(targetLocalTable)))
@@ -254,7 +256,7 @@ func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, t
 		}
 		timeClause := ""
 		if restrictTime {
-			timeClause = fmt.Sprintf(" AND %s >= toDateTime('%s') AND %s < toDateTime('%s')", timeField, start.Format("2006-01-02 15:04:05"), timeField, end.Format("2006-01-02 15:04:05"))
+			timeClause = fmt.Sprintf(" AND %s >= toDateTime('%s', '%s') AND %s < toDateTime('%s', '%s')", timeField, start.Format("2006-01-02 15:04:05"), reportTimeZoneName, timeField, end.Format("2006-01-02 15:04:05"), reportTimeZoneName)
 		}
 		blockKey := strings.TrimSpace(block.Key)
 		if blockKey == "" {
@@ -395,11 +397,15 @@ func buildAcceleratedReportQuery(report dbmodel.Report, acceleration dbmodel.Rep
 		}
 	}
 	return fmt.Sprintf(
-		"WITH toDateTime('%s') AS current_start, toDateTime('%s') AS current_end, toDateTime('%s') AS previous_start, toDateTime('%s') AS previous_end SELECT block_key, block_label, metric_name, metric_kind, current_value, previous_value, if(metric_kind = 'aggregate' AND previous_value != 0, (current_value - previous_value) / previous_value, NULL) AS ratio_vs_yesterday, top_key, top_value FROM (%s) ORDER BY block_order, metric_order, if(metric_kind = 'topn', 0, item_order), if(metric_kind = 'topn', top_value, CAST(NULL AS Nullable(Float64))) DESC, if(metric_kind = 'topn', top_key, CAST(NULL AS Nullable(String))) ASC",
+		"WITH toDateTime('%s', '%s') AS current_start, toDateTime('%s', '%s') AS current_end, toDateTime('%s', '%s') AS previous_start, toDateTime('%s', '%s') AS previous_end SELECT block_key, block_label, metric_name, metric_kind, current_value, previous_value, if(metric_kind = 'aggregate' AND previous_value != 0, (current_value - previous_value) / previous_value, NULL) AS ratio_vs_yesterday, top_key, top_value FROM (%s) ORDER BY block_order, metric_order, if(metric_kind = 'topn', 0, item_order), if(metric_kind = 'topn', top_value, CAST(NULL AS Nullable(Float64))) DESC, if(metric_kind = 'topn', top_key, CAST(NULL AS Nullable(String))) ASC",
 		currentStart.Format("2006-01-02 15:04:05"),
+		reportTimeZoneName,
 		currentEnd.Format("2006-01-02 15:04:05"),
+		reportTimeZoneName,
 		previousStart.Format("2006-01-02 15:04:05"),
+		reportTimeZoneName,
 		previousEnd.Format("2006-01-02 15:04:05"),
+		reportTimeZoneName,
 		strings.Join(parts, " UNION ALL "),
 	), nil
 }

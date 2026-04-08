@@ -82,6 +82,7 @@ func TestBuildReportAccelerationPlan(t *testing.T) {
 	assert.Equal(t, now, plan.BackfillEnd)
 	assert.Contains(t, plan.CreateTableSQL, "CREATE TABLE IF NOT EXISTS `pro_log`.`cv_report_agg_3`")
 	assert.Contains(t, plan.CreateTableSQL, "ENGINE = AggregatingMergeTree")
+	assert.Contains(t, plan.CreateTableSQL, "bucket_time DateTime('Asia/Shanghai')")
 	assert.Contains(t, plan.CreateTableSQL, "group_kind UInt8")
 	assert.Contains(t, plan.CreateTableSQL, "group_value String")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "CREATE MATERIALIZED VIEW IF NOT EXISTS `pro_log`.`cv_report_mv_3_1`")
@@ -91,7 +92,7 @@ func TestBuildReportAccelerationPlan(t *testing.T) {
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "toUInt8(1) AS group_kind")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "ifNull(toString(`container.name`), '') AS group_value")
 	assert.Contains(t, plan.BackfillSQL, "INSERT INTO `pro_log`.`cv_report_agg_3`")
-	assert.Contains(t, plan.BackfillSQL, "toDateTime('2026-04-06 14:00:00')")
+	assert.Contains(t, plan.BackfillSQL, "toDateTime('2026-04-06 14:00:00', 'Asia/Shanghai')")
 	assert.NotEmpty(t, plan.BuilderFingerprint)
 }
 
@@ -142,6 +143,7 @@ func TestBuildAcceleratedReportQuery(t *testing.T) {
 	}, time.Date(2026, 4, 7, 16, 0, 0, 0, time.Local))
 	require.NoError(t, err)
 	assert.Contains(t, query, "FROM `dev_log`.`cv_report_agg_8`")
+	assert.Contains(t, query, "toDateTime('2026-04-07 15:00:00', 'Asia/Shanghai')")
 	assert.Contains(t, query, "uniqMerge(uniq_state)")
 	assert.Contains(t, query, "sum(count_value)")
 	assert.Contains(t, query, "group_kind = 1")
