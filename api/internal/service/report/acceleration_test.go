@@ -52,7 +52,7 @@ func TestBuildReportAccelerationPlan(t *testing.T) {
 				},
 			},
 		},
-	}, now)
+	}, reportAccelerationTopology{}, now)
 	require.NoError(t, err)
 	assert.Equal(t, 3, plan.ReportID)
 	assert.Equal(t, 7, plan.InstanceID)
@@ -77,6 +77,39 @@ func TestBuildReportAccelerationPlan(t *testing.T) {
 	assert.Contains(t, plan.BackfillSQL, "INSERT INTO `pro_log`.`cv_report_agg_3`")
 	assert.Contains(t, plan.BackfillSQL, "toDateTime('2026-04-06 14:00:00')")
 	assert.NotEmpty(t, plan.BuilderFingerprint)
+}
+
+func TestBuildReportAccelerationPlanForCluster(t *testing.T) {
+	now := time.Date(2026, 4, 8, 10, 0, 0, 0, time.Local)
+	plan, err := buildReportAccelerationPlan(9, view.ReqReportBuilder{
+		InstanceID:  7,
+		Database:    "dev_log",
+		Table:       "app_stdout",
+		TimeField:   "_time_second_",
+		TimeRange:   "1h",
+		Blocks: []view.ReqReportBlock{
+			{
+				Key:   "default",
+				Label: "默认条件块",
+				Where: "lv='error'",
+				Metrics: []view.ReqReportMetric{
+					{Key: "count", Label: "总量"},
+				},
+			},
+		},
+	}, reportAccelerationTopology{
+		UseCluster:       true,
+		ClusterName:      "test_cluster",
+		SourceLocalTable: "app_stdout_local",
+	}, now)
+	require.NoError(t, err)
+	assert.Equal(t, "cv_report_agg_9", plan.TargetTable)
+	assert.Equal(t, "cv_report_agg_9_local", plan.TargetLocalTable)
+	assert.Equal(t, "app_stdout_local", plan.SourceLocalTable)
+	assert.Contains(t, plan.CreateTableSQL, "CREATE TABLE IF NOT EXISTS `dev_log`.`cv_report_agg_9_local` ON CLUSTER 'test_cluster'")
+	assert.Contains(t, plan.CreateTableSQL, "CREATE TABLE IF NOT EXISTS `dev_log`.`cv_report_agg_9` ON CLUSTER 'test_cluster' AS `dev_log`.`cv_report_agg_9_local` ENGINE = Distributed('test_cluster', 'dev_log', 'cv_report_agg_9_local', rand())")
+	assert.Contains(t, plan.CreateMaterializedViewSQL, "CREATE MATERIALIZED VIEW IF NOT EXISTS `dev_log`.`cv_report_mv_9_1` ON CLUSTER 'test_cluster' TO `dev_log`.`cv_report_agg_9_local`")
+	assert.Contains(t, plan.BackfillSQL, "INSERT INTO `dev_log`.`cv_report_agg_9`")
 }
 
 func TestBuildAcceleratedReportQuery(t *testing.T) {
