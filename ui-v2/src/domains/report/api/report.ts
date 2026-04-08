@@ -177,22 +177,42 @@ export async function listReportItems(): Promise<ReportListItem[]> {
 function previewQueryText(payload: ReportCreatePayload) {
   const builder = normalizeReportBuilder(payload.builder)!;
   const { database, table, timeField, timeRange, blocks } = builder;
-  const duration = timeRange === "1d" ? "1 DAY" : "1 HOUR";
   const metrics = blocks.flatMap((block) => block.metrics.map((metric) => `${block.label}:${metric.label}`));
   const whereClause = blocks
     .map((block) => block.where.trim())
     .filter(Boolean)
     .map((item) => `(${item})`)
     .join(" OR ");
+  if (timeRange === "1d") {
+    return [
+      "WITH toStartOfDay(now()) AS current_end,",
+      "current_end - INTERVAL 1 DAY AS current_start,",
+      "current_start - INTERVAL 1 DAY AS previous_start,",
+      "current_start AS previous_end",
+      `SELECT * FROM \`${database}\`.\`${table}\``,
+      `WHERE ${timeField} >= current_start AND ${timeField} < current_end${whereClause ? ` AND (${whereClause})` : ""}`,
+      `-- metrics: ${metrics.join(", ")}`
+    ].join(" ");
+  }
   return [
     "WITH now() AS current_end,",
-    `current_end - INTERVAL ${duration} AS current_start,`,
+    "current_end - INTERVAL 1 HOUR AS current_start,",
     "current_end - INTERVAL 1 DAY AS previous_end,",
-    `previous_end - INTERVAL ${duration} AS previous_start`,
+    "previous_end - INTERVAL 1 HOUR AS previous_start",
     `SELECT * FROM \`${database}\`.\`${table}\``,
     `WHERE ${timeField} >= current_start AND ${timeField} < current_end${whereClause ? ` AND (${whereClause})` : ""}`,
     `-- metrics: ${metrics.join(", ")}`
   ].join(" ");
+}
+
+function reportTimeRangeLabel(timeRange: ReportCreatePayload["builder"]["timeRange"]) {
+  if (timeRange === "1d") {
+    return "昨天";
+  }
+  if (timeRange === "1h") {
+    return "最近1h";
+  }
+  return `最近${timeRange}`;
 }
 
 export async function listReportSourceInstances(): Promise<ReportSourceInstance[]> {
@@ -287,7 +307,7 @@ export async function createReport(
         name: payload.name,
         desc:
           payload.desc ||
-          `${payload.builder.database}.${payload.builder.table} 最近${payload.builder.timeRange}，昨天同期环比`,
+          `${payload.builder.database}.${payload.builder.table} ${reportTimeRangeLabel(payload.builder.timeRange)}，昨天同期环比`,
         status: "enabled" as const,
         queryMode: "sql" as const,
         queryText: previewQueryText(payload),

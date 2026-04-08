@@ -92,7 +92,7 @@ func normalizeReportDefinition(req view.ReqReportDefinition, now time.Time) (vie
 		req.OutputFormat = "markdown"
 	}
 	if strings.TrimSpace(req.Desc) == "" {
-		req.Desc = fmt.Sprintf("%s.%s 最近%s，昨天同期环比", req.Builder.Database, req.Builder.Table, req.Builder.TimeRange)
+		req.Desc = fmt.Sprintf("%s.%s %s，昨天同期环比", req.Builder.Database, req.Builder.Table, reportTimeRangeLabel(req.Builder.TimeRange))
 	}
 	return req, nil
 }
@@ -221,15 +221,10 @@ func buildReportQuery(req view.ReqReportBuilder, now time.Time) (string, error) 
 	if len(req.Blocks) == 0 {
 		return "", fmt.Errorf("metrics 不能为空")
 	}
-	duration, err := reportDuration(req.TimeRange)
+	currentStart, currentEnd, previousStart, previousEnd, err := reportComparisonWindow(req.TimeRange, now)
 	if err != nil {
 		return "", err
 	}
-
-	currentEnd := now
-	currentStart := now.Add(-duration)
-	previousEnd := now.Add(-24 * time.Hour)
-	previousStart := previousEnd.Add(-duration)
 
 	parts := make([]string, 0)
 	for blockIndex, block := range req.Blocks {
@@ -367,6 +362,39 @@ func reportDuration(value string) (time.Duration, error) {
 		return 24 * time.Hour, nil
 	default:
 		return 0, fmt.Errorf("unsupported timeRange: %s", value)
+	}
+}
+
+func reportComparisonWindow(timeRange string, now time.Time) (currentStart, currentEnd, previousStart, previousEnd time.Time, err error) {
+	switch strings.TrimSpace(timeRange) {
+	case "1d":
+		location := now.Location()
+		currentEnd = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+		currentStart = currentEnd.Add(-24 * time.Hour)
+		previousEnd = currentStart
+		previousStart = previousEnd.Add(-24 * time.Hour)
+		return currentStart, currentEnd, previousStart, previousEnd, nil
+	default:
+		duration, durationErr := reportDuration(timeRange)
+		if durationErr != nil {
+			return time.Time{}, time.Time{}, time.Time{}, time.Time{}, durationErr
+		}
+		currentEnd = now
+		currentStart = now.Add(-duration)
+		previousEnd = now.Add(-24 * time.Hour)
+		previousStart = previousEnd.Add(-duration)
+		return currentStart, currentEnd, previousStart, previousEnd, nil
+	}
+}
+
+func reportTimeRangeLabel(value string) string {
+	switch strings.TrimSpace(value) {
+	case "1d":
+		return "昨天"
+	case "1h":
+		return "最近1h"
+	default:
+		return fmt.Sprintf("最近%s", strings.TrimSpace(value))
 	}
 }
 

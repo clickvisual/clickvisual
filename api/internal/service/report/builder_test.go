@@ -54,8 +54,9 @@ func TestBuildReportQuery(t *testing.T) {
 				},
 			},
 			wantSQL: []string{
-				"toDateTime('2026-03-30 18:00:00') AS current_start",
-				"toDateTime('2026-03-29 18:00:00') AS previous_start",
+				"toDateTime('2026-03-30 00:00:00') AS current_start",
+				"toDateTime('2026-03-29 00:00:00') AS previous_start",
+				"toDateTime('2026-03-31 00:00:00') AS current_end",
 				"toFloat64(count(*)) AS metric_value",
 			},
 		},
@@ -93,6 +94,16 @@ func TestBuildReportQuery(t *testing.T) {
 
 func TestQuoteTableWithoutDatabase(t *testing.T) {
 	assert.Equal(t, "`cv_report_agg_8`", quoteTable("", "cv_report_agg_8"))
+}
+
+func TestReportComparisonWindowForOneDayUsesCalendarDay(t *testing.T) {
+	now := time.Date(2026, 4, 8, 16, 30, 0, 0, time.FixedZone("CST", 8*3600))
+	currentStart, currentEnd, previousStart, previousEnd, err := reportComparisonWindow("1d", now)
+	require.NoError(t, err)
+	assert.Equal(t, time.Date(2026, 4, 7, 0, 0, 0, 0, now.Location()), currentStart)
+	assert.Equal(t, time.Date(2026, 4, 8, 0, 0, 0, 0, now.Location()), currentEnd)
+	assert.Equal(t, time.Date(2026, 4, 6, 0, 0, 0, 0, now.Location()), previousStart)
+	assert.Equal(t, time.Date(2026, 4, 7, 0, 0, 0, 0, now.Location()), previousEnd)
 }
 
 func TestBuildReportQueryOptimizesCustomAggregateWithSingleScan(t *testing.T) {

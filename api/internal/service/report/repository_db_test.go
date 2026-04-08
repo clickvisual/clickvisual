@@ -179,10 +179,11 @@ func TestPlaceholderStages(t *testing.T) {
 	assert.Contains(t, content, "### 📊 核心概览")
 	assert.Contains(t, content, "支付业务核心指标日报")
 	assert.Contains(t, content, "logger.orders")
-	assert.Contains(t, content, "最近1d")
+	assert.Contains(t, content, "昨天")
 	assert.Contains(t, content, "logger.orders")
 	assert.Contains(t, content, "全部数据")
 	assert.Contains(t, content, "### ⏱️ 执行信息")
+	assert.Contains(t, content, "统计窗口：1969-12-31 00:00:00 ~ 1970-01-01 00:00:00")
 	assert.Contains(t, content, "### 📋 查询结果")
 	assert.Contains(t, content, "- app：api")
 	assert.Contains(t, content, "- count：3")
@@ -345,7 +346,7 @@ func TestBuildPreviewPushContentUsesDescAndWholeDataLabel(t *testing.T) {
 	assert.Contains(t, content, "说明：支付业务昨天核心指标统计")
 	assert.Contains(t, content, "logger.orders")
 	assert.Contains(t, content, "全部数据")
-	assert.Contains(t, content, "最近1d")
+	assert.Contains(t, content, "昨天")
 	assert.NotContains(t, content, "1=1")
 }
 
