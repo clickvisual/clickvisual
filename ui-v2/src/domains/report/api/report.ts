@@ -97,7 +97,13 @@ function normalizeWorkspace(workspace: ReportWorkspaceApiPayload): ReportWorkspa
       ...workspace.editor,
       builder: normalizeReportBuilder(workspace.editor.builder)
     },
-    schedule: normalizeScheduleConfig(workspace.schedule)
+    schedule: normalizeScheduleConfig(workspace.schedule),
+    acceleration: workspace.acceleration ?? {
+      status: "missing",
+      targetTable: "",
+      mvName: "",
+      errorMessage: ""
+    }
   };
 }
 

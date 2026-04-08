@@ -42,6 +42,7 @@ var models = []interface{}{
 	db.Report{},
 	db.ReportSchedule{},
 	db.ReportExecution{},
+	db.ReportAcceleration{},
 
 	db.User{},
 	db.Event{},

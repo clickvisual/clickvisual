@@ -98,6 +98,13 @@ func (s *Service) upsertReportFromDB(req view.ReqReportDefinition) (view.RespRep
 		if err = invoker.Db.Model(&dbmodel.Report{}).Where("id = ?", req.ReportID).Updates(updates).Error; err != nil {
 			return view.RespReportDefinition{}, err
 		}
+		report, err := s.getReportByIDFromDB(req.ReportID)
+		if err != nil {
+			return view.RespReportDefinition{}, err
+		}
+		if err = s.ensureReportAccelerationForReport(report); err != nil {
+			return view.RespReportDefinition{}, err
+		}
 		s.mu.RLock()
 		shouldReload := s.scheduler != nil
 		s.mu.RUnlock()
@@ -105,10 +112,6 @@ func (s *Service) upsertReportFromDB(req view.ReqReportDefinition) (view.RespRep
 			if err = s.scheduler.Reload(req.ReportID); err != nil {
 				return view.RespReportDefinition{}, err
 			}
-		}
-		report, err := s.getReportByIDFromDB(req.ReportID)
-		if err != nil {
-			return view.RespReportDefinition{}, err
 		}
 		return toRespReportDefinition(report), nil
 	}
@@ -126,6 +129,9 @@ func (s *Service) upsertReportFromDB(req view.ReqReportDefinition) (view.RespRep
 		CreatorUID:    req.CreatorUID,
 	}
 	if err := invoker.Db.Model(&dbmodel.Report{}).Create(&report).Error; err != nil {
+		return view.RespReportDefinition{}, err
+	}
+	if err := s.ensureReportAccelerationForReport(report); err != nil {
 		return view.RespReportDefinition{}, err
 	}
 	return toRespReportDefinition(report), nil
@@ -149,12 +155,19 @@ func (s *Service) deleteReportFromDB(reportID int) (view.RespReportDeleteResult,
 	if _, err := s.getReportByIDFromDB(reportID); err != nil {
 		return view.RespReportDeleteResult{}, err
 	}
+	acceleration, hasAcceleration, err := s.getReportAccelerationByReportIDFromDB(reportID)
+	if err != nil {
+		return view.RespReportDeleteResult{}, err
+	}
 
-	err := invoker.Db.Transaction(func(tx *gorm.DB) error {
+	err = invoker.Db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("report_id = ?", reportID).Delete(&dbmodel.ReportSchedule{}).Error; err != nil {
 			return err
 		}
 		if err := tx.Where("report_id = ?", reportID).Delete(&dbmodel.ReportExecution{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("report_id = ?", reportID).Delete(&dbmodel.ReportAcceleration{}).Error; err != nil {
 			return err
 		}
 		result := tx.Where("id = ?", reportID).Delete(&dbmodel.Report{})
@@ -175,6 +188,9 @@ func (s *Service) deleteReportFromDB(reportID int) (view.RespReportDeleteResult,
 	s.mu.RUnlock()
 	if shouldUnload {
 		s.scheduler.Remove(reportID)
+	}
+	if hasAcceleration {
+		s.cleanupReportAcceleration(acceleration)
 	}
 
 	return view.RespReportDeleteResult{ReportID: reportID}, nil
@@ -287,6 +303,10 @@ func (s *Service) getWorkspaceFromDB(reportID int) (view.RespReportWorkspace, er
 	if err != nil {
 		return view.RespReportWorkspace{}, err
 	}
+	acceleration, foundAcceleration, err := s.getReportAccelerationByReportIDFromDB(activeID)
+	if err != nil {
+		return view.RespReportWorkspace{}, err
+	}
 	preview, err := s.getPreviewFromDB(activeID)
 	if err != nil {
 		return view.RespReportWorkspace{}, err
@@ -307,6 +327,7 @@ func (s *Service) getWorkspaceFromDB(reportID int) (view.RespReportWorkspace, er
 		Delivery:       delivery,
 		Channels:       channels,
 		Runtime:        runtime,
+		Acceleration:   toRespReportAcceleration(acceleration, foundAcceleration),
 	}, nil
 }
 
@@ -321,6 +342,7 @@ func buildEmptyWorkspace(channels []view.RespReportChannel) view.RespReportWorks
 		Delivery:       view.RespReportSendSummary{Channels: []view.RespReportChannelSendSummary{}},
 		Channels:       channels,
 		Runtime:        view.RespReportScheduleRuntime{},
+		Acceleration:   view.RespReportAcceleration{},
 	}
 }
 
@@ -398,11 +420,16 @@ func (s *Service) getPreviewFromDB(reportID int) (view.RespReportExecutionPrevie
 	if err != nil {
 		return view.RespReportExecutionPreview{}, err
 	}
+	acceleration, hasAcceleration, err := s.getReportAccelerationByReportIDFromDB(activeID)
+	if err != nil {
+		return view.RespReportExecutionPreview{}, err
+	}
 
 	canRun := hasSchedule &&
 		report.Status == dbmodel.ReportStatusEnabled &&
 		schedule.Status == dbmodel.ReportScheduleStatusEnabled &&
-		len(schedule.ChannelIDs) > 0
+		len(schedule.ChannelIDs) > 0 &&
+		(!isAccelerationManagedReport(report) || acceleration.Status == dbmodel.ReportAccelerationStatusReady)
 
 	nextRunAt := formatUnix(schedule.NextRunAt)
 	if nextRunAt == "" {
@@ -427,7 +454,7 @@ func (s *Service) getPreviewFromDB(reportID int) (view.RespReportExecutionPrevie
 	if err != nil {
 		return view.RespReportExecutionPreview{}, err
 	}
-	preview.Message = previewMessage(report, hasSchedule, schedule, latest)
+	preview.Message = previewMessage(report, hasSchedule, schedule, latest, acceleration, hasAcceleration)
 	return preview, nil
 }
 
@@ -558,17 +585,11 @@ func (s *Service) runDBExecutionPipeline(report dbmodel.Report, hasSchedule bool
 		return result
 	}
 
-	queryText := report.QueryText
-	if strings.TrimSpace(report.TemplateKey) == "report-builder-default" {
-		if builder := resolveReportBuilder(report); builder != nil {
-			rebuiltQuery, rebuildErr := buildReportQuery(*builder, startedAt)
-			if rebuildErr != nil {
-				result.errorSummary = stageFailureSummary(executionStageQuery, rebuildErr)
-				result.renderedContent = buildStageFailureContent(executionStageQuery, result.errorSummary, startedAt)
-				return result
-			}
-			queryText = rebuiltQuery
-		}
+	queryText, err := s.resolveExecutionQueryText(report, startedAt)
+	if err != nil {
+		result.errorSummary = stageFailureSummary(executionStageQuery, err)
+		result.renderedContent = buildStageFailureContent(executionStageQuery, result.errorSummary, startedAt)
+		return result
 	}
 
 	queryRows, err := s.runQueryStage(queryText)
@@ -700,6 +721,27 @@ func validateExecutionConfig(report dbmodel.Report, hasSchedule bool, schedule d
 		return fmt.Errorf("queryText 不能为空")
 	}
 	return nil
+}
+
+func isAccelerationManagedReport(report dbmodel.Report) bool {
+	return strings.TrimSpace(report.TemplateKey) == "report-builder-default" && resolveReportBuilder(report) != nil
+}
+
+func (s *Service) resolveExecutionQueryText(report dbmodel.Report, startedAt time.Time) (string, error) {
+	if !isAccelerationManagedReport(report) {
+		return report.QueryText, nil
+	}
+	acceleration, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
+	if err != nil {
+		return "", err
+	}
+	if !found {
+		return "", fmt.Errorf("报表加速未创建")
+	}
+	if acceleration.Status != dbmodel.ReportAccelerationStatusReady {
+		return "", fmt.Errorf("报表加速未就绪，当前状态：%s", acceleration.Status)
+	}
+	return buildAcceleratedReportQuery(report, acceleration, startedAt)
 }
 
 func (s *Service) runQueryStage(queryText string) ([]map[string]interface{}, error) {
@@ -1253,6 +1295,18 @@ func toRespReportDefinition(report dbmodel.Report) view.RespReportDefinition {
 	}
 }
 
+func toRespReportAcceleration(acceleration dbmodel.ReportAcceleration, found bool) view.RespReportAcceleration {
+	if !found {
+		return view.RespReportAcceleration{Status: "missing"}
+	}
+	return view.RespReportAcceleration{
+		Status:       acceleration.Status,
+		TargetTable:  acceleration.TargetTable,
+		MVName:       acceleration.MVName,
+		ErrorMessage: acceleration.ErrorMessage,
+	}
+}
+
 func toRespReportEditor(report dbmodel.Report, schedule dbmodel.ReportSchedule) view.RespReportEditorDraft {
 	return view.RespReportEditorDraft{
 		ReportID:            report.ID,
@@ -1384,7 +1438,7 @@ func parseChannelResults(raw string) []view.RespReportChannelSendSummary {
 	return nil
 }
 
-func previewMessage(report dbmodel.Report, hasSchedule bool, schedule dbmodel.ReportSchedule, latest []dbmodel.ReportExecution) string {
+func previewMessage(report dbmodel.Report, hasSchedule bool, schedule dbmodel.ReportSchedule, latest []dbmodel.ReportExecution, acceleration dbmodel.ReportAcceleration, hasAcceleration bool) string {
 	if !hasSchedule {
 		return "当前报表未配置调度。"
 	}
@@ -1393,6 +1447,11 @@ func previewMessage(report dbmodel.Report, hasSchedule bool, schedule dbmodel.Re
 	}
 	if len(schedule.ChannelIDs) == 0 {
 		return "当前报表未配置推送渠道。"
+	}
+	if isAccelerationManagedReport(report) {
+		if message := accelerationPreviewMessage(acceleration, hasAcceleration); message != "" {
+			return message
+		}
 	}
 	if len(latest) == 0 {
 		return "最近暂无执行记录，可手动预览。"

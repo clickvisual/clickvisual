@@ -3,13 +3,15 @@ interface ReportPushStatusCardProps {
   status: "idle" | "pending" | "success" | "error";
   message?: string;
   idleMessage?: string;
+  hideErrorState?: boolean;
 }
 
 export default function ReportPushStatusCard({
   actionLabel,
   status,
   message,
-  idleMessage
+  idleMessage,
+  hideErrorState
 }: ReportPushStatusCardProps) {
   if (status === "pending") {
     return <div className="cv-status-card" role="status">{actionLabel}进行中...</div>;
@@ -20,6 +22,9 @@ export default function ReportPushStatusCard({
   }
 
   if (status === "error") {
+    if (hideErrorState) {
+      return null;
+    }
     return <div className="cv-status-card" role="alert">{actionLabel}失败：{message ?? "请稍后重试"}</div>;
   }
 

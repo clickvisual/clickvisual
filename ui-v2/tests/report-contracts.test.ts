@@ -175,6 +175,12 @@ describe("report contracts and mock reader", () => {
     const workspace = await getReportWorkspace(4);
     expect(workspace.schedule.reportId).toBe(4);
     expect(workspace.schedule.channelIds).toEqual([]);
+    expect(workspace.acceleration).toEqual({
+      status: "missing",
+      targetTable: "",
+      mvName: "",
+      errorMessage: ""
+    });
   });
 
   it("normalizes legacy builder into a default block and saves blocks payload", async () => {

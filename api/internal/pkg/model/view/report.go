@@ -169,6 +169,13 @@ type RespReportSendSummary struct {
 	Channels []RespReportChannelSendSummary `json:"channels"`
 }
 
+type RespReportAcceleration struct {
+	Status       string `json:"status"`
+	TargetTable  string `json:"targetTable"`
+	MVName       string `json:"mvName"`
+	ErrorMessage string `json:"errorMessage"`
+}
+
 type RespReportWorkspace struct {
 	ActiveReportID int                         `json:"activeReportId"`
 	List           []RespReportListItem        `json:"list"`
@@ -179,6 +186,7 @@ type RespReportWorkspace struct {
 	Delivery       RespReportSendSummary       `json:"delivery"`
 	Channels       []RespReportChannel         `json:"channels"`
 	Runtime        RespReportScheduleRuntime   `json:"runtime"`
+	Acceleration   RespReportAcceleration      `json:"acceleration"`
 }
 
 type RespReportPreviewRunResult struct {

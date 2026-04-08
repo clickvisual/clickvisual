@@ -14,7 +14,9 @@ import {
 import ReportCreateForm from "../components/ReportCreateForm";
 import ReportPushStatusCard from "../components/ReportPushStatusCard";
 import ReportScheduleForm from "../components/ReportScheduleForm";
+import { formatSqlForDisplay } from "../utils/formatSql";
 import type {
+  ReportAccelerationStatus,
   ReportCreatePayload,
   ReportEditorDraft,
   ReportExecutionPreview,
@@ -90,6 +92,28 @@ function getExecutionTriggerLabel(trigger: ReportExecutionRecord["trigger"]) {
   return trigger === "schedule" ? "定时执行" : "手动执行";
 }
 
+function getAccelerationStatusLabel(acceleration?: ReportAccelerationStatus | null) {
+  switch (acceleration?.status) {
+    case "ready":
+      return "已切换到聚合表";
+    case "error":
+      return "聚合构建失败";
+    case "provisioning":
+    case "backfilling":
+    case "rebuilding":
+      return "聚合构建中";
+    case "missing":
+      return "尚未生成";
+    default:
+      return acceleration?.status || "未记录";
+  }
+}
+
+type FeedbackDialogState = {
+  title: string;
+  message: string;
+};
+
 export default function ReportSchedulePage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -109,6 +133,7 @@ export default function ReportSchedulePage() {
     delivery: ReportSendResultSummary;
     channels: ReportPushChannel[];
     runtime: ReportScheduleRuntime;
+    acceleration: ReportAccelerationStatus;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -144,6 +169,7 @@ export default function ReportSchedulePage() {
   const [confirmDeleteReportId, setConfirmDeleteReportId] = useState<number | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<number | null>(routeReportId);
   const [selectedExecution, setSelectedExecution] = useState<ReportExecutionRecord | null>(null);
+  const [feedbackDialog, setFeedbackDialog] = useState<FeedbackDialogState | null>(null);
 
   async function loadWorkspace(
     reportId?: number,
@@ -231,6 +257,7 @@ export default function ReportSchedulePage() {
   const executions = workspace?.executions ?? [];
   const summary = workspace?.delivery ?? null;
   const runtime = workspace?.runtime ?? null;
+  const acceleration = workspace?.acceleration ?? null;
   const activeReportName =
     editor?.name ??
     reportList.find((item) => item.id === activeReportId)?.name ??
@@ -238,6 +265,9 @@ export default function ReportSchedulePage() {
   const activeReportDisplay = activeReportId
     ? `${activeReportName} #${activeReportId}`
     : activeReportName;
+  const formattedQueryText = editor?.queryText
+    ? formatSqlForDisplay(editor.queryText)
+    : "";
   const selectedChannels =
     schedule && workspace
       ? workspace.channels.filter((channel) =>
@@ -266,6 +296,7 @@ export default function ReportSchedulePage() {
   async function handleSaveSchedule(nextSchedule: ReportScheduleConfig) {
     setSaveStatus("pending");
     setSaveMessage(null);
+    setFeedbackDialog(null);
 
     try {
       const savedSchedule = await saveReportSchedule(nextSchedule);
@@ -294,10 +325,14 @@ export default function ReportSchedulePage() {
       setSaveStatus("success");
       setSaveMessage("保存成功");
     } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "报表调度保存失败";
       setSaveStatus("error");
-      setSaveMessage(
-        error instanceof Error ? error.message : "报表调度保存失败"
-      );
+      setSaveMessage(message);
+      setFeedbackDialog({
+        title: "保存报表调度失败",
+        message
+      });
     }
   }
 
@@ -426,6 +461,7 @@ export default function ReportSchedulePage() {
   async function handleCreateReport(payload: ReportCreatePayload) {
     setCreateStatus("pending");
     setCreateMessage(null);
+    setFeedbackDialog(null);
 
     try {
       const created = await createReport(payload);
@@ -435,10 +471,14 @@ export default function ReportSchedulePage() {
       setCreateStatus("success");
       setCreateMessage("报表已创建");
     } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "创建报表失败";
       setCreateStatus("error");
-      setCreateMessage(
-        error instanceof Error ? error.message : "创建报表失败"
-      );
+      setCreateMessage(message);
+      setFeedbackDialog({
+        title: "创建报表失败",
+        message
+      });
     }
   }
 
@@ -449,11 +489,16 @@ export default function ReportSchedulePage() {
     if (!editor.builder) {
       setEditStatus("error");
       setEditMessage("当前报表缺少可编辑的 builder 配置，请重新创建。");
+      setFeedbackDialog({
+        title: "编辑报表失败",
+        message: "当前报表缺少可编辑的 builder 配置，请重新创建。"
+      });
       return;
     }
 
     setEditStatus("idle");
     setEditMessage(null);
+    setFeedbackDialog(null);
     setCreateOpen(false);
     setLoadingSourceDatabases(true);
     setLoadingSourceTables(true);
@@ -479,10 +524,14 @@ export default function ReportSchedulePage() {
       setSourceColumns(columns);
       setEditOpen(true);
     } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "加载报表编辑上下文失败";
       setEditStatus("error");
-      setEditMessage(
-        error instanceof Error ? error.message : "加载报表编辑上下文失败"
-      );
+      setEditMessage(message);
+      setFeedbackDialog({
+        title: "编辑报表失败",
+        message
+      });
     } finally {
       setLoadingSourceDatabases(false);
       setLoadingSourceTables(false);
@@ -493,6 +542,7 @@ export default function ReportSchedulePage() {
   async function handleEditReport(payload: ReportCreatePayload) {
     setEditStatus("pending");
     setEditMessage(null);
+    setFeedbackDialog(null);
 
     try {
       const updated = await createReport(payload);
@@ -502,10 +552,14 @@ export default function ReportSchedulePage() {
       setEditStatus("success");
       setEditMessage("报表已更新");
     } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "更新报表失败";
       setEditStatus("error");
-      setEditMessage(
-        error instanceof Error ? error.message : "更新报表失败"
-      );
+      setEditMessage(message);
+      setFeedbackDialog({
+        title: "编辑报表失败",
+        message
+      });
     }
   }
 
@@ -599,24 +653,20 @@ export default function ReportSchedulePage() {
           {errorMessage}
         </div>
       ) : null}
-      {createMessage ? (
+      {createMessage && createStatus !== "error" ? (
         <div
           className="cv-status-card"
-          role={createStatus === "error" ? "alert" : "status"}
+          role="status"
         >
-          {createStatus === "error"
-            ? `创建报表失败：${createMessage}`
-            : createMessage}
+          {createMessage}
         </div>
       ) : null}
-      {editMessage ? (
+      {editMessage && editStatus !== "error" ? (
         <div
           className="cv-status-card"
-          role={editStatus === "error" ? "alert" : "status"}
+          role="status"
         >
-          {editStatus === "error"
-            ? `编辑报表失败：${editMessage}`
-            : editMessage}
+          {editMessage}
         </div>
       ) : null}
       {deleteMessage ? (
@@ -817,12 +867,41 @@ export default function ReportSchedulePage() {
                   </div>
                   <div className="cv-form-row">
                     <span className="cv-label">查询语句</span>
-                    <pre className="cv-code cv-report-code">{editor.queryText}</pre>
+                    <pre className="cv-code cv-report-code">
+                      {formattedQueryText || editor.queryText}
+                    </pre>
                   </div>
                   <div className="cv-form-row">
                     <span className="cv-label">配置说明</span>
                     <div className="cv-input">{editor.desc}</div>
                   </div>
+                  {acceleration ? (
+                    <div className="cv-form-row">
+                      <span className="cv-label">聚合状态</span>
+                      <div className="cv-kv">
+                        <div className="cv-kv-row">
+                          <span className="cv-kv-key">状态</span>
+                          <span className="cv-kv-value">
+                            {getAccelerationStatusLabel(acceleration)}
+                          </span>
+                        </div>
+                        <div className="cv-kv-row">
+                          <span className="cv-kv-key">目标表</span>
+                          <span className="cv-kv-value">{acceleration.targetTable || "未生成"}</span>
+                        </div>
+                        <div className="cv-kv-row">
+                          <span className="cv-kv-key">物化视图</span>
+                          <span className="cv-kv-value">{acceleration.mvName || "未生成"}</span>
+                        </div>
+                        {acceleration.errorMessage ? (
+                          <div className="cv-kv-row">
+                            <span className="cv-kv-key">错误信息</span>
+                            <span className="cv-kv-value">{acceleration.errorMessage}</span>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </section>
@@ -891,7 +970,8 @@ export default function ReportSchedulePage() {
                     actionLabel="保存调度"
                     status={saveStatus}
                     message={saveMessage ?? undefined}
-                  idleMessage="尚未保存调度"
+                    idleMessage="尚未保存调度"
+                    hideErrorState
                   />
                 </div>
               </section>
@@ -1125,6 +1205,43 @@ export default function ReportSchedulePage() {
                 )}
               </section>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {feedbackDialog ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setFeedbackDialog(null)}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-feedback-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="report-feedback-dialog-title" className="cv-panel-title">
+                  {feedbackDialog.title}
+                </h2>
+                <p className="cv-panel-description">请根据错误信息调整配置后重试。</p>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                onClick={() => setFeedbackDialog(null)}
+              >
+                关闭
+              </button>
+            </div>
+
+            <section className="cv-status-card cv-status-card--compact">
+              <strong>错误原因</strong>
+              <div className="cv-muted">{feedbackDialog.message}</div>
+            </section>
           </div>
         </div>
       ) : null}

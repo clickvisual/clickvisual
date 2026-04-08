@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { formatSqlForDisplay } from "../utils/formatSql";
 import type {
   ReportBlockInput,
   ReportBuilderInput,
@@ -148,6 +149,14 @@ function buildPreview(
       .flatMap((block) => block.metrics.map((metric) => `${block.label}:${metric.label}`))
       .join(", ")}`
   ].join("\n");
+}
+
+function isHighCostWhereCondition(where: string): boolean {
+  const normalized = where.trim().toLowerCase();
+  return (
+    normalized.includes("_raw_log_ like ") ||
+    normalized.includes("_raw_log_ not like ")
+  );
 }
 
 function isGroupableColumnType(columnType: string): boolean {
@@ -327,6 +336,7 @@ export default function ReportCreateForm({
   }, [safeColumns, timeField]);
 
   const preview = buildPreview(database, table, timeField, timeRange, blocks);
+  const formattedPreview = formatSqlForDisplay(preview);
   const noTables = Boolean(database) && !isLoadingTables && safeTables.length === 0;
   const noColumns = Boolean(table) && !isLoadingColumns && safeColumns.length === 0;
   const hasInvalidMetrics = blocks.some(
@@ -648,6 +658,18 @@ export default function ReportCreateForm({
                 />
               </label>
 
+              {isHighCostWhereCondition(block.where) ? (
+                <div className="cv-status-card cv-status-card--compact" role="note">
+                  <strong>高成本条件</strong>
+                  <span className="cv-muted">
+                    当前条件命中了 `_raw_log_ like/not like`。这种报表仍可保存，但会增加物化视图写入匹配成本。
+                  </span>
+                  <span className="cv-muted">
+                    如果能改成 `msg`、`lv`、`application` 等结构化字段，资源开销会更低。
+                  </span>
+                </div>
+              ) : null}
+
               <div className="cv-form-row">
                 <span className="cv-label">统计指标</span>
                 <div className="cv-section-stack cv-section-stack--tight">
@@ -911,7 +933,7 @@ export default function ReportCreateForm({
 
         <div className="cv-form-row">
           <span className="cv-label">SQL 预览</span>
-          <pre className="cv-code">{preview}</pre>
+          <pre className="cv-code cv-report-code">{formattedPreview || preview}</pre>
         </div>
 
         <button type="submit" className="cv-action-button" disabled={submitDisabled}>
