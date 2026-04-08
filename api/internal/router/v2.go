@@ -48,6 +48,7 @@ func v2(r *gin.RouterGroup) {
 		r.PATCH("/base/users/:user-id/password-reset", core.Handle(base.ResetUserPassword))
 		// other apis
 		r.GET("/base/instances", core.Handle(base.InstanceList))
+		r.POST("/base/system/schema-sync", core.Handle(base.SystemSchemaSync))
 		// todo: deprecated
 		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))
 		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))

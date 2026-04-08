@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gotomicro/ego/core/elog"
@@ -16,38 +18,37 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	dbmodel "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	view "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
-	clickhousesvc "github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	sourcesvc "github.com/clickvisual/clickvisual/api/internal/service/source"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type reportAccelerationPlan struct {
-	ReportID                  int
-	InstanceID                int
-	SourceDatabase            string
-	SourceTable               string
-	SourceLocalTable          string
-	SourceTimeField           string
-	TargetTable               string
-	TargetLocalTable          string
-	MVName                    string
-	MVNames                   []string
-	ClusterName               string
-	UseCluster                bool
-	FilterSQL                 string
-	BuilderFingerprint        string
-	BackfillStart             time.Time
-	BackfillEnd               time.Time
-	CreateTableSQL            string
-	CreateTableSQLs           []string
-	CreateMaterializedViewSQL string
+	ReportID                   int
+	InstanceID                 int
+	SourceDatabase             string
+	SourceTable                string
+	SourceLocalTable           string
+	SourceTimeField            string
+	TargetTable                string
+	TargetLocalTable           string
+	MVName                     string
+	MVNames                    []string
+	ClusterName                string
+	UseCluster                 bool
+	FilterSQL                  string
+	BuilderFingerprint         string
+	BackfillStart              time.Time
+	BackfillEnd                time.Time
+	CreateTableSQL             string
+	CreateTableSQLs            []string
+	CreateMaterializedViewSQL  string
 	CreateMaterializedViewSQLs []string
-	BackfillSQL               string
-	DropMaterializedViewSQL   string
-	DropTargetTableSQL        string
-	TimeBucketExpression      string
-	TTLDays                   int
+	BackfillSQL                string
+	DropMaterializedViewSQL    string
+	DropTargetTableSQL         string
+	TimeBucketExpression       string
+	TTLDays                    int
 }
 
 type aggregationMetricKind string
@@ -72,9 +73,12 @@ type parsedAggregationMetric struct {
 var reportAggregationMetricExprPattern = regexp.MustCompile(`^(count\(\*\)|sum\(([^)]+)\)|uniq\(([^)]+)\)|avg\(([^)]+)\))$`)
 var reportDistributedEnginePattern = regexp.MustCompile(`Distributed\(\s*'([^']+)'\s*,\s*'([^']+)'\s*,\s*'([^']+)'\s*,`)
 
+var reportAccelerationSchemaInit sync.Once
+var reportAccelerationSchemaErr error
+
 type reportAccelerationTopology struct {
-	UseCluster      bool
-	ClusterName     string
+	UseCluster       bool
+	ClusterName      string
 	SourceLocalTable string
 	TargetLocalTable string
 }
@@ -135,31 +139,31 @@ func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, to
 	}
 
 	return reportAccelerationPlan{
-		ReportID:                  reportID,
-		InstanceID:                builder.InstanceID,
-		SourceDatabase:            builder.Database,
-		SourceTable:               builder.Table,
-		SourceLocalTable:          topology.SourceLocalTable,
-		SourceTimeField:           builder.TimeField,
-		TargetTable:               targetTable,
-		TargetLocalTable:          targetLocalTable,
-		MVName:                    strings.Join(mvNames, ","),
-		MVNames:                   mvNames,
-		ClusterName:               topology.ClusterName,
-		UseCluster:                topology.UseCluster,
-		FilterSQL:                 filterSQL,
-		BuilderFingerprint:        fingerprint,
-		BackfillStart:             backfillStart,
-		BackfillEnd:               backfillEnd,
-		CreateTableSQL:            strings.Join(createTableSQLs, ";\n"),
-		CreateTableSQLs:           createTableSQLs,
-		CreateMaterializedViewSQL: strings.Join(mvSQLs, ";\n"),
+		ReportID:                   reportID,
+		InstanceID:                 builder.InstanceID,
+		SourceDatabase:             builder.Database,
+		SourceTable:                builder.Table,
+		SourceLocalTable:           topology.SourceLocalTable,
+		SourceTimeField:            builder.TimeField,
+		TargetTable:                targetTable,
+		TargetLocalTable:           targetLocalTable,
+		MVName:                     strings.Join(mvNames, ","),
+		MVNames:                    mvNames,
+		ClusterName:                topology.ClusterName,
+		UseCluster:                 topology.UseCluster,
+		FilterSQL:                  filterSQL,
+		BuilderFingerprint:         fingerprint,
+		BackfillStart:              backfillStart,
+		BackfillEnd:                backfillEnd,
+		CreateTableSQL:             strings.Join(createTableSQLs, ";\n"),
+		CreateTableSQLs:            createTableSQLs,
+		CreateMaterializedViewSQL:  strings.Join(mvSQLs, ";\n"),
 		CreateMaterializedViewSQLs: mvSQLs,
-		BackfillSQL:               fmt.Sprintf("INSERT INTO %s %s", targetRef, backfillSelectBody),
-		DropMaterializedViewSQL:   "",
-		DropTargetTableSQL:        fmt.Sprintf("DROP TABLE IF EXISTS %s", targetRef),
-		TimeBucketExpression:      timeBucketExpression,
-		TTLDays:                   ttlDays,
+		BackfillSQL:                fmt.Sprintf("INSERT INTO %s %s", targetRef, backfillSelectBody),
+		DropMaterializedViewSQL:    "",
+		DropTargetTableSQL:         fmt.Sprintf("DROP TABLE IF EXISTS %s", targetRef),
+		TimeBucketExpression:       timeBucketExpression,
+		TTLDays:                    ttlDays,
 	}, nil
 }
 
@@ -188,6 +192,7 @@ func buildAccelerationFilterSQL(builder view.ReqReportBuilder) (string, error) {
 func buildAccelerationFingerprint(builder view.ReqReportBuilder) (string, error) {
 	payload := struct {
 		InstanceID int                    `json:"instanceId"`
+		Cluster    string                 `json:"cluster"`
 		Database   string                 `json:"database"`
 		Table      string                 `json:"table"`
 		TimeField  string                 `json:"timeField"`
@@ -196,6 +201,7 @@ func buildAccelerationFingerprint(builder view.ReqReportBuilder) (string, error)
 		Metrics    []view.ReqReportMetric `json:"metrics"`
 	}{
 		InstanceID: builder.InstanceID,
+		Cluster:    strings.TrimSpace(builder.Cluster),
 		Database:   builder.Database,
 		Table:      builder.Table,
 		TimeField:  builder.TimeField,
@@ -484,12 +490,12 @@ func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, curre
 		for _, mvName := range splitAccelerationMVNames(current.MVName) {
 			dropViewSQL := s.buildClusterAwareDropSQL(current.SourceDatabase, mvName, current.ClusterName)
 			if err = operator.Exec(dropViewSQL); err != nil {
-				return err
+				return normalizeClusterDDLError(err, current.ClusterName)
 			}
 		}
 		for _, dropTableSQL := range s.buildAccelerationTargetDropSQLs(current) {
 			if err = operator.Exec(dropTableSQL); err != nil {
-				return err
+				return normalizeClusterDDLError(err, current.ClusterName)
 			}
 		}
 	}
@@ -499,7 +505,7 @@ func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, curre
 	sqlTexts = append(sqlTexts, plan.BackfillSQL)
 	for _, sqlText := range sqlTexts {
 		if err = operator.Exec(sqlText); err != nil {
-			return err
+			return normalizeClusterDDLError(err, plan.ClusterName)
 		}
 	}
 	return nil
@@ -547,6 +553,9 @@ func (s *Service) getReportClickHouseInstance(instanceID int) (dbmodel.BaseInsta
 }
 
 func (s *Service) getReportAccelerationByReportIDFromDB(reportID int) (dbmodel.ReportAcceleration, bool, error) {
+	if err := ensureReportAccelerationSchema(); err != nil {
+		return dbmodel.ReportAcceleration{}, false, err
+	}
 	var acceleration dbmodel.ReportAcceleration
 	err := invoker.Db.Model(&dbmodel.ReportAcceleration{}).Where("report_id = ?", reportID).First(&acceleration).Error
 	if err == nil {
@@ -559,6 +568,9 @@ func (s *Service) getReportAccelerationByReportIDFromDB(reportID int) (dbmodel.R
 }
 
 func (s *Service) upsertReportAccelerationPlan(reportID int, plan reportAccelerationPlan, status string, errorMessage string) error {
+	if err := ensureReportAccelerationSchema(); err != nil {
+		return err
+	}
 	record := dbmodel.ReportAcceleration{
 		ReportID:           reportID,
 		InstanceID:         plan.InstanceID,
@@ -616,6 +628,27 @@ func (s *Service) accelerationReady(reportID int) bool {
 	return err == nil && found && acceleration.Status == dbmodel.ReportAccelerationStatusReady
 }
 
+func ensureReportAccelerationSchema() error {
+	reportAccelerationSchemaInit.Do(func() {
+		reportAccelerationSchemaErr = invoker.Db.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&dbmodel.ReportAcceleration{})
+	})
+	return reportAccelerationSchemaErr
+}
+
+func normalizeClusterDDLError(err error, clusterName string) error {
+	if err == nil {
+		return nil
+	}
+	message := err.Error()
+	if strings.Contains(message, "There is no Zookeeper configuration in server config") {
+		if strings.TrimSpace(clusterName) == "" {
+			return fmt.Errorf("当前 ClickHouse 实例未配置 ZooKeeper/ClickHouse Keeper，无法执行集群 DDL（ON CLUSTER）")
+		}
+		return fmt.Errorf("当前 ClickHouse cluster %q 未配置 ZooKeeper/ClickHouse Keeper，无法执行集群 DDL（ON CLUSTER）", clusterName)
+	}
+	return err
+}
+
 func accelerationPreviewMessage(acceleration dbmodel.ReportAcceleration, found bool) string {
 	if !found {
 		return "报表加速未创建，请先保存报表并等待加速完成。"
@@ -648,7 +681,7 @@ func (s *Service) resolveReportAccelerationTopology(builder view.ReqReportBuilde
 	if err != nil {
 		return reportAccelerationTopology{}, err
 	}
-	clusterName, useCluster, err := s.resolveClickHouseClusterName(instance, operator)
+	clusterName, useCluster, err := s.resolveClickHouseClusterName(instance, operator, builder.Cluster)
 	if err != nil {
 		return reportAccelerationTopology{}, err
 	}
@@ -685,34 +718,112 @@ func (s *Service) getReportSourceTableEngine(operator sourcesvc.Operator, databa
 	return engine, engineFull, nil
 }
 
-func (s *Service) resolveClickHouseClusterName(instance dbmodel.BaseInstance, operator sourcesvc.Operator) (string, bool, error) {
-	if instance.Mode != clickhousesvc.ModeCluster && len(instance.Clusters) == 0 {
-		return "", false, nil
-	}
-	if len(instance.Clusters) == 1 {
-		return instance.Clusters[0], true, nil
-	}
-	rows, err := operator.Query("SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster")
+func (s *Service) resolveClickHouseClusterName(instance dbmodel.BaseInstance, operator sourcesvc.Operator, requestedCluster string) (string, bool, error) {
+	availableClusters, err := listAvailableClickHouseClusters(instance, operator)
 	if err != nil {
 		return "", false, err
 	}
-	candidates := make([]string, 0)
+	requestedCluster = strings.TrimSpace(requestedCluster)
+	if requestedCluster != "" {
+		if !containsClusterName(availableClusters, requestedCluster) {
+			return "", false, fmt.Errorf("所选 ClickHouse cluster %q 不存在，可选值：%s", requestedCluster, strings.Join(availableClusters, ","))
+		}
+		return requestedCluster, true, nil
+	}
+	return "", false, nil
+}
+
+func listAvailableClickHouseClusters(instance dbmodel.BaseInstance, operator sourcesvc.Operator) ([]string, error) {
+	return listClusterTopologyCandidates(operator)
+}
+
+func listClusterTopologyCandidates(operator sourcesvc.Operator) ([]string, error) {
+	rows, err := operator.Query("SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster")
+	if err != nil {
+		return nil, err
+	}
+	candidates := make(map[string]struct{})
 	for _, row := range rows {
 		cluster, _ := row["cluster"].(string)
+		trimmed := strings.TrimSpace(cluster)
+		if trimmed == "" || !isEligibleReportClusterName(trimmed) {
+			continue
+		}
 		maxShardNum := castToInt(row["max_shard_num"])
 		maxReplicaNum := castToInt(row["max_replica_num"])
 		if maxShardNum > 1 || maxReplicaNum > 1 {
-			candidates = append(candidates, cluster)
+			candidates[trimmed] = struct{}{}
 		}
 	}
-	switch len(candidates) {
-	case 0:
-		return "", false, nil
-	case 1:
-		return candidates[0], true, nil
-	default:
-		return "", false, fmt.Errorf("检测到多个 ClickHouse cluster: %s，请先在实例上明确 cluster 配置", strings.Join(candidates, ","))
+	return sortedClusterNames(candidates), nil
+}
+
+func sortedClusterNames(set map[string]struct{}) []string {
+	names := make([]string, 0, len(set))
+	for name := range set {
+		names = append(names, name)
 	}
+	sort.Strings(names)
+	return names
+}
+
+func containsClusterName(names []string, target string) bool {
+	target = strings.TrimSpace(target)
+	for _, name := range names {
+		if strings.TrimSpace(name) == target {
+			return true
+		}
+	}
+	return false
+}
+
+func preferredClusterName(names []string) string {
+	filtered := make([]string, 0, len(names))
+	for _, name := range names {
+		trimmed := strings.TrimSpace(name)
+		if trimmed == "" || !isEligibleReportClusterName(trimmed) {
+			continue
+		}
+		filtered = append(filtered, trimmed)
+	}
+	if len(filtered) == 0 {
+		return ""
+	}
+	if len(filtered) == 1 {
+		return filtered[0]
+	}
+	nonDefault := make([]string, 0, len(filtered))
+	for _, name := range filtered {
+		if strings.EqualFold(name, "default") {
+			continue
+		}
+		nonDefault = append(nonDefault, name)
+	}
+	if len(nonDefault) == 1 {
+		return nonDefault[0]
+	}
+	if len(nonDefault) == 0 {
+		return ""
+	}
+	return ""
+}
+
+func isEligibleReportClusterName(name string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(name))
+	if normalized == "" {
+		return false
+	}
+	disallowedFragments := []string{
+		"internal_replication",
+		"localhost",
+		"unavailable",
+	}
+	for _, fragment := range disallowedFragments {
+		if strings.Contains(normalized, fragment) {
+			return false
+		}
+	}
+	return true
 }
 
 func parseDistributedLocalTable(engineFull string) (string, error) {

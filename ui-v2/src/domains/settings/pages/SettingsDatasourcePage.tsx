@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
+import { syncSystemSchema } from "../api/settings";
 import AiActionPanel from "../../../shared/components/AiActionPanel";
 import ModuleRuntimeGate, {
   useModuleRuntimeState
@@ -92,6 +93,24 @@ function SectionHeader({
 
 export default function SettingsDatasourcePage() {
   const { viewState, aiMode } = useModuleRuntimeState();
+  const [syncStatus, setSyncStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [confirmSyncOpen, setConfirmSyncOpen] = useState(false);
+
+  async function handleSyncSystemSchema() {
+    setSyncStatus("pending");
+    setSyncMessage(null);
+    try {
+      const message = await syncSystemSchema();
+      setSyncStatus("success");
+      setSyncMessage(message || "数据结构同步完成");
+      setConfirmSyncOpen(false);
+    } catch (error) {
+      setSyncStatus("error");
+      setSyncMessage(error instanceof Error ? error.message : "数据结构同步失败");
+      setConfirmSyncOpen(false);
+    }
+  }
 
   return (
     <section style={pageStyle}>
@@ -123,6 +142,21 @@ export default function SettingsDatasourcePage() {
               {item}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setConfirmSyncOpen(true)}
+            style={{
+              border: "1px solid #fdba74",
+              borderRadius: 999,
+              padding: "10px 14px",
+              background: "#fff7ed",
+              color: "#c2410c",
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            同步数据结构
+          </button>
         </div>
       </header>
       <ModuleRuntimeGate
@@ -131,6 +165,20 @@ export default function SettingsDatasourcePage() {
         emptyTitle="当前没有可展示的配置摘要"
         errorTitle="配置接口暂不可用"
       >
+      {syncMessage ? (
+        <div
+          style={{
+            border: `1px solid ${syncStatus === "error" ? "#fecaca" : "#fed7aa"}`,
+            borderRadius: 18,
+            backgroundColor: syncStatus === "error" ? "#fef2f2" : "#fff7ed",
+            color: syncStatus === "error" ? "#b91c1c" : "#9a3412",
+            padding: 16,
+            fontWeight: 600
+          }}
+        >
+          {syncStatus === "error" ? `同步失败：${syncMessage}` : `同步结果：${syncMessage}`}
+        </div>
+      ) : null}
       <section style={sectionCardStyle}>
         <SectionHeader
           eyebrow="配置分区"
@@ -362,6 +410,65 @@ export default function SettingsDatasourcePage() {
         </aside>
       </div>
       </ModuleRuntimeGate>
+      {confirmSyncOpen ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => {
+            if (syncStatus !== "pending") {
+              setConfirmSyncOpen(false);
+            }
+          }}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-schema-sync-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header style={{ marginBottom: 16 }}>
+              <h2 id="settings-schema-sync-dialog-title" style={{ margin: 0, fontSize: 22, color: "#111827" }}>
+                手动同步数据结构
+              </h2>
+              <p style={{ margin: "8px 0 0", color: "#6b7280", lineHeight: 1.6 }}>
+                将执行和 v1 一致的全量 Migration，用于补齐 MySQL 元数据表结构。建议在系统升级后或出现缺列报错时执行。
+              </p>
+            </header>
+            <div
+              style={{
+                borderRadius: 16,
+                border: "1px solid #fed7aa",
+                backgroundColor: "#fff7ed",
+                padding: 14,
+                color: "#9a3412",
+                lineHeight: 1.6,
+                marginBottom: 16
+              }}
+            >
+              该操作会更新系统元数据表结构，不会删除现有业务数据。
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                disabled={syncStatus === "pending"}
+                onClick={() => setConfirmSyncOpen(false)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="cv-action-button"
+                disabled={syncStatus === "pending"}
+                onClick={() => void handleSyncSystemSchema()}
+              >
+                {syncStatus === "pending" ? "同步中..." : "确认同步"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

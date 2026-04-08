@@ -31,6 +31,7 @@ type ReqReportBlock struct {
 
 type ReqReportBuilder struct {
 	InstanceID int               `json:"instanceId" form:"instanceId"`
+	Cluster    string            `json:"cluster" form:"cluster"`
 	Database   string            `json:"database" form:"database"`
 	Table      string            `json:"table" form:"table"`
 	TimeField  string            `json:"timeField" form:"timeField"`
@@ -200,9 +201,10 @@ type RespReportDeleteResult struct {
 }
 
 type RespReportSourceInstance struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	Desc string `json:"desc"`
+	ID       int      `json:"id"`
+	Name     string   `json:"name"`
+	Desc     string   `json:"desc"`
+	Clusters []string `json:"clusters"`
 }
 
 type RespReportSourceDatabase struct {

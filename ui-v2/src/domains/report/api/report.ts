@@ -156,6 +156,7 @@ function normalizeReportBuilder(
   const blocks = normalizeReportBlocks(builder);
   return {
     ...builder,
+    cluster: builder.cluster || "",
     where: builder.where || "",
     metrics: Array.isArray(builder.metrics) ? builder.metrics : [],
     blocks
@@ -206,7 +207,8 @@ export async function listReportSourceInstances(): Promise<ReportSourceInstance[
         {
           id: 1,
           name: "生产 ClickHouse",
-          desc: "本地测试实例"
+          desc: "本地测试实例",
+          clusters: []
         }
       ];
     }
