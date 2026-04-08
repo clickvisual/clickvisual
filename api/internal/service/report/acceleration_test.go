@@ -1,6 +1,7 @@
 package report
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,6 +10,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type stubSourceOperator struct {
+	query func(string) ([]map[string]interface{}, error)
+}
+
+func (s stubSourceOperator) Databases() ([]string, error)                  { return nil, nil }
+func (s stubSourceOperator) Tables(string) ([]string, error)               { return nil, nil }
+func (s stubSourceOperator) Columns(string, string) ([]view.Column, error) { return nil, nil }
+func (s stubSourceOperator) Exec(string) error                             { return nil }
+func (s stubSourceOperator) Query(sql string) ([]map[string]interface{}, error) {
+	if s.query == nil {
+		return nil, fmt.Errorf("unexpected query: %s", sql)
+	}
+	return s.query(sql)
+}
 
 func TestBuildAccelerationFilterSQL(t *testing.T) {
 	filter, err := buildAccelerationFilterSQL(view.ReqReportBuilder{
@@ -82,11 +98,11 @@ func TestBuildReportAccelerationPlan(t *testing.T) {
 func TestBuildReportAccelerationPlanForCluster(t *testing.T) {
 	now := time.Date(2026, 4, 8, 10, 0, 0, 0, time.Local)
 	plan, err := buildReportAccelerationPlan(9, view.ReqReportBuilder{
-		InstanceID:  7,
-		Database:    "dev_log",
-		Table:       "app_stdout",
-		TimeField:   "_time_second_",
-		TimeRange:   "1h",
+		InstanceID: 7,
+		Database:   "dev_log",
+		Table:      "app_stdout",
+		TimeField:  "_time_second_",
+		TimeRange:  "1h",
 		Blocks: []view.ReqReportBlock{
 			{
 				Key:   "default",
@@ -129,4 +145,164 @@ func TestBuildAcceleratedReportQuery(t *testing.T) {
 	assert.Contains(t, query, "group_kind = 1")
 	assert.Contains(t, query, "group_kind = 0")
 	assert.Contains(t, query, "GROUP BY group_value")
+}
+
+func TestPreferredClusterNameIgnoresDefaultAlias(t *testing.T) {
+	assert.Equal(t, "default_cluster", preferredClusterName([]string{"default", "default_cluster"}))
+}
+
+func TestPreferredClusterNameRejectsRealAmbiguity(t *testing.T) {
+	assert.Equal(t, "", preferredClusterName([]string{"cluster_a", "cluster_b"}))
+}
+
+func TestResolveClickHouseClusterNameUsesExplicitSelection(t *testing.T) {
+	service := &Service{}
+	clusterName, useCluster, err := service.resolveClickHouseClusterName(
+		dbmodel.BaseInstance{},
+		stubSourceOperator{
+			query: func(sql string) ([]map[string]interface{}, error) {
+				if sql == "SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster" {
+					return []map[string]interface{}{
+						{"cluster": "default", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "default_cluster", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+					}, nil
+				}
+				return nil, fmt.Errorf("unexpected query: %s", sql)
+			},
+		},
+		"default_cluster",
+	)
+	require.NoError(t, err)
+	assert.True(t, useCluster)
+	assert.Equal(t, "default_cluster", clusterName)
+}
+
+func TestResolveClickHouseClusterNameUsesSingleModeWhenClusterIsEmpty(t *testing.T) {
+	service := &Service{}
+	clusterName, useCluster, err := service.resolveClickHouseClusterName(
+		dbmodel.BaseInstance{},
+		stubSourceOperator{
+			query: func(sql string) ([]map[string]interface{}, error) {
+				switch sql {
+				case "SELECT DISTINCT cluster FROM system.clusters":
+					return []map[string]interface{}{
+						{"cluster": "default"},
+						{"cluster": "default_cluster"},
+					}, nil
+				case "SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster":
+					return []map[string]interface{}{
+						{"cluster": "default", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "default_cluster", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+					}, nil
+				default:
+					return nil, fmt.Errorf("unexpected query: %s", sql)
+				}
+			},
+		},
+		"",
+	)
+	require.NoError(t, err)
+	assert.False(t, useCluster)
+	assert.Empty(t, clusterName)
+}
+
+func TestResolveClickHouseClusterNameUsesSingleModeForAmbiguousClusters(t *testing.T) {
+	service := &Service{}
+	clusterName, useCluster, err := service.resolveClickHouseClusterName(
+		dbmodel.BaseInstance{},
+		stubSourceOperator{
+			query: func(sql string) ([]map[string]interface{}, error) {
+				switch sql {
+				case "SELECT DISTINCT cluster FROM system.clusters":
+					return []map[string]interface{}{
+						{"cluster": "cluster_a"},
+						{"cluster": "cluster_b"},
+					}, nil
+				case "SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster":
+					return []map[string]interface{}{
+						{"cluster": "cluster_a", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "cluster_b", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+					}, nil
+				default:
+					return nil, fmt.Errorf("unexpected query: %s", sql)
+				}
+			},
+		},
+		"",
+	)
+	require.NoError(t, err)
+	assert.False(t, useCluster)
+	assert.Empty(t, clusterName)
+}
+
+func TestResolveClickHouseClusterNameFiltersInternalAliases(t *testing.T) {
+	service := &Service{}
+	clusterName, useCluster, err := service.resolveClickHouseClusterName(
+		dbmodel.BaseInstance{},
+		stubSourceOperator{
+			query: func(sql string) ([]map[string]interface{}, error) {
+				switch sql {
+				case "SELECT DISTINCT cluster FROM system.clusters":
+					return []map[string]interface{}{
+						{"cluster": "test_cluster_two_shards"},
+						{"cluster": "test_cluster_two_shards_internal_replication"},
+						{"cluster": "test_cluster_two_shards_localhost"},
+						{"cluster": "test_unavailable_shard"},
+					}, nil
+				case "SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster":
+					return []map[string]interface{}{
+						{"cluster": "test_cluster_two_shards", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "test_cluster_two_shards_internal_replication", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "test_cluster_two_shards_localhost", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "test_unavailable_shard", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+					}, nil
+				default:
+					return nil, fmt.Errorf("unexpected query: %s", sql)
+				}
+			},
+		},
+		"",
+	)
+	require.NoError(t, err)
+	assert.False(t, useCluster)
+	assert.Empty(t, clusterName)
+}
+
+func TestListAvailableClickHouseClustersFiltersInvalidCandidates(t *testing.T) {
+	clusters, err := listAvailableClickHouseClusters(
+		dbmodel.BaseInstance{},
+		stubSourceOperator{
+			query: func(sql string) ([]map[string]interface{}, error) {
+				if sql == "SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster" {
+					return []map[string]interface{}{
+						{"cluster": "test_cluster_two_shards", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "test_cluster_two_shards_internal_replication", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "test_cluster_two_shards_localhost", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+						{"cluster": "test_unavailable_shard", "max_shard_num": int64(2), "max_replica_num": int64(1)},
+					}, nil
+				}
+				return nil, fmt.Errorf("unexpected query: %s", sql)
+			},
+		},
+	)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"test_cluster_two_shards"}, clusters)
+}
+
+func TestListAvailableClickHouseClustersExcludesSingleNodeCluster(t *testing.T) {
+	clusters, err := listAvailableClickHouseClusters(
+		dbmodel.BaseInstance{},
+		stubSourceOperator{
+			query: func(sql string) ([]map[string]interface{}, error) {
+				if sql == "SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster" {
+					return []map[string]interface{}{
+						{"cluster": "shimodev", "max_shard_num": int64(1), "max_replica_num": int64(1)},
+					}, nil
+				}
+				return nil, fmt.Errorf("unexpected query: %s", sql)
+			},
+		},
+	)
+	require.NoError(t, err)
+	assert.Empty(t, clusters)
 }

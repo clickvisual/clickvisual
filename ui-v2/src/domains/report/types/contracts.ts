@@ -163,6 +163,7 @@ export interface ReportBlockInput {
 
 export interface ReportBuilderInput {
   instanceId: number;
+  cluster?: string;
   database: string;
   table: string;
   timeField: string;
@@ -206,6 +207,7 @@ export interface ReportSourceInstance {
   id: number;
   name: string;
   desc: string;
+  clusters: string[];
 }
 
 export interface ReportSourceColumn {

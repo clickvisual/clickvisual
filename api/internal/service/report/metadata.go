@@ -76,10 +76,17 @@ func (s *Service) listSourceInstancesFromDB() ([]view.RespReportSourceInstance, 
 	}
 	resp := make([]view.RespReportSourceInstance, 0, len(rows))
 	for _, row := range rows {
+		clusters := make([]string, 0)
+		if operator, err := s.sourceOperatorFromDB(row.ID); err == nil {
+			if names, clusterErr := listAvailableClickHouseClusters(*row, operator); clusterErr == nil {
+				clusters = names
+			}
+		}
 		resp = append(resp, view.RespReportSourceInstance{
-			ID:   row.ID,
-			Name: row.Name,
-			Desc: row.Desc,
+			ID:       row.ID,
+			Name:     row.Name,
+			Desc:     row.Desc,
+			Clusters: clusters,
 		})
 	}
 	sort.Slice(resp, func(i, j int) bool {

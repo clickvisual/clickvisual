@@ -371,6 +371,9 @@ func reportDuration(value string) (time.Duration, error) {
 }
 
 func quoteTable(database, table string) string {
+	if strings.TrimSpace(database) == "" {
+		return fmt.Sprintf("`%s`", table)
+	}
 	return fmt.Sprintf("`%s`.`%s`", database, table)
 }
 

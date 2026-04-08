@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatSqlForDisplay } from "../utils/formatSql";
 import type {
   ReportBlockInput,
@@ -229,6 +229,7 @@ export default function ReportCreateForm({
   const [instanceId, setInstanceId] = useState(
     () => initialValue?.builder.instanceId ?? safeInstances[0]?.id ?? 0
   );
+  const [cluster, setCluster] = useState(initialValue?.builder.cluster ?? "");
   const [database, setDatabase] = useState(
     () => initialValue?.builder.database ?? safeDatabases[0]?.name ?? ""
   );
@@ -247,6 +248,11 @@ export default function ReportCreateForm({
   const onLoadColumnsRef = useRef(onLoadColumns);
   const requestedDatabasesInstanceIdRef = useRef<number | null>(null);
   const requestedColumnsKeyRef = useRef<string | null>(null);
+  const currentInstance = useMemo(
+    () => safeInstances.find((item) => item.id === instanceId) ?? null,
+    [instanceId, safeInstances]
+  );
+  const clusterOptions = currentInstance?.clusters ?? [];
 
   useEffect(() => {
     onInstanceChangeRef.current = onInstanceChange;
@@ -263,6 +269,7 @@ export default function ReportCreateForm({
     setReportId(initialValue.reportId);
     setName(initialValue.name);
     setInstanceId(initialValue.builder.instanceId);
+    setCluster(initialValue.builder.cluster ?? "");
     setDatabase(initialValue.builder.database);
     setTable(initialValue.builder.table);
     setTimeField(initialValue.builder.timeField);
@@ -273,6 +280,7 @@ export default function ReportCreateForm({
     initialValue?.reportId,
     initialValue?.name,
     initialValue?.builder.instanceId,
+    initialValue?.builder.cluster,
     initialValue?.builder.database,
     initialValue?.builder.table,
     initialValue?.builder.timeField,
@@ -301,6 +309,19 @@ export default function ReportCreateForm({
       void onInstanceChangeRef.current(instanceId);
     }
   }, [instanceId, isLoadingDatabases, safeDatabases.length]);
+
+  useEffect(() => {
+    if (clusterOptions.length === 0) {
+      if (cluster) {
+        setCluster("");
+      }
+      return;
+    }
+    if (cluster && clusterOptions.includes(cluster)) {
+      return;
+    }
+    setCluster("");
+  }, [cluster, clusterOptions]);
 
   useEffect(() => {
     if (!database && safeDatabases.length > 0) {
@@ -390,6 +411,7 @@ export default function ReportCreateForm({
             name,
             builder: {
               instanceId,
+              cluster,
               database,
               table,
               timeField,
@@ -444,6 +466,7 @@ export default function ReportCreateForm({
               onChange={(event) => {
                 const nextId = Number(event.target.value);
                 setInstanceId(nextId);
+                setCluster("");
                 setDatabase("");
                 setTable("");
                 setTimeField("");
@@ -481,6 +504,36 @@ export default function ReportCreateForm({
             </select>
           </label>
         </div>
+
+        {clusterOptions.length > 0 ? (
+          <div className="cv-form-two-up">
+            <label className="cv-form-row">
+              <span className="cv-label">Cluster</span>
+              <select
+                aria-label="Cluster"
+                className="cv-input"
+                value={cluster}
+                disabled={isLoadingDatabases || isLoadingTables || isLoadingColumns}
+                onChange={(event) => setCluster(event.target.value)}
+              >
+                <option value="">单机模式</option>
+                {clusterOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="cv-form-row">
+              <span className="cv-label">说明</span>
+              <div className="cv-input">
+                {cluster
+                  ? `当前固定使用 ${cluster}。`
+                  : "当前按单机模式处理，不会执行 ON CLUSTER。"}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="cv-form-two-up">
           <label className="cv-form-row">
