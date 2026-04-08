@@ -126,6 +126,8 @@ func TestBuildReportAccelerationPlanForCluster(t *testing.T) {
 	assert.Contains(t, plan.CreateTableSQL, "CREATE TABLE IF NOT EXISTS `dev_log`.`cv_report_agg_9` ON CLUSTER 'test_cluster' AS `dev_log`.`cv_report_agg_9_local` ENGINE = Distributed('test_cluster', 'dev_log', 'cv_report_agg_9_local', rand())")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "CREATE MATERIALIZED VIEW IF NOT EXISTS `dev_log`.`cv_report_mv_9_1` ON CLUSTER 'test_cluster' TO `dev_log`.`cv_report_agg_9_local`")
 	assert.Contains(t, plan.BackfillSQL, "INSERT INTO `dev_log`.`cv_report_agg_9`")
+	assert.Contains(t, plan.BackfillSQL, "FROM `dev_log`.`app_stdout`")
+	assert.NotContains(t, plan.BackfillSQL, "FROM `dev_log`.`app_stdout_local`")
 }
 
 func TestBuildAcceleratedReportQuery(t *testing.T) {
