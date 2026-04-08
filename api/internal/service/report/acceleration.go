@@ -304,7 +304,9 @@ func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, t
 }
 
 func buildAggregationBackfillSelectBody(builder view.ReqReportBuilder, topology reportAccelerationTopology, restrictTime bool, start time.Time, end time.Time) (string, error) {
-	parts, err := buildAggregationSelectBodies(0, builder, topology, restrictTime, start, end)
+	backfillTopology := topology
+	backfillTopology.SourceLocalTable = ""
+	parts, err := buildAggregationSelectBodies(0, builder, backfillTopology, restrictTime, start, end)
 	if err != nil {
 		return "", err
 	}
