@@ -139,3 +139,23 @@ func TestValidateAggregationEligibilityRejectsMultipleTopNGroupBy(t *testing.T) 
 	})
 	assert.ErrorContains(t, err, "只允许一种 TopN 分组字段")
 }
+
+func TestValidateAggregationEligibilityAcceptsFileGuidTopN(t *testing.T) {
+	err := validateAggregationEligibility(view.ReqReportBuilder{
+		Database:  "dev_log",
+		Table:     "app_stdout",
+		TimeField: "_time_second_",
+		TimeRange: "1h",
+		Blocks: []view.ReqReportBlock{
+			{
+				Key:   "repair_v2",
+				Label: "触发 v2 版本修复统计",
+				Where: "msg='repair-docs-init'",
+				Metrics: []view.ReqReportMetric{
+					{Key: "topn", Label: "文件列表", GroupBy: "fileGuid", Limit: 10},
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+}

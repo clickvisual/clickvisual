@@ -16,6 +16,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	dbmodel "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	view "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	clickhousesvc "github.com/clickvisual/clickvisual/api/internal/service/inquiry/clickhouse"
 	sourcesvc "github.com/clickvisual/clickvisual/api/internal/service/source"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -26,15 +27,20 @@ type reportAccelerationPlan struct {
 	InstanceID                int
 	SourceDatabase            string
 	SourceTable               string
+	SourceLocalTable          string
 	SourceTimeField           string
 	TargetTable               string
+	TargetLocalTable          string
 	MVName                    string
 	MVNames                   []string
+	ClusterName               string
+	UseCluster                bool
 	FilterSQL                 string
 	BuilderFingerprint        string
 	BackfillStart             time.Time
 	BackfillEnd               time.Time
 	CreateTableSQL            string
+	CreateTableSQLs           []string
 	CreateMaterializedViewSQL string
 	CreateMaterializedViewSQLs []string
 	BackfillSQL               string
@@ -64,8 +70,16 @@ type parsedAggregationMetric struct {
 }
 
 var reportAggregationMetricExprPattern = regexp.MustCompile(`^(count\(\*\)|sum\(([^)]+)\)|uniq\(([^)]+)\)|avg\(([^)]+)\))$`)
+var reportDistributedEnginePattern = regexp.MustCompile(`Distributed\(\s*'([^']+)'\s*,\s*'([^']+)'\s*,\s*'([^']+)'\s*,`)
 
-func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, now time.Time) (reportAccelerationPlan, error) {
+type reportAccelerationTopology struct {
+	UseCluster      bool
+	ClusterName     string
+	SourceLocalTable string
+	TargetLocalTable string
+}
+
+func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, topology reportAccelerationTopology, now time.Time) (reportAccelerationPlan, error) {
 	if reportID <= 0 {
 		return reportAccelerationPlan{}, fmt.Errorf("reportId 不能为空")
 	}
@@ -86,23 +100,38 @@ func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, no
 		return reportAccelerationPlan{}, err
 	}
 	targetTable := fmt.Sprintf("cv_report_agg_%d", reportID)
+	targetLocalTable := targetTable
+	if topology.UseCluster {
+		targetLocalTable = fmt.Sprintf("%s_local", targetTable)
+	}
 	backfillStart := now.Add(-(24*time.Hour + duration))
 	backfillEnd := now
 	targetRef := quoteTable(builder.Database, targetTable)
-	selectBodies, err := buildAggregationSelectBodies(reportID, builder, false, time.Time{}, time.Time{})
+	targetLocalRef := quoteTable(builder.Database, targetLocalTable)
+	selectBodies, err := buildAggregationSelectBodies(reportID, builder, topology, false, time.Time{}, time.Time{})
 	if err != nil {
 		return reportAccelerationPlan{}, err
 	}
-	backfillSelectBody, err := buildAggregationBackfillSelectBody(builder, true, backfillStart, backfillEnd)
+	backfillSelectBody, err := buildAggregationBackfillSelectBody(builder, topology, true, backfillStart, backfillEnd)
 	if err != nil {
 		return reportAccelerationPlan{}, err
 	}
 	timeBucketExpression, ttlDays := aggregationTimeBucket(builder.TimeRange)
 	mvNames := make([]string, 0, len(selectBodies))
 	mvSQLs := make([]string, 0, len(selectBodies))
+	createTableSQLs := make([]string, 0, 2)
+	clusterSuffix := ""
+	if topology.UseCluster {
+		clusterSuffix = fmt.Sprintf(" ON CLUSTER '%s'", escapeSQLString(topology.ClusterName))
+	}
+	localEngineSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s%s (bucket_time DateTime, block_key String, metric_name String, group_kind UInt8, group_value String, sum_value Float64, count_value UInt64, uniq_state AggregateFunction(uniq, String)) ENGINE = AggregatingMergeTree PARTITION BY toDate(bucket_time) ORDER BY (bucket_time, block_key, metric_name, group_kind, group_value) TTL bucket_time + INTERVAL %d DAY", targetLocalRef, clusterSuffix, ttlDays)
+	createTableSQLs = append(createTableSQLs, localEngineSQL)
+	if topology.UseCluster {
+		createTableSQLs = append(createTableSQLs, fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s%s AS %s ENGINE = Distributed('%s', '%s', '%s', rand())", targetRef, clusterSuffix, targetLocalRef, escapeSQLString(topology.ClusterName), escapeSQLString(builder.Database), escapeSQLString(targetLocalTable)))
+	}
 	for _, item := range selectBodies {
 		mvNames = append(mvNames, item.MVName)
-		mvSQLs = append(mvSQLs, fmt.Sprintf("CREATE MATERIALIZED VIEW IF NOT EXISTS %s TO %s AS %s", quoteTable(builder.Database, item.MVName), targetRef, item.SelectSQL))
+		mvSQLs = append(mvSQLs, fmt.Sprintf("CREATE MATERIALIZED VIEW IF NOT EXISTS %s%s TO %s AS %s", quoteTable(builder.Database, item.MVName), clusterSuffix, targetLocalRef, item.SelectSQL))
 	}
 
 	return reportAccelerationPlan{
@@ -110,15 +139,20 @@ func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, no
 		InstanceID:                builder.InstanceID,
 		SourceDatabase:            builder.Database,
 		SourceTable:               builder.Table,
+		SourceLocalTable:          topology.SourceLocalTable,
 		SourceTimeField:           builder.TimeField,
 		TargetTable:               targetTable,
+		TargetLocalTable:          targetLocalTable,
 		MVName:                    strings.Join(mvNames, ","),
 		MVNames:                   mvNames,
+		ClusterName:               topology.ClusterName,
+		UseCluster:                topology.UseCluster,
 		FilterSQL:                 filterSQL,
 		BuilderFingerprint:        fingerprint,
 		BackfillStart:             backfillStart,
 		BackfillEnd:               backfillEnd,
-		CreateTableSQL:            fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (bucket_time DateTime, block_key String, metric_name String, group_kind UInt8, group_value String, sum_value Float64, count_value UInt64, uniq_state AggregateFunction(uniq, String)) ENGINE = AggregatingMergeTree PARTITION BY toDate(bucket_time) ORDER BY (bucket_time, block_key, metric_name, group_kind, group_value) TTL bucket_time + INTERVAL %d DAY", targetRef, ttlDays),
+		CreateTableSQL:            strings.Join(createTableSQLs, ";\n"),
+		CreateTableSQLs:           createTableSQLs,
 		CreateMaterializedViewSQL: strings.Join(mvSQLs, ";\n"),
 		CreateMaterializedViewSQLs: mvSQLs,
 		BackfillSQL:               fmt.Sprintf("INSERT INTO %s %s", targetRef, backfillSelectBody),
@@ -195,9 +229,13 @@ type aggregationSelectPart struct {
 	SelectSQL string
 }
 
-func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, restrictTime bool, start time.Time, end time.Time) ([]aggregationSelectPart, error) {
+func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, topology reportAccelerationTopology, restrictTime bool, start time.Time, end time.Time) ([]aggregationSelectPart, error) {
 	blocks := normalizeReportBlocks(builder)
-	sourceRef := quoteTable(builder.Database, builder.Table)
+	sourceTable := builder.Table
+	if topology.UseCluster && strings.TrimSpace(topology.SourceLocalTable) != "" {
+		sourceTable = topology.SourceLocalTable
+	}
+	sourceRef := quoteTable(builder.Database, sourceTable)
 	timeField := quoteIdentifier(builder.TimeField)
 	bucketTpl, _ := aggregationTimeBucket(builder.TimeRange)
 	bucketExpr := fmt.Sprintf(bucketTpl, timeField)
@@ -259,8 +297,8 @@ func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, r
 	return parts, nil
 }
 
-func buildAggregationBackfillSelectBody(builder view.ReqReportBuilder, restrictTime bool, start time.Time, end time.Time) (string, error) {
-	parts, err := buildAggregationSelectBodies(0, builder, restrictTime, start, end)
+func buildAggregationBackfillSelectBody(builder view.ReqReportBuilder, topology reportAccelerationTopology, restrictTime bool, start time.Time, end time.Time) (string, error) {
+	parts, err := buildAggregationSelectBodies(0, builder, topology, restrictTime, start, end)
 	if err != nil {
 		return "", err
 	}
@@ -396,7 +434,12 @@ func (s *Service) ensureReportAccelerationForReport(report dbmodel.Report) error
 	if builder == nil {
 		return nil
 	}
-	plan, err := buildReportAccelerationPlan(report.ID, *builder, s.now())
+	topology, err := s.resolveReportAccelerationTopology(*builder)
+	if err != nil {
+		_ = s.upsertReportAccelerationFailure(report.ID, reportAccelerationPlan{}, err)
+		return err
+	}
+	plan, err := buildReportAccelerationPlan(report.ID, *builder, topology, s.now())
 	if err != nil {
 		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
 		return err
@@ -439,18 +482,19 @@ func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, curre
 	}
 	if hasCurrent {
 		for _, mvName := range splitAccelerationMVNames(current.MVName) {
-			dropViewSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s", quoteTable(current.SourceDatabase, mvName))
+			dropViewSQL := s.buildClusterAwareDropSQL(current.SourceDatabase, mvName, current.ClusterName)
 			if err = operator.Exec(dropViewSQL); err != nil {
 				return err
 			}
 		}
-		dropTableSQL := fmt.Sprintf("DROP TABLE IF EXISTS %s", quoteTable(current.SourceDatabase, current.TargetTable))
-		if err = operator.Exec(dropTableSQL); err != nil {
-			return err
+		for _, dropTableSQL := range s.buildAccelerationTargetDropSQLs(current) {
+			if err = operator.Exec(dropTableSQL); err != nil {
+				return err
+			}
 		}
 	}
-	sqlTexts := make([]string, 0, 2+len(plan.CreateMaterializedViewSQLs))
-	sqlTexts = append(sqlTexts, plan.CreateTableSQL)
+	sqlTexts := make([]string, 0, len(plan.CreateTableSQLs)+len(plan.CreateMaterializedViewSQLs)+1)
+	sqlTexts = append(sqlTexts, plan.CreateTableSQLs...)
 	sqlTexts = append(sqlTexts, plan.CreateMaterializedViewSQLs...)
 	sqlTexts = append(sqlTexts, plan.BackfillSQL)
 	for _, sqlText := range sqlTexts {
@@ -475,9 +519,11 @@ func (s *Service) cleanupReportAcceleration(acceleration dbmodel.ReportAccelerat
 		return
 	}
 	for _, mvName := range splitAccelerationMVNames(acceleration.MVName) {
-		_ = operator.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", quoteTable(acceleration.SourceDatabase, mvName)))
+		_ = operator.Exec(s.buildClusterAwareDropSQL(acceleration.SourceDatabase, mvName, acceleration.ClusterName))
 	}
-	_ = operator.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", quoteTable(acceleration.SourceDatabase, acceleration.TargetTable)))
+	for _, dropTableSQL := range s.buildAccelerationTargetDropSQLs(acceleration) {
+		_ = operator.Exec(dropTableSQL)
+	}
 }
 
 func splitAccelerationMVNames(raw string) []string {
@@ -518,9 +564,12 @@ func (s *Service) upsertReportAccelerationPlan(reportID int, plan reportAccelera
 		InstanceID:         plan.InstanceID,
 		SourceDatabase:     plan.SourceDatabase,
 		SourceTable:        plan.SourceTable,
+		SourceLocalTable:   plan.SourceLocalTable,
 		SourceTimeField:    plan.SourceTimeField,
 		TargetTable:        plan.TargetTable,
+		TargetLocalTable:   plan.TargetLocalTable,
 		MVName:             plan.MVName,
+		ClusterName:        plan.ClusterName,
 		FilterSQL:          plan.FilterSQL,
 		BuilderFingerprint: plan.BuilderFingerprint,
 		BackfillStartAt:    plan.BackfillStart.Unix(),
@@ -536,9 +585,12 @@ func (s *Service) upsertReportAccelerationPlan(reportID int, plan reportAccelera
 			"instance_id":         record.InstanceID,
 			"source_database":     record.SourceDatabase,
 			"source_table":        record.SourceTable,
+			"source_local_table":  record.SourceLocalTable,
 			"source_time_field":   record.SourceTimeField,
 			"target_table":        record.TargetTable,
+			"target_local_table":  record.TargetLocalTable,
 			"mv_name":             record.MVName,
+			"cluster_name":        record.ClusterName,
 			"filter_sql":          record.FilterSQL,
 			"builder_fingerprint": record.BuilderFingerprint,
 			"backfill_start_at":   record.BackfillStartAt,
@@ -580,5 +632,129 @@ func accelerationPreviewMessage(acceleration dbmodel.ReportAcceleration, found b
 		return "报表加速失败，请检查加速配置。"
 	default:
 		return fmt.Sprintf("报表加速未就绪，当前状态：%s。", acceleration.Status)
+	}
+}
+
+func (s *Service) resolveReportAccelerationTopology(builder view.ReqReportBuilder) (reportAccelerationTopology, error) {
+	instance, err := s.getReportClickHouseInstance(builder.InstanceID)
+	if err != nil {
+		return reportAccelerationTopology{}, err
+	}
+	operator, err := s.sourceOperatorFromDB(builder.InstanceID)
+	if err != nil {
+		return reportAccelerationTopology{}, err
+	}
+	engine, engineFull, err := s.getReportSourceTableEngine(operator, builder.Database, builder.Table)
+	if err != nil {
+		return reportAccelerationTopology{}, err
+	}
+	clusterName, useCluster, err := s.resolveClickHouseClusterName(instance, operator)
+	if err != nil {
+		return reportAccelerationTopology{}, err
+	}
+	topology := reportAccelerationTopology{
+		UseCluster:       useCluster,
+		ClusterName:      clusterName,
+		SourceLocalTable: builder.Table,
+		TargetLocalTable: fmt.Sprintf("cv_report_agg_%d_local", 0),
+	}
+	if !useCluster {
+		topology.TargetLocalTable = ""
+		return topology, nil
+	}
+	if strings.EqualFold(strings.TrimSpace(engine), "Distributed") {
+		localTable, err := parseDistributedLocalTable(engineFull)
+		if err != nil {
+			return reportAccelerationTopology{}, fmt.Errorf("源表 %s.%s 是 Distributed，但无法解析本地表: %w", builder.Database, builder.Table, err)
+		}
+		topology.SourceLocalTable = localTable
+	}
+	return topology, nil
+}
+
+func (s *Service) getReportSourceTableEngine(operator sourcesvc.Operator, database, table string) (string, string, error) {
+	rows, err := operator.Query(fmt.Sprintf("SELECT engine, engine_full FROM system.tables WHERE database = '%s' AND name = '%s' LIMIT 1", escapeSQLString(database), escapeSQLString(table)))
+	if err != nil {
+		return "", "", err
+	}
+	if len(rows) == 0 {
+		return "", "", fmt.Errorf("源表 %s.%s 不存在", database, table)
+	}
+	engine, _ := rows[0]["engine"].(string)
+	engineFull, _ := rows[0]["engine_full"].(string)
+	return engine, engineFull, nil
+}
+
+func (s *Service) resolveClickHouseClusterName(instance dbmodel.BaseInstance, operator sourcesvc.Operator) (string, bool, error) {
+	if instance.Mode != clickhousesvc.ModeCluster && len(instance.Clusters) == 0 {
+		return "", false, nil
+	}
+	if len(instance.Clusters) == 1 {
+		return instance.Clusters[0], true, nil
+	}
+	rows, err := operator.Query("SELECT cluster, max(shard_num) AS max_shard_num, max(replica_num) AS max_replica_num FROM system.clusters GROUP BY cluster")
+	if err != nil {
+		return "", false, err
+	}
+	candidates := make([]string, 0)
+	for _, row := range rows {
+		cluster, _ := row["cluster"].(string)
+		maxShardNum := castToInt(row["max_shard_num"])
+		maxReplicaNum := castToInt(row["max_replica_num"])
+		if maxShardNum > 1 || maxReplicaNum > 1 {
+			candidates = append(candidates, cluster)
+		}
+	}
+	switch len(candidates) {
+	case 0:
+		return "", false, nil
+	case 1:
+		return candidates[0], true, nil
+	default:
+		return "", false, fmt.Errorf("检测到多个 ClickHouse cluster: %s，请先在实例上明确 cluster 配置", strings.Join(candidates, ","))
+	}
+}
+
+func parseDistributedLocalTable(engineFull string) (string, error) {
+	matches := reportDistributedEnginePattern.FindStringSubmatch(strings.TrimSpace(engineFull))
+	if len(matches) != 4 {
+		return "", fmt.Errorf("unsupported engine_full: %s", engineFull)
+	}
+	return matches[3], nil
+}
+
+func (s *Service) buildClusterAwareDropSQL(database, table, clusterName string) string {
+	if strings.TrimSpace(clusterName) == "" {
+		return fmt.Sprintf("DROP TABLE IF EXISTS %s", quoteTable(database, table))
+	}
+	return fmt.Sprintf("DROP TABLE IF EXISTS %s ON CLUSTER '%s'", quoteTable(database, table), escapeSQLString(clusterName))
+}
+
+func (s *Service) buildAccelerationTargetDropSQLs(acceleration dbmodel.ReportAcceleration) []string {
+	sqls := make([]string, 0, 2)
+	sqls = append(sqls, s.buildClusterAwareDropSQL(acceleration.SourceDatabase, acceleration.TargetTable, acceleration.ClusterName))
+	localTable := strings.TrimSpace(acceleration.TargetLocalTable)
+	if localTable != "" && localTable != acceleration.TargetTable {
+		sqls = append(sqls, s.buildClusterAwareDropSQL(acceleration.SourceDatabase, localTable, acceleration.ClusterName))
+	}
+	return sqls
+}
+
+func castToInt(value interface{}) int {
+	switch v := value.(type) {
+	case int:
+		return v
+	case int32:
+		return int(v)
+	case int64:
+		return int(v)
+	case uint32:
+		return int(v)
+	case uint64:
+		return int(v)
+	case float64:
+		return int(v)
+	default:
+		return 0
 	}
 }
