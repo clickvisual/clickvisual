@@ -355,14 +355,10 @@ func buildAcceleratedReportQuery(report dbmodel.Report, acceleration dbmodel.Rep
 	if builder == nil {
 		return "", fmt.Errorf("报表 builder 不存在")
 	}
-	duration, err := reportDuration(builder.TimeRange)
+	currentStart, currentEnd, previousStart, previousEnd, err := reportComparisonWindow(builder.TimeRange, now)
 	if err != nil {
 		return "", err
 	}
-	currentEnd := now
-	currentStart := now.Add(-duration)
-	previousEnd := now.Add(-24 * time.Hour)
-	previousStart := previousEnd.Add(-duration)
 	tableRef := quoteTable(acceleration.SourceDatabase, acceleration.TargetTable)
 	parts := make([]string, 0)
 	for blockIndex, block := range normalizeReportBlocks(*builder) {

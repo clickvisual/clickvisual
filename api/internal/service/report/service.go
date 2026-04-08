@@ -959,8 +959,8 @@ func buildPreviewPushContentWithRows(item view.RespReportListItem, editor view.R
 	))
 
 	windowLabel := "按报表触发时间统计"
-	if windowStart, ok := reportWindowStart(editor.Builder, startedAt); ok {
-		windowLabel = fmt.Sprintf("%s ~ %s", windowStart.Format("2006-01-02 15:04:05"), startedAt.Format("2006-01-02 15:04:05"))
+	if windowStart, windowEnd, ok := reportWindowRange(editor.Builder, startedAt); ok {
+		windowLabel = fmt.Sprintf("%s ~ %s", windowStart.Format("2006-01-02 15:04:05"), windowEnd.Format("2006-01-02 15:04:05"))
 	}
 	sections = append(sections, fmt.Sprintf("### ⏱️ 执行信息\n- 统计窗口：%s\n- 发送时间：%s",
 		markdownEscape(windowLabel),
@@ -989,7 +989,7 @@ func reportScopeLabels(builder *view.ReqReportBuilder) (source string, timeRange
 	}
 	timeRangeLabel = "按查询配置统计"
 	if strings.TrimSpace(builder.TimeRange) != "" {
-		timeRangeLabel = fmt.Sprintf("最近%s", builder.TimeRange)
+		timeRangeLabel = reportTimeRangeLabel(builder.TimeRange)
 	}
 	if len(builder.Blocks) > 1 {
 		return source, timeRangeLabel, "多条件汇总"
@@ -1011,15 +1011,15 @@ func normalizeScopeLabel(raw string) string {
 	}
 }
 
-func reportWindowStart(builder *view.ReqReportBuilder, startedAt time.Time) (time.Time, bool) {
+func reportWindowRange(builder *view.ReqReportBuilder, startedAt time.Time) (time.Time, time.Time, bool) {
 	if builder == nil {
-		return time.Time{}, false
+		return time.Time{}, time.Time{}, false
 	}
-	duration, err := reportDuration(builder.TimeRange)
+	windowStart, windowEnd, _, _, err := reportComparisonWindow(builder.TimeRange, startedAt)
 	if err != nil {
-		return time.Time{}, false
+		return time.Time{}, time.Time{}, false
 	}
-	return startedAt.Add(-duration), true
+	return windowStart, windowEnd, true
 }
 
 func summarizeReportContent(input reportSummaryInput) string {

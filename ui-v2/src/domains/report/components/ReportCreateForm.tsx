@@ -135,14 +135,26 @@ function buildPreview(
   if (!database || !table || !timeField || blocks.length === 0) {
     return "选择实例、数据库、数据表和时间字段后显示 SQL 预览。";
   }
-  const duration = timeRange === "1d" ? "1 DAY" : "1 HOUR";
   const firstBlock = blocks[0];
   const whereClause = firstBlock?.where.trim() ? ` AND (${firstBlock.where.trim()})` : "";
+  if (timeRange === "1d") {
+    return [
+      "WITH toStartOfDay(now()) AS current_end,",
+      "current_end - INTERVAL 1 DAY AS current_start,",
+      "current_start - INTERVAL 1 DAY AS previous_start,",
+      "current_start AS previous_end",
+      `SELECT * FROM \`${database}\`.\`${table}\``,
+      `WHERE ${timeField} >= current_start AND ${timeField} < current_end${whereClause}`,
+      `-- metrics: ${blocks
+        .flatMap((block) => block.metrics.map((metric) => `${block.label}:${metric.label}`))
+        .join(", ")}`
+    ].join("\n");
+  }
   return [
     "WITH now() AS current_end,",
-    `current_end - INTERVAL ${duration} AS current_start,`,
+    "current_end - INTERVAL 1 HOUR AS current_start,",
     "current_end - INTERVAL 1 DAY AS previous_end,",
-    `previous_end - INTERVAL ${duration} AS previous_start`,
+    "previous_end - INTERVAL 1 HOUR AS previous_start",
     `SELECT * FROM \`${database}\`.\`${table}\``,
     `WHERE ${timeField} >= current_start AND ${timeField} < current_end${whereClause}`,
     `-- metrics: ${blocks
@@ -450,7 +462,7 @@ export default function ReportCreateForm({
               }
             >
               <option value="1h">近 1 小时</option>
-              <option value="1d">近 1 天</option>
+              <option value="1d">昨天</option>
             </select>
           </label>
         </div>
