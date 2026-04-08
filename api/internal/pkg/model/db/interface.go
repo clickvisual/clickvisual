@@ -98,9 +98,10 @@ const (
 	TableNameBigDataDepend      = "cv_bd_depend"
 	TableNameBigDataCrontab     = "cv_bd_crontab"
 
-	TableNameReport          = "cv_report"
-	TableNameReportSchedule  = "cv_report_schedule"
-	TableNameReportExecution = "cv_report_execution"
+	TableNameReport             = "cv_report"
+	TableNameReportSchedule     = "cv_report_schedule"
+	TableNameReportExecution    = "cv_report_execution"
+	TableNameReportAcceleration = "cv_report_acceleration"
 )
 
 type BaseModel struct {

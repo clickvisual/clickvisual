@@ -75,6 +75,9 @@ func normalizeReportDefinition(req view.ReqReportDefinition, now time.Time) (vie
 		return req, nil
 	}
 	builder := sanitizeReportBuilder(*req.Builder)
+	if err := validateAggregationEligibility(builder); err != nil {
+		return view.ReqReportDefinition{}, err
+	}
 	req.Builder = &builder
 	queryText, err := buildReportQuery(*req.Builder, now)
 	if err != nil {

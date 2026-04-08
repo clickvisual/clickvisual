@@ -90,6 +90,33 @@ func TestValidateExecutionConfig(t *testing.T) {
 	assert.ErrorContains(t, validateExecutionConfig(report, true, schedule), "未配置推送渠道")
 }
 
+func TestPreviewMessageReturnsAccelerationMessage(t *testing.T) {
+	report := dbmodel.Report{
+		TemplateKey:   "report-builder-default",
+		BuilderConfig: `{"instanceId":1,"database":"logger","table":"orders","timeField":"event_time","timeRange":"1h","blocks":[{"key":"default","where":"1=1","metrics":[{"key":"count","label":"总量"}]}]}`,
+		Status:        dbmodel.ReportStatusEnabled,
+	}
+	schedule := dbmodel.ReportSchedule{
+		Status:     dbmodel.ReportScheduleStatusEnabled,
+		ChannelIDs: []int{201},
+	}
+
+	msg := previewMessage(report, true, schedule, nil, dbmodel.ReportAcceleration{}, false)
+	assert.Contains(t, msg, "报表加速未创建")
+
+	msg = previewMessage(report, true, schedule, nil, dbmodel.ReportAcceleration{
+		Status:       dbmodel.ReportAccelerationStatusError,
+		ErrorMessage: "mv create failed",
+	}, true)
+	assert.Contains(t, msg, "报表加速失败")
+	assert.Contains(t, msg, "mv create failed")
+
+	msg = previewMessage(report, true, schedule, nil, dbmodel.ReportAcceleration{
+		Status: dbmodel.ReportAccelerationStatusReady,
+	}, true)
+	assert.Contains(t, msg, "最近暂无执行记录")
+}
+
 func TestResolveRetryPolicy(t *testing.T) {
 	maxAttempts, retryInterval := resolveRetryPolicy(dbmodel.ReportSchedule{
 		IsRetry:       1,

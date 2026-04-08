@@ -126,6 +126,13 @@ export interface ReportSendResultSummary {
   channels: ReportChannelSendSummary[];
 }
 
+export interface ReportAccelerationStatus {
+  status: string;
+  targetTable: string;
+  mvName: string;
+  errorMessage?: string;
+}
+
 export interface ReportWorkspace {
   activeReportId: number;
   list: ReportListItem[];
@@ -136,6 +143,7 @@ export interface ReportWorkspace {
   delivery: ReportSendResultSummary;
   channels: ReportPushChannel[];
   runtime: ReportScheduleRuntime;
+  acceleration: ReportAccelerationStatus;
 }
 
 export interface ReportMetricInput {

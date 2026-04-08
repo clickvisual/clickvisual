@@ -12,6 +12,7 @@ func TestReportTableName(t *testing.T) {
 	assert.Equal(t, TableNameReport, (&Report{}).TableName())
 	assert.Equal(t, TableNameReportSchedule, (&ReportSchedule{}).TableName())
 	assert.Equal(t, TableNameReportExecution, (&ReportExecution{}).TableName())
+	assert.Equal(t, TableNameReportAcceleration, (&ReportAcceleration{}).TableName())
 }
 
 func TestReportConstants(t *testing.T) {
@@ -24,6 +25,9 @@ func TestReportConstants(t *testing.T) {
 	assert.Equal(t, "running", ReportExecutionStatusRunning)
 	assert.Equal(t, "success", ReportExecutionStatusSuccess)
 	assert.Equal(t, "failed", ReportExecutionStatusFailed)
+	assert.Equal(t, "pending", ReportAccelerationStatusPending)
+	assert.Equal(t, "ready", ReportAccelerationStatusReady)
+	assert.Equal(t, "error", ReportAccelerationStatusError)
 }
 
 func TestReportModelTags(t *testing.T) {
@@ -54,4 +58,14 @@ func TestReportModelTags(t *testing.T) {
 	channelResultsField, ok := executionTyp.FieldByName("ChannelResults")
 	require.True(t, ok)
 	assert.Contains(t, channelResultsField.Tag.Get("gorm"), "type:longtext")
+
+	accelerationTyp := reflect.TypeOf(ReportAcceleration{})
+	reportIDField2, ok := accelerationTyp.FieldByName("ReportID")
+	require.True(t, ok)
+	assert.Contains(t, reportIDField2.Tag.Get("gorm"), "uniqueIndex:uniq_report_acceleration_report_id")
+
+	statusField2, ok := accelerationTyp.FieldByName("Status")
+	require.True(t, ok)
+	assert.Contains(t, statusField2.Tag.Get("gorm"), "default:pending")
+	assert.Contains(t, statusField2.Tag.Get("gorm"), "idx_report_acceleration_status")
 }

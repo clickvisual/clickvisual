@@ -1,4 +1,5 @@
 import type {
+  ReportAccelerationStatus,
   ReportEditorDraft,
   ReportExecutionPreview,
   ReportExecutionRecord,
@@ -257,6 +258,19 @@ const seedReportScheduleRuntimeMockById: Record<number, ReportScheduleRuntime> =
   }
 };
 
+const seedReportAccelerationMockById: Record<number, ReportAccelerationStatus> = {
+  1001: {
+    status: "ready",
+    targetTable: "dev_log.cv_report_agg_1001",
+    mvName: "dev_log.cv_report_mv_1001"
+  },
+  1002: {
+    status: "missing",
+    targetTable: "",
+    mvName: ""
+  }
+};
+
 export const reportListMock = clone(seedReportListMock);
 export const reportScheduleMockById = clone(seedReportScheduleMockById);
 export const reportEditorDraftMockById = clone(seedReportEditorDraftMockById);
@@ -271,6 +285,7 @@ export const reportSendSummaryMockById = clone(seedReportSendSummaryMockById);
 export const reportScheduleRuntimeMockById = clone(
   seedReportScheduleRuntimeMockById
 );
+export const reportAccelerationMockById = clone(seedReportAccelerationMockById);
 
 export function resetReportMockStore() {
   reportListMock.splice(0, reportListMock.length, ...clone(seedReportListMock));
@@ -292,6 +307,7 @@ export function resetReportMockStore() {
   );
   replaceRecord(reportSendSummaryMockById, seedReportSendSummaryMockById);
   replaceRecord(reportScheduleRuntimeMockById, seedReportScheduleRuntimeMockById);
+  replaceRecord(reportAccelerationMockById, seedReportAccelerationMockById);
 }
 
 export function buildReportWorkspaceMock(reportId = 1001): ReportWorkspace {
@@ -346,6 +362,11 @@ export function buildReportWorkspaceMock(reportId = 1001): ReportWorkspace {
         registered: false,
         paused: false,
         nextRunAt: ""
+      },
+      acceleration: {
+        status: "missing",
+        targetTable: "",
+        mvName: ""
       }
     };
   }
@@ -359,7 +380,8 @@ export function buildReportWorkspaceMock(reportId = 1001): ReportWorkspace {
     executions: clone(reportRecentExecutionsMockById[active.id]),
     delivery: clone(reportSendSummaryMockById[active.id]),
     channels: clone(reportChannelsMock),
-    runtime: clone(reportScheduleRuntimeMockById[active.id])
+    runtime: clone(reportScheduleRuntimeMockById[active.id]),
+    acceleration: clone(reportAccelerationMockById[active.id])
   };
 }
 

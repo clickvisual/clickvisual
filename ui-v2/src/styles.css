@@ -654,6 +654,11 @@ textarea {
   font-size: 13px;
 }
 
+.cv-report-code {
+  max-height: 360px;
+  overflow: auto;
+}
+
 .cv-report-page .cv-kv {
   gap: 4px;
 }
@@ -991,6 +996,16 @@ textarea {
   color: #fff4e9;
   overflow-x: auto;
   line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family:
+    "SFMono-Regular",
+    "JetBrains Mono",
+    "Menlo",
+    "Monaco",
+    "Consolas",
+    "Liberation Mono",
+    monospace;
 }
 
 .cv-list {

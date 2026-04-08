@@ -57,3 +57,28 @@ CREATE TABLE IF NOT EXISTS `cv_report_execution` (
   KEY `idx_report_execution_trigger` (`trigger`),
   KEY `idx_report_execution_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `cv_report_acceleration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+  `report_id` int(11) NOT NULL,
+  `instance_id` int(11) NOT NULL DEFAULT 0,
+  `source_database` varchar(128) NOT NULL,
+  `source_table` varchar(128) NOT NULL,
+  `source_time_field` varchar(128) NOT NULL,
+  `target_table` varchar(128) NOT NULL,
+  `mv_name` varchar(128) NOT NULL,
+  `filter_sql` longtext,
+  `builder_fingerprint` varchar(64) NOT NULL,
+  `backfill_start_at` bigint DEFAULT NULL,
+  `backfill_end_at` bigint DEFAULT NULL,
+  `ddl_sql` longtext,
+  `status` varchar(32) NOT NULL DEFAULT 'pending',
+  `error_message` text,
+  `ctime` bigint DEFAULT NULL COMMENT '创建时间',
+  `utime` bigint DEFAULT NULL COMMENT '更新时间',
+  `dtime` bigint DEFAULT 0 COMMENT '删除时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_report_acceleration_report_id` (`report_id`),
+  KEY `idx_report_acceleration_fingerprint` (`builder_fingerprint`),
+  KEY `idx_report_acceleration_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

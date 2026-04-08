@@ -249,8 +249,10 @@ describe("report schedule page", () => {
       screen.getByRole("button", { name: "切换到报表 周报-异常波动追踪" })
     );
 
-    expect(await screen.findByText("DSL")).toBeInTheDocument();
-    expect(screen.getAllByText("周报-异常波动追踪 #1002").length).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText("周报-异常波动追踪 #1002")).length
+    ).toBeGreaterThan(0);
+    expect(screen.getByText("DSL")).toBeInTheDocument();
     expect(screen.getByText("image")).toBeInTheDocument();
     expect(screen.getAllByText("运维钉钉群").length).toBeGreaterThan(0);
     expect(screen.getAllByText("ops-dingtalk").length).toBeGreaterThan(0);
@@ -358,9 +360,9 @@ describe("report schedule page", () => {
     fireEvent.click(screen.getByLabelText("运维钉钉群"));
     fireEvent.click(screen.getByRole("button", { name: "保存报表调度" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "保存调度失败：channelIds 不能为空"
-    );
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("保存报表调度失败")).toBeInTheDocument();
+    expect(screen.getByText("channelIds 不能为空")).toBeInTheDocument();
   });
 
   it("keeps current workspace when save succeeds but refresh fails", async () => {
