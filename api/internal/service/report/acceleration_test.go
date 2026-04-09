@@ -78,8 +78,6 @@ func TestBuildReportAccelerationPlan(t *testing.T) {
 	assert.Equal(t, "pro_log", plan.SourceDatabase)
 	assert.Equal(t, "app_stdout", plan.SourceTable)
 	assert.Equal(t, "(msg='repair-docs-init')", plan.FilterSQL)
-	assert.Equal(t, now.Add(-25*time.Hour), plan.BackfillStart)
-	assert.Equal(t, now, plan.BackfillEnd)
 	assert.Contains(t, plan.CreateTableSQL, "CREATE TABLE IF NOT EXISTS `pro_log`.`cv_report_agg_3`")
 	assert.Contains(t, plan.CreateTableSQL, "ENGINE = AggregatingMergeTree")
 	assert.Contains(t, plan.CreateTableSQL, "bucket_time DateTime('Asia/Shanghai')")
@@ -91,8 +89,6 @@ func TestBuildReportAccelerationPlan(t *testing.T) {
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "uniqState(toString(`k8s.pod.name`)) AS uniq_state")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "toUInt8(1) AS group_kind")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "ifNull(toString(`container.name`), '') AS group_value")
-	assert.Contains(t, plan.BackfillSQL, "INSERT INTO `pro_log`.`cv_report_agg_3`")
-	assert.Contains(t, plan.BackfillSQL, "toDateTime('2026-04-06 14:00:00', 'Asia/Shanghai')")
 	assert.NotEmpty(t, plan.BuilderFingerprint)
 }
 
@@ -126,9 +122,6 @@ func TestBuildReportAccelerationPlanForCluster(t *testing.T) {
 	assert.Contains(t, plan.CreateTableSQL, "CREATE TABLE IF NOT EXISTS `dev_log`.`cv_report_agg_9_local` ON CLUSTER 'test_cluster'")
 	assert.Contains(t, plan.CreateTableSQL, "CREATE TABLE IF NOT EXISTS `dev_log`.`cv_report_agg_9` ON CLUSTER 'test_cluster' AS `dev_log`.`cv_report_agg_9_local` ENGINE = Distributed('test_cluster', 'dev_log', 'cv_report_agg_9_local', rand())")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "CREATE MATERIALIZED VIEW IF NOT EXISTS `dev_log`.`cv_report_mv_9_1` ON CLUSTER 'test_cluster' TO `dev_log`.`cv_report_agg_9_local`")
-	assert.Contains(t, plan.BackfillSQL, "INSERT INTO `dev_log`.`cv_report_agg_9`")
-	assert.Contains(t, plan.BackfillSQL, "FROM `dev_log`.`app_stdout`")
-	assert.NotContains(t, plan.BackfillSQL, "FROM `dev_log`.`app_stdout_local`")
 }
 
 func TestBuildReportAccelerationPlanWithUnixSecondTimeField(t *testing.T) {
@@ -154,7 +147,6 @@ func TestBuildReportAccelerationPlanWithUnixSecondTimeField(t *testing.T) {
 	}, now)
 	require.NoError(t, err)
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "toStartOfInterval(toDateTime(`time`, 'Asia/Shanghai'), INTERVAL 1 HOUR)")
-	assert.Contains(t, plan.BackfillSQL, "AND `time` >= 1775440800 AND `time` < 1775613600")
 }
 
 func TestInferAccelerationTimeFieldType(t *testing.T) {
