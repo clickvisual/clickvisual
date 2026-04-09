@@ -546,13 +546,13 @@ func (s *Service) ensureReportAccelerationForReport(report dbmodel.Report) error
 	return s.upsertReportAccelerationPlan(report.ID, executedPlan, dbmodel.ReportAccelerationStatusReady, "")
 }
 
-func ManualBackfill(reportID int) (view.RespReportAccelerationBackfillResult, error) {
-	return defaultService.ManualBackfill(reportID)
+func RunAccelerationCheck(reportID int) (view.RespReportAccelerationBackfillResult, error) {
+	return defaultService.RunAccelerationCheck(reportID)
 }
 
-func (s *Service) ManualBackfill(reportID int) (view.RespReportAccelerationBackfillResult, error) {
+func (s *Service) RunAccelerationCheck(reportID int) (view.RespReportAccelerationBackfillResult, error) {
 	if !s.useDB() {
-		return view.RespReportAccelerationBackfillResult{}, fmt.Errorf("当前环境不支持手动填充")
+		return view.RespReportAccelerationBackfillResult{}, fmt.Errorf("当前环境不支持手动自检")
 	}
 	if reportID == 0 {
 		return view.RespReportAccelerationBackfillResult{}, fmt.Errorf("reportId 不能为空")
@@ -573,33 +573,26 @@ func (s *Service) ManualBackfill(reportID int) (view.RespReportAccelerationBackf
 	if err != nil {
 		return view.RespReportAccelerationBackfillResult{}, err
 	}
-	current, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
-	if err != nil {
-		return view.RespReportAccelerationBackfillResult{}, err
-	}
-	if err = s.upsertReportAccelerationPlan(report.ID, plan, dbmodel.ReportAccelerationStatusRebuilding, ""); err != nil {
-		return view.RespReportAccelerationBackfillResult{}, err
-	}
-	executedPlan, err := s.applyReportAccelerationPlan(plan, *builder, topology, current, found)
-	if err != nil {
-		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
-		return view.RespReportAccelerationBackfillResult{}, err
-	}
-	check, err := s.runReportAccelerationSelfCheck(report, executedPlan, topology, s.now())
-	if err != nil {
-		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
-		return view.RespReportAccelerationBackfillResult{}, err
-	}
-	status := dbmodel.ReportAccelerationStatusReady
-	errorMessage := ""
-	if !check.Passed {
-		status = dbmodel.ReportAccelerationStatusError
-		errorMessage = check.Summary
-	}
-	if err = s.upsertReportAccelerationPlan(report.ID, executedPlan, status, errorMessage); err != nil {
-		return view.RespReportAccelerationBackfillResult{}, err
-	}
 	acceleration, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
+	if err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	check, err := s.runReportAccelerationSelfCheck(report, plan, topology, s.now())
+	if err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	if found {
+		status := acceleration.Status
+		if check.Passed {
+			status = dbmodel.ReportAccelerationStatusReady
+		} else {
+			status = dbmodel.ReportAccelerationStatusError
+		}
+		if err := s.upsertReportAccelerationPlan(report.ID, plan, status, check.Summary); err != nil {
+			return view.RespReportAccelerationBackfillResult{}, err
+		}
+	}
+	acceleration, found, err = s.getReportAccelerationByReportIDFromDB(report.ID)
 	if err != nil {
 		return view.RespReportAccelerationBackfillResult{}, err
 	}

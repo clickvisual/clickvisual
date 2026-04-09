@@ -110,7 +110,7 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/reports/channels", core.Handle(report.ChannelList))
 		r.GET("/reports/preview", core.Handle(report.PreviewGet))
 		r.POST("/reports/preview-run", core.Handle(report.PreviewRun))
-		r.POST("/reports/acceleration/backfill-run", core.Handle(report.AccelerationBackfillRun))
+		r.POST("/reports/acceleration/check-run", core.Handle(report.AccelerationCheckRun))
 		r.GET("/reports/executions", core.Handle(report.ExecutionList))
 		r.GET("/reports/workspace", core.Handle(report.WorkspaceGet))
 		r.GET("/reports/instances", core.Handle(report.ReportSourceInstances))

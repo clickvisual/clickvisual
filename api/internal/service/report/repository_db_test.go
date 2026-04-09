@@ -173,7 +173,7 @@ func TestPlaceholderStages(t *testing.T) {
 		{"app": "api", "count": 3},
 		{"app": "worker", "count": 2},
 	}
-	_, content, err := runRenderStage(report, schedule, time.Unix(0, 0), queryRows)
+	_, content, err := runRenderStage(report, schedule, time.Unix(0, 0), queryRows, reportQuerySourceAggregation)
 	assert.NoError(t, err)
 	assert.Contains(t, content, "## test")
 	assert.Contains(t, content, "### 📊 核心概览")
@@ -183,6 +183,8 @@ func TestPlaceholderStages(t *testing.T) {
 	assert.Contains(t, content, "logger.orders")
 	assert.Contains(t, content, "全部数据")
 	assert.Contains(t, content, "### ⏱️ 执行信息")
+	assert.Contains(t, content, "### ℹ️ 查询来源")
+	assert.Contains(t, content, "当前模式：聚合表")
 	assert.Contains(t, content, "统计窗口：1969-12-31 00:00:00 ~ 1970-01-01 00:00:00")
 	assert.Contains(t, content, "### 📋 查询结果")
 	assert.Contains(t, content, "- app：api")
@@ -192,8 +194,27 @@ func TestPlaceholderStages(t *testing.T) {
 	assert.NotContains(t, content, "查询预览")
 
 	report.TemplateKey = "simulate_render_error_template"
-	_, _, err = runRenderStage(report, schedule, time.Unix(0, 0), queryRows)
+	_, _, err = runRenderStage(report, schedule, time.Unix(0, 0), queryRows, reportQuerySourceDirect)
 	assert.ErrorContains(t, err, "simulate_render_error")
+}
+
+func TestRunRenderStageShowsFallbackSourceLabel(t *testing.T) {
+	report := dbmodel.Report{
+		Name:         "test",
+		Status:       dbmodel.ReportStatusEnabled,
+		QueryMode:    dbmodel.ReportQueryModeSQL,
+		QueryText:    "select 1",
+		TemplateKey:  "daily-core-kpi",
+		OutputFormat: dbmodel.ReportOutputFormatMarkdown,
+	}
+	schedule := dbmodel.ReportSchedule{
+		Status:     dbmodel.ReportScheduleStatusEnabled,
+		ChannelIDs: []int{201},
+	}
+
+	_, content, err := runRenderStage(report, schedule, time.Unix(0, 0), nil, reportQuerySourceDirectFallback)
+	assert.NoError(t, err)
+	assert.Contains(t, content, "当前模式：源表直查（降级）")
 }
 
 func TestRenderQueryRowsAsMarkdown(t *testing.T) {
