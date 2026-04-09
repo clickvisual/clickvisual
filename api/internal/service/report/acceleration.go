@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -83,6 +85,15 @@ type reportAccelerationTopology struct {
 	ClusterName      string
 	SourceLocalTable string
 	TargetLocalTable string
+	SourceTimeType   int
+}
+
+type reportAccelerationCheckResult struct {
+	WindowStart time.Time
+	WindowEnd   time.Time
+	Passed      bool
+	Summary     string
+	Blocks      []view.RespReportAccelerationCheckBlock
 }
 
 func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, topology reportAccelerationTopology, now time.Time) (reportAccelerationPlan, error) {
@@ -245,8 +256,9 @@ func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, t
 	}
 	sourceRef := quoteTable(builder.Database, sourceTable)
 	timeField := quoteIdentifier(builder.TimeField)
+	timeExpr := accelerationTimeValueExpr(timeField, topology.SourceTimeType)
 	bucketTpl, _ := aggregationTimeBucket(builder.TimeRange)
-	bucketExpr := fmt.Sprintf(bucketTpl, timeField)
+	bucketExpr := fmt.Sprintf(bucketTpl, timeExpr)
 	parts := make([]aggregationSelectPart, 0)
 	mvIndex := 0
 	for _, block := range blocks {
@@ -256,7 +268,7 @@ func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, t
 		}
 		timeClause := ""
 		if restrictTime {
-			timeClause = fmt.Sprintf(" AND %s >= toDateTime('%s', '%s') AND %s < toDateTime('%s', '%s')", timeField, start.Format("2006-01-02 15:04:05"), reportTimeZoneName, timeField, end.Format("2006-01-02 15:04:05"), reportTimeZoneName)
+			timeClause = accelerationTimeRangeClause(timeField, topology.SourceTimeType, start, end)
 		}
 		blockKey := strings.TrimSpace(block.Key)
 		if blockKey == "" {
@@ -303,6 +315,62 @@ func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, t
 		}
 	}
 	return parts, nil
+}
+
+func accelerationTimeValueExpr(timeField string, timeFieldType int) string {
+	switch timeFieldType {
+	case dbmodel.TimeFieldTypeSecond:
+		return fmt.Sprintf("toDateTime(%s, '%s')", timeField, reportTimeZoneName)
+	case dbmodel.TimeFieldTypeTsMs:
+		return fmt.Sprintf("toDateTime(intDiv(toInt64(%s), 1000), '%s')", timeField, reportTimeZoneName)
+	default:
+		return timeField
+	}
+}
+
+func accelerationTimeRangeClause(timeField string, timeFieldType int, start, end time.Time) string {
+	switch timeFieldType {
+	case dbmodel.TimeFieldTypeSecond:
+		return fmt.Sprintf(" AND %s >= %d AND %s < %d", timeField, start.Unix(), timeField, end.Unix())
+	case dbmodel.TimeFieldTypeTsMs:
+		return fmt.Sprintf(" AND %s >= %d AND %s < %d", timeField, start.UnixMilli(), timeField, end.UnixMilli())
+	case dbmodel.TimeFieldTypeDT3:
+		return fmt.Sprintf(" AND %s >= toDateTime64('%s', 3, '%s') AND %s < toDateTime64('%s', 3, '%s')", timeField, start.Format("2006-01-02 15:04:05"), reportTimeZoneName, timeField, end.Format("2006-01-02 15:04:05"), reportTimeZoneName)
+	case dbmodel.TimeFieldTypeDT6:
+		return fmt.Sprintf(" AND %s >= toDateTime64('%s', 6, '%s') AND %s < toDateTime64('%s', 6, '%s')", timeField, start.Format("2006-01-02 15:04:05"), reportTimeZoneName, timeField, end.Format("2006-01-02 15:04:05"), reportTimeZoneName)
+	case dbmodel.TimeFieldTypeDT9:
+		return fmt.Sprintf(" AND %s >= toDateTime64('%s', 9, '%s') AND %s < toDateTime64('%s', 9, '%s')", timeField, start.Format("2006-01-02 15:04:05"), reportTimeZoneName, timeField, end.Format("2006-01-02 15:04:05"), reportTimeZoneName)
+	default:
+		return fmt.Sprintf(" AND %s >= toDateTime('%s', '%s') AND %s < toDateTime('%s', '%s')", timeField, start.Format("2006-01-02 15:04:05"), reportTimeZoneName, timeField, end.Format("2006-01-02 15:04:05"), reportTimeZoneName)
+	}
+}
+
+func inferAccelerationTimeFieldType(columns []view.Column, timeField string) int {
+	field := normalizeFieldName(timeField)
+	for _, column := range columns {
+		if normalizeFieldName(column.Field) != field {
+			continue
+		}
+		typ := strings.TrimSpace(strings.ToLower(column.Type))
+		switch {
+		case strings.Contains(typ, "datetime64(3"):
+			return dbmodel.TimeFieldTypeDT3
+		case strings.Contains(typ, "datetime64(6"):
+			return dbmodel.TimeFieldTypeDT6
+		case strings.Contains(typ, "datetime64(9"):
+			return dbmodel.TimeFieldTypeDT9
+		case strings.Contains(typ, "datetime64"):
+			return dbmodel.TimeFieldTypeDT3
+		case strings.Contains(typ, "datetime"):
+			return dbmodel.TimeFieldTypeDT
+		case strings.Contains(typ, "float"), strings.Contains(typ, "int"), strings.Contains(typ, "uint"), strings.Contains(typ, "decimal"):
+			if strings.Contains(strings.ToLower(field), "ms") {
+				return dbmodel.TimeFieldTypeTsMs
+			}
+			return dbmodel.TimeFieldTypeSecond
+		}
+	}
+	return dbmodel.TimeFieldTypeDT
 }
 
 func buildAggregationBackfillSelectBody(builder view.ReqReportBuilder, topology reportAccelerationTopology, restrictTime bool, start time.Time, end time.Time) (string, error) {
@@ -478,6 +546,68 @@ func (s *Service) ensureReportAccelerationForReport(report dbmodel.Report) error
 	return s.upsertReportAccelerationPlan(report.ID, plan, dbmodel.ReportAccelerationStatusReady, "")
 }
 
+func ManualBackfill(reportID int) (view.RespReportAccelerationBackfillResult, error) {
+	return defaultService.ManualBackfill(reportID)
+}
+
+func (s *Service) ManualBackfill(reportID int) (view.RespReportAccelerationBackfillResult, error) {
+	if !s.useDB() {
+		return view.RespReportAccelerationBackfillResult{}, fmt.Errorf("当前环境不支持手动填充")
+	}
+	if reportID == 0 {
+		return view.RespReportAccelerationBackfillResult{}, fmt.Errorf("reportId 不能为空")
+	}
+	report, err := s.getReportByIDFromDB(reportID)
+	if err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	builder := resolveReportBuilder(report)
+	if builder == nil {
+		return view.RespReportAccelerationBackfillResult{}, fmt.Errorf("报表 builder 不存在")
+	}
+	topology, err := s.resolveReportAccelerationTopology(*builder)
+	if err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	plan, err := buildReportAccelerationPlan(report.ID, *builder, topology, s.now())
+	if err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	current, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
+	if err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	if err = s.upsertReportAccelerationPlan(report.ID, plan, dbmodel.ReportAccelerationStatusRebuilding, ""); err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	if err = s.applyReportAccelerationPlan(plan, current, found); err != nil {
+		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	check, err := s.runReportAccelerationSelfCheck(report, plan, topology, s.now())
+	if err != nil {
+		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	status := dbmodel.ReportAccelerationStatusReady
+	errorMessage := ""
+	if !check.Passed {
+		status = dbmodel.ReportAccelerationStatusError
+		errorMessage = check.Summary
+	}
+	if err = s.upsertReportAccelerationPlan(report.ID, plan, status, errorMessage); err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	acceleration, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
+	if err != nil {
+		return view.RespReportAccelerationBackfillResult{}, err
+	}
+	return view.RespReportAccelerationBackfillResult{
+		Acceleration: toRespReportAccelerationWithCheck(acceleration, found, &check),
+		Check:        toRespReportAccelerationCheck(check),
+	}, nil
+}
+
 func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, current dbmodel.ReportAcceleration, hasCurrent bool) error {
 	instance, err := s.getReportClickHouseInstance(plan.InstanceID)
 	if err != nil {
@@ -513,6 +643,206 @@ func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, curre
 		}
 	}
 	return nil
+}
+
+func (s *Service) runReportAccelerationSelfCheck(report dbmodel.Report, plan reportAccelerationPlan, topology reportAccelerationTopology, now time.Time) (reportAccelerationCheckResult, error) {
+	builder := resolveReportBuilder(report)
+	if builder == nil {
+		return reportAccelerationCheckResult{}, fmt.Errorf("报表 builder 不存在")
+	}
+	windowStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	windowEnd := now.Truncate(time.Hour)
+	if !windowEnd.After(windowStart) {
+		windowEnd = windowStart
+	}
+	instance, err := s.getReportClickHouseInstance(plan.InstanceID)
+	if err != nil {
+		return reportAccelerationCheckResult{}, err
+	}
+	operator := sourcesvc.Instantiate(&sourcesvc.Source{
+		DSN: instance.GetDSN(),
+		Typ: dbmodel.SourceTypClickHouse,
+	})
+	if operator == nil {
+		return reportAccelerationCheckResult{}, fmt.Errorf("clickhouse operator 初始化失败")
+	}
+
+	check := reportAccelerationCheckResult{
+		WindowStart: windowStart,
+		WindowEnd:   windowEnd,
+		Passed:      true,
+		Blocks:      make([]view.RespReportAccelerationCheckBlock, 0),
+	}
+	for _, block := range normalizeReportBlocks(*builder) {
+		blockKey := strings.TrimSpace(block.Key)
+		if blockKey == "" {
+			blockKey = "default"
+		}
+		blockLabel := strings.TrimSpace(block.Label)
+		if blockLabel == "" {
+			blockLabel = blockKey
+		}
+		for _, metric := range block.Metrics {
+			parsed, err := parseAggregationMetric(blockKey, metric)
+			if err != nil || parsed.Kind != aggregationMetricCount {
+				continue
+			}
+			aggBuckets, err := queryAggregatedCountBuckets(operator, plan.SourceDatabase, plan.TargetTable, blockKey, parsed.Label, windowStart, windowEnd)
+			if err != nil {
+				return reportAccelerationCheckResult{}, err
+			}
+			rawBuckets, err := queryDirectCountBuckets(operator, *builder, topology, block.Where, windowStart, windowEnd)
+			if err != nil {
+				return reportAccelerationCheckResult{}, err
+			}
+			comparison := compareCountBuckets(blockKey, blockLabel, parsed.Label, aggBuckets, rawBuckets)
+			if len(comparison.MismatchedBuckets) > 0 || comparison.AggregatedTotal != comparison.DirectTotal {
+				check.Passed = false
+			}
+			check.Blocks = append(check.Blocks, comparison)
+		}
+	}
+	if check.Passed {
+		check.Summary = fmt.Sprintf("自检通过：%s ~ %s 聚合结果与直接 count 一致", formatReportTime(windowStart), formatReportTime(windowEnd))
+	} else {
+		check.Summary = fmt.Sprintf("自检失败：%s ~ %s 存在聚合缺失或不一致，请检查聚合表与回填结果", formatReportTime(windowStart), formatReportTime(windowEnd))
+	}
+	return check, nil
+}
+
+func queryAggregatedCountBuckets(operator sourcesvc.Operator, database, table, blockKey, metricName string, start, end time.Time) (map[time.Time]int64, error) {
+	sql := fmt.Sprintf(
+		"SELECT bucket_time, toInt64(sum(count_value)) AS total FROM %s WHERE bucket_time >= toDateTime('%s', '%s') AND bucket_time < toDateTime('%s', '%s') AND block_key = '%s' AND metric_name = '%s' AND group_kind = 0 GROUP BY bucket_time ORDER BY bucket_time ASC",
+		quoteTable(database, table),
+		start.Format("2006-01-02 15:04:05"),
+		reportTimeZoneName,
+		end.Format("2006-01-02 15:04:05"),
+		reportTimeZoneName,
+		escapeSQLString(blockKey),
+		escapeSQLString(metricName),
+	)
+	rows, err := operator.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	return bucketMapFromRows(rows, "bucket_time", "total"), nil
+}
+
+func queryDirectCountBuckets(operator sourcesvc.Operator, builder view.ReqReportBuilder, topology reportAccelerationTopology, where string, start, end time.Time) (map[time.Time]int64, error) {
+	timeField := quoteIdentifier(builder.TimeField)
+	timeExpr := accelerationTimeValueExpr(timeField, topology.SourceTimeType)
+	whereClause, err := buildWhereClause(where)
+	if err != nil {
+		return nil, err
+	}
+	timeClause := accelerationTimeRangeClause(timeField, topology.SourceTimeType, start, end)
+	sql := fmt.Sprintf(
+		"SELECT toStartOfInterval(%s, INTERVAL 1 HOUR) AS bucket_time, toInt64(count()) AS total FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time ORDER BY bucket_time ASC",
+		timeExpr,
+		quoteTable(builder.Database, builder.Table),
+		timeClause,
+		whereClause,
+	)
+	rows, err := operator.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	return bucketMapFromRows(rows, "bucket_time", "total"), nil
+}
+
+func bucketMapFromRows(rows []map[string]interface{}, timeKey, valueKey string) map[time.Time]int64 {
+	result := make(map[time.Time]int64, len(rows))
+	for _, row := range rows {
+		bucket, ok := toTime(row[timeKey])
+		if !ok {
+			continue
+		}
+		result[reportDisplayTime(bucket)] = int64(math.Round(toFloat64Value(row[valueKey])))
+	}
+	return result
+}
+
+func compareCountBuckets(blockKey, blockLabel, metricName string, aggregated, direct map[time.Time]int64) view.RespReportAccelerationCheckBlock {
+	allBucketsMap := make(map[time.Time]struct{}, len(aggregated)+len(direct))
+	var aggregatedTotal int64
+	var directTotal int64
+	for bucket, value := range aggregated {
+		allBucketsMap[bucket] = struct{}{}
+		aggregatedTotal += value
+	}
+	for bucket, value := range direct {
+		allBucketsMap[bucket] = struct{}{}
+		directTotal += value
+	}
+	allBuckets := make([]time.Time, 0, len(allBucketsMap))
+	for bucket := range allBucketsMap {
+		allBuckets = append(allBuckets, bucket)
+	}
+	sort.Slice(allBuckets, func(i, j int) bool { return allBuckets[i].Before(allBuckets[j]) })
+	mismatches := make([]view.RespReportAccelerationCheckBucket, 0)
+	for _, bucket := range allBuckets {
+		agg := aggregated[bucket]
+		raw := direct[bucket]
+		if agg == raw {
+			continue
+		}
+		mismatches = append(mismatches, view.RespReportAccelerationCheckBucket{
+			BucketTime:      formatReportTime(bucket),
+			AggregatedValue: agg,
+			DirectValue:     raw,
+		})
+	}
+	return view.RespReportAccelerationCheckBlock{
+		BlockKey:          blockKey,
+		BlockLabel:        blockLabel,
+		MetricName:        metricName,
+		AggregatedTotal:   aggregatedTotal,
+		DirectTotal:       directTotal,
+		MismatchedBuckets: mismatches,
+	}
+}
+
+func toTime(value interface{}) (time.Time, bool) {
+	switch typed := value.(type) {
+	case time.Time:
+		return typed, true
+	case string:
+		for _, layout := range []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02 15:04:05 -0700 MST"} {
+			if parsed, err := time.Parse(layout, typed); err == nil {
+				return parsed, true
+			}
+		}
+	}
+	return time.Time{}, false
+}
+
+func toFloat64Value(value interface{}) float64 {
+	switch typed := value.(type) {
+	case float64:
+		return typed
+	case float32:
+		return float64(typed)
+	case int64:
+		return float64(typed)
+	case int32:
+		return float64(typed)
+	case int:
+		return float64(typed)
+	case uint64:
+		return float64(typed)
+	case uint32:
+		return float64(typed)
+	case uint:
+		return float64(typed)
+	case json.Number:
+		f, _ := typed.Float64()
+		return f
+	case string:
+		f, _ := strconv.ParseFloat(strings.TrimSpace(typed), 64)
+		return f
+	default:
+		return 0
+	}
 }
 
 func (s *Service) cleanupReportAcceleration(acceleration dbmodel.ReportAcceleration) {
@@ -694,7 +1024,13 @@ func (s *Service) resolveReportAccelerationTopology(builder view.ReqReportBuilde
 		ClusterName:      clusterName,
 		SourceLocalTable: builder.Table,
 		TargetLocalTable: fmt.Sprintf("cv_report_agg_%d_local", 0),
+		SourceTimeType:   dbmodel.TimeFieldTypeDT,
 	}
+	columns, err := operator.Columns(builder.Database, builder.Table)
+	if err != nil {
+		return reportAccelerationTopology{}, err
+	}
+	topology.SourceTimeType = inferAccelerationTimeFieldType(columns, builder.TimeField)
 	if !useCluster {
 		topology.TargetLocalTable = ""
 		return topology, nil

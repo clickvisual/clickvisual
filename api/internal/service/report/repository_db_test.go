@@ -350,6 +350,33 @@ func TestBuildPreviewPushContentUsesDescAndWholeDataLabel(t *testing.T) {
 	assert.NotContains(t, content, "1=1")
 }
 
+func TestBuildPreviewPushContentFormatsStartedAtInShanghai(t *testing.T) {
+	title, content := buildPreviewPushContent(
+		view.RespReportListItem{
+			ID:   1001,
+			Name: "UTC 时间回归测试",
+			Desc: "校验报表展示时区",
+		},
+		view.RespReportEditorDraft{
+			ReportID: 1001,
+			Name:     "UTC 时间回归测试",
+			Desc:     "校验报表展示时区",
+			Builder: &view.ReqReportBuilder{
+				Database:  "logger",
+				Table:     "orders",
+				TimeField: "event_time",
+				TimeRange: "1h",
+				Where:     "",
+			},
+		},
+		view.RespReportSchedule{Cron: "0 0 9 * * *"},
+		time.Date(2026, 4, 9, 2, 17, 18, 0, time.UTC),
+	)
+	assert.Equal(t, "统计预览｜UTC 时间回归测试", title)
+	assert.Contains(t, content, "发送时间：2026-04-09 10:17:18")
+	assert.Contains(t, content, "统计窗口：2026-04-09 09:17:18 ~ 2026-04-09 10:17:18")
+}
+
 func TestBuildPreviewPushContentIncludesAISummaryWhenAvailable(t *testing.T) {
 	original := reportContentSummarizer
 	reportContentSummarizer = summarizerFunc(func(input reportSummaryInput) (string, error) {

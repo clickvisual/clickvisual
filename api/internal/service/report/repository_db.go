@@ -1131,7 +1131,7 @@ func stageFailureSummary(stage executionStage, err error) string {
 func buildStageFailureContent(stage executionStage, summary string, startedAt time.Time) string {
 	return fmt.Sprintf(
 		"### 统计执行失败\n- 关键字：统计\n- 执行时间：%s\n- 失败阶段：%s\n- 错误摘要：%s\n",
-		startedAt.Format("2006-01-02 15:04:05"),
+		formatReportTime(startedAt),
 		executionStageLabel(stage),
 		summary,
 	)
@@ -1296,15 +1296,36 @@ func toRespReportDefinition(report dbmodel.Report) view.RespReportDefinition {
 }
 
 func toRespReportAcceleration(acceleration dbmodel.ReportAcceleration, found bool) view.RespReportAcceleration {
+	return toRespReportAccelerationWithCheck(acceleration, found, nil)
+}
+
+func toRespReportAccelerationCheck(check reportAccelerationCheckResult) view.RespReportAccelerationCheck {
+	return view.RespReportAccelerationCheck{
+		WindowStart: formatReportTime(check.WindowStart),
+		WindowEnd:   formatReportTime(check.WindowEnd),
+		Passed:      check.Passed,
+		Summary:     check.Summary,
+		Blocks:      check.Blocks,
+	}
+}
+
+func toRespReportAccelerationWithCheck(acceleration dbmodel.ReportAcceleration, found bool, check *reportAccelerationCheckResult) view.RespReportAcceleration {
 	if !found {
 		return view.RespReportAcceleration{Status: "missing"}
 	}
-	return view.RespReportAcceleration{
-		Status:       acceleration.Status,
-		TargetTable:  acceleration.TargetTable,
-		MVName:       acceleration.MVName,
-		ErrorMessage: acceleration.ErrorMessage,
+	resp := view.RespReportAcceleration{
+		Status:          acceleration.Status,
+		TargetTable:     acceleration.TargetTable,
+		MVName:          acceleration.MVName,
+		ErrorMessage:    acceleration.ErrorMessage,
+		BackfillStartAt: formatUnix(acceleration.BackfillStartAt),
+		BackfillEndAt:   formatUnix(acceleration.BackfillEndAt),
 	}
+	if check != nil {
+		checkResp := toRespReportAccelerationCheck(*check)
+		resp.LastCheck = &checkResp
+	}
+	return resp
 }
 
 func toRespReportEditor(report dbmodel.Report, schedule dbmodel.ReportSchedule) view.RespReportEditorDraft {
@@ -1507,7 +1528,7 @@ func formatUnix(ts int64) string {
 	if ts <= 0 {
 		return ""
 	}
-	return time.Unix(ts, 0).Format(time.RFC3339)
+	return reportDisplayTime(time.Unix(ts, 0)).Format(time.RFC3339)
 }
 
 func newerTimeString(a string, b string) string {

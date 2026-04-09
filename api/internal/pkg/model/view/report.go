@@ -171,10 +171,41 @@ type RespReportSendSummary struct {
 }
 
 type RespReportAcceleration struct {
-	Status       string `json:"status"`
-	TargetTable  string `json:"targetTable"`
-	MVName       string `json:"mvName"`
-	ErrorMessage string `json:"errorMessage"`
+	Status          string                       `json:"status"`
+	TargetTable     string                       `json:"targetTable"`
+	MVName          string                       `json:"mvName"`
+	ErrorMessage    string                       `json:"errorMessage"`
+	BackfillStartAt string                       `json:"backfillStartAt,omitempty"`
+	BackfillEndAt   string                       `json:"backfillEndAt,omitempty"`
+	LastCheck       *RespReportAccelerationCheck `json:"lastCheck,omitempty"`
+}
+
+type RespReportAccelerationCheckBucket struct {
+	BucketTime      string `json:"bucketTime"`
+	AggregatedValue int64  `json:"aggregatedValue"`
+	DirectValue     int64  `json:"directValue"`
+}
+
+type RespReportAccelerationCheckBlock struct {
+	BlockKey          string                              `json:"blockKey"`
+	BlockLabel        string                              `json:"blockLabel"`
+	MetricName        string                              `json:"metricName"`
+	AggregatedTotal   int64                               `json:"aggregatedTotal"`
+	DirectTotal       int64                               `json:"directTotal"`
+	MismatchedBuckets []RespReportAccelerationCheckBucket `json:"mismatchedBuckets"`
+}
+
+type RespReportAccelerationCheck struct {
+	WindowStart string                             `json:"windowStart"`
+	WindowEnd   string                             `json:"windowEnd"`
+	Passed      bool                               `json:"passed"`
+	Summary     string                             `json:"summary"`
+	Blocks      []RespReportAccelerationCheckBlock `json:"blocks"`
+}
+
+type RespReportAccelerationBackfillResult struct {
+	Acceleration RespReportAcceleration      `json:"acceleration"`
+	Check        RespReportAccelerationCheck `json:"check"`
 }
 
 type RespReportWorkspace struct {

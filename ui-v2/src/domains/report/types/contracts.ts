@@ -131,6 +131,37 @@ export interface ReportAccelerationStatus {
   targetTable: string;
   mvName: string;
   errorMessage?: string;
+  backfillStartAt?: string;
+  backfillEndAt?: string;
+  lastCheck?: ReportAccelerationCheck | null;
+}
+
+export interface ReportAccelerationCheckBucket {
+  bucketTime: string;
+  aggregatedValue: number;
+  directValue: number;
+}
+
+export interface ReportAccelerationCheckBlock {
+  blockKey: string;
+  blockLabel: string;
+  metricName: string;
+  aggregatedTotal: number;
+  directTotal: number;
+  mismatchedBuckets: ReportAccelerationCheckBucket[];
+}
+
+export interface ReportAccelerationCheck {
+  windowStart: string;
+  windowEnd: string;
+  passed: boolean;
+  summary: string;
+  blocks: ReportAccelerationCheckBlock[];
+}
+
+export interface ReportAccelerationBackfillResult {
+  acceleration: ReportAccelerationStatus;
+  check: ReportAccelerationCheck;
 }
 
 export interface ReportWorkspace {
