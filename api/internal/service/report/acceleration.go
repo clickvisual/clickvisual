@@ -40,13 +40,10 @@ type reportAccelerationPlan struct {
 	UseCluster                 bool
 	FilterSQL                  string
 	BuilderFingerprint         string
-	BackfillStart              time.Time
-	BackfillEnd                time.Time
 	CreateTableSQL             string
 	CreateTableSQLs            []string
 	CreateMaterializedViewSQL  string
 	CreateMaterializedViewSQLs []string
-	BackfillSQL                string
 	DropMaterializedViewSQL    string
 	DropTargetTableSQL         string
 	TimeBucketExpression       string
@@ -96,17 +93,13 @@ type reportAccelerationCheckResult struct {
 	Blocks      []view.RespReportAccelerationCheckBlock
 }
 
-func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, topology reportAccelerationTopology, now time.Time) (reportAccelerationPlan, error) {
+func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, topology reportAccelerationTopology, _ time.Time) (reportAccelerationPlan, error) {
 	if reportID <= 0 {
 		return reportAccelerationPlan{}, fmt.Errorf("reportId 不能为空")
 	}
 	builder = sanitizeReportBuilder(builder)
 	if strings.TrimSpace(builder.Database) == "" || strings.TrimSpace(builder.Table) == "" || strings.TrimSpace(builder.TimeField) == "" {
 		return reportAccelerationPlan{}, fmt.Errorf("database、table、timeField 不能为空")
-	}
-	duration, err := reportDuration(builder.TimeRange)
-	if err != nil {
-		return reportAccelerationPlan{}, err
 	}
 	filterSQL, err := buildAccelerationFilterSQL(builder)
 	if err != nil {
@@ -121,15 +114,9 @@ func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, to
 	if topology.UseCluster {
 		targetLocalTable = fmt.Sprintf("%s_local", targetTable)
 	}
-	backfillStart := now.Add(-(24*time.Hour + duration))
-	backfillEnd := now
 	targetRef := quoteTable(builder.Database, targetTable)
 	targetLocalRef := quoteTable(builder.Database, targetLocalTable)
 	selectBodies, err := buildAggregationSelectBodies(reportID, builder, topology, false, time.Time{}, time.Time{})
-	if err != nil {
-		return reportAccelerationPlan{}, err
-	}
-	backfillSelectBody, err := buildAggregationBackfillSelectBody(builder, topology, true, backfillStart, backfillEnd)
 	if err != nil {
 		return reportAccelerationPlan{}, err
 	}
@@ -166,13 +153,10 @@ func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, to
 		UseCluster:                 topology.UseCluster,
 		FilterSQL:                  filterSQL,
 		BuilderFingerprint:         fingerprint,
-		BackfillStart:              backfillStart,
-		BackfillEnd:                backfillEnd,
 		CreateTableSQL:             strings.Join(createTableSQLs, ";\n"),
 		CreateTableSQLs:            createTableSQLs,
 		CreateMaterializedViewSQL:  strings.Join(mvSQLs, ";\n"),
 		CreateMaterializedViewSQLs: mvSQLs,
-		BackfillSQL:                fmt.Sprintf("INSERT INTO %s %s", targetRef, backfillSelectBody),
 		DropMaterializedViewSQL:    "",
 		DropTargetTableSQL:         fmt.Sprintf("DROP TABLE IF EXISTS %s", targetRef),
 		TimeBucketExpression:       timeBucketExpression,
@@ -373,20 +357,6 @@ func inferAccelerationTimeFieldType(columns []view.Column, timeField string) int
 	return dbmodel.TimeFieldTypeDT
 }
 
-func buildAggregationBackfillSelectBody(builder view.ReqReportBuilder, topology reportAccelerationTopology, restrictTime bool, start time.Time, end time.Time) (string, error) {
-	backfillTopology := topology
-	backfillTopology.SourceLocalTable = ""
-	parts, err := buildAggregationSelectBodies(0, builder, backfillTopology, restrictTime, start, end)
-	if err != nil {
-		return "", err
-	}
-	selectSQLs := make([]string, 0, len(parts))
-	for _, item := range parts {
-		selectSQLs = append(selectSQLs, item.SelectSQL)
-	}
-	return strings.Join(selectSQLs, " UNION ALL "), nil
-}
-
 func parseAggregationMetric(blockKey string, metric view.ReqReportMetric) (parsedAggregationMetric, error) {
 	label := strings.TrimSpace(metric.Label)
 	if label == "" {
@@ -538,7 +508,7 @@ func (s *Service) ensureReportAccelerationForReport(report dbmodel.Report) error
 	if err := s.upsertReportAccelerationPlan(report.ID, plan, status, ""); err != nil {
 		return err
 	}
-	executedPlan, err := s.applyReportAccelerationPlan(plan, *builder, topology, current, found)
+	executedPlan, err := s.applyReportAccelerationPlan(plan, current, found)
 	if err != nil {
 		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
 		return err
@@ -602,7 +572,7 @@ func (s *Service) RunAccelerationCheck(reportID int) (view.RespReportAcceleratio
 	}, nil
 }
 
-func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, builder view.ReqReportBuilder, topology reportAccelerationTopology, current dbmodel.ReportAcceleration, hasCurrent bool) (reportAccelerationPlan, error) {
+func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, current dbmodel.ReportAcceleration, hasCurrent bool) (reportAccelerationPlan, error) {
 	instance, err := s.getReportClickHouseInstance(plan.InstanceID)
 	if err != nil {
 		return plan, err
@@ -635,25 +605,7 @@ func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, build
 			return plan, normalizeClusterDDLError(err, plan.ClusterName)
 		}
 	}
-	backfillEnd := s.now()
-	backfillSQL, err := buildReportAccelerationBackfillSQL(plan, builder, topology, backfillEnd)
-	if err != nil {
-		return plan, err
-	}
-	if err = operator.Exec(backfillSQL); err != nil {
-		return plan, normalizeClusterDDLError(err, plan.ClusterName)
-	}
-	plan.BackfillEnd = backfillEnd
-	plan.BackfillSQL = backfillSQL
 	return plan, nil
-}
-
-func buildReportAccelerationBackfillSQL(plan reportAccelerationPlan, builder view.ReqReportBuilder, topology reportAccelerationTopology, backfillEnd time.Time) (string, error) {
-	backfillSelectBody, err := buildAggregationBackfillSelectBody(builder, topology, true, plan.BackfillStart, backfillEnd)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("INSERT INTO %s %s", quoteTable(builder.Database, plan.TargetTable), backfillSelectBody), nil
 }
 
 func (s *Service) runReportAccelerationSelfCheck(report dbmodel.Report, plan reportAccelerationPlan, topology reportAccelerationTopology, now time.Time) (reportAccelerationCheckResult, error) {
@@ -929,8 +881,8 @@ func (s *Service) upsertReportAccelerationPlan(reportID int, plan reportAccelera
 		ClusterName:        plan.ClusterName,
 		FilterSQL:          plan.FilterSQL,
 		BuilderFingerprint: plan.BuilderFingerprint,
-		BackfillStartAt:    plan.BackfillStart.Unix(),
-		BackfillEndAt:      plan.BackfillEnd.Unix(),
+		BackfillStartAt:    0,
+		BackfillEndAt:      0,
 		DDLSQL:             plan.ddlSQL(),
 		Status:             status,
 		ErrorMessage:       errorMessage,
