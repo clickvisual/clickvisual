@@ -52,6 +52,14 @@ type reportChannelSendResult struct {
 	Errors        []string `json:"errors,omitempty"`
 }
 
+type reportQuerySource string
+
+const (
+	reportQuerySourceDirect         reportQuerySource = "direct"
+	reportQuerySourceAggregation    reportQuerySource = "aggregation"
+	reportQuerySourceDirectFallback reportQuerySource = "direct-fallback"
+)
+
 func (s *Service) useDB() bool {
 	return invoker.Db != nil
 }
@@ -585,21 +593,14 @@ func (s *Service) runDBExecutionPipeline(report dbmodel.Report, hasSchedule bool
 		return result
 	}
 
-	queryText, err := s.resolveExecutionQueryText(report, startedAt)
+	queryRows, querySource, err := s.runExecutionQuery(report, startedAt)
 	if err != nil {
 		result.errorSummary = stageFailureSummary(executionStageQuery, err)
 		result.renderedContent = buildStageFailureContent(executionStageQuery, result.errorSummary, startedAt)
 		return result
 	}
 
-	queryRows, err := s.runQueryStage(queryText)
-	if err != nil {
-		result.errorSummary = stageFailureSummary(executionStageQuery, err)
-		result.renderedContent = buildStageFailureContent(executionStageQuery, result.errorSummary, startedAt)
-		return result
-	}
-
-	renderedTitle, renderedContent, err := runRenderStage(report, schedule, startedAt, queryRows)
+	renderedTitle, renderedContent, err := runRenderStage(report, schedule, startedAt, queryRows, querySource)
 	if err != nil {
 		result.errorSummary = stageFailureSummary(executionStageRender, err)
 		result.renderedContent = buildStageFailureContent(executionStageRender, result.errorSummary, startedAt)
@@ -727,21 +728,41 @@ func isAccelerationManagedReport(report dbmodel.Report) bool {
 	return strings.TrimSpace(report.TemplateKey) == "report-builder-default" && resolveReportBuilder(report) != nil
 }
 
-func (s *Service) resolveExecutionQueryText(report dbmodel.Report, startedAt time.Time) (string, error) {
+func (s *Service) runExecutionQuery(report dbmodel.Report, startedAt time.Time) ([]map[string]interface{}, reportQuerySource, error) {
 	if !isAccelerationManagedReport(report) {
-		return report.QueryText, nil
+		rows, err := s.runQueryStage(report.QueryText)
+		return rows, reportQuerySourceDirect, err
 	}
 	acceleration, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
-	if !found {
-		return "", fmt.Errorf("报表加速未创建")
+	if !found || acceleration.Status != dbmodel.ReportAccelerationStatusReady {
+		return s.runDirectExecutionFallback(report, nil)
 	}
-	if acceleration.Status != dbmodel.ReportAccelerationStatusReady {
-		return "", fmt.Errorf("报表加速未就绪，当前状态：%s", acceleration.Status)
+	queryText, err := buildAcceleratedReportQuery(report, acceleration, startedAt)
+	if err != nil {
+		return s.runDirectExecutionFallback(report, err)
 	}
-	return buildAcceleratedReportQuery(report, acceleration, startedAt)
+	rows, err := s.runQueryStage(queryText)
+	if err != nil {
+		return s.runDirectExecutionFallback(report, err)
+	}
+	if len(rows) == 0 {
+		return s.runDirectExecutionFallback(report, fmt.Errorf("聚合表返回空结果"))
+	}
+	return rows, reportQuerySourceAggregation, nil
+}
+
+func (s *Service) runDirectExecutionFallback(report dbmodel.Report, reason error) ([]map[string]interface{}, reportQuerySource, error) {
+	rows, err := s.runQueryStage(report.QueryText)
+	if err != nil {
+		if reason != nil {
+			return nil, "", fmt.Errorf("聚合查询失败且源表直查失败: aggregation=%v; direct=%w", reason, err)
+		}
+		return nil, "", err
+	}
+	return rows, reportQuerySourceDirectFallback, nil
 }
 
 func (s *Service) runQueryStage(queryText string) ([]map[string]interface{}, error) {
@@ -770,7 +791,7 @@ func (s *Service) runQueryStage(queryText string) ([]map[string]interface{}, err
 	return rows, nil
 }
 
-func runRenderStage(report dbmodel.Report, schedule dbmodel.ReportSchedule, startedAt time.Time, queryRows []map[string]interface{}) (string, string, error) {
+func runRenderStage(report dbmodel.Report, schedule dbmodel.ReportSchedule, startedAt time.Time, queryRows []map[string]interface{}, querySource reportQuerySource) (string, string, error) {
 	if strings.TrimSpace(report.OutputFormat) != dbmodel.ReportOutputFormatMarkdown {
 		return "", "", fmt.Errorf("暂不支持输出格式 %s", report.OutputFormat)
 	}
@@ -781,8 +802,20 @@ func runRenderStage(report dbmodel.Report, schedule dbmodel.ReportSchedule, star
 	editor := toRespReportEditor(report, schedule)
 	scheduleResp := toRespReportSchedule(report, schedule)
 	title, text := buildPreviewPushContentWithRows(reportItem, editor, scheduleResp, startedAt, queryRows)
-	text = strings.TrimSpace(text + "\n\n" + renderQueryRowsAsMarkdown(queryRows))
+	sourceSection := fmt.Sprintf("### ℹ️ 查询来源\n- 当前模式：%s", reportQuerySourceLabel(querySource))
+	text = strings.TrimSpace(text + "\n\n" + sourceSection + "\n\n" + renderQueryRowsAsMarkdown(queryRows))
 	return title, text, nil
+}
+
+func reportQuerySourceLabel(source reportQuerySource) string {
+	switch source {
+	case reportQuerySourceAggregation:
+		return "聚合表"
+	case reportQuerySourceDirectFallback:
+		return "源表直查（降级）"
+	default:
+		return "源表直查"
+	}
 }
 
 func renderQueryRowsAsMarkdown(rows []map[string]interface{}) string {

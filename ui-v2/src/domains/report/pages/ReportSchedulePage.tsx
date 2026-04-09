@@ -8,7 +8,7 @@ import {
   listReportSourceInstances,
   listReportSourceTables,
   listReportTableColumns,
-  runReportAccelerationBackfill,
+  runReportAccelerationCheck,
   runReportPreview,
   saveReportSchedule
 } from "../api/report";
@@ -388,7 +388,7 @@ export default function ReportSchedulePage() {
     setLastBackfillCheck(null);
 
     try {
-      const resp = await runReportAccelerationBackfill(workspace.activeReportId);
+      const resp = await runReportAccelerationCheck(workspace.activeReportId);
       setWorkspace((current) =>
         current
           ? {
@@ -407,7 +407,7 @@ export default function ReportSchedulePage() {
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "手动填充失败";
+        error instanceof Error ? error.message : "手动自检失败";
       setBackfillStatus("error");
       setBackfillMessage(message);
     }
@@ -960,13 +960,13 @@ export default function ReportSchedulePage() {
                           onClick={handleRunAccelerationBackfill}
                           disabled={!workspace || backfillStatus === "pending"}
                         >
-                          {backfillStatus === "pending" ? "手动填充中..." : "手动填充并自检"}
+                          {backfillStatus === "pending" ? "自检中..." : "手动自检"}
                         </button>
                         <ReportPushStatusCard
-                          actionLabel="手动填充"
+                          actionLabel="手动自检"
                           status={backfillStatus}
                           message={backfillMessage ?? undefined}
-                          idleMessage="可手动重建聚合并校验今天 00:00 到当前时间的数据"
+                          idleMessage="仅校验今天 00:00 到当前整点的数据，不会自动修改聚合表"
                         />
                         {(lastBackfillCheck ?? acceleration.lastCheck) ? (
                           <div className="cv-kv">

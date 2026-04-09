@@ -573,11 +573,11 @@ export async function runReportPreview(
   });
 }
 
-export async function runReportAccelerationBackfill(
+export async function runReportAccelerationCheck(
   reportId: number
 ): Promise<ReportAccelerationBackfillResult> {
   const raw = await client.post<ReportAccelerationBackfillResult>(
-    "/api/v2/reports/acceleration/backfill-run",
+    "/api/v2/reports/acceleration/check-run",
     { reportId }
   );
   return {

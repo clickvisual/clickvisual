@@ -244,7 +244,7 @@ func PreviewRun(c *core.Context) {
 	c.JSONOK(resp)
 }
 
-func AccelerationBackfillRun(c *core.Context) {
+func AccelerationCheckRun(c *core.Context) {
 	var req struct {
 		ReportID int `json:"reportId" form:"reportId"`
 	}
@@ -253,7 +253,7 @@ func AccelerationBackfillRun(c *core.Context) {
 		return
 	}
 
-	resp, err := reportservice.ManualBackfill(req.ReportID)
+	resp, err := reportservice.RunAccelerationCheck(req.ReportID)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return
