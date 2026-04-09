@@ -503,7 +503,6 @@ func (p reportAccelerationPlan) ddlSQL() string {
 	return strings.Join([]string{
 		p.CreateTableSQL,
 		p.CreateMaterializedViewSQL,
-		p.BackfillSQL,
 	}, ";\n")
 }
 
@@ -539,11 +538,12 @@ func (s *Service) ensureReportAccelerationForReport(report dbmodel.Report) error
 	if err := s.upsertReportAccelerationPlan(report.ID, plan, status, ""); err != nil {
 		return err
 	}
-	if err := s.applyReportAccelerationPlan(plan, current, found); err != nil {
+	executedPlan, err := s.applyReportAccelerationPlan(plan, *builder, topology, current, found)
+	if err != nil {
 		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
 		return err
 	}
-	return s.upsertReportAccelerationPlan(report.ID, plan, dbmodel.ReportAccelerationStatusReady, "")
+	return s.upsertReportAccelerationPlan(report.ID, executedPlan, dbmodel.ReportAccelerationStatusReady, "")
 }
 
 func ManualBackfill(reportID int) (view.RespReportAccelerationBackfillResult, error) {
@@ -580,11 +580,12 @@ func (s *Service) ManualBackfill(reportID int) (view.RespReportAccelerationBackf
 	if err = s.upsertReportAccelerationPlan(report.ID, plan, dbmodel.ReportAccelerationStatusRebuilding, ""); err != nil {
 		return view.RespReportAccelerationBackfillResult{}, err
 	}
-	if err = s.applyReportAccelerationPlan(plan, current, found); err != nil {
+	executedPlan, err := s.applyReportAccelerationPlan(plan, *builder, topology, current, found)
+	if err != nil {
 		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
 		return view.RespReportAccelerationBackfillResult{}, err
 	}
-	check, err := s.runReportAccelerationSelfCheck(report, plan, topology, s.now())
+	check, err := s.runReportAccelerationSelfCheck(report, executedPlan, topology, s.now())
 	if err != nil {
 		_ = s.upsertReportAccelerationFailure(report.ID, plan, err)
 		return view.RespReportAccelerationBackfillResult{}, err
@@ -595,7 +596,7 @@ func (s *Service) ManualBackfill(reportID int) (view.RespReportAccelerationBackf
 		status = dbmodel.ReportAccelerationStatusError
 		errorMessage = check.Summary
 	}
-	if err = s.upsertReportAccelerationPlan(report.ID, plan, status, errorMessage); err != nil {
+	if err = s.upsertReportAccelerationPlan(report.ID, executedPlan, status, errorMessage); err != nil {
 		return view.RespReportAccelerationBackfillResult{}, err
 	}
 	acceleration, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
@@ -608,41 +609,58 @@ func (s *Service) ManualBackfill(reportID int) (view.RespReportAccelerationBackf
 	}, nil
 }
 
-func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, current dbmodel.ReportAcceleration, hasCurrent bool) error {
+func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, builder view.ReqReportBuilder, topology reportAccelerationTopology, current dbmodel.ReportAcceleration, hasCurrent bool) (reportAccelerationPlan, error) {
 	instance, err := s.getReportClickHouseInstance(plan.InstanceID)
 	if err != nil {
-		return err
+		return plan, err
 	}
 	operator := sourcesvc.Instantiate(&sourcesvc.Source{
 		DSN: instance.GetDSN(),
 		Typ: dbmodel.SourceTypClickHouse,
 	})
 	if operator == nil {
-		return fmt.Errorf("clickhouse operator 初始化失败")
+		return plan, fmt.Errorf("clickhouse operator 初始化失败")
 	}
 	if hasCurrent {
 		for _, mvName := range splitAccelerationMVNames(current.MVName) {
 			dropViewSQL := s.buildClusterAwareDropSQL(current.SourceDatabase, mvName, current.ClusterName)
 			if err = operator.Exec(dropViewSQL); err != nil {
-				return normalizeClusterDDLError(err, current.ClusterName)
+				return plan, normalizeClusterDDLError(err, current.ClusterName)
 			}
 		}
 		for _, dropTableSQL := range s.buildAccelerationTargetDropSQLs(current) {
 			if err = operator.Exec(dropTableSQL); err != nil {
-				return normalizeClusterDDLError(err, current.ClusterName)
+				return plan, normalizeClusterDDLError(err, current.ClusterName)
 			}
 		}
 	}
-	sqlTexts := make([]string, 0, len(plan.CreateTableSQLs)+len(plan.CreateMaterializedViewSQLs)+1)
+	sqlTexts := make([]string, 0, len(plan.CreateTableSQLs)+len(plan.CreateMaterializedViewSQLs))
 	sqlTexts = append(sqlTexts, plan.CreateTableSQLs...)
 	sqlTexts = append(sqlTexts, plan.CreateMaterializedViewSQLs...)
-	sqlTexts = append(sqlTexts, plan.BackfillSQL)
 	for _, sqlText := range sqlTexts {
 		if err = operator.Exec(sqlText); err != nil {
-			return normalizeClusterDDLError(err, plan.ClusterName)
+			return plan, normalizeClusterDDLError(err, plan.ClusterName)
 		}
 	}
-	return nil
+	backfillEnd := s.now()
+	backfillSQL, err := buildReportAccelerationBackfillSQL(plan, builder, topology, backfillEnd)
+	if err != nil {
+		return plan, err
+	}
+	if err = operator.Exec(backfillSQL); err != nil {
+		return plan, normalizeClusterDDLError(err, plan.ClusterName)
+	}
+	plan.BackfillEnd = backfillEnd
+	plan.BackfillSQL = backfillSQL
+	return plan, nil
+}
+
+func buildReportAccelerationBackfillSQL(plan reportAccelerationPlan, builder view.ReqReportBuilder, topology reportAccelerationTopology, backfillEnd time.Time) (string, error) {
+	backfillSelectBody, err := buildAggregationBackfillSelectBody(builder, topology, true, plan.BackfillStart, backfillEnd)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("INSERT INTO %s %s", quoteTable(builder.Database, plan.TargetTable), backfillSelectBody), nil
 }
 
 func (s *Service) runReportAccelerationSelfCheck(report dbmodel.Report, plan reportAccelerationPlan, topology reportAccelerationTopology, now time.Time) (reportAccelerationCheckResult, error) {
