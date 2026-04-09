@@ -52,7 +52,7 @@ func newService() *Service {
 		deliveries: cloneDeliveryMap(seed.deliveries),
 		channels:   cloneChannelList(seed.channels),
 		sender:     newHTTPPreviewSender(),
-		now:        time.Now,
+		now:        reportNow,
 		sleep:      time.Sleep,
 		nextExecID: nextExecutionID(seed.executions),
 	}
@@ -942,6 +942,7 @@ func buildPreviewPushContentWithRows(item view.RespReportListItem, editor view.R
 	title := fmt.Sprintf("统计预览｜%s", item.Name)
 	description := reportDescription(item, editor)
 	source, timeRangeLabel, scopeLabel := reportScopeLabels(editor.Builder)
+	startedAt = reportDisplayTime(startedAt)
 
 	sections := make([]string, 0, 5)
 	sections = append(sections, fmt.Sprintf("## %s", markdownEscape(item.Name)))
@@ -960,11 +961,11 @@ func buildPreviewPushContentWithRows(item view.RespReportListItem, editor view.R
 
 	windowLabel := "按报表触发时间统计"
 	if windowStart, windowEnd, ok := reportWindowRange(editor.Builder, startedAt); ok {
-		windowLabel = fmt.Sprintf("%s ~ %s", windowStart.Format("2006-01-02 15:04:05"), windowEnd.Format("2006-01-02 15:04:05"))
+		windowLabel = fmt.Sprintf("%s ~ %s", formatReportTime(windowStart), formatReportTime(windowEnd))
 	}
 	sections = append(sections, fmt.Sprintf("### ⏱️ 执行信息\n- 统计窗口：%s\n- 发送时间：%s",
 		markdownEscape(windowLabel),
-		startedAt.Format("2006-01-02 15:04:05"),
+		formatReportTime(startedAt),
 	))
 
 	return title, strings.Join(sections, "\n\n")

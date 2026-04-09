@@ -131,6 +131,44 @@ func TestBuildReportAccelerationPlanForCluster(t *testing.T) {
 	assert.NotContains(t, plan.BackfillSQL, "FROM `dev_log`.`app_stdout_local`")
 }
 
+func TestBuildReportAccelerationPlanWithUnixSecondTimeField(t *testing.T) {
+	now := time.Date(2026, 4, 8, 10, 0, 0, 0, time.Local)
+	plan, err := buildReportAccelerationPlan(10, view.ReqReportBuilder{
+		InstanceID: 7,
+		Database:   "dev_log",
+		Table:      "app_stdout",
+		TimeField:  "time",
+		TimeRange:  "1d",
+		Blocks: []view.ReqReportBlock{
+			{
+				Key:   "default",
+				Label: "默认条件块",
+				Where: "msg='repair-docs-init'",
+				Metrics: []view.ReqReportMetric{
+					{Key: "count", Label: "总量"},
+				},
+			},
+		},
+	}, reportAccelerationTopology{
+		SourceTimeType: dbmodel.TimeFieldTypeSecond,
+	}, now)
+	require.NoError(t, err)
+	assert.Contains(t, plan.CreateMaterializedViewSQL, "toStartOfInterval(toDateTime(`time`, 'Asia/Shanghai'), INTERVAL 1 HOUR)")
+	assert.Contains(t, plan.BackfillSQL, "AND `time` >= 1775440800 AND `time` < 1775613600")
+}
+
+func TestInferAccelerationTimeFieldType(t *testing.T) {
+	columns := []view.Column{
+		{Field: "_time_second_", Type: "DateTime"},
+		{Field: "time", Type: "Float64"},
+		{Field: "ts_ms", Type: "UInt64"},
+	}
+
+	assert.Equal(t, dbmodel.TimeFieldTypeDT, inferAccelerationTimeFieldType(columns, "_time_second_"))
+	assert.Equal(t, dbmodel.TimeFieldTypeSecond, inferAccelerationTimeFieldType(columns, "time"))
+	assert.Equal(t, dbmodel.TimeFieldTypeTsMs, inferAccelerationTimeFieldType(columns, "ts_ms"))
+}
+
 func TestBuildAcceleratedReportQuery(t *testing.T) {
 	query, err := buildAcceleratedReportQuery(dbmodel.Report{
 		BaseModel:     dbmodel.BaseModel{ID: 8},

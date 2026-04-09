@@ -63,7 +63,7 @@ func (openAICompatibleSummarizer) Summarize(input reportSummaryInput) (string, e
 		"model": model,
 		"messages": []map[string]string{
 			{
-				"role": "system",
+				"role":    "system",
 				"content": "你是报表推送摘要助手。请用1到3句中文总结业务趋势，只基于输入事实，不暴露SQL、DSL、where原文，不编造业务背景。",
 			},
 			{
@@ -126,7 +126,7 @@ func buildSummaryPrompt(input reportSummaryInput, maxRows int) string {
 	builder.WriteString("数据源：" + input.Source + "\n")
 	builder.WriteString("时间范围：" + input.TimeRangeLabel + "\n")
 	builder.WriteString("数据范围：" + input.ScopeLabel + "\n")
-	builder.WriteString("发送时间：" + input.StartedAt.Format("2006-01-02 15:04:05") + "\n")
+	builder.WriteString("发送时间：" + formatReportTime(input.StartedAt) + "\n")
 	builder.WriteString("查询结果：\n")
 	if len(rows) == 0 {
 		builder.WriteString("- 无数据\n")

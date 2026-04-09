@@ -11,6 +11,8 @@ import {
 } from "../mocks/reportMockData";
 import { client } from "../../../shared/http/client";
 import type {
+  ReportAccelerationBackfillResult,
+  ReportAccelerationStatus,
   ReportBlockInput,
   ReportBuilderTimeRange,
   ReportCreatePayload,
@@ -98,12 +100,21 @@ function normalizeWorkspace(workspace: ReportWorkspaceApiPayload): ReportWorkspa
       builder: normalizeReportBuilder(workspace.editor.builder)
     },
     schedule: normalizeScheduleConfig(workspace.schedule),
-    acceleration: workspace.acceleration ?? {
-      status: "missing",
-      targetTable: "",
-      mvName: "",
-      errorMessage: ""
-    }
+    acceleration: normalizeAcceleration(workspace.acceleration)
+  };
+}
+
+function normalizeAcceleration(
+  acceleration: ReportAccelerationStatus | null | undefined
+): ReportAccelerationStatus {
+  return acceleration ?? {
+    status: "missing",
+    targetTable: "",
+    mvName: "",
+    errorMessage: "",
+    backfillStartAt: "",
+    backfillEndAt: "",
+    lastCheck: null
   };
 }
 
@@ -560,4 +571,17 @@ export async function runReportPreview(
   return client.post<ReportPreviewRunResponse>("/api/v2/reports/preview-run", {
     reportId
   });
+}
+
+export async function runReportAccelerationBackfill(
+  reportId: number
+): Promise<ReportAccelerationBackfillResult> {
+  const raw = await client.post<ReportAccelerationBackfillResult>(
+    "/api/v2/reports/acceleration/backfill-run",
+    { reportId }
+  );
+  return {
+    ...raw,
+    acceleration: normalizeAcceleration(raw.acceleration)
+  };
 }

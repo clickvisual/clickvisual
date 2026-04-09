@@ -244,6 +244,24 @@ func PreviewRun(c *core.Context) {
 	c.JSONOK(resp)
 }
 
+func AccelerationBackfillRun(c *core.Context) {
+	var req struct {
+		ReportID int `json:"reportId" form:"reportId"`
+	}
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+
+	resp, err := reportservice.ManualBackfill(req.ReportID)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
 func ReportSourceInstances(c *core.Context) {
 	resp, err := reportservice.ListSourceInstances()
 	if err != nil {

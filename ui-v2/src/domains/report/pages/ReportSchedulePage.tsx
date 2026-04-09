@@ -8,6 +8,7 @@ import {
   listReportSourceInstances,
   listReportSourceTables,
   listReportTableColumns,
+  runReportAccelerationBackfill,
   runReportPreview,
   saveReportSchedule
 } from "../api/report";
@@ -16,6 +17,7 @@ import ReportPushStatusCard from "../components/ReportPushStatusCard";
 import ReportScheduleForm from "../components/ReportScheduleForm";
 import { formatSqlForDisplay } from "../utils/formatSql";
 import type {
+  ReportAccelerationCheck,
   ReportAccelerationStatus,
   ReportCreatePayload,
   ReportEditorDraft,
@@ -162,6 +164,11 @@ export default function ReportSchedulePage() {
     "idle" | "pending" | "success" | "error"
   >("idle");
   const [previewMessage, setPreviewMessage] = useState<string | null>(null);
+  const [backfillStatus, setBackfillStatus] = useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
+  const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
+  const [lastBackfillCheck, setLastBackfillCheck] = useState<ReportAccelerationCheck | null>(null);
   const [deleteStatus, setDeleteStatus] = useState<
     "idle" | "pending" | "success" | "error"
   >("idle");
@@ -217,6 +224,9 @@ export default function ReportSchedulePage() {
       setEditMessage(null);
       setPreviewStatus("idle");
       setPreviewMessage(null);
+      setBackfillStatus("idle");
+      setBackfillMessage(null);
+      setLastBackfillCheck(null);
       setDeleteStatus("idle");
       setDeleteMessage(null);
       setConfirmDeleteReportId(null);
@@ -365,6 +375,41 @@ export default function ReportSchedulePage() {
     } catch (error) {
       setPreviewStatus("error");
       setPreviewMessage(error instanceof Error ? error.message : "预览执行失败");
+    }
+  }
+
+  async function handleRunAccelerationBackfill() {
+    if (!workspace || backfillStatus === "pending") {
+      return;
+    }
+
+    setBackfillStatus("pending");
+    setBackfillMessage(null);
+    setLastBackfillCheck(null);
+
+    try {
+      const resp = await runReportAccelerationBackfill(workspace.activeReportId);
+      setWorkspace((current) =>
+        current
+          ? {
+              ...current,
+              acceleration: resp.acceleration
+            }
+          : current
+      );
+      setLastBackfillCheck(resp.check);
+      setBackfillStatus(resp.check.passed ? "success" : "error");
+      setBackfillMessage(resp.check.summary);
+      try {
+        await loadWorkspace(workspace.activeReportId, { preserveCurrent: true });
+      } catch {
+        return;
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "手动填充失败";
+      setBackfillStatus("error");
+      setBackfillMessage(message);
     }
   }
 
@@ -878,25 +923,90 @@ export default function ReportSchedulePage() {
                   {acceleration ? (
                     <div className="cv-form-row">
                       <span className="cv-label">聚合状态</span>
-                      <div className="cv-kv">
-                        <div className="cv-kv-row">
-                          <span className="cv-kv-key">状态</span>
-                          <span className="cv-kv-value">
-                            {getAccelerationStatusLabel(acceleration)}
-                          </span>
-                        </div>
-                        <div className="cv-kv-row">
-                          <span className="cv-kv-key">目标表</span>
-                          <span className="cv-kv-value">{acceleration.targetTable || "未生成"}</span>
-                        </div>
-                        <div className="cv-kv-row">
-                          <span className="cv-kv-key">物化视图</span>
-                          <span className="cv-kv-value">{acceleration.mvName || "未生成"}</span>
-                        </div>
-                        {acceleration.errorMessage ? (
+                      <div className="cv-section-stack cv-section-stack--tight">
+                        <div className="cv-kv">
                           <div className="cv-kv-row">
-                            <span className="cv-kv-key">错误信息</span>
-                            <span className="cv-kv-value">{acceleration.errorMessage}</span>
+                            <span className="cv-kv-key">状态</span>
+                            <span className="cv-kv-value">
+                              {getAccelerationStatusLabel(acceleration)}
+                            </span>
+                          </div>
+                          <div className="cv-kv-row">
+                            <span className="cv-kv-key">目标表</span>
+                            <span className="cv-kv-value">{acceleration.targetTable || "未生成"}</span>
+                          </div>
+                          <div className="cv-kv-row">
+                            <span className="cv-kv-key">物化视图</span>
+                            <span className="cv-kv-value">{acceleration.mvName || "未生成"}</span>
+                          </div>
+                          <div className="cv-kv-row">
+                            <span className="cv-kv-key">回填窗口</span>
+                            <span className="cv-kv-value">
+                              {acceleration.backfillStartAt && acceleration.backfillEndAt
+                                ? `${formatDateTime(acceleration.backfillStartAt)} ~ ${formatDateTime(acceleration.backfillEndAt)}`
+                                : "未记录"}
+                            </span>
+                          </div>
+                          {acceleration.errorMessage ? (
+                            <div className="cv-kv-row">
+                              <span className="cv-kv-key">错误信息</span>
+                              <span className="cv-kv-value">{acceleration.errorMessage}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          className="cv-secondary-button"
+                          onClick={handleRunAccelerationBackfill}
+                          disabled={!workspace || backfillStatus === "pending"}
+                        >
+                          {backfillStatus === "pending" ? "手动填充中..." : "手动填充并自检"}
+                        </button>
+                        <ReportPushStatusCard
+                          actionLabel="手动填充"
+                          status={backfillStatus}
+                          message={backfillMessage ?? undefined}
+                          idleMessage="可手动重建聚合并校验今天 00:00 到当前时间的数据"
+                        />
+                        {(lastBackfillCheck ?? acceleration.lastCheck) ? (
+                          <div className="cv-kv">
+                            <div className="cv-kv-row">
+                              <span className="cv-kv-key">自检窗口</span>
+                              <span className="cv-kv-value">
+                                {(lastBackfillCheck ?? acceleration.lastCheck)?.windowStart} ~{" "}
+                                {(lastBackfillCheck ?? acceleration.lastCheck)?.windowEnd}
+                              </span>
+                            </div>
+                            <div className="cv-kv-row">
+                              <span className="cv-kv-key">自检结果</span>
+                              <span
+                                className={`cv-kv-value ${
+                                  (lastBackfillCheck ?? acceleration.lastCheck)?.passed
+                                    ? "cv-status-success"
+                                    : "cv-status-danger"
+                                }`}
+                              >
+                                {(lastBackfillCheck ?? acceleration.lastCheck)?.summary}
+                              </span>
+                            </div>
+                            {((lastBackfillCheck ?? acceleration.lastCheck)?.blocks ?? []).map((block) => (
+                              <div key={`${block.blockKey}-${block.metricName}`} className="cv-kv-row">
+                                <span className="cv-kv-key">
+                                  {block.blockLabel} / {block.metricName}
+                                </span>
+                                <span className="cv-kv-value">
+                                  聚合表 {block.aggregatedTotal}，直接 count {block.directTotal}
+                                  {block.mismatchedBuckets.length > 0
+                                    ? `；异常桶：${block.mismatchedBuckets
+                                        .map(
+                                          (item) =>
+                                            `${item.bucketTime}(聚合 ${item.aggregatedValue} / 直接 ${item.directValue})`
+                                        )
+                                        .join("，")}`
+                                    : "；分桶一致"}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         ) : null}
                       </div>
