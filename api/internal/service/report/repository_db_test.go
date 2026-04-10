@@ -217,6 +217,25 @@ func TestRunRenderStageShowsFallbackSourceLabel(t *testing.T) {
 	assert.Contains(t, content, "当前模式：源表直查（降级）")
 }
 
+func TestBuildAccelerationWindowAvailabilityQuery(t *testing.T) {
+	query, err := buildAccelerationWindowAvailabilityQuery(
+		dbmodel.Report{
+			TemplateKey:   "report-builder-default",
+			BuilderConfig: `{"instanceId":1,"database":"pro_log","table":"app_stdout","timeField":"_time_second_","timeRange":"1h","blocks":[{"key":"default","label":"触发 v2 版本修复统计","where":"msg='repair-docs-init'","metrics":[{"key":"count","label":"总量"}]}]}`,
+		},
+		dbmodel.ReportAcceleration{
+			SourceDatabase: "pro_log",
+			TargetTable:    "cv_report_agg_1",
+		},
+		time.Date(2026, 4, 9, 15, 0, 0, 0, time.Local),
+	)
+	assert.NoError(t, err)
+	assert.Contains(t, query, "FROM `pro_log`.`cv_report_agg_1`")
+	assert.Contains(t, query, "toDateTime('2026-04-08 14:00:00', 'Asia/Shanghai')")
+	assert.Contains(t, query, "toDateTime('2026-04-09 15:00:00', 'Asia/Shanghai')")
+	assert.Contains(t, query, "count() AS row_count")
+}
+
 func TestRenderQueryRowsAsMarkdown(t *testing.T) {
 	md := renderQueryRowsAsMarkdown([]map[string]interface{}{
 		{

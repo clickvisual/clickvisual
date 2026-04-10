@@ -128,7 +128,7 @@ func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, to
 	if topology.UseCluster {
 		clusterSuffix = fmt.Sprintf(" ON CLUSTER '%s'", escapeSQLString(topology.ClusterName))
 	}
-	localEngineSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s%s (bucket_time DateTime('%s'), block_key String, metric_name String, group_kind UInt8, group_value String, sum_value Float64, count_value UInt64, uniq_state AggregateFunction(uniq, String)) ENGINE = AggregatingMergeTree PARTITION BY toDate(bucket_time) ORDER BY (bucket_time, block_key, metric_name, group_kind, group_value) TTL bucket_time + INTERVAL %d DAY", targetLocalRef, clusterSuffix, reportTimeZoneName, ttlDays)
+	localEngineSQL := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s%s (bucket_time DateTime('%s'), block_key String, metric_name String, group_kind UInt8, group_value String, sum_value AggregateFunction(sum, Float64), count_value AggregateFunction(sum, UInt64), uniq_state AggregateFunction(uniq, String)) ENGINE = AggregatingMergeTree PARTITION BY toDate(bucket_time) ORDER BY (bucket_time, block_key, metric_name, group_kind, group_value) TTL bucket_time + INTERVAL %d DAY", targetLocalRef, clusterSuffix, reportTimeZoneName, ttlDays)
 	createTableSQLs = append(createTableSQLs, localEngineSQL)
 	if topology.UseCluster {
 		createTableSQLs = append(createTableSQLs, fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s%s AS %s ENGINE = Distributed('%s', '%s', '%s', rand())", targetRef, clusterSuffix, targetLocalRef, escapeSQLString(topology.ClusterName), escapeSQLString(builder.Database), escapeSQLString(targetLocalTable)))
@@ -268,31 +268,31 @@ func buildAggregationSelectBodies(reportID int, builder view.ReqReportBuilder, t
 			switch parsed.Kind {
 			case aggregationMetricCount:
 				parts = append(parts, aggregationSelectPart{MVName: mvName, SelectSQL: fmt.Sprintf(
-					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(0) AS group_kind, '' AS group_value, toFloat64(0) AS sum_value, toUInt64(count()) AS count_value, uniqState(toString('')) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time",
+					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(0) AS group_kind, '' AS group_value, sumState(toFloat64(0)) AS sum_value, sumState(toUInt64(1)) AS count_value, uniqState(toString('')) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time",
 					bucketExpr, escapeSQLString(parsed.BlockKey), escapeSQLString(parsed.Label), sourceRef, timeClause, whereClause,
 				)})
 			case aggregationMetricSum:
 				field := quoteIdentifier(parsed.Field)
 				parts = append(parts, aggregationSelectPart{MVName: mvName, SelectSQL: fmt.Sprintf(
-					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(0) AS group_kind, '' AS group_value, toFloat64(sum(toFloat64(%s))) AS sum_value, toUInt64(0) AS count_value, uniqState(toString('')) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time",
+					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(0) AS group_kind, '' AS group_value, sumState(toFloat64(%s)) AS sum_value, sumState(toUInt64(0)) AS count_value, uniqState(toString('')) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time",
 					bucketExpr, escapeSQLString(parsed.BlockKey), escapeSQLString(parsed.Label), field, sourceRef, timeClause, whereClause,
 				)})
 			case aggregationMetricAvg:
 				field := quoteIdentifier(parsed.Field)
 				parts = append(parts, aggregationSelectPart{MVName: mvName, SelectSQL: fmt.Sprintf(
-					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(0) AS group_kind, '' AS group_value, toFloat64(sum(toFloat64(%s))) AS sum_value, toUInt64(count()) AS count_value, uniqState(toString('')) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time",
+					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(0) AS group_kind, '' AS group_value, sumState(toFloat64(%s)) AS sum_value, sumState(toUInt64(1)) AS count_value, uniqState(toString('')) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time",
 					bucketExpr, escapeSQLString(parsed.BlockKey), escapeSQLString(parsed.Label), field, sourceRef, timeClause, whereClause,
 				)})
 			case aggregationMetricUniq:
 				field := quoteIdentifier(parsed.Field)
 				parts = append(parts, aggregationSelectPart{MVName: mvName, SelectSQL: fmt.Sprintf(
-					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(0) AS group_kind, '' AS group_value, toFloat64(0) AS sum_value, toUInt64(0) AS count_value, uniqState(toString(%s)) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time",
+					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(0) AS group_kind, '' AS group_value, sumState(toFloat64(0)) AS sum_value, sumState(toUInt64(0)) AS count_value, uniqState(toString(%s)) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time",
 					bucketExpr, escapeSQLString(parsed.BlockKey), escapeSQLString(parsed.Label), field, sourceRef, timeClause, whereClause,
 				)})
 			case aggregationMetricTopN:
 				field := quoteIdentifier(parsed.GroupBy)
 				parts = append(parts, aggregationSelectPart{MVName: mvName, SelectSQL: fmt.Sprintf(
-					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(1) AS group_kind, ifNull(toString(%s), '') AS group_value, toFloat64(0) AS sum_value, toUInt64(count()) AS count_value, uniqState(toString('')) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time, group_value",
+					"SELECT %s AS bucket_time, '%s' AS block_key, '%s' AS metric_name, toUInt8(1) AS group_kind, ifNull(toString(%s), '') AS group_value, sumState(toFloat64(0)) AS sum_value, sumState(toUInt64(1)) AS count_value, uniqState(toString('')) AS uniq_state FROM %s WHERE 1 = 1%s%s GROUP BY bucket_time, group_value",
 					bucketExpr, escapeSQLString(parsed.BlockKey), escapeSQLString(parsed.Label), field, sourceRef, timeClause, whereClause,
 				)})
 			}
@@ -420,7 +420,7 @@ func buildAcceleratedReportQuery(report dbmodel.Report, acceleration dbmodel.Rep
 			switch parsed.Kind {
 			case aggregationMetricTopN:
 				parts = append(parts, fmt.Sprintf(
-					"SELECT %d AS block_order, %d AS metric_order, 0 AS item_order, 'topn' AS metric_kind, '%s' AS block_key, '%s' AS block_label, '%s' AS metric_name, CAST(NULL AS Nullable(Float64)) AS current_value, CAST(NULL AS Nullable(Float64)) AS previous_value, top_key, top_value FROM (SELECT group_value AS top_key, toFloat64(sum(count_value)) AS top_value FROM %s WHERE bucket_time >= current_start AND bucket_time < current_end AND block_key = '%s' AND metric_name = '%s' AND group_kind = 1 GROUP BY group_value ORDER BY top_value DESC, top_key ASC LIMIT %d)",
+					"SELECT %d AS block_order, %d AS metric_order, 0 AS item_order, 'topn' AS metric_kind, '%s' AS block_key, '%s' AS block_label, '%s' AS metric_name, CAST(NULL AS Nullable(Float64)) AS current_value, CAST(NULL AS Nullable(Float64)) AS previous_value, top_key, top_value FROM (SELECT group_value AS top_key, toFloat64(sumMerge(count_value)) AS top_value FROM %s WHERE bucket_time >= current_start AND bucket_time < current_end AND block_key = '%s' AND metric_name = '%s' AND group_kind = 1 GROUP BY group_value ORDER BY top_value DESC, top_key ASC LIMIT %d)",
 					blockIndex, metricIndex, escapeSQLString(blockKey), escapeSQLString(blockLabel), escapeSQLString(parsed.Label), tableRef, escapeSQLString(blockKey), escapeSQLString(parsed.Label), parsed.Limit,
 				))
 			default:
@@ -453,14 +453,14 @@ func acceleratedMetricExpressions(metric parsedAggregationMetric) (string, strin
 	baseFilterPrevious := "FROM %s WHERE bucket_time >= previous_start AND bucket_time < previous_end AND block_key = '%s' AND metric_name = '%s' AND group_kind = 0"
 	switch metric.Kind {
 	case aggregationMetricCount:
-		return "(SELECT toFloat64(ifNull(sum(count_value), 0)) " + baseFilterCurrent + ")",
-			"(SELECT toFloat64(ifNull(sum(count_value), 0)) " + baseFilterPrevious + ")"
+		return "(SELECT toFloat64(ifNull(sumMerge(count_value), 0)) " + baseFilterCurrent + ")",
+			"(SELECT toFloat64(ifNull(sumMerge(count_value), 0)) " + baseFilterPrevious + ")"
 	case aggregationMetricSum:
-		return "(SELECT toFloat64(ifNull(sum(sum_value), 0)) " + baseFilterCurrent + ")",
-			"(SELECT toFloat64(ifNull(sum(sum_value), 0)) " + baseFilterPrevious + ")"
+		return "(SELECT toFloat64(ifNull(sumMerge(sum_value), 0)) " + baseFilterCurrent + ")",
+			"(SELECT toFloat64(ifNull(sumMerge(sum_value), 0)) " + baseFilterPrevious + ")"
 	case aggregationMetricAvg:
-		return "(SELECT if(sum(count_value) = 0, CAST(NULL AS Nullable(Float64)), toFloat64(sum(sum_value) / sum(count_value))) " + baseFilterCurrent + ")",
-			"(SELECT if(sum(count_value) = 0, CAST(NULL AS Nullable(Float64)), toFloat64(sum(sum_value) / sum(count_value))) " + baseFilterPrevious + ")"
+		return "(SELECT if(sumMerge(count_value) = 0, CAST(NULL AS Nullable(Float64)), toFloat64(sumMerge(sum_value) / sumMerge(count_value))) " + baseFilterCurrent + ")",
+			"(SELECT if(sumMerge(count_value) = 0, CAST(NULL AS Nullable(Float64)), toFloat64(sumMerge(sum_value) / sumMerge(count_value))) " + baseFilterPrevious + ")"
 	case aggregationMetricUniq:
 		return "(SELECT toFloat64(uniqMerge(uniq_state)) " + baseFilterCurrent + ")",
 			"(SELECT toFloat64(uniqMerge(uniq_state)) " + baseFilterPrevious + ")"
@@ -675,7 +675,7 @@ func (s *Service) runReportAccelerationSelfCheck(report dbmodel.Report, plan rep
 
 func queryAggregatedCountBuckets(operator sourcesvc.Operator, database, table, blockKey, metricName string, start, end time.Time) (map[time.Time]int64, error) {
 	sql := fmt.Sprintf(
-		"SELECT bucket_time, toInt64(sum(count_value)) AS total FROM %s WHERE bucket_time >= toDateTime('%s', '%s') AND bucket_time < toDateTime('%s', '%s') AND block_key = '%s' AND metric_name = '%s' AND group_kind = 0 GROUP BY bucket_time ORDER BY bucket_time ASC",
+		"SELECT bucket_time, toInt64(sumMerge(count_value)) AS total FROM %s WHERE bucket_time >= toDateTime('%s', '%s') AND bucket_time < toDateTime('%s', '%s') AND block_key = '%s' AND metric_name = '%s' AND group_kind = 0 GROUP BY bucket_time ORDER BY bucket_time ASC",
 		quoteTable(database, table),
 		start.Format("2006-01-02 15:04:05"),
 		reportTimeZoneName,

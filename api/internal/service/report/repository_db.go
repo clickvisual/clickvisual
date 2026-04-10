@@ -740,6 +740,13 @@ func (s *Service) runExecutionQuery(report dbmodel.Report, startedAt time.Time) 
 	if !found || acceleration.Status != dbmodel.ReportAccelerationStatusReady {
 		return s.runDirectExecutionFallback(report, nil)
 	}
+	hasWindowData, err := s.accelerationWindowHasData(report, acceleration, startedAt)
+	if err != nil {
+		return s.runDirectExecutionFallback(report, err)
+	}
+	if !hasWindowData {
+		return s.runDirectExecutionFallback(report, fmt.Errorf("聚合窗口无数据"))
+	}
 	queryText, err := buildAcceleratedReportQuery(report, acceleration, startedAt)
 	if err != nil {
 		return s.runDirectExecutionFallback(report, err)
@@ -763,6 +770,44 @@ func (s *Service) runDirectExecutionFallback(report dbmodel.Report, reason error
 		return nil, "", err
 	}
 	return rows, reportQuerySourceDirectFallback, nil
+}
+
+func (s *Service) accelerationWindowHasData(report dbmodel.Report, acceleration dbmodel.ReportAcceleration, startedAt time.Time) (bool, error) {
+	queryText, err := buildAccelerationWindowAvailabilityQuery(report, acceleration, startedAt)
+	if err != nil {
+		return false, err
+	}
+	rows, err := s.runQueryStage(queryText)
+	if err != nil {
+		return false, err
+	}
+	if len(rows) == 0 {
+		return false, nil
+	}
+	rowCount, ok := toFloat64(rows[0]["row_count"])
+	if !ok {
+		return false, fmt.Errorf("invalid aggregation row_count")
+	}
+	return rowCount > 0, nil
+}
+
+func buildAccelerationWindowAvailabilityQuery(report dbmodel.Report, acceleration dbmodel.ReportAcceleration, startedAt time.Time) (string, error) {
+	builder := resolveReportBuilder(report)
+	if builder == nil {
+		return "", fmt.Errorf("报表 builder 不存在")
+	}
+	_, currentEnd, previousStart, _, err := reportComparisonWindow(builder.TimeRange, startedAt)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(
+		"WITH toDateTime('%s', '%s') AS window_start, toDateTime('%s', '%s') AS window_end SELECT count() AS row_count FROM %s WHERE bucket_time >= window_start AND bucket_time < window_end",
+		previousStart.Format("2006-01-02 15:04:05"),
+		reportTimeZoneName,
+		currentEnd.Format("2006-01-02 15:04:05"),
+		reportTimeZoneName,
+		quoteTable(acceleration.SourceDatabase, acceleration.TargetTable),
+	), nil
 }
 
 func (s *Service) runQueryStage(queryText string) ([]map[string]interface{}, error) {
