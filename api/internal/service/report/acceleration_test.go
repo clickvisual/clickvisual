@@ -83,9 +83,13 @@ func TestBuildReportAccelerationPlan(t *testing.T) {
 	assert.Contains(t, plan.CreateTableSQL, "bucket_time DateTime('Asia/Shanghai')")
 	assert.Contains(t, plan.CreateTableSQL, "group_kind UInt8")
 	assert.Contains(t, plan.CreateTableSQL, "group_value String")
+	assert.Contains(t, plan.CreateTableSQL, "sum_value AggregateFunction(sum, Float64)")
+	assert.Contains(t, plan.CreateTableSQL, "count_value AggregateFunction(sum, UInt64)")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "CREATE MATERIALIZED VIEW IF NOT EXISTS `pro_log`.`cv_report_mv_3_1`")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "CREATE MATERIALIZED VIEW IF NOT EXISTS `pro_log`.`cv_report_mv_3_2`")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "CREATE MATERIALIZED VIEW IF NOT EXISTS `pro_log`.`cv_report_mv_3_3`")
+	assert.Contains(t, plan.CreateMaterializedViewSQL, "sumState(toUInt64(1)) AS count_value")
+	assert.Contains(t, plan.CreateMaterializedViewSQL, "sumState(toFloat64(0)) AS sum_value")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "uniqState(toString(`k8s.pod.name`)) AS uniq_state")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "toUInt8(1) AS group_kind")
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "ifNull(toString(`container.name`), '') AS group_value")
@@ -165,7 +169,7 @@ func TestBuildAcceleratedReportQuery(t *testing.T) {
 	query, err := buildAcceleratedReportQuery(dbmodel.Report{
 		BaseModel:     dbmodel.BaseModel{ID: 8},
 		TemplateKey:   "report-builder-default",
-		BuilderConfig: `{"instanceId":1,"database":"dev_log","table":"app_stdout","timeField":"_time_second_","timeRange":"1h","blocks":[{"key":"default","label":"pod 报错统计","where":"lv='error'","metrics":[{"key":"count","label":"总量"},{"key":"custom","label":"去重 Pod 数","expression":"uniq(` + "`k8s.pod.name`" + `)"}]},{"key":"default_copy_2","label":"pod debug 统计","where":"lv='debug'","metrics":[{"key":"topn","label":"Top3 容器","groupBy":"container.name","limit":3}]}]}`,
+		BuilderConfig: `{"instanceId":1,"database":"dev_log","table":"app_stdout","timeField":"_time_second_","timeRange":"1h","blocks":[{"key":"default","label":"pod 报错统计","where":"lv='error'","metrics":[{"key":"count","label":"总量"},{"key":"custom","label":"平均耗时","expression":"avg(` + "`status`" + `)"},{"key":"custom","label":"去重 Pod 数","expression":"uniq(` + "`k8s.pod.name`" + `)"}]},{"key":"default_copy_2","label":"pod debug 统计","where":"lv='debug'","metrics":[{"key":"topn","label":"Top3 容器","groupBy":"container.name","limit":3}]}]}`,
 	}, dbmodel.ReportAcceleration{
 		SourceDatabase: "dev_log",
 		TargetTable:    "cv_report_agg_8",
@@ -175,7 +179,8 @@ func TestBuildAcceleratedReportQuery(t *testing.T) {
 	assert.Contains(t, query, "FROM `dev_log`.`cv_report_agg_8`")
 	assert.Contains(t, query, "toDateTime('2026-04-07 15:00:00', 'Asia/Shanghai')")
 	assert.Contains(t, query, "uniqMerge(uniq_state)")
-	assert.Contains(t, query, "sum(count_value)")
+	assert.Contains(t, query, "sumMerge(count_value)")
+	assert.Contains(t, query, "sumMerge(sum_value)")
 	assert.Contains(t, query, "group_kind = 1")
 	assert.Contains(t, query, "group_kind = 0")
 	assert.Contains(t, query, "GROUP BY group_value")
