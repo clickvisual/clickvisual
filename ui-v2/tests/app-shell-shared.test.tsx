@@ -1,44 +1,45 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { RouterProvider, createMemoryRouter } from "react-router-dom";
+import "@testing-library/jest-dom/vitest";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import { routes } from "../src/app/router";
+import AppShell from "../src/shared/layout/AppShell";
 
 describe("v2 shared shell", () => {
   it("renders shared shell controls with active report workspace", async () => {
-    const memoryRouter = createMemoryRouter(routes, {
-      initialEntries: ["/v2/reports"]
-    });
-
-    render(<RouterProvider router={memoryRouter} />);
+    render(
+      <MemoryRouter initialEntries={["/v2/reports"]}>
+        <Routes>
+          <Route
+            path="/v2/reports"
+            element={
+              <AppShell>
+                <h1>报表配置</h1>
+              </AppShell>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    );
 
     expect(
       screen.getByRole("navigation", { name: "v2 主导航" })
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "定时报表" })).toBeInTheDocument();
-    expect(screen.getByText("日志查询")).toBeInTheDocument();
-    expect(screen.getByTestId("shell-time-range-switcher")).toHaveClass("cv-top-chip-group");
-    expect(screen.getByTestId("shell-version-switcher")).toHaveClass("cv-version-switcher");
-    expect(screen.getByRole("searchbox")).toHaveAttribute(
-      "placeholder",
-      "搜索日志、Trace、报表或配置"
+    expect(screen.getByRole("link", { name: "定时报表" })).toHaveAttribute(
+      "aria-current",
+      "page"
     );
-    expect(
-      screen.getByRole("button", { name: "最近 1 小时" })
-    ).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("日志查询")).toBeInTheDocument();
+    expect(screen.getByTestId("shell-version-switcher")).toHaveClass("cv-version-switcher");
     expect(screen.getByTestId("app-shell-topbar")).toBeInTheDocument();
-    expect(screen.getAllByText("当前时间范围：最近 1 小时").length).toBeGreaterThan(0);
-
-    fireEvent.click(screen.getByRole("button", { name: "最近 24 小时" }));
-
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "最近 24 小时" })
-    ).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getAllByText("当前时间范围：最近 24 小时").length).toBeGreaterThan(0);
+      screen.queryByTestId("shell-time-range-switcher")
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /前往 v1|返回上次使用的 v1/ })
     ).toBeInTheDocument();
     expect(
-      await screen.findByRole("heading", { name: "报表任务（Mock）" })
+      await screen.findByRole("heading", { name: "报表配置" })
     ).toBeInTheDocument();
   });
 });

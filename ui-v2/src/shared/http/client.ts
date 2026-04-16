@@ -84,9 +84,22 @@ export const client = {
       body: JSON.stringify(payload)
     });
   },
-  delete<T>(path: string) {
+  patch<T>(path: string, payload: unknown) {
     return requestJson<T>(path, {
-      method: "DELETE"
+      method: "PATCH",
+      body: JSON.stringify(payload)
+    });
+  },
+  put<T>(path: string, payload: unknown) {
+    return requestJson<T>(path, {
+      method: "PUT",
+      body: JSON.stringify(payload)
+    });
+  },
+  delete<T>(path: string, payload?: unknown) {
+    return requestJson<T>(path, {
+      method: "DELETE",
+      body: payload === undefined ? undefined : JSON.stringify(payload)
     });
   }
 };

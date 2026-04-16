@@ -21,33 +21,21 @@ type Event = {
 
 const pageStyle: CSSProperties = {
   display: "grid",
-  gap: 20
-};
-
-const heroStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 16,
-  flexWrap: "wrap",
-  padding: 24,
-  borderRadius: 24,
-  background:
-    "linear-gradient(135deg, rgba(255,247,237,1) 0%, rgba(254,242,242,0.96) 58%, rgba(255,255,255,1) 100%)",
-  border: "1px solid #fecaca"
+  gap: 12
 };
 
 const sectionCardStyle: CSSProperties = {
-  border: "1px solid #fed7aa",
-  borderRadius: 24,
+  border: "1px solid rgba(37, 99, 235, 0.08)",
+  borderRadius: 14,
   backgroundColor: "#ffffff",
-  padding: 20,
+  padding: 12,
   boxShadow: "0 10px 24px rgba(15, 23, 42, 0.04)"
 };
 
 const layoutStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "minmax(0, 1.45fr) minmax(320px, 0.95fr)",
-  gap: 20,
+  gap: 12,
   alignItems: "start"
 };
 
@@ -110,24 +98,15 @@ const aiCards = [
   "钉钉推送模板建议附带 Top Error 与查看日志链接，缩短定位路径。"
 ];
 
-function SectionHeader({
-  eyebrow,
-  title,
-  description
-}: {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-}) {
+function SectionHeader({ eyebrow, title }: { eyebrow?: string; title: string }) {
   return (
-    <header style={{ marginBottom: 16 }}>
+    <header style={{ marginBottom: 10 }}>
       {eyebrow ? (
-        <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#c2410c" }}>
+        <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: "#64748b" }}>
           {eyebrow}
         </p>
       ) : null}
-      <h1 style={{ margin: 0, fontSize: 24, color: "#111827" }}>{title}</h1>
-      {description ? <p style={{ margin: "8px 0 0", color: "#6b7280" }}>{description}</p> : null}
+      <h2 style={{ margin: 0, fontSize: 14, color: "#111827" }}>{title}</h2>
     </header>
   );
 }
@@ -140,7 +119,18 @@ function SeverityBadge({ severity }: { severity: Rule["severity"] }) {
   };
 
   return (
-    <span style={{ borderRadius: 999, padding: "6px 10px", fontWeight: 700, fontSize: 12, ...map[severity] }}>
+    <span
+      style={{
+        borderRadius: 999,
+        minHeight: 22,
+        padding: "0 8px",
+        fontWeight: 700,
+        fontSize: 12,
+        display: "inline-flex",
+        alignItems: "center",
+        ...map[severity]
+      }}
+    >
       {severity}
     </span>
   );
@@ -154,7 +144,18 @@ function StatusBadge({ status }: { status: Rule["status"] }) {
   };
 
   return (
-    <span style={{ borderRadius: 999, padding: "6px 10px", fontWeight: 700, fontSize: 12, ...map[status] }}>
+    <span
+      style={{
+        borderRadius: 999,
+        minHeight: 22,
+        padding: "0 8px",
+        fontWeight: 700,
+        fontSize: 12,
+        display: "inline-flex",
+        alignItems: "center",
+        ...map[status]
+      }}
+    >
       {status}
     </span>
   );
@@ -165,30 +166,21 @@ export default function AlertRulesPage() {
 
   return (
     <section style={pageStyle}>
-      <header style={heroStyle}>
-        <div style={{ maxWidth: 720 }}>
-          <p style={{ margin: 0, color: "#b91c1c", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em" }}>
-            Alerting / DingTalk Notification
-          </p>
-          <h1 style={{ margin: "10px 0 12px", fontSize: 36, lineHeight: 1.1 }}>告警中心</h1>
-          <p style={{ margin: 0, color: "#6b7280" }}>
-            对齐设计稿补齐规则列表、事件流、AI 规则建议与钉钉通知概览。当前均为前端壳层数据，不依赖真实后端。
-          </p>
+      <header className="cv-page-toolbar">
+        <div className="cv-page-toolbar__main">
+          <div className="cv-breadcrumb" aria-label="页面路径">
+            <span>告警</span>
+            <span aria-hidden="true">/</span>
+            <span className="cv-breadcrumb__current">告警中心</span>
+          </div>
+          <h1 className="cv-page-title cv-sr-only">告警中心</h1>
         </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignSelf: "flex-start" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignSelf: "flex-start" }}>
           {["AI 规则建议", "新建规则", "钉钉消息模板"].map((item, index) => (
             <button
               key={item}
               type="button"
-              style={{
-                border: index === 1 ? "none" : "1px solid #fecaca",
-                borderRadius: 999,
-                padding: "10px 14px",
-                background: index === 1 ? "linear-gradient(90deg, #ef4444 0%, #f97316 100%)" : "#ffffff",
-                color: index === 1 ? "#ffffff" : "#9f1239",
-                fontWeight: 700,
-                cursor: "pointer"
-              }}
+              className={index === 1 ? "cv-action-button" : "cv-secondary-button"}
             >
               {item}
             </button>
@@ -201,149 +193,126 @@ export default function AlertRulesPage() {
         emptyTitle="当前没有可展示的告警规则"
         errorTitle="告警规则接口暂不可用"
       >
-      <div style={layoutStyle}>
-        <section style={sectionCardStyle}>
-          <SectionHeader
-            eyebrow="规则管理"
-            title="告警规则列表"
-            description="包含规则条件、频率、告警等级、推送目标与当前状态，满足高保真壳层。"
-          />
-          <div style={{ display: "grid", gap: 12 }}>
-            {rules.map((rule) => (
-              <article
-                key={rule.name}
-                style={{
-                  borderRadius: 20,
-                  border: "1px solid #e5e7eb",
-                  backgroundColor: "#ffffff",
-                  padding: 16,
-                  display: "grid",
-                  gap: 12
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                  <div>
-                    <h2 style={{ margin: 0, fontSize: 18 }}>{rule.name}</h2>
-                    <p style={{ margin: "6px 0 0", color: "#6b7280" }}>{rule.condition}</p>
-                  </div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <SeverityBadge severity={rule.severity} />
-                    <StatusBadge status={rule.status} />
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                    gap: 12
-                  }}
-                >
-                  <div>
-                    <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#9ca3af" }}>检测频率</p>
-                    <p style={{ margin: "6px 0 0", fontWeight: 700 }}>{rule.frequency}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#9ca3af" }}>推送目标</p>
-                    <p style={{ margin: "6px 0 0", fontWeight: 700 }}>{rule.destination}</p>
-                  </div>
-                  <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
-                    {["查看日志", "编辑规则", "试跑"].map((action) => (
-                      <button
-                        key={action}
-                        type="button"
-                        style={{
-                          border: "1px solid #fed7aa",
-                          borderRadius: 999,
-                          padding: "8px 12px",
-                          backgroundColor: "#fff7ed",
-                          color: "#c2410c",
-                          fontWeight: 700,
-                          cursor: "pointer"
-                        }}
-                      >
-                        {action}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <aside style={{ display: "grid", gap: 20 }}>
+        <div style={layoutStyle}>
           <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="事件流"
-              title="告警事件"
-              description="承接告警详情、关联日志与 AI 根因分析入口。"
-            />
-            <div style={{ display: "grid", gap: 12 }}>
-              {recentEvents.map((event) => (
+            <SectionHeader eyebrow="规则管理" title="告警规则列表" />
+            <div style={{ display: "grid", gap: 8 }}>
+              {rules.map((rule) => (
                 <article
-                  key={event.title}
+                  key={rule.name}
                   style={{
-                    borderRadius: 18,
-                    border: "1px solid #fee2e2",
-                    backgroundColor: "#fff7f7",
-                    padding: 14
+                    borderRadius: 12,
+                    border: "1px solid rgba(37, 99, 235, 0.08)",
+                    backgroundColor: "#ffffff",
+                    padding: 10,
+                    display: "grid",
+                    gap: 10
                   }}
                 >
-                  <p style={{ margin: 0, fontWeight: 700 }}>{event.title}</p>
-                  <p style={{ margin: "8px 0 0", color: "#6b7280", lineHeight: 1.6 }}>{event.detail}</p>
-                  <p style={{ margin: "8px 0 0", color: "#b91c1c", fontSize: 13, fontWeight: 700 }}>{event.time}</p>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: 13 }}>{rule.name}</h3>
+                      <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: 12 }}>{rule.condition}</p>
+                    </div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <SeverityBadge severity={rule.severity} />
+                      <StatusBadge status={rule.status} />
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: 10
+                    }}
+                  >
+                    <div>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#64748b" }}>检测频率</p>
+                      <p style={{ margin: "4px 0 0", fontWeight: 700, fontSize: 12 }}>{rule.frequency}</p>
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#64748b" }}>推送目标</p>
+                      <p style={{ margin: "4px 0 0", fontWeight: 700, fontSize: 12 }}>{rule.destination}</p>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+                      {["查看日志", "编辑规则", "试跑"].map((action) => (
+                        <button key={action} type="button" className="cv-secondary-button">
+                          {action}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </article>
               ))}
             </div>
           </section>
 
-          <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="AI 能力"
-              title="AI 规则建议"
-              description="模拟根因分析、规则拆分和钉钉模板优化建议。"
-            />
-            <div style={{ display: "grid", gap: 12 }}>
-              {aiCards.map((card) => (
-                <div
-                  key={card}
-                  style={{
-                    borderRadius: 18,
-                    padding: 14,
-                    backgroundColor: "#fff7ed",
-                    border: "1px solid #fed7aa",
-                    color: "#7c2d12",
-                    lineHeight: 1.6
-                  }}
-                >
-                  {card}
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 16 }}>
-              <AiActionPanel
-                title="AI 规则动作"
-                description="支持生成规则草稿、输出根因摘要和优化钉钉通知模板。"
-                mode={aiMode}
-                actions={[
-                  {
-                    id: "alert-generate",
-                    label: "生成规则草稿",
-                    successMessage: "已生成按 env 维度拆分的错误率规则草稿。",
-                    errorMessage: "AI 生成规则草稿失败，请继续手动配置阈值。"
-                  },
-                  {
-                    id: "alert-rootcause",
-                    label: "生成根因摘要",
-                    successMessage: "已输出最近 15 分钟异常链路与 Top Error 摘要。",
-                    errorMessage: "AI 根因摘要失败，请先查看关联日志。"
-                  }
-                ]}
-              />
-            </div>
-          </section>
-        </aside>
-      </div>
+          <aside style={{ display: "grid", gap: 12 }}>
+            <section style={sectionCardStyle}>
+              <SectionHeader eyebrow="事件流" title="告警事件" />
+              <div style={{ display: "grid", gap: 8 }}>
+                {recentEvents.map((event) => (
+                  <article
+                    key={event.title}
+                    style={{
+                      borderRadius: 12,
+                      border: "1px solid rgba(37, 99, 235, 0.08)",
+                      backgroundColor: "#f8fbff",
+                      padding: 10
+                    }}
+                  >
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 12 }}>{event.title}</p>
+                    <p style={{ margin: "4px 0 0", color: "#6b7280", lineHeight: 1.5, fontSize: 12 }}>{event.detail}</p>
+                    <p style={{ margin: "4px 0 0", color: "#1d4ed8", fontSize: 12, fontWeight: 700 }}>{event.time}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            <section style={sectionCardStyle}>
+              <SectionHeader eyebrow="AI 能力" title="AI 规则建议" />
+              <div style={{ display: "grid", gap: 8 }}>
+                {aiCards.map((card) => (
+                  <div
+                    key={card}
+                    style={{
+                      borderRadius: 12,
+                      padding: 10,
+                      backgroundColor: "#f8fbff",
+                      border: "1px solid rgba(37, 99, 235, 0.08)",
+                      color: "#334155",
+                      lineHeight: 1.5,
+                      fontSize: 12
+                    }}
+                  >
+                    {card}
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <AiActionPanel
+                  title="AI 规则动作"
+                  description=""
+                  mode={aiMode}
+                  actions={[
+                    {
+                      id: "alert-generate",
+                      label: "生成规则草稿",
+                      successMessage: "已生成按 env 维度拆分的错误率规则草稿。",
+                      errorMessage: "AI 生成规则草稿失败，请继续手动配置阈值。"
+                    },
+                    {
+                      id: "alert-rootcause",
+                      label: "生成根因摘要",
+                      successMessage: "已输出最近 15 分钟异常链路与 Top Error 摘要。",
+                      errorMessage: "AI 根因摘要失败，请先查看关联日志。"
+                    }
+                  ]}
+                />
+              </div>
+            </section>
+          </aside>
+        </div>
       </ModuleRuntimeGate>
     </section>
   );

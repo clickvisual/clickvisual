@@ -3,6 +3,10 @@ import App from "./App";
 import AlertRulesPage from "../domains/alert/pages/AlertRulesPage";
 import OverviewPage from "../domains/overview/pages/OverviewPage";
 import QueryPage from "../domains/query/pages/QueryPage";
+import PermissionResourcesPage from "../domains/permission/pages/PermissionResourcesPage";
+import PermissionRootPage from "../domains/permission/pages/PermissionRootPage";
+import PermissionRolesPage from "../domains/permission/pages/PermissionRolesPage";
+import PermissionUsersPage from "../domains/permission/pages/PermissionUsersPage";
 import ReportSchedulePage from "../domains/report/pages/ReportSchedulePage";
 import SettingsDatasourcePage from "../domains/settings/pages/SettingsDatasourcePage";
 import { getV2BasePath } from "../shared/layout/VersionSwitcher";
@@ -39,6 +43,22 @@ export const routes = [
       {
         path: "settings/datasource",
         element: <SettingsDatasourcePage />
+      },
+      {
+        path: "permission/users",
+        element: <PermissionUsersPage />
+      },
+      {
+        path: "permission/roles",
+        element: <PermissionRolesPage />
+      },
+      {
+        path: "permission/resources",
+        element: <PermissionResourcesPage />
+      },
+      {
+        path: "permission/root",
+        element: <PermissionRootPage />
       }
     ]
   }

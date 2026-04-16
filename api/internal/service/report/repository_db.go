@@ -848,7 +848,7 @@ func runRenderStage(report dbmodel.Report, schedule dbmodel.ReportSchedule, star
 	scheduleResp := toRespReportSchedule(report, schedule)
 	title, text := buildPreviewPushContentWithRows(reportItem, editor, scheduleResp, startedAt, queryRows)
 	sourceSection := fmt.Sprintf("### ℹ️ 查询来源\n- 当前模式：%s", reportQuerySourceLabel(querySource))
-	text = strings.TrimSpace(text + "\n\n" + sourceSection + "\n\n" + renderQueryRowsAsMarkdown(queryRows))
+	text = strings.TrimSpace(text + "\n\n" + sourceSection + "\n\n" + renderQueryRowsAsMarkdown(report, queryRows))
 	return title, text, nil
 }
 
@@ -863,10 +863,11 @@ func reportQuerySourceLabel(source reportQuerySource) string {
 	}
 }
 
-func renderQueryRowsAsMarkdown(rows []map[string]interface{}) string {
+func renderQueryRowsAsMarkdown(report dbmodel.Report, rows []map[string]interface{}) string {
 	if len(rows) == 0 {
 		return "### 📋 查询结果\n\n无数据"
 	}
+	currentLabel, previousLabel := metricValueLabels(report)
 	var builder strings.Builder
 	builder.WriteString("### 📋 查询结果\n\n")
 	// Limit markdown body size to keep webhook payloads bounded.
@@ -897,7 +898,7 @@ func renderQueryRowsAsMarkdown(rows []map[string]interface{}) string {
 					builder.WriteString(renderTopNMetricSummaryGroup(topNRows))
 					continue
 				}
-				builder.WriteString(renderMetricSummaryBlock(row))
+				builder.WriteString(renderMetricSummaryBlock(row, currentLabel, previousLabel))
 				continue
 			}
 			columns := orderedQueryResultColumns(row)
@@ -979,7 +980,7 @@ func isSameTopNMetric(left map[string]interface{}, right map[string]interface{})
 		strings.TrimSpace(fmt.Sprint(left["metric_name"])) == strings.TrimSpace(fmt.Sprint(right["metric_name"]))
 }
 
-func renderMetricSummaryBlock(row map[string]interface{}) string {
+func renderMetricSummaryBlock(row map[string]interface{}, currentLabel string, previousLabel string) string {
 	if isTopNMetricRow(row) {
 		return renderTopNMetricSummaryBlock(row)
 	}
@@ -992,11 +993,15 @@ func renderMetricSummaryBlock(row map[string]interface{}) string {
 		builder.WriteString("指标")
 	}
 	if currentValue, ok := row["current_value"]; ok {
-		builder.WriteString("：当前 ")
+		builder.WriteString("：")
+		builder.WriteString(currentLabel)
+		builder.WriteString(" ")
 		builder.WriteString(markdownEscape(formatQueryResultValue("current_value", currentValue)))
 	}
 	if previousValue, ok := row["previous_value"]; ok {
-		builder.WriteString("，昨日 ")
+		builder.WriteString("，")
+		builder.WriteString(previousLabel)
+		builder.WriteString(" ")
 		builder.WriteString(markdownEscape(formatQueryResultValue("previous_value", previousValue)))
 	}
 	if ratio, ok := row["ratio_vs_yesterday"]; ok {
@@ -1025,6 +1030,14 @@ func renderMetricSummaryBlock(row map[string]interface{}) string {
 	}
 	builder.WriteString("\n")
 	return builder.String()
+}
+
+func metricValueLabels(report dbmodel.Report) (string, string) {
+	builder := resolveReportBuilder(report)
+	if builder != nil && strings.TrimSpace(builder.TimeRange) == "1d" {
+		return "昨日", "前日"
+	}
+	return "当前", "昨日"
 }
 
 func renderTopNMetricSummaryBlock(row map[string]interface{}) string {

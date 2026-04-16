@@ -1,522 +1,801 @@
 import type { CSSProperties } from "react";
-import AiActionPanel from "../../../shared/components/AiActionPanel";
-import ModuleRuntimeGate, {
-  useModuleRuntimeState
-} from "../../../shared/components/ModuleRuntimeState";
+import { useMemo, useState } from "react";
 import { getTimeRangeLabel, useTimeRange } from "../../../shared/state/TimeRangeContext";
-
-type FilterToken = {
-  label: string;
-  value: string;
-};
-
-type ResultRow = {
-  time: string;
-  level: string;
-  service: string;
-  message: string;
-  traceId: string;
-};
+import { useQueryWorkspace } from "../hooks/useQueryWorkspace";
 
 const pageStyle: CSSProperties = {
   display: "grid",
-  gap: 20
+  gap: 12
 };
 
-const heroStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 16,
-  flexWrap: "wrap",
-  padding: 24,
-  borderRadius: 24,
-  background:
-    "linear-gradient(135deg, rgba(255,247,237,1) 0%, rgba(255,237,213,0.94) 45%, rgba(255,255,255,1) 100%)",
-  border: "1px solid #fdba74"
-};
-
-const sectionCardStyle: CSSProperties = {
-  border: "1px solid #fed7aa",
-  borderRadius: 24,
-  backgroundColor: "#ffffff",
-  padding: 20,
+const panelStyle: CSSProperties = {
+  background: "#ffffff",
+  border: "1px solid rgba(37, 99, 235, 0.08)",
+  borderRadius: 14,
+  padding: 12,
   boxShadow: "0 10px 24px rgba(15, 23, 42, 0.04)"
 };
 
-const layoutStyle: CSSProperties = {
+const compactGridStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "minmax(0, 1.55fr) minmax(300px, 0.95fr)",
-  gap: 20,
-  alignItems: "start"
+  gap: 12
 };
 
-const filterTokens = (timeLabel: string): FilterToken[] => [
-  { label: "时间范围", value: timeLabel },
-  { label: "service", value: "svc-auth" },
-  { label: "env", value: "prod" },
-  { label: "level", value: "error" },
-  { label: "host", value: "auth-prod-03" },
-  { label: "pod", value: "auth-7f86b7d9cc" }
-];
+const rowStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 8
+};
 
-const tabs = ["原始日志", "聚合统计", "Trace 视图", "JSON 视图"];
+const fieldStyle: CSSProperties = {
+  display: "grid",
+  gap: 6,
+  minWidth: 180,
+  flex: "1 1 180px"
+};
 
-const quickFields = ["+service", "+level", "+trace_id", "+request_id", "+host", "+status_code"];
+const labelStyle: CSSProperties = {
+  fontSize: 12,
+  fontWeight: 700,
+  color: "#335c99"
+};
 
-const resultRows: ResultRow[] = [
-  {
-    time: "2026-03-30 12:16:04",
-    level: "ERROR",
-    service: "svc-auth",
-    message: "db timeout while calling /login",
-    traceId: "trace-7f2a91"
-  },
-  {
-    time: "2026-03-30 12:15:41",
-    level: "WARN",
-    service: "svc-auth",
-    message: "retrying upstream mysql connection",
-    traceId: "trace-7f2a91"
-  },
-  {
-    time: "2026-03-30 12:14:57",
-    level: "ERROR",
-    service: "svc-gateway",
-    message: "upstream reset by peer for login route",
-    traceId: "trace-a93cb1"
+const selectStyle: CSSProperties = {
+  height: 32,
+  borderRadius: 10,
+  border: "1px solid rgba(37, 99, 235, 0.08)",
+  padding: "0 12px",
+  background: "#ffffff",
+  color: "#0f172a"
+};
+
+const textareaStyle: CSSProperties = {
+  width: "100%",
+  minHeight: 84,
+  borderRadius: 10,
+  border: "1px solid rgba(37, 99, 235, 0.08)",
+  padding: 10,
+  background: "#ffffff",
+  resize: "vertical",
+  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+  fontSize: 13,
+  lineHeight: 1.5,
+  color: "#0f172a"
+};
+
+const primaryButtonStyle: CSSProperties = {
+  height: 32,
+  borderRadius: 10,
+  border: "1px solid #2563eb",
+  background: "#2563eb",
+  color: "#ffffff",
+  padding: "0 12px",
+  fontWeight: 700,
+  cursor: "pointer",
+  fontSize: 13
+};
+
+const secondaryButtonStyle: CSSProperties = {
+  height: 32,
+  borderRadius: 10,
+  border: "1px solid rgba(37, 99, 235, 0.08)",
+  background: "#ffffff",
+  color: "#335c99",
+  padding: "0 12px",
+  fontWeight: 700,
+  fontSize: 13
+};
+
+const histogramStripStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(48px, 1fr))",
+  alignItems: "end",
+  gap: 8
+};
+
+const tableStyle: CSSProperties = {
+  width: "100%",
+  borderCollapse: "collapse"
+};
+
+const truncateTextStyle: CSSProperties = {
+  display: "inline-block",
+  maxWidth: 560,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  verticalAlign: "bottom"
+};
+
+const suggestionChipStyle: CSSProperties = {
+  border: "1px solid rgba(37, 99, 235, 0.08)",
+  background: "#eff6ff",
+  color: "#1e3a8a",
+  borderRadius: 999,
+  minHeight: 24,
+  padding: "0 10px",
+  fontSize: 12,
+  fontWeight: 700,
+  cursor: "pointer"
+};
+
+const tabButtonStyle: CSSProperties = {
+  ...secondaryButtonStyle,
+  cursor: "pointer"
+};
+
+type QueryResultTab = "raw" | "agg" | "trace" | "json";
+
+function formatCount(value: number) {
+  return new Intl.NumberFormat("zh-CN").format(value);
+}
+
+function truncate(value: unknown, maxLength = 96) {
+  const text = String(value ?? "");
+  if (text.length <= maxLength) {
+    return text;
   }
-];
-
-const historyQueries = [
-  'service:svc-auth AND level:error AND msg:"timeout"',
-  "SELECT service, count(*) FROM logs WHERE level='ERROR' GROUP BY service",
-  "trace_id:trace-7f2a91",
-  "env:prod AND status_code:5xx"
-];
-
-const aiSuggestions = [
-  "将 msg:\"timeout\" 改为 message ILIKE '%timeout%'，避免遗漏部分字段映射。",
-  "补充 env 与 service 前置过滤，可减少扫描分区数量。",
-  "若转 SQL，建议使用 PREWHERE timestamp >= now() - interval 1 hour。"
-];
-
-function SectionHeader({
-  eyebrow,
-  title,
-  description
-}: {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-}) {
-  return (
-    <header style={{ marginBottom: 16 }}>
-      {eyebrow ? (
-        <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#c2410c" }}>
-          {eyebrow}
-        </p>
-      ) : null}
-      <h2 style={{ margin: 0, fontSize: 24, color: "#111827" }}>{title}</h2>
-      {description ? <p style={{ margin: "8px 0 0", color: "#6b7280" }}>{description}</p> : null}
-    </header>
-  );
+  return `${text.slice(0, maxLength)}...`;
 }
 
-function FilterChip({ label, value }: FilterToken) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        borderRadius: 999,
-        padding: "10px 14px",
-        backgroundColor: "#fff7ed",
-        border: "1px solid #fdba74",
-        color: "#9a3412",
-        fontWeight: 700
-      }}
-    >
-      <span style={{ opacity: 0.72 }}>{label}</span>
-      <span>{value}</span>
-    </span>
-  );
-}
-
-function QueryTab({ label, active }: { label: string; active?: boolean }) {
-  return (
-    <button
-      type="button"
-      style={{
-        border: "1px solid",
-        borderColor: active ? "#fb923c" : "#fed7aa",
-        borderRadius: 999,
-        padding: "10px 14px",
-        backgroundColor: active ? "#fff7ed" : "#ffffff",
-        color: active ? "#c2410c" : "#6b7280",
-        fontWeight: 700,
-        cursor: "pointer"
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
-function LevelBadge({ level }: { level: string }) {
-  const styleMap: Record<string, CSSProperties> = {
-    ERROR: { backgroundColor: "#fee2e2", color: "#b91c1c" },
-    WARN: { backgroundColor: "#fef3c7", color: "#b45309" },
-    INFO: { backgroundColor: "#dbeafe", color: "#1d4ed8" }
-  };
-  return (
-    <span
-      style={{
-        borderRadius: 999,
-        padding: "4px 10px",
-        fontSize: 12,
-        fontWeight: 700,
-        ...styleMap[level]
-      }}
-    >
-      {level}
-    </span>
-  );
+function pickMessageField(row: Record<string, unknown>) {
+  const priorities = ["message", "msg", "_raw_log_", "content"];
+  for (const key of priorities) {
+    if (row[key]) {
+      return row[key];
+    }
+  }
+  return JSON.stringify(row);
 }
 
 export default function QueryPage() {
   const { timeRange } = useTimeRange();
-  const { viewState, aiMode } = useModuleRuntimeState();
-  const filters = filterTokens(getTimeRangeLabel(timeRange));
+  const workspace = useQueryWorkspace(timeRange);
+  const [activeTab, setActiveTab] = useState<QueryResultTab>("raw");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+
+  const chartMax = useMemo(
+    () => workspace.charts.reduce((max, item) => Math.max(max, item.count), 0) || 1,
+    [workspace.charts]
+  );
+
+  const aggregationRows = useMemo(() => {
+    const rows = workspace.logs?.logs ?? [];
+    const summary = new Map<string, number>();
+    rows.forEach((row) => {
+      const level = String(row.level ?? row.severity ?? "UNKNOWN");
+      summary.set(level, (summary.get(level) ?? 0) + 1);
+    });
+    return Array.from(summary.entries()).map(([key, value]) => ({ key, value }));
+  }, [workspace.logs]);
+
+  const traceTokens = useMemo(() => {
+    const fixed = ["trace-trace_id", "trace-span_id", "trace-request_id"];
+    const dynamic = new Set<string>();
+    (workspace.logs?.logs ?? []).forEach((row) => {
+      ["trace_id", "traceId", "span_id", "request_id"].forEach((key) => {
+        const value = row[key];
+        if (value) {
+          dynamic.add(`trace-${String(value)}`);
+        }
+      });
+    });
+    return [...fixed, ...Array.from(dynamic)].slice(0, 6);
+  }, [workspace.logs]);
+
+  const jsonPreview = useMemo(() => {
+    if (!workspace.logs?.logs?.length) {
+      return "[]";
+    }
+    return JSON.stringify(workspace.logs.logs, null, 2);
+  }, [workspace.logs]);
+
+  const selectedLog = useMemo(() => workspace.logs?.logs?.[0] ?? null, [workspace.logs]);
+
+  const traceFieldEntries = useMemo(() => {
+    if (!selectedLog) {
+      return [];
+    }
+    return ["trace_id", "traceId", "span_id", "request_id"]
+      .map((key) => [key, selectedLog[key]] as const)
+      .filter(([, value]) => value !== undefined && value !== null && value !== "");
+  }, [selectedLog]);
+
+  const selectedJsonPreview = useMemo(() => {
+    if (!selectedLog) {
+      return "{}";
+    }
+    return JSON.stringify(selectedLog, null, 2);
+  }, [selectedLog]);
+
+  async function handleSaveQuery() {
+    const saved = workspace.saveCurrentQuery();
+    setFeedbackMessage(saved ? "已保存当前查询" : "请输入查询内容后再保存");
+  }
+
+  function handleAiOptimize() {
+    const text = workspace.queryText.trim();
+    if (!text) {
+      workspace.setQueryText("level:error AND service:gateway");
+      setFeedbackMessage("已填入一条更适合排错的查询模板");
+      return;
+    }
+    if (!text.includes("service:")) {
+      workspace.setQueryText(`${text} AND service:gateway`);
+      setFeedbackMessage("已补充 service 过滤，减少扫描范围");
+      return;
+    }
+    setFeedbackMessage("当前查询已经具备基础过滤条件");
+  }
+
+  async function handleTraceRefine(value: unknown) {
+    const text = String(value ?? "").trim();
+    if (!text) {
+      return;
+    }
+    workspace.setQueryText(`trace_id:${text}`);
+    setFeedbackMessage(`已切换为 trace_id:${text}，请执行查询查看链路相关日志`);
+    setActiveTab("trace");
+  }
 
   return (
     <section style={pageStyle}>
-      <header style={heroStyle}>
-        <div style={{ maxWidth: 760 }}>
-          <p style={{ margin: 0, color: "#c2410c", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em" }}>
-            Query / SLS-style Explorer
-          </p>
-          <h1 style={{ margin: "10px 0 12px", fontSize: 36, lineHeight: 1.1 }}>日志查询</h1>
-          <p style={{ margin: 0, color: "#6b7280" }}>
-            按设计稿重做筛选栏、查询输入、结果 Tab 与辅助面板。当前只承载壳层数据，但结构已经对齐后续 DSL、SQL、聚合统计和 Trace 视图。
-          </p>
+      <header className="cv-page-toolbar">
+        <div className="cv-page-toolbar__main">
+          <div className="cv-breadcrumb" aria-label="页面路径">
+            <span>查询</span>
+            <span aria-hidden="true">/</span>
+            <span className="cv-breadcrumb__current">日志查询</span>
+          </div>
+          <h1 className="cv-page-title cv-sr-only">日志查询</h1>
         </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignSelf: "flex-start" }}>
-          {["实时模式", "已启用 AI 优化", "支持 SQL / DSL"].map((item) => (
-            <span
-              key={item}
-              style={{
-                borderRadius: 999,
-                padding: "10px 14px",
-                backgroundColor: "#ffffff",
-                border: "1px solid #fed7aa",
-                color: "#9a3412",
-                fontWeight: 700
-              }}
-            >
-              {item}
-            </span>
-          ))}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>
+            {getTimeRangeLabel(timeRange)}
+          </span>
+          <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>
+            {workspace.selectedTableId ? `tableId #${workspace.selectedTableId}` : "等待解析日志库"}
+          </span>
         </div>
       </header>
-      <ModuleRuntimeGate
-        viewState={viewState}
-        loadingTitle="查询工作台加载中"
-        emptyTitle="当前没有查询结果与推荐项"
-        errorTitle="查询聚合接口暂不可用"
-      >
-      <section style={sectionCardStyle}>
-        <SectionHeader
-          eyebrow="顶部筛选"
-          title="顶部筛选区"
-          description="承接时间范围、服务、环境、级别与主机维度，后续直接绑定聚合查询参数。"
-        />
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {filters.map((filter) => (
-            <FilterChip key={`${filter.label}-${filter.value}`} {...filter} />
-          ))}
+
+      <section aria-label="查询上下文" style={panelStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 14, color: "#0f172a" }}>查询上下文</h2>
+          </div>
+          {workspace.contextLoading ? <span style={{ color: "#2563eb", fontSize: 13 }}>加载中...</span> : null}
+        </div>
+        <div className="cv-query-context">
+          <section role="tree" aria-label="实例与数据库" className="cv-query-tree">
+            <div className="cv-query-tree__heading">
+              <strong>数据源结构</strong>
+              <span>实例 / 数据库</span>
+            </div>
+            {workspace.instances.map((item) => {
+              const isActiveInstance = workspace.selectedInstanceId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  role="treeitem"
+                  aria-label={item.name}
+                  aria-expanded={isActiveInstance}
+                  className="cv-query-tree__group"
+                >
+                  <button
+                    type="button"
+                    className={`cv-query-tree__instance${isActiveInstance ? " cv-query-tree__instance--active" : ""}`}
+                    onClick={() => workspace.setSelectedInstanceId(item.id)}
+                  >
+                    <span className="cv-query-tree__instance-mark" aria-hidden="true" />
+                    {item.name}
+                  </button>
+                  {isActiveInstance ? (
+                    <div role="group" aria-label={`${item.name} 数据库`} className="cv-query-tree__children">
+                      {workspace.databases.map((database) => {
+                        const isActiveDatabase = workspace.selectedDatabase === database.name;
+                        return (
+                          <button
+                            key={database.name}
+                            type="button"
+                            aria-pressed={isActiveDatabase}
+                            aria-label={`数据库 ${database.name}`}
+                            className={`cv-query-tree__database${isActiveDatabase ? " cv-query-tree__database--active" : ""}`}
+                            onClick={() => workspace.setSelectedDatabase(database.name)}
+                          >
+                            <span className="cv-query-tree__database-rail" aria-hidden="true" />
+                            <span className="cv-query-tree__database-dot" aria-hidden="true" />
+                            {database.name}
+                          </button>
+                        );
+                      })}
+                      {workspace.databases.length === 0 ? (
+                        <span className="cv-query-tree__empty">
+                          当前实例暂无数据库
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </section>
+
+          <div className="cv-query-context__main">
+            <div className="cv-query-context__meta">
+              <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>
+                {workspace.selectedInstance?.name ?? "未选择实例"}
+              </span>
+              <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>
+                {workspace.selectedDatabase || "未选择数据库"}
+              </span>
+            </div>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>表</span>
+              <select
+                aria-label="表"
+                style={selectStyle}
+                value={workspace.selectedTable}
+                onChange={(event) => workspace.setSelectedTable(event.target.value)}
+              >
+                {workspace.tables.map((item) => (
+                  <option key={item.name} value={item.name}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {workspace.tables.length === 0 ? (
+              <span className="cv-query-context__empty">
+                当前数据库下暂无数据表，请切换其他数据库继续查询。
+              </span>
+            ) : null}
+          </div>
         </div>
       </section>
 
-      <div style={layoutStyle}>
-        <div style={{ display: "grid", gap: 20 }}>
-          <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="核心输入"
-              title="查询输入区"
-              description="对齐设计稿的 DSL / SQL 查询台、快捷字段按钮和动作按钮。"
-            />
-            <div
-              style={{
-                borderRadius: 22,
-                border: "1px solid #fdba74",
-                backgroundColor: "#fffaf5",
-                padding: 18,
-                display: "grid",
-                gap: 14
-              }}
+      <section aria-label="查询输入" style={panelStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 14, color: "#0f172a" }}>查询输入</h2>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>DSL 模式</span>
+            <button
+              type="button"
+              style={primaryButtonStyle}
+              onClick={() => void workspace.runQuery(1)}
+              disabled={workspace.loading}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <span
-                    style={{
-                      borderRadius: 999,
-                      padding: "6px 10px",
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #fed7aa",
-                      fontWeight: 700,
-                      color: "#9a3412"
-                    }}
-                  >
-                    DSL 模式
-                  </span>
-                  <span
-                    style={{
-                      borderRadius: 999,
-                      padding: "6px 10px",
-                      backgroundColor: "#eff6ff",
-                      color: "#1d4ed8",
-                      fontWeight: 700
-                    }}
-                  >
-                    AI 自动补全已开启
-                  </span>
-                </div>
-                <span style={{ color: "#6b7280", fontWeight: 700 }}>时间范围：{getTimeRangeLabel(timeRange)}</span>
-              </div>
-
-              <pre
-                style={{
-                  margin: 0,
-                  minHeight: 164,
-                  padding: 18,
-                  borderRadius: 18,
-                  backgroundColor: "#111827",
-                  color: "#f8fafc",
-                  overflowX: "auto",
-                  fontSize: 14,
-                  lineHeight: 1.7,
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-                }}
-              >
-                {`service:svc-auth AND env:prod AND level:error
-AND msg:"timeout"
-| stats count() as error_count, avg(latency_ms) as avg_latency by host, pod
-| sort error_count desc
-| limit 50`}
-              </pre>
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {quickFields.map((field) => (
-                  <button
-                    key={field}
-                    type="button"
-                    style={{
-                      border: "1px solid #fed7aa",
-                      borderRadius: 999,
-                      padding: "8px 12px",
-                      backgroundColor: "#ffffff",
-                      color: "#9a3412",
-                      fontWeight: 700,
-                      cursor: "pointer"
-                    }}
-                  >
-                    {field}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                {[
-                  { label: "查询", primary: true },
-                  { label: "保存查询" },
-                  { label: "生成图表" }
-                ].map((action) => (
-                  <button
-                    key={action.label}
-                    type="button"
-                    style={{
-                      border: action.primary ? "none" : "1px solid #fed7aa",
-                      borderRadius: 999,
-                      padding: "11px 16px",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      color: action.primary ? "#ffffff" : "#9a3412",
-                      background: action.primary
-                        ? "linear-gradient(90deg, #f97316 0%, #fb923c 100%)"
-                        : "#ffffff"
-                    }}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-              </div>
-              <AiActionPanel
-                title="AI 查询动作"
-                description="集中承接 AI 优化查询、生成聚合与字段建议。AI 异常时不影响手动查询和保存。"
-                mode={aiMode}
-                actions={[
-                  {
-                    id: "query-optimize",
-                    label: "AI 优化查询",
-                    successMessage: "已生成 PREWHERE 优化建议和更窄的过滤条件。",
-                    errorMessage: "AI 优化查询失败，请先继续使用当前 DSL/SQL。"
-                  },
-                  {
-                    id: "query-chart",
-                    label: "AI 生成图表",
-                    successMessage: "已给出 TopN 柱状图配置建议。",
-                    errorMessage: "AI 生成图表失败，请手动选择图表类型。"
-                  }
-                ]}
-              />
-            </div>
-          </section>
-
-          <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="结果视图"
-              title="结果区"
-              description="保留原始日志、聚合统计、Trace、JSON 四类视图，并模拟典型结果列表。"
-            />
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-              {tabs.map((tab, index) => (
-                <QueryTab key={tab} label={tab} active={index === 0} />
-              ))}
-            </div>
-
-            <div style={{ display: "grid", gap: 12 }}>
-              {resultRows.map((row) => (
-                <article
-                  key={`${row.time}-${row.traceId}`}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "180px 86px 140px 1fr 120px",
-                    gap: 12,
-                    alignItems: "center",
-                    padding: 14,
-                    borderRadius: 18,
-                    border: "1px solid #e5e7eb",
-                    backgroundColor: "#ffffff"
-                  }}
-                >
-                  <span style={{ color: "#6b7280", fontSize: 13 }}>{row.time}</span>
-                  <LevelBadge level={row.level} />
-                  <strong style={{ color: "#111827" }}>{row.service}</strong>
-                  <span style={{ color: "#374151" }}>{row.message}</span>
-                  <button
-                    type="button"
-                    style={{
-                      border: "none",
-                      borderRadius: 999,
-                      padding: "8px 10px",
-                      backgroundColor: "#fff7ed",
-                      color: "#c2410c",
-                      fontWeight: 700,
-                      cursor: "pointer"
-                    }}
-                  >
-                    {row.traceId}
-                  </button>
-                </article>
-              ))}
-            </div>
-
-            <div
-              style={{
-                marginTop: 16,
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 12
-              }}
+              {workspace.loading ? "查询中..." : "查询"}
+            </button>
+            <button
+              type="button"
+              style={tabButtonStyle}
+              onClick={() => void handleSaveQuery()}
             >
-              {[
-                "聚合统计位：count、avg latency、TopN service",
-                "Trace 视图位：按 trace_id 聚合请求链路",
-                "JSON 视图位：格式化 payload 与字段高亮"
-              ].map((item) => (
-                <div
-                  key={item}
-                  style={{
-                    borderRadius: 18,
-                    padding: 14,
-                    backgroundColor: "#fff7ed",
-                    border: "1px solid #fed7aa",
-                    color: "#9a3412",
-                    fontWeight: 700
-                  }}
-                >
-                  {item}
-                </div>
-              ))}
+              保存查询
+            </button>
+            <button
+              type="button"
+              style={tabButtonStyle}
+              onClick={() => setActiveTab("agg")}
+            >
+              生成图表
+            </button>
+            <button
+              type="button"
+              style={tabButtonStyle}
+              onClick={handleAiOptimize}
+            >
+              AI 优化查询
+            </button>
+            <button
+              type="button"
+              style={primaryButtonStyle}
+              onClick={() => void workspace.runQuery(1)}
+              disabled={workspace.loading}
+            >
+              {workspace.loading ? "查询中..." : "执行查询"}
+            </button>
+          </div>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <textarea
+            style={textareaStyle}
+            placeholder="输入查询语句，例如 level:error AND service:gateway"
+            value={workspace.queryText}
+            onChange={(event) => workspace.setQueryText(event.target.value)}
+          />
+        </div>
+        {feedbackMessage ? (
+          <div
+            style={{
+              marginTop: 10,
+              borderRadius: 12,
+              padding: "6px 10px",
+              background: "#eff6ff",
+              border: "1px solid rgba(37, 99, 235, 0.08)",
+              color: "#1d4ed8",
+              fontSize: 12,
+              fontWeight: 700
+            }}
+          >
+            {feedbackMessage}
+          </div>
+        ) : null}
+        <div style={{ ...compactGridStyle, marginTop: 12 }}>
+          <div style={{ display: "grid", gap: 6 }}>
+            <strong style={{ fontSize: 12, color: "#335c99" }}>字段提示</strong>
+            <div style={rowStyle}>
+              {workspace.suggestionFields.length > 0 ? (
+                workspace.suggestionFields.map((item) => (
+                  <button
+                    key={`field-${item}`}
+                    type="button"
+                    style={suggestionChipStyle}
+                    onClick={() => workspace.applySuggestion(item)}
+                  >
+                    {item}
+                  </button>
+                ))
+              ) : (
+                <span style={{ color: "#64748b", fontSize: 12 }}>当前表暂无可用字段提示</span>
+              )}
             </div>
-          </section>
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            <strong style={{ fontSize: 12, color: "#335c99" }}>历史记录</strong>
+            <div style={rowStyle}>
+              {workspace.queryHistory.length > 0 ? (
+                workspace.queryHistory.map((item) => (
+                  <button
+                    key={`history-${item}`}
+                    type="button"
+                    style={suggestionChipStyle}
+                    onClick={() => workspace.applySuggestion(item)}
+                  >
+                    {truncate(item, 42)}
+                  </button>
+                ))
+              ) : (
+                <span style={{ color: "#64748b", fontSize: 12 }}>执行查询后会按日志库保存最近 10 条记录</span>
+              )}
+            </div>
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            <strong style={{ fontSize: 12, color: "#335c99" }}>自动补全</strong>
+            <div style={rowStyle}>
+              {workspace.autocompleteItems.length > 0 ? (
+                workspace.autocompleteItems.map((item) => (
+                  <button
+                    key={`auto-${item}`}
+                    type="button"
+                    style={suggestionChipStyle}
+                    onClick={() => workspace.applySuggestion(item)}
+                  >
+                    {truncate(item, 42)}
+                  </button>
+                ))
+              ) : (
+                <span style={{ color: "#64748b", fontSize: 12 }}>输入查询内容后会返回实例侧的补全建议</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="直方图" style={panelStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 14, color: "#0f172a" }}>直方图</h2>
+          </div>
+          {workspace.chartLoading ? <span style={{ color: "#2563eb", fontSize: 13 }}>加载中...</span> : null}
+        </div>
+        {workspace.charts.length > 0 ? (
+          <div style={{ ...histogramStripStyle, marginTop: 14 }}>
+            {workspace.charts.map((item) => (
+              <div key={`${item.from}-${item.to}`} style={{ display: "grid", gap: 6, justifyItems: "center" }}>
+                <button
+                  type="button"
+                  title={`${item.count}`}
+                  onClick={() => void workspace.runQuery(1, { st: item.from, et: item.to })}
+                  style={{
+                    width: "100%",
+                    minHeight: 12,
+                    height: `${Math.max(12, Math.round((item.count / chartMax) * 72))}px`,
+                    borderRadius: 10,
+                    background: "linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)",
+                    border: "none",
+                    cursor: "pointer"
+                  }}
+                />
+                <span style={{ fontSize: 12, color: "#475569" }}>{item.count}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ marginTop: 12, color: "#64748b", fontSize: 13 }}>当前没有可展示的直方图数据。</div>
+        )}
+      </section>
+
+      <section aria-label="查询结果" style={panelStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 14, color: "#0f172a" }}>查询结果</h2>
+          </div>
+          {workspace.logs ? (
+            <div style={{ display: "flex", gap: 16, color: "#1e3a8a", fontWeight: 700 }}>
+              <span>共 {formatCount(workspace.logs.count)} 条结果</span>
+              <span>耗时 {workspace.logs.cost} ms</span>
+            </div>
+          ) : null}
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+          <button type="button" style={activeTab === "raw" ? primaryButtonStyle : tabButtonStyle} onClick={() => setActiveTab("raw")}>
+            原始日志
+          </button>
+          <button type="button" style={activeTab === "agg" ? primaryButtonStyle : tabButtonStyle} onClick={() => setActiveTab("agg")}>
+            聚合统计
+          </button>
+          <button type="button" style={activeTab === "trace" ? primaryButtonStyle : tabButtonStyle} onClick={() => setActiveTab("trace")}>
+            Trace 视图
+          </button>
+          <button type="button" style={activeTab === "json" ? primaryButtonStyle : tabButtonStyle} onClick={() => setActiveTab("json")}>
+            JSON 视图
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+          {traceTokens.map((item) => (
+            <button
+              key={item}
+              type="button"
+              style={tabButtonStyle}
+              onClick={() => workspace.applySuggestion(item.replace(/^trace-/, ""))}
+            >
+              {item}
+            </button>
+          ))}
         </div>
 
-        <aside style={{ display: "grid", gap: 20 }}>
-          <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="搜索建议"
-              title="查询辅助区"
-              description="承接字段提示、历史查询、AI 查询优化和常用过滤入口。"
-            />
-            <div style={{ display: "grid", gap: 16 }}>
-              <div>
-                <h3 style={{ margin: "0 0 10px" }}>字段建议</h3>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {["service", "host", "trace_id", "request_id", "status_code", "latency_ms"].map((field) => (
-                    <span
-                      key={field}
+        {workspace.errorMessage ? (
+          <div
+            role="alert"
+            style={{
+              marginTop: 12,
+              borderRadius: 12,
+              padding: "10px 12px",
+              background: "#eff6ff",
+              border: "1px solid #bfdbfe",
+              color: "#1d4ed8"
+            }}
+          >
+            {workspace.errorMessage}
+          </div>
+        ) : null}
+
+        {!workspace.errorMessage && workspace.logs && workspace.logs.logs.length > 0 ? (
+          <div style={{ ...compactGridStyle, marginTop: 12 }}>
+            {activeTab === "raw" ? (
+              <table style={tableStyle}>
+                <thead>
+                  <tr style={{ textAlign: "left", borderBottom: "1px solid rgba(37, 99, 235, 0.08)" }}>
+                    <th style={{ padding: "0 0 10px", color: "#335c99", fontSize: 12 }}>时间</th>
+                    <th style={{ padding: "0 0 10px", color: "#335c99", fontSize: 12 }}>级别</th>
+                    <th style={{ padding: "0 0 10px", color: "#335c99", fontSize: 12 }}>内容</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {workspace.logs.logs.map((row, index) => (
+                    <tr
+                      key={`${index}-${String(row._time ?? row.time ?? "")}`}
                       style={{
-                        borderRadius: 999,
-                        padding: "8px 12px",
-                        backgroundColor: "#fff7ed",
-                        color: "#c2410c",
-                        fontWeight: 700
+                        borderBottom: "1px solid rgba(37, 99, 235, 0.06)",
+                        background: index === 0 ? "#f8fbff" : "transparent"
                       }}
                     >
-                      {field}
-                    </span>
+                      <td style={{ padding: "8px 0", color: "#0f172a", verticalAlign: "top", fontSize: 12 }}>
+                        {String(row._time ?? row.time ?? "-")}
+                      </td>
+                      <td style={{ padding: "8px 0", color: "#1d4ed8", verticalAlign: "top", fontWeight: 700, fontSize: 12 }}>
+                        {String(row.level ?? row.severity ?? "-")}
+                      </td>
+                      <td style={{ padding: "8px 0", color: "#334155", verticalAlign: "top", fontSize: 12 }}>
+                        <span style={truncateTextStyle} title={String(pickMessageField(row))}>
+                          {truncate(pickMessageField(row))}
+                        </span>
+                      </td>
+                    </tr>
                   ))}
+                </tbody>
+              </table>
+            ) : null}
+            {activeTab === "agg" ? (
+              <div style={{ display: "grid", gap: 8 }}>
+                {aggregationRows.map((item) => (
+                  <div
+                    key={item.key}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      border: "1px solid rgba(37, 99, 235, 0.08)",
+                      borderRadius: 10,
+                      padding: "8px 10px",
+                      background: "#f8fbff"
+                    }}
+                  >
+                    <strong style={{ color: "#0f172a" }}>{item.key}</strong>
+                    <span style={{ color: "#1d4ed8", fontWeight: 700 }}>{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {activeTab === "trace" ? (
+              <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {traceFieldEntries.length > 0 ? (
+                    traceFieldEntries.map(([key, value]) => (
+                      <div
+                        key={key}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: 12,
+                          alignItems: "center",
+                          border: "1px solid rgba(37, 99, 235, 0.08)",
+                          borderRadius: 10,
+                          padding: "8px 10px",
+                          background: "#f8fbff"
+                        }}
+                      >
+                        <div style={{ display: "grid", gap: 4 }}>
+                          <strong style={{ color: "#0f172a" }}>{key}</strong>
+                          <span style={{ color: "#475569", fontSize: 12 }}>{String(value)}</span>
+                        </div>
+                        <button type="button" style={tabButtonStyle} onClick={() => void handleTraceRefine(value)}>
+                          按 {key} 重查
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: "#64748b", fontSize: 13 }}>当前日志没有可用的 trace 字段。</div>
+                  )}
+                </div>
+                <div style={{ color: "#64748b", fontSize: 13 }}>
+                  当前视图优先暴露 trace 相关 hook，后续可继续接入 trace 链路详情和关联跳转。
                 </div>
               </div>
-
-              <div>
-                <h3 style={{ margin: "0 0 10px" }}>历史查询</h3>
-                <div style={{ display: "grid", gap: 10 }}>
-                  {historyQueries.map((query) => (
-                    <button
-                      key={query}
-                      type="button"
-                      style={{
-                        textAlign: "left",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: 16,
-                        padding: 12,
-                        backgroundColor: "#ffffff",
-                        color: "#374151",
-                        cursor: "pointer"
-                      }}
-                    >
-                      {query}
-                    </button>
-                  ))}
+            ) : null}
+            {activeTab === "json" ? (
+              <div style={{ display: "grid", gap: 12 }}>
+                <div
+                  style={{
+                    borderRadius: 10,
+                    border: "1px solid rgba(37, 99, 235, 0.08)",
+                    padding: "8px 10px",
+                    background: "#f8fbff"
+                  }}
+                >
+                  <strong style={{ color: "#0f172a" }}>当前选中日志</strong>
+                  <div style={{ marginTop: 6, color: "#64748b", fontSize: 12 }}>
+                    默认展示第一条命中日志的完整 JSON，便于复制和比对字段。
+                  </div>
                 </div>
+                <pre
+                  style={{
+                    margin: 0,
+                    borderRadius: 10,
+                    border: "1px solid rgba(37, 99, 235, 0.08)",
+                    padding: 10,
+                    background: "#f8fbff",
+                    color: "#0f172a",
+                    overflow: "auto",
+                    fontSize: 12,
+                    lineHeight: 1.6
+                  }}
+                >
+                  {selectedJsonPreview}
+                </pre>
+                <details>
+                  <summary style={{ cursor: "pointer", color: "#1d4ed8", fontWeight: 700 }}>查看当前页全部 JSON</summary>
+                  <pre
+                    style={{
+                      margin: "10px 0 0",
+                      borderRadius: 10,
+                      border: "1px solid rgba(37, 99, 235, 0.08)",
+                      padding: 10,
+                      background: "#f8fbff",
+                      color: "#0f172a",
+                      overflow: "auto",
+                      fontSize: 12,
+                      lineHeight: 1.6
+                    }}
+                  >
+                    {jsonPreview}
+                  </pre>
+                </details>
               </div>
-
-              <div>
-                <h3 style={{ margin: "0 0 10px" }}>AI 建议</h3>
-                <ul style={{ margin: 0, paddingLeft: 18, color: "#6b7280", lineHeight: 1.7 }}>
-                  {aiSuggestions.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
+            ) : null}
+            {selectedLog ? (
+              <section
+                aria-label="日志详情"
+                style={{
+                  borderRadius: 12,
+                  border: "1px solid rgba(37, 99, 235, 0.08)",
+                  padding: 10,
+                  background: "#f8fbff",
+                  display: "grid",
+                  gap: 10
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                  <div>
+                    <strong style={{ color: "#0f172a" }}>日志详情</strong>
+                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>
+                      当前先展示首条命中日志的关键字段，后续可扩到显式行选择。
+                    </div>
+                  </div>
+                  <button type="button" style={tabButtonStyle} onClick={() => setActiveTab("json")}>
+                    查看 JSON 详情
+                  </button>
+                </div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {Object.entries(selectedLog)
+                    .slice(0, 6)
+                    .map(([key, value]) => (
+                      <div
+                        key={key}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "160px minmax(0, 1fr)",
+                          gap: 12,
+                          alignItems: "start"
+                        }}
+                      >
+                        <strong style={{ color: "#335c99", fontSize: 12 }}>{key}</strong>
+                        <span style={{ color: "#334155", fontSize: 13, wordBreak: "break-all" }}>{String(value)}</span>
+                      </div>
+                    ))}
+                </div>
+              </section>
+            ) : null}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <span style={{ color: "#64748b", fontSize: 13 }}>
+                第 {workspace.page} 页，每页 {workspace.pageSize} 条
+              </span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  style={secondaryButtonStyle}
+                  disabled={workspace.page <= 1 || workspace.loading}
+                  onClick={() => void workspace.runQuery(workspace.page - 1)}
+                >
+                  上一页
+                </button>
+                <button
+                  type="button"
+                  style={secondaryButtonStyle}
+                  disabled={workspace.loading || workspace.logs.logs.length < workspace.pageSize}
+                  onClick={() => void workspace.runQuery(workspace.page + 1)}
+                >
+                  下一页
+                </button>
               </div>
             </div>
-          </section>
-        </aside>
-      </div>
-      </ModuleRuntimeGate>
+          </div>
+        ) : null}
+
+        {!workspace.errorMessage && workspace.logs && workspace.logs.logs.length === 0 ? (
+          <div style={{ marginTop: 12, color: "#64748b", fontSize: 13 }}>当前查询没有命中结果。</div>
+        ) : null}
+
+        {!workspace.errorMessage && !workspace.logs ? (
+          <div style={{ marginTop: 12, color: "#64748b", fontSize: 13 }}>
+            选择上下文并执行查询后，这里会展示真实日志结果。
+          </div>
+        ) : null}
+      </section>
     </section>
   );
 }
