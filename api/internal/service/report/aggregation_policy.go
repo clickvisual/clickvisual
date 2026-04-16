@@ -21,6 +21,7 @@ var reportAggregationAllowedFields = map[string]struct{}{
 	"application":        {},
 	"env":                {},
 	"fileGuid":           {},
+	"method":             {},
 	"msg":                {},
 	"status":             {},
 	"container.name":     {},

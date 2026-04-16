@@ -159,3 +159,23 @@ func TestValidateAggregationEligibilityAcceptsFileGuidTopN(t *testing.T) {
 	})
 	assert.NoError(t, err)
 }
+
+func TestValidateAggregationEligibilityAcceptsMethodWhere(t *testing.T) {
+	err := validateAggregationEligibility(view.ReqReportBuilder{
+		Database:  "dev_log",
+		Table:     "app_stdout",
+		TimeField: "_time_second_",
+		TimeRange: "1h",
+		Blocks: []view.ReqReportBlock{
+			{
+				Key:   "gray_read",
+				Label: "灰度读",
+				Where: "method='docGrayProxy' and msg='writeModeDocv2grayRead'",
+				Metrics: []view.ReqReportMetric{
+					{Key: "count", Label: "总量"},
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+}
