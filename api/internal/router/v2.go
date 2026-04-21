@@ -49,6 +49,18 @@ func v2(r *gin.RouterGroup) {
 		// other apis
 		r.GET("/base/instances", core.Handle(base.InstanceList))
 		r.POST("/base/system/schema-sync", core.Handle(base.SystemSchemaSync))
+		r.GET("/base/settings/instances", core.Handle(base.SettingsInstanceList))
+		r.GET("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceInfo))
+		r.POST("/base/settings/instances", core.Handle(base.SettingsInstanceCreate))
+		r.PATCH("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceUpdate))
+		r.DELETE("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceDelete))
+		r.POST("/base/settings/instances/test", core.Handle(base.SettingsInstanceTest))
+		r.GET("/base/settings/alarm-channels", core.Handle(base.SettingsAlarmChannelList))
+		r.GET("/base/settings/alarm-channels/:channel-id", core.Handle(base.SettingsAlarmChannelInfo))
+		r.POST("/base/settings/alarm-channels", core.Handle(base.SettingsAlarmChannelCreate))
+		r.PATCH("/base/settings/alarm-channels/:channel-id", core.Handle(base.SettingsAlarmChannelUpdate))
+		r.DELETE("/base/settings/alarm-channels/:channel-id", core.Handle(base.SettingsAlarmChannelDelete))
+		r.POST("/base/settings/alarm-channels/send-test", core.Handle(base.SettingsAlarmChannelSendTest))
 		// todo: deprecated
 		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))
 		r.GET("/base/su/:s-code", core.Handle(base.ShortURLRedirect))

@@ -237,7 +237,7 @@ func TestBuildAccelerationWindowAvailabilityQuery(t *testing.T) {
 }
 
 func TestRenderQueryRowsAsMarkdown(t *testing.T) {
-	md := renderQueryRowsAsMarkdown([]map[string]interface{}{
+	md := renderQueryRowsAsMarkdown(dbmodel.Report{}, []map[string]interface{}{
 		{
 			"ratio_vs_yesterday": "0.25",
 			"previous_value":     4,
@@ -255,11 +255,11 @@ func TestRenderQueryRowsAsMarkdown(t *testing.T) {
 	assert.NotContains(t, md, "分组值")
 	assert.NotContains(t, md, "数值")
 
-	assert.Contains(t, renderQueryRowsAsMarkdown(nil), "无数据")
+	assert.Contains(t, renderQueryRowsAsMarkdown(dbmodel.Report{}, nil), "无数据")
 }
 
 func TestRenderQueryRowsAsMarkdownGroupsByBlockLabel(t *testing.T) {
-	md := renderQueryRowsAsMarkdown([]map[string]interface{}{
+	md := renderQueryRowsAsMarkdown(dbmodel.Report{}, []map[string]interface{}{
 		{
 			"block_label":        "Debug 日志",
 			"metric_name":        "总量",
@@ -296,7 +296,7 @@ func TestRenderQueryRowsAsMarkdownGroupsByBlockLabel(t *testing.T) {
 }
 
 func TestRenderQueryRowsAsMarkdownSupportsTopNMetric(t *testing.T) {
-	md := renderQueryRowsAsMarkdown([]map[string]interface{}{
+	md := renderQueryRowsAsMarkdown(dbmodel.Report{}, []map[string]interface{}{
 		{
 			"block_key":   "error",
 			"block_label": "Pod 报错统计",
@@ -334,7 +334,7 @@ func TestRenderQueryRowsAsMarkdownSupportsTopNMetric(t *testing.T) {
 }
 
 func TestRenderQueryRowsAsMarkdownSupportsTopNMetricWithoutRank(t *testing.T) {
-	md := renderQueryRowsAsMarkdown([]map[string]interface{}{
+	md := renderQueryRowsAsMarkdown(dbmodel.Report{}, []map[string]interface{}{
 		{
 			"block_key":   "error",
 			"block_label": "Pod 报错统计",
@@ -349,6 +349,23 @@ func TestRenderQueryRowsAsMarkdownSupportsTopNMetricWithoutRank(t *testing.T) {
 	assert.Contains(t, md, "∘ Top3 Pod")
 	assert.Contains(t, md, "• svc-table：11880")
 	assert.NotContains(t, md, "-.")
+}
+
+func TestRenderQueryRowsAsMarkdownUsesYesterdayLabelsForOneDayReports(t *testing.T) {
+	md := renderQueryRowsAsMarkdown(dbmodel.Report{
+		TemplateKey:   "report-builder-default",
+		BuilderConfig: `{"instanceId":1,"database":"logger","table":"logs","timeField":"event_time","timeRange":"1d","blocks":[{"key":"default","label":"默认条件块","where":"","metrics":[{"key":"count","label":"总量"}]}]}`,
+	}, []map[string]interface{}{
+		{
+			"metric_name":        "总量",
+			"current_value":      51,
+			"previous_value":     48,
+			"ratio_vs_yesterday": 0.0625,
+		},
+	})
+
+	assert.Contains(t, md, "∘ 总量：昨日 51，前日 48，环比 🔴 6.25%")
+	assert.NotContains(t, md, "当前 51，昨日 48")
 }
 
 func TestBuildStageFailureContentIncludesKeyword(t *testing.T) {

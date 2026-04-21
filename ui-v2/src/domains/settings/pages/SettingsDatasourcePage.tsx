@@ -1,101 +1,173 @@
-import { useState, type CSSProperties } from "react";
-import { syncSystemSchema } from "../api/settings";
-import AiActionPanel from "../../../shared/components/AiActionPanel";
+import { useEffect, useState } from "react";
 import ModuleRuntimeGate, {
   useModuleRuntimeState
 } from "../../../shared/components/ModuleRuntimeState";
+import {
+  createSettingsAlarmChannel,
+  createSettingsDatasource,
+  deleteSettingsAlarmChannel,
+  deleteSettingsDatasource,
+  getSettingsAlarmChannel,
+  getSettingsDatasource,
+  listSettingsAlarmChannels,
+  listSettingsDatasources,
+  sendSettingsAlarmChannelTest,
+  syncSystemSchema,
+  testSettingsDatasource,
+  updateSettingsAlarmChannel,
+  updateSettingsDatasource,
+  type SettingsAlarmChannel,
+  type SettingsAlarmChannelPayload,
+  type SettingsDatasourceItem,
+  type SettingsDatasourcePayload
+} from "../api/settings";
 
-type ConfigCard = {
+type FeedbackDialogState = {
   title: string;
-  description: string;
-  status: string;
+  message: string;
 };
 
-const pageStyle: CSSProperties = {
-  display: "grid",
-  gap: 20
+type ConfirmDeleteState =
+  | {
+      type: "datasource";
+      id: number;
+      name: string;
+    }
+  | {
+      type: "channel";
+      id: number;
+      name: string;
+    };
+
+type DatasourceModalState = {
+  mode: "create" | "edit";
+  id?: number;
+  title: string;
 };
 
-const heroStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 16,
-  flexWrap: "wrap",
-  padding: 24,
-  borderRadius: 24,
-  background:
-    "linear-gradient(135deg, rgba(255,247,237,1) 0%, rgba(239,246,255,0.96) 58%, rgba(255,255,255,1) 100%)",
-  border: "1px solid #bfdbfe"
+type ChannelModalState = {
+  mode: "create" | "edit";
+  id?: number;
+  title: string;
 };
 
-const sectionCardStyle: CSSProperties = {
-  border: "1px solid #fed7aa",
-  borderRadius: 24,
-  backgroundColor: "#ffffff",
-  padding: 20,
-  boxShadow: "0 10px 24px rgba(15, 23, 42, 0.04)"
-};
+type DatasourceFormState = SettingsDatasourcePayload;
+type ChannelFormState = SettingsAlarmChannelPayload;
 
-const layoutStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1.5fr) minmax(320px, 0.9fr)",
-  gap: 20,
-  alignItems: "start"
-};
-
-const tabs = ["AI 配置", "DingTalk 通知", "数据源", "字段映射"];
-
-const configCards: ConfigCard[] = [
-  {
-    title: "ClickHouse 数据源配置",
-    description: "Host、Port、TLS、Database 与连接测试状态预留在这里。",
-    status: "连接正常"
-  },
-  {
-    title: "Schema Registry",
-    description: "映射 time、level、service、trace_id、message、json_payload 等核心字段。",
-    status: "字段映射已加载"
-  },
-  {
-    title: "DingTalk 通知配置",
-    description: "Webhook URL、Secret、@策略与消息模板管理统一收口。",
-    status: "2 个 webhook 已启用"
+function datasourceKindLabel(value: string) {
+  switch (value) {
+    case "ch":
+      return "ClickHouse";
+    case "databend":
+      return "Databend";
+    case "agent":
+      return "Agent";
+    default:
+      return value || "-";
   }
-];
+}
 
-const aiCapabilities = [
-  "根据日志样本生成最佳 ClickHouse 表结构建议",
-  "根据近 7 天日志生成告警规则模板",
-  "根据业务 SLA 自动生成定时报表模板"
-];
+function channelTypeLabel(value: number) {
+  switch (value) {
+    case 1:
+      return "DingTalk";
+    case 2:
+      return "WeCom";
+    case 3:
+      return "Feishu";
+    case 4:
+      return "Slack";
+    case 5:
+      return "Webhook";
+    case 6:
+      return "Telegram";
+    default:
+      return `类型 ${value}`;
+  }
+}
 
-function SectionHeader({
-  eyebrow,
-  title,
-  description
-}: {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-}) {
+function trimPayload<T extends Record<string, unknown>>(payload: T): T {
+  const next = { ...payload };
+  Object.keys(next).forEach((key) => {
+    const value = next[key];
+    if (typeof value === "string") {
+      next[key] = value.trim() as T[keyof T];
+    }
+  });
+  return next;
+}
+
+function emptyDatasourceForm(): DatasourceFormState {
+  return {
+    name: "",
+    datasource: "ch",
+    dsn: "",
+    desc: ""
+  };
+}
+
+function emptyChannelForm(): ChannelFormState {
+  return {
+    name: "",
+    key: "",
+    typ: 1
+  };
+}
+
+function GuideList({ items }: { items: string[] }) {
   return (
-    <header style={{ marginBottom: 16 }}>
-      {eyebrow ? (
-        <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#c2410c" }}>
-          {eyebrow}
-        </p>
-      ) : null}
-      <h1 style={{ margin: 0, fontSize: 24, color: "#111827" }}>{title}</h1>
-      {description ? <p style={{ margin: "8px 0 0", color: "#6b7280" }}>{description}</p> : null}
-    </header>
+    <div className="cv-settings-guide-list">
+      {items.map((item, index) => (
+        <div key={item} className="cv-settings-guide-item">
+          <strong>{index + 1}</strong>
+          <span className="cv-muted">{item}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
 export default function SettingsDatasourcePage() {
-  const { viewState, aiMode } = useModuleRuntimeState();
+  const { viewState } = useModuleRuntimeState();
+  const [loading, setLoading] = useState(true);
+  const [datasources, setDatasources] = useState<SettingsDatasourceItem[]>([]);
+  const [channels, setChannels] = useState<SettingsAlarmChannel[]>([]);
   const [syncStatus, setSyncStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [confirmSyncOpen, setConfirmSyncOpen] = useState(false);
+  const [feedbackDialog, setFeedbackDialog] = useState<FeedbackDialogState | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<ConfirmDeleteState | null>(null);
+  const [datasourceModal, setDatasourceModal] = useState<DatasourceModalState | null>(null);
+  const [channelModal, setChannelModal] = useState<ChannelModalState | null>(null);
+  const [datasourceForm, setDatasourceForm] = useState<DatasourceFormState>(emptyDatasourceForm);
+  const [channelForm, setChannelForm] = useState<ChannelFormState>(emptyChannelForm);
+  const [savingDatasource, setSavingDatasource] = useState(false);
+  const [testingDatasource, setTestingDatasource] = useState(false);
+  const [savingChannel, setSavingChannel] = useState(false);
+  const [testingChannel, setTestingChannel] = useState(false);
+
+  async function loadSettings() {
+    setLoading(true);
+    try {
+      const [nextDatasources, nextChannels] = await Promise.all([
+        listSettingsDatasources(),
+        listSettingsAlarmChannels()
+      ]);
+      setDatasources(nextDatasources);
+      setChannels(nextChannels);
+    } catch (error) {
+      setFeedbackDialog({
+        title: "配置数据加载失败",
+        message: error instanceof Error ? error.message : "请稍后重试"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadSettings();
+  }, []);
 
   async function handleSyncSystemSchema() {
     setSyncStatus("pending");
@@ -112,360 +184,868 @@ export default function SettingsDatasourcePage() {
     }
   }
 
+  function openDatasourceCreate() {
+    setDatasourceForm(emptyDatasourceForm());
+    setDatasourceModal({
+      mode: "create",
+      title: "新增数据源"
+    });
+  }
+
+  async function openDatasourceEdit(instanceId: number) {
+    try {
+      const detail = await getSettingsDatasource(instanceId);
+      setDatasourceForm({
+        name: detail.name || "",
+        datasource: detail.datasource || "ch",
+        dsn: detail.dsn || "",
+        desc: detail.desc || ""
+      });
+      setDatasourceModal({
+        mode: "edit",
+        id: instanceId,
+        title: "编辑数据源"
+      });
+    } catch (error) {
+      setFeedbackDialog({
+        title: "获取数据源详情失败",
+        message: error instanceof Error ? error.message : "请稍后重试"
+      });
+    }
+  }
+
+  async function openChannelEdit(channelId: number) {
+    try {
+      const detail = await getSettingsAlarmChannel(channelId);
+      setChannelForm({
+        name: detail.name || "",
+        key: detail.key || "",
+        typ: detail.typ || 1
+      });
+      setChannelModal({
+        mode: "edit",
+        id: channelId,
+        title: "编辑通知渠道"
+      });
+    } catch (error) {
+      setFeedbackDialog({
+        title: "获取渠道详情失败",
+        message: error instanceof Error ? error.message : "请稍后重试"
+      });
+    }
+  }
+
+  function openChannelCreate() {
+    setChannelForm(emptyChannelForm());
+    setChannelModal({
+      mode: "create",
+      title: "新增 DingTalk 通知"
+    });
+  }
+
+  async function handleSaveDatasource() {
+    const payload = trimPayload(datasourceForm);
+    if (!payload.name || !payload.datasource || !payload.dsn) {
+      setFeedbackDialog({
+        title: "数据源信息不完整",
+        message: "请填写数据源名称、类型和 DSN。"
+      });
+      return;
+    }
+    setSavingDatasource(true);
+    try {
+      if (datasourceModal?.mode === "edit" && datasourceModal.id) {
+        await updateSettingsDatasource(datasourceModal.id, payload);
+      } else {
+        await createSettingsDatasource(payload);
+      }
+      setDatasourceModal(null);
+      await loadSettings();
+    } catch (error) {
+      setFeedbackDialog({
+        title: "保存数据源失败",
+        message: error instanceof Error ? error.message : "请稍后重试"
+      });
+    } finally {
+      setSavingDatasource(false);
+    }
+  }
+
+  async function handleTestDatasource() {
+    const payload = trimPayload(datasourceForm);
+    if (!payload.datasource || !payload.dsn) {
+      setFeedbackDialog({
+        title: "无法测试连接",
+        message: "请先填写数据源类型和 DSN。"
+      });
+      return;
+    }
+    setTestingDatasource(true);
+    try {
+      const message = await testSettingsDatasource({
+        datasource: payload.datasource,
+        dsn: payload.dsn
+      });
+      setFeedbackDialog({
+        title: "连接测试成功",
+        message: message || "数据源连接正常"
+      });
+    } catch (error) {
+      setFeedbackDialog({
+        title: "连接测试失败",
+        message: error instanceof Error ? error.message : "请检查 DSN"
+      });
+    } finally {
+      setTestingDatasource(false);
+    }
+  }
+
+  async function handleSaveChannel() {
+    const payload = trimPayload(channelForm);
+    if (!payload.name || !payload.key) {
+      setFeedbackDialog({
+        title: "通知渠道信息不完整",
+        message: "请填写渠道名称和 Webhook 地址。"
+      });
+      return;
+    }
+    setSavingChannel(true);
+    try {
+      if (channelModal?.mode === "edit" && channelModal.id) {
+        await updateSettingsAlarmChannel(channelModal.id, payload);
+      } else {
+        await createSettingsAlarmChannel(payload);
+      }
+      setChannelModal(null);
+      await loadSettings();
+    } catch (error) {
+      setFeedbackDialog({
+        title: "保存通知渠道失败",
+        message: error instanceof Error ? error.message : "请稍后重试"
+      });
+    } finally {
+      setSavingChannel(false);
+    }
+  }
+
+  async function handleTestChannel() {
+    const payload = trimPayload(channelForm);
+    if (!payload.name || !payload.key) {
+      setFeedbackDialog({
+        title: "无法发送测试消息",
+        message: "请先填写渠道名称和 Webhook 地址。"
+      });
+      return;
+    }
+    setTestingChannel(true);
+    try {
+      const message = await sendSettingsAlarmChannelTest(payload);
+      setFeedbackDialog({
+        title: "测试消息发送成功",
+        message: message || "请到目标群确认是否收到测试消息"
+      });
+    } catch (error) {
+      setFeedbackDialog({
+        title: "测试消息发送失败",
+        message: error instanceof Error ? error.message : "请检查 Webhook 配置"
+      });
+    } finally {
+      setTestingChannel(false);
+    }
+  }
+
+  async function handleDeleteConfirmed() {
+    if (!confirmDelete) {
+      return;
+    }
+    try {
+      if (confirmDelete.type === "datasource") {
+        await deleteSettingsDatasource(confirmDelete.id);
+      } else {
+        await deleteSettingsAlarmChannel(confirmDelete.id);
+      }
+      setConfirmDelete(null);
+      await loadSettings();
+    } catch (error) {
+      setFeedbackDialog({
+        title: "删除失败",
+        message: error instanceof Error ? error.message : "请稍后重试"
+      });
+    }
+  }
+
+  const dingtalkChannels = channels.filter((item) => item.typ === 1);
+  const datasourceErrorCount = datasources.filter((item) => item.error).length;
+
   return (
-    <section style={pageStyle}>
-      <header style={heroStyle}>
-        <div style={{ maxWidth: 720 }}>
-          <p style={{ margin: 0, color: "#c2410c", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em" }}>
-            Settings / AI + DingTalk + Datasource
-          </p>
-          <h1 style={{ margin: "10px 0 12px", fontSize: 36, lineHeight: 1.1 }}>配置中心</h1>
-          <p style={{ margin: 0, color: "#6b7280" }}>
-            将数据源、字段映射、钉钉通知与 AI 配置整合成统一入口。当前只做高保真壳层，便于后续一次性挂 v2 配置接口。
-          </p>
+    <section className="cv-page cv-report-page cv-settings-page">
+      <header className="cv-page-toolbar">
+        <div className="cv-page-toolbar__main">
+          <div className="cv-breadcrumb" aria-label="页面路径">
+            <span>设置</span>
+            <span aria-hidden="true">/</span>
+            <span className="cv-breadcrumb__current">配置中心</span>
+          </div>
+          <h1 className="cv-page-title cv-sr-only">配置中心</h1>
         </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignSelf: "flex-start" }}>
-          {["连接测试", "保存配置", "导入模板"].map((item, index) => (
-            <button
-              key={item}
-              type="button"
-              style={{
-                border: index === 1 ? "none" : "1px solid #bfdbfe",
-                borderRadius: 999,
-                padding: "10px 14px",
-                background: index === 1 ? "linear-gradient(90deg, #f97316 0%, #fb923c 100%)" : "#ffffff",
-                color: index === 1 ? "#ffffff" : "#1d4ed8",
-                fontWeight: 700,
-                cursor: "pointer"
-              }}
-            >
-              {item}
-            </button>
-          ))}
+        <div className="cv-header-actions">
+          <button type="button" className="cv-action-button" onClick={openDatasourceCreate}>
+            新增数据源
+          </button>
+          <button type="button" className="cv-secondary-button" onClick={openChannelCreate}>
+            新增 DingTalk
+          </button>
           <button
             type="button"
+            className="cv-secondary-button"
             onClick={() => setConfirmSyncOpen(true)}
-            style={{
-              border: "1px solid #fdba74",
-              borderRadius: 999,
-              padding: "10px 14px",
-              background: "#fff7ed",
-              color: "#c2410c",
-              fontWeight: 700,
-              cursor: "pointer"
-            }}
           >
-            同步数据结构
+            手动同步数据结构
           </button>
         </div>
       </header>
-      <ModuleRuntimeGate
-        viewState={viewState}
-        loadingTitle="配置数据加载中"
-        emptyTitle="当前没有可展示的配置摘要"
-        errorTitle="配置接口暂不可用"
-      >
-      {syncMessage ? (
-        <div
-          style={{
-            border: `1px solid ${syncStatus === "error" ? "#fecaca" : "#fed7aa"}`,
-            borderRadius: 18,
-            backgroundColor: syncStatus === "error" ? "#fef2f2" : "#fff7ed",
-            color: syncStatus === "error" ? "#b91c1c" : "#9a3412",
-            padding: 16,
-            fontWeight: 600
-          }}
-        >
-          {syncStatus === "error" ? `同步失败：${syncMessage}` : `同步结果：${syncMessage}`}
+
+      <section className="cv-settings-stats">
+        <div className="cv-settings-stat">
+          <span className="cv-settings-stat__label">数据源</span>
+          <strong className="cv-settings-stat__value">{datasources.length}</strong>
+          <span className="cv-muted">查询 / 报表 / 告警</span>
         </div>
-      ) : null}
-      <section style={sectionCardStyle}>
-        <SectionHeader
-          eyebrow="配置分区"
-          title="配置中心导航"
-          description="先将 AI 配置、DingTalk 通知、数据源和字段映射的一级导航定下来。"
-        />
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {tabs.map((tab, index) => (
-            <button
-              key={tab}
-              type="button"
-              style={{
-                border: "1px solid",
-                borderColor: index === 0 ? "#fb923c" : "#fed7aa",
-                borderRadius: 999,
-                padding: "10px 14px",
-                backgroundColor: index === 0 ? "#fff7ed" : "#ffffff",
-                color: index === 0 ? "#c2410c" : "#6b7280",
-                fontWeight: 700,
-                cursor: "pointer"
-              }}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="cv-settings-stat">
+          <span className="cv-settings-stat__label">DingTalk 通知</span>
+          <strong className="cv-settings-stat__value">{dingtalkChannels.length}</strong>
+          <span className="cv-muted">可投递</span>
+        </div>
+        <div className="cv-settings-stat">
+          <span className="cv-settings-stat__label">异常连接</span>
+          <strong className="cv-settings-stat__value">{datasourceErrorCount}</strong>
+          <span className="cv-muted">待处理</span>
+        </div>
+        <div className="cv-settings-stat">
+          <span className="cv-settings-stat__label">结构同步</span>
+          <strong className="cv-settings-stat__value">
+            {syncStatus === "success" ? "已完成" : syncStatus === "error" ? "失败" : "待执行"}
+          </strong>
+          <span className="cv-muted">结构变更后执行</span>
         </div>
       </section>
 
-      <div style={layoutStyle}>
-        <div style={{ display: "grid", gap: 20 }}>
-          <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="AI 配置"
-              title="AI 配置面板"
-              description="贴近设计稿保留模型配置、Prompt 上下文和自动化能力入口。"
-            />
-            <div style={{ display: "grid", gap: 16 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
-                {[
-                  { label: "Primary AI Model", value: "GPT-4 Turbo (Azure)" },
-                  { label: "Fallback Model", value: "Claude 3.5 Sonnet" },
-                  { label: "Schema Inference", value: "已启用" },
-                  { label: "Alert Template Generator", value: "已启用" }
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    style={{
-                      borderRadius: 18,
-                      padding: 14,
-                      backgroundColor: "#fff7ed",
-                      border: "1px solid #fed7aa"
-                    }}
-                  >
-                    <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#9ca3af" }}>{item.label}</p>
-                    <p style={{ margin: "8px 0 0", fontWeight: 700, color: "#111827" }}>{item.value}</p>
-                  </div>
-                ))}
+      {syncMessage ? (
+        <section className={`cv-settings-banner ${syncStatus === "error" ? "cv-settings-banner--error" : ""}`}>
+          <strong>{syncStatus === "error" ? "同步失败" : "同步结果"}</strong>
+          <span>{syncMessage}</span>
+        </section>
+      ) : null}
+
+      <ModuleRuntimeGate
+        viewState={viewState}
+        loadingTitle="配置中心加载中"
+        emptyTitle="暂无配置数据"
+        errorTitle="配置中心暂不可用"
+      >
+        <div className="cv-settings-layout">
+          <div className="cv-settings-main">
+            <section className="cv-panel cv-settings-panel">
+              <div className="cv-panel-header cv-settings-panel__header">
+                <div>
+                  <div className="cv-settings-section-eyebrow">Datasource</div>
+                  <h2 className="cv-panel-title">数据源</h2>
+                </div>
+                <div className="cv-settings-section-meta">
+                  <span className="cv-settings-chip">{datasources.length} 个实例</span>
+                  <button type="button" className="cv-action-button" onClick={openDatasourceCreate}>
+                    新增
+                  </button>
+                </div>
               </div>
 
-              <div
-                style={{
-                  borderRadius: 20,
-                  padding: 16,
-                  backgroundColor: "#f8fafc",
-                  border: "1px solid #e5e7eb"
-                }}
-              >
-                <h2 style={{ margin: "0 0 10px", fontSize: 18 }}>System Prompt Context</h2>
-                <p style={{ margin: 0, color: "#6b7280", lineHeight: 1.7 }}>
-                  你是 ClickHouse 日志查询系统的 AI 助手，需要基于日志 schema、近 7 天错误趋势与 SLA 目标，输出查询建议、告警规则模板和报表模板。
-                </p>
+              {loading ? (
+                <div className="cv-settings-empty">
+                  <span className="cv-muted">数据源列表加载中...</span>
+                </div>
+              ) : datasources.length > 0 ? (
+                <div className="cv-table-wrap cv-table-wrap--compact">
+                  <table className="cv-table cv-settings-table">
+                    <thead>
+                      <tr>
+                        <th>名称</th>
+                        <th>类型</th>
+                        <th>模式</th>
+                        <th>集群</th>
+                        <th>说明</th>
+                        <th>状态</th>
+                        <th style={{ textAlign: "right" }}>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {datasources.map((item) => (
+                        <tr key={item.id}>
+                          <td>
+                            <strong>{item.name}</strong>
+                            <div className="cv-muted">ID #{item.id}</div>
+                          </td>
+                          <td>{datasourceKindLabel(item.datasource)}</td>
+                          <td>{item.mode === 1 ? "集群" : "单机"}</td>
+                          <td>
+                            {item.clusters.length > 0 ? (
+                              <div className="cv-settings-chip-row">
+                                {item.clusters.map((cluster) => (
+                                  <span
+                                    key={cluster}
+                                    className="cv-settings-chip cv-settings-chip--soft cv-settings-chip--truncate"
+                                    title={cluster}
+                                  >
+                                    {cluster}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="cv-muted">-</span>
+                            )}
+                          </td>
+                          <td>
+                            <div
+                              className="cv-settings-truncate"
+                              title={item.desc || undefined}
+                            >
+                              {item.desc || "-"}
+                            </div>
+                          </td>
+                          <td>
+                            <span
+                              className={`cv-settings-status ${
+                                item.error ? "cv-settings-status--error" : "cv-settings-status--ok"
+                              }`}
+                            >
+                              {item.error ? "异常" : "正常"}
+                            </span>
+                            <div className="cv-muted">{item.error || "连接可用"}</div>
+                          </td>
+                          <td>
+                            <div className="cv-settings-table-actions">
+                              <button
+                                type="button"
+                                className="cv-secondary-button"
+                                onClick={() => void openDatasourceEdit(item.id)}
+                              >
+                                编辑
+                              </button>
+                              <button
+                                type="button"
+                                className="cv-secondary-button"
+                                onClick={() =>
+                                  setConfirmDelete({
+                                    type: "datasource",
+                                    id: item.id,
+                                    name: item.name
+                                  })
+                                }
+                              >
+                                删除
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="cv-settings-empty">
+                  <strong>还没有数据源</strong>
+                  <span className="cv-muted">先新增一个 ClickHouse 实例。</span>
+                </div>
+              )}
+            </section>
+
+            <section className="cv-panel cv-settings-panel">
+              <div className="cv-panel-header cv-settings-panel__header">
+                <div>
+                  <div className="cv-settings-section-eyebrow">Notification</div>
+                  <h2 className="cv-panel-title">DingTalk 通知</h2>
+                </div>
+                <div className="cv-settings-section-meta">
+                  <span className="cv-settings-chip">{dingtalkChannels.length} 个渠道</span>
+                  <button type="button" className="cv-action-button" onClick={openChannelCreate}>
+                    新增
+                  </button>
+                </div>
               </div>
-              <AiActionPanel
-                title="AI 配置动作"
-                description="统一承接 schema inference、规则模板生成和 SLA 报表模板生成。AI 不可用时仍可手动保存配置。"
-                mode={aiMode}
-                actions={[
-                  {
-                    id: "settings-schema",
-                    label: "生成 Schema 建议",
-                    successMessage: "已生成 ClickHouse 字段映射与索引建议。",
-                    errorMessage: "AI 生成 Schema 建议失败，请继续手动维护字段映射。"
-                  },
-                  {
-                    id: "settings-alert",
-                    label: "生成告警模板",
-                    successMessage: "已生成近 7 天异常规则模板草稿。",
-                    errorMessage: "AI 生成告警模板失败，请使用固定模板。"
-                  },
-                  {
-                    id: "settings-report",
-                    label: "生成 SLA 报表",
-                    successMessage: "已生成 SLA 周报模板草稿。",
-                    errorMessage: "AI 生成 SLA 报表失败，请先导入现有模板。"
-                  }
+
+              {loading ? (
+                <div className="cv-settings-empty">
+                  <span className="cv-muted">通知渠道列表加载中...</span>
+                </div>
+              ) : dingtalkChannels.length > 0 ? (
+                <div className="cv-table-wrap cv-table-wrap--compact">
+                  <table className="cv-table cv-settings-table">
+                    <thead>
+                      <tr>
+                        <th>名称</th>
+                        <th>类型</th>
+                        <th>Webhook</th>
+                        <th style={{ textAlign: "right" }}>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dingtalkChannels.map((item) => (
+                        <tr key={item.id}>
+                          <td>
+                            <strong>{item.name}</strong>
+                            <div className="cv-muted">创建人 #{item.uid}</div>
+                          </td>
+                          <td>{channelTypeLabel(item.typ)}</td>
+                          <td>
+                            <code
+                              className="cv-code cv-settings-inline-code"
+                              title={item.key}
+                            >
+                              {item.key}
+                            </code>
+                          </td>
+                          <td>
+                            <div className="cv-settings-table-actions">
+                              <button
+                                type="button"
+                                className="cv-secondary-button"
+                                onClick={() => void openChannelEdit(item.id)}
+                              >
+                                编辑
+                              </button>
+                              <button
+                                type="button"
+                                className="cv-secondary-button"
+                                onClick={() =>
+                                  setConfirmDelete({
+                                    type: "channel",
+                                    id: item.id,
+                                    name: item.name
+                                  })
+                                }
+                              >
+                                删除
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="cv-settings-empty">
+                  <strong>还没有 DingTalk 通知对象</strong>
+                  <span className="cv-muted">先补一个机器人 Webhook。</span>
+                </div>
+              )}
+            </section>
+          </div>
+
+          <div className="cv-settings-side">
+            <section className="cv-panel cv-settings-panel cv-settings-panel--aside">
+              <div className="cv-panel-header cv-settings-panel__header">
+                <div>
+                  <div className="cv-settings-section-eyebrow">Status</div>
+                  <h2 className="cv-panel-title">系统状态</h2>
+                </div>
+              </div>
+              <div className="cv-settings-status-grid">
+                <div className="cv-settings-status-card">
+                  <span className="cv-settings-status-card__label">数据源</span>
+                  <strong className="cv-settings-status-card__value">{datasources.length}</strong>
+                  <span className="cv-settings-status-card__meta">
+                    异常 {datasourceErrorCount}
+                  </span>
+                </div>
+                <div className="cv-settings-status-card">
+                  <span className="cv-settings-status-card__label">DingTalk</span>
+                  <strong className="cv-settings-status-card__value">{dingtalkChannels.length}</strong>
+                  <span className="cv-settings-status-card__meta">
+                    可用于投递
+                  </span>
+                </div>
+              </div>
+              <div className="cv-settings-summary-list">
+                <div className="cv-settings-summary-item">
+                  <strong>结构同步</strong>
+                  <span className="cv-muted">
+                    {syncStatus === "success"
+                      ? "最近一次已完成。"
+                      : syncStatus === "error"
+                        ? "最近一次失败。"
+                        : "尚未执行。"}
+                  </span>
+                </div>
+                <div className="cv-settings-summary-item">
+                  <strong>当前状态</strong>
+                  <span className="cv-muted">
+                    {datasourceErrorCount > 0
+                      ? "存在异常数据源。"
+                      : dingtalkChannels.length === 0
+                        ? "缺少可投递渠道。"
+                        : "可以继续使用。"}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <section className="cv-panel cv-settings-panel cv-settings-panel--aside">
+              <div className="cv-panel-header cv-settings-panel__header">
+                <div>
+                  <div className="cv-settings-section-eyebrow">Tips</div>
+                  <h2 className="cv-panel-title">操作提示</h2>
+                </div>
+              </div>
+              <GuideList
+                items={[
+                  "数据源先测通再保存。",
+                  "Webhook 可先发测试消息。",
+                  "结构变更后手动同步一次。"
                 ]}
               />
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                  gap: 14
-                }}
-              >
-                {aiCapabilities.map((capability) => (
-                  <div
-                    key={capability}
-                    style={{
-                      borderRadius: 18,
-                      padding: 14,
-                      backgroundColor: "#eff6ff",
-                      border: "1px solid #bfdbfe",
-                      color: "#1d4ed8",
-                      fontWeight: 700,
-                      lineHeight: 1.6
-                    }}
-                  >
-                    {capability}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="基础配置"
-              title="数据源与通知配置"
-              description="给 ClickHouse、Schema Registry、DingTalk 三个配置分区留足位置。"
-            />
-            <div style={{ display: "grid", gap: 12 }}>
-              {configCards.map((card) => (
-                <article
-                  key={card.title}
-                  style={{
-                    borderRadius: 20,
-                    border: "1px solid #e5e7eb",
-                    backgroundColor: "#ffffff",
-                    padding: 16
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                    <div>
-                      <h2 style={{ margin: 0, fontSize: 18 }}>{card.title}</h2>
-                      <p style={{ margin: "8px 0 0", color: "#6b7280", lineHeight: 1.6 }}>{card.description}</p>
-                    </div>
-                    <span
-                      style={{
-                        borderRadius: 999,
-                        padding: "8px 12px",
-                        backgroundColor: "#dcfce7",
-                        color: "#166534",
-                        fontWeight: 700,
-                        alignSelf: "flex-start"
-                      }}
-                    >
-                      {card.status}
-                    </span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
-
-        <aside style={{ display: "grid", gap: 20 }}>
-          <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="DingTalk"
-              title="通知配置摘要"
-              description="保留 webhook、签名、模板与 @策略的配置摘要。"
-            />
-            <div style={{ display: "grid", gap: 12 }}>
-              {[
-                "Webhook URL：已配置 2 个生产群，支持轮询切换。",
-                "签名 Secret：已启用，后续接入测试发送按钮。",
-                "@策略：P0 @所有人，P1 @值班人，P2 仅群通知。"
-              ].map((item) => (
-                <div
-                  key={item}
-                  style={{
-                    borderRadius: 18,
-                    padding: 14,
-                    backgroundColor: "#fff7ed",
-                    border: "1px solid #fed7aa",
-                    color: "#7c2d12",
-                    lineHeight: 1.6
-                  }}
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section style={sectionCardStyle}>
-            <SectionHeader
-              eyebrow="Schema"
-              title="字段映射概览"
-              description="展示关键字段映射，为查询与 AI 能力提供统一上下文。"
-            />
-            <div style={{ display: "grid", gap: 10 }}>
-              {[
-                "time -> timestamp",
-                "service -> service_name",
-                "trace_id -> trace_id",
-                "message -> message",
-                "json_payload -> raw_payload"
-              ].map((mapping) => (
-                <div
-                  key={mapping}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    padding: 12,
-                    borderRadius: 16,
-                    backgroundColor: "#f8fafc",
-                    border: "1px solid #e5e7eb",
-                    fontWeight: 700
-                  }}
-                >
-                  {mapping}
-                </div>
-              ))}
-            </div>
-          </section>
-        </aside>
-      </div>
       </ModuleRuntimeGate>
-      {confirmSyncOpen ? (
+
+      {datasourceModal ? (
         <div
           className="cv-report-modal-backdrop"
           role="presentation"
-          onClick={() => {
-            if (syncStatus !== "pending") {
-              setConfirmSyncOpen(false);
-            }
-          }}
+          onClick={() => setDatasourceModal(null)}
         >
           <div
             className="cv-report-modal"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="settings-schema-sync-dialog-title"
+            aria-labelledby="settings-datasource-modal-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <header style={{ marginBottom: 16 }}>
-              <h2 id="settings-schema-sync-dialog-title" style={{ margin: 0, fontSize: 22, color: "#111827" }}>
-                手动同步数据结构
-              </h2>
-              <p style={{ margin: "8px 0 0", color: "#6b7280", lineHeight: 1.6 }}>
-                将执行和 v1 一致的全量 Migration，用于补齐 MySQL 元数据表结构。建议在系统升级后或出现缺列报错时执行。
-              </p>
-            </header>
-            <div
-              style={{
-                borderRadius: 16,
-                border: "1px solid #fed7aa",
-                backgroundColor: "#fff7ed",
-                padding: 14,
-                color: "#9a3412",
-                lineHeight: 1.6,
-                marginBottom: 16
-              }}
-            >
-              该操作会更新系统元数据表结构，不会删除现有业务数据。
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="settings-datasource-modal-title" className="cv-panel-title">
+                  {datasourceModal.title}
+                </h2>
+              </div>
               <button
                 type="button"
                 className="cv-secondary-button"
-                disabled={syncStatus === "pending"}
-                onClick={() => setConfirmSyncOpen(false)}
+                onClick={() => setDatasourceModal(null)}
               >
-                取消
+                关闭
               </button>
+            </div>
+
+            <div className="cv-form-grid">
+              <label className="cv-form-row">
+                <span>数据源名称</span>
+                <input
+                  className="cv-input"
+                  value={datasourceForm.name}
+                  onChange={(event) =>
+                    setDatasourceForm((current) => ({
+                      ...current,
+                      name: event.target.value
+                    }))
+                  }
+                  placeholder="例如：生产 ClickHouse"
+                />
+              </label>
+
+              <label className="cv-form-row">
+                <span>数据源类型</span>
+                <select
+                  className="cv-input"
+                  value={datasourceForm.datasource}
+                  onChange={(event) =>
+                    setDatasourceForm((current) => ({
+                      ...current,
+                      datasource: event.target.value
+                    }))
+                  }
+                >
+                  <option value="ch">ClickHouse</option>
+                  <option value="databend">Databend</option>
+                  <option value="agent">Agent</option>
+                </select>
+              </label>
+
+              <label className="cv-form-row">
+                <span>DSN</span>
+                <textarea
+                  className="cv-textarea"
+                  rows={5}
+                  value={datasourceForm.dsn}
+                  onChange={(event) =>
+                    setDatasourceForm((current) => ({
+                      ...current,
+                      dsn: event.target.value
+                    }))
+                  }
+                  placeholder="请填写完整连接串"
+                />
+              </label>
+
+              <label className="cv-form-row">
+                <span>说明</span>
+                <input
+                  className="cv-input"
+                  value={datasourceForm.desc}
+                  onChange={(event) =>
+                    setDatasourceForm((current) => ({
+                      ...current,
+                      desc: event.target.value
+                    }))
+                  }
+                  placeholder="可以填写用途、环境、负责人"
+                />
+              </label>
+            </div>
+
+            <div className="cv-header-actions" style={{ marginTop: 18 }}>
+              <button
+                type="button"
+                className="cv-action-button"
+                disabled={savingDatasource}
+                onClick={() => void handleSaveDatasource()}
+              >
+                {savingDatasource ? "保存中..." : "保存数据源"}
+              </button>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                disabled={testingDatasource}
+                onClick={() => void handleTestDatasource()}
+              >
+                {testingDatasource ? "测试中..." : "测试连接"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {channelModal ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setChannelModal(null)}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-channel-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="settings-channel-modal-title" className="cv-panel-title">
+                  {channelModal.title}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                onClick={() => setChannelModal(null)}
+              >
+                关闭
+              </button>
+            </div>
+
+            <div className="cv-form-grid">
+              <label className="cv-form-row">
+                <span>渠道名称</span>
+                <input
+                  className="cv-input"
+                  value={channelForm.name}
+                  onChange={(event) =>
+                    setChannelForm((current) => ({
+                      ...current,
+                      name: event.target.value
+                    }))
+                  }
+                  placeholder="例如：日报推送群"
+                />
+              </label>
+
+              <label className="cv-form-row">
+                <span>通知类型</span>
+                <select
+                  className="cv-input"
+                  value={channelForm.typ}
+                  onChange={(event) =>
+                    setChannelForm((current) => ({
+                      ...current,
+                      typ: Number(event.target.value)
+                    }))
+                  }
+                >
+                  <option value={1}>DingTalk</option>
+                </select>
+              </label>
+
+              <label className="cv-form-row">
+                <span>Webhook 地址</span>
+                <textarea
+                  className="cv-textarea"
+                  rows={4}
+                  value={channelForm.key}
+                  onChange={(event) =>
+                    setChannelForm((current) => ({
+                      ...current,
+                      key: event.target.value
+                    }))
+                  }
+                  placeholder="https://oapi.dingtalk.com/robot/send?access_token=..."
+                />
+              </label>
+            </div>
+
+            <div className="cv-header-actions" style={{ marginTop: 18 }}>
+              <button
+                type="button"
+                className="cv-action-button"
+                disabled={savingChannel}
+                onClick={() => void handleSaveChannel()}
+              >
+                {savingChannel ? "保存中..." : "保存渠道"}
+              </button>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                disabled={testingChannel}
+                onClick={() => void handleTestChannel()}
+              >
+                {testingChannel ? "发送中..." : "发送测试消息"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {confirmSyncOpen ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setConfirmSyncOpen(false)}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-sync-confirm-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="settings-sync-confirm-title" className="cv-panel-title">
+                  确认同步数据结构
+                </h2>
+              </div>
+            </div>
+
+            <section className="cv-status-card cv-status-card--compact">
+              <strong>执行条件</strong>
+              <span className="cv-muted">新增数据源、升级或结构变化后执行。</span>
+            </section>
+
+            <div className="cv-header-actions" style={{ marginTop: 18 }}>
               <button
                 type="button"
                 className="cv-action-button"
                 disabled={syncStatus === "pending"}
                 onClick={() => void handleSyncSystemSchema()}
               >
-                {syncStatus === "pending" ? "同步中..." : "确认同步"}
+                {syncStatus === "pending" ? "同步中..." : "开始同步"}
+              </button>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                onClick={() => setConfirmSyncOpen(false)}
+              >
+                取消
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {confirmDelete ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setConfirmDelete(null)}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-delete-confirm-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="settings-delete-confirm-title" className="cv-panel-title">
+                  确认删除
+                </h2>
+              </div>
+            </div>
+
+            <section className="cv-status-card cv-status-card--compact">
+              <strong>删除对象</strong>
+              <span className="cv-muted">
+                {confirmDelete.type === "datasource" ? "数据源" : "通知渠道"}：{confirmDelete.name}
+              </span>
+            </section>
+
+            <div className="cv-header-actions" style={{ marginTop: 18 }}>
+              <button type="button" className="cv-action-button" onClick={() => void handleDeleteConfirmed()}>
+                确认删除
+              </button>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                onClick={() => setConfirmDelete(null)}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {feedbackDialog ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setFeedbackDialog(null)}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-feedback-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="settings-feedback-title" className="cv-panel-title">
+                  {feedbackDialog.title}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                onClick={() => setFeedbackDialog(null)}
+              >
+                关闭
+              </button>
+            </div>
+
+            <section className="cv-status-card cv-status-card--compact">
+              <strong>详情</strong>
+              <span className="cv-muted">{feedbackDialog.message}</span>
+            </section>
           </div>
         </div>
       ) : null}

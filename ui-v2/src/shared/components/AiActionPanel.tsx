@@ -25,7 +25,7 @@ export default function AiActionPanel({
   const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">(
     "idle"
   );
-  const [message, setMessage] = useState<string>("尚未触发 AI 动作");
+  const [message, setMessage] = useState<string>("待执行");
 
   async function handleAction(action: AiActionItem) {
     if (mode === "disabled") {
@@ -81,7 +81,7 @@ export default function AiActionPanel({
       </div>
       <div className={className} role={role}>
         {mode === "disabled"
-          ? "AI 服务暂不可用，页面保留手动操作能力。"
+          ? "AI 暂不可用"
           : message}
       </div>
     </div>

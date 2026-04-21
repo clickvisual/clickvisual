@@ -10,6 +10,7 @@ import (
 
 	"github.com/gotomicro/ego/core/econf"
 
+	dbmodel "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
@@ -22,6 +23,7 @@ type reportSummaryInput struct {
 	ScopeLabel     string
 	QueryRows      []map[string]interface{}
 	StartedAt      time.Time
+	Builder        *view.ReqReportBuilder
 }
 
 type reportSummarizer interface {
@@ -131,7 +133,10 @@ func buildSummaryPrompt(input reportSummaryInput, maxRows int) string {
 	if len(rows) == 0 {
 		builder.WriteString("- 无数据\n")
 	} else {
-		builder.WriteString(renderQueryRowsAsMarkdown(rows))
+		builder.WriteString(renderQueryRowsAsMarkdown(dbmodel.Report{
+			TemplateKey:   "report-builder-default",
+			BuilderConfig: marshalReportBuilder(input.Builder),
+		}, rows))
 		builder.WriteString("\n")
 	}
 	builder.WriteString("要求：只输出1到3句中文总结，不要输出标题，不要复述原始条件。")
@@ -149,5 +154,6 @@ func buildSummaryInput(item view.RespReportListItem, editor view.RespReportEdito
 		ScopeLabel:     scopeLabel,
 		QueryRows:      queryRows,
 		StartedAt:      startedAt,
+		Builder:        editor.Builder,
 	}
 }

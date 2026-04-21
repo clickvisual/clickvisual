@@ -34,6 +34,23 @@ dir = "./logs"
 name = "default.log"
 ```
 
+report segment configuration description:
+```toml
+[report.summary.ai]
+enabled = false
+baseURL = "https://api.openai.com"
+apiKey = ""
+model = ""
+timeout = 5
+maxRows = 5
+
+[report.aggregation]
+# Extend the default pre-aggregation whitelist
+allowedFields = ["_namespace_"]
+# Extend the default TopN group-by whitelist
+allowedGroupByFields = ["_namespace_"]
+```
+
 server segment configuration description
 ```toml
 # ClickVisual API Server Config

@@ -177,6 +177,7 @@ export default function ReportSchedulePage() {
   const [selectedReportId, setSelectedReportId] = useState<number | null>(routeReportId);
   const [selectedExecution, setSelectedExecution] = useState<ReportExecutionRecord | null>(null);
   const [feedbackDialog, setFeedbackDialog] = useState<FeedbackDialogState | null>(null);
+  const [confirmEditOpen, setConfirmEditOpen] = useState(false);
 
   async function loadWorkspace(
     reportId?: number,
@@ -230,6 +231,7 @@ export default function ReportSchedulePage() {
       setDeleteStatus("idle");
       setDeleteMessage(null);
       setConfirmDeleteReportId(null);
+      setConfirmEditOpen(false);
 
       try {
         const data = await getReportWorkspace(selectedReportId ?? undefined);
@@ -527,7 +529,7 @@ export default function ReportSchedulePage() {
     }
   }
 
-  async function handleOpenEditReport() {
+  async function openEditReportForm() {
     if (!editor) {
       return;
     }
@@ -582,6 +584,18 @@ export default function ReportSchedulePage() {
       setLoadingSourceTables(false);
       setLoadingSourceColumns(false);
     }
+  }
+
+  function handleOpenEditReport() {
+    if (!editor) {
+      return;
+    }
+    setConfirmEditOpen(true);
+  }
+
+  async function handleConfirmOpenEditReport() {
+    setConfirmEditOpen(false);
+    await openEditReportForm();
   }
 
   async function handleEditReport(payload: ReportCreatePayload) {
@@ -639,12 +653,14 @@ export default function ReportSchedulePage() {
 
   return (
     <section className="cv-section-stack cv-report-page">
-      <header className="cv-page-header">
-        <div>
-          <h1 className="cv-page-title">定时报表</h1>
-          <p className="cv-page-description">
-            保留真实配置、调度、预览执行与运行态回刷链路，同时把工作区压缩到更适合持续操作的密度。
-          </p>
+      <header className="cv-page-toolbar">
+        <div className="cv-page-toolbar__main">
+          <div className="cv-breadcrumb" aria-label="页面路径">
+            <span>报表</span>
+            <span aria-hidden="true">/</span>
+            <span className="cv-breadcrumb__current">定时报表</span>
+          </div>
+          <h1 className="cv-page-title cv-sr-only">定时报表</h1>
         </div>
         <div className="cv-header-actions">
           <button type="button" className="cv-secondary-button">
@@ -661,13 +677,12 @@ export default function ReportSchedulePage() {
         </div>
       </header>
 
-      <section className="cv-panel cv-panel-dark cv-report-hero">
+      <section className="cv-panel cv-report-hero">
         <div className="cv-panel-header">
-          <div>
-            <h2 className="cv-panel-title">自动化推送工作台</h2>
-            <p className="cv-panel-description">
-              支持基于查询模板生成日报/周报，并投递到钉钉渠道。
-            </p>
+          <div className="cv-breadcrumb">
+            <span>自动化推送</span>
+            <span aria-hidden="true">/</span>
+            <span className="cv-breadcrumb__current">{activeReportDisplay}</span>
           </div>
           <div className="cv-report-hero__chips">
             <span className="cv-chip">Report Push</span>
@@ -747,9 +762,6 @@ export default function ReportSchedulePage() {
               <div className="cv-panel-header">
                 <div>
                   <h2 className="cv-panel-title">报表任务</h2>
-                  <p className="cv-panel-description">
-                    切换任务会刷新当前报表的配置、调度状态、执行历史和投递汇总。
-                  </p>
                 </div>
                 <span className="cv-chip">{activeReportId ? activeReportDisplay : "No Active"}</span>
               </div>
@@ -869,9 +881,6 @@ export default function ReportSchedulePage() {
               <div className="cv-panel-header">
                 <div>
                   <h2 className="cv-panel-title">报表配置</h2>
-                  <p className="cv-panel-description">
-                    以设计稿的左侧构建器布局承接查询模式、模板、输出格式与说明。
-                  </p>
                   <div className="cv-report-active-task">
                     <span className="cv-report-active-task__label">当前任务</span>
                     <strong className="cv-report-active-task__name">{activeReportDisplay}</strong>
@@ -1021,9 +1030,6 @@ export default function ReportSchedulePage() {
                 <div className="cv-panel-header">
                   <div>
                     <h2 className="cv-panel-title">调度配置</h2>
-                    <p className="cv-panel-description">
-                      保留真实保存链路，视觉上对齐设计稿的配置面板与 DingTalk 推送分区。
-                    </p>
                   </div>
                 </div>
                 <div className="cv-section-stack">
@@ -1094,9 +1100,6 @@ export default function ReportSchedulePage() {
                 <div className="cv-panel-header">
                   <div>
                     <h2 className="cv-panel-title">钉钉投递对象</h2>
-                    <p className="cv-panel-description">
-                      对齐设计稿右侧通知面板，同时保留当前真实渠道选择结果。
-                    </p>
                   </div>
                 </div>
                 <div className="cv-section-stack cv-section-stack--tight">
@@ -1115,9 +1118,6 @@ export default function ReportSchedulePage() {
                 <div className="cv-panel-header">
                   <div>
                     <h2 className="cv-panel-title">执行预览</h2>
-                    <p className="cv-panel-description">
-                      可手动试跑当前报表，并同步刷新执行历史和推送成功率。
-                    </p>
                   </div>
                 </div>
                 <div className="cv-section-stack cv-section-stack--tight">
@@ -1188,9 +1188,6 @@ export default function ReportSchedulePage() {
                 <div className="cv-panel-header">
                   <div>
                     <h2 className="cv-panel-title">最近执行记录</h2>
-                    <p className="cv-panel-description">
-                      保留执行历史回刷行为，用于检视手动预览和定时执行结果。
-                    </p>
                   </div>
                 </div>
                 <div className="cv-section-stack cv-section-stack--tight">
@@ -1337,7 +1334,6 @@ export default function ReportSchedulePage() {
                 <h2 id="report-feedback-dialog-title" className="cv-panel-title">
                   {feedbackDialog.title}
                 </h2>
-                <p className="cv-panel-description">请根据错误信息调整配置后重试。</p>
               </div>
               <button
                 type="button"
@@ -1352,6 +1348,54 @@ export default function ReportSchedulePage() {
               <strong>错误原因</strong>
               <div className="cv-muted">{feedbackDialog.message}</div>
             </section>
+          </div>
+        </div>
+      ) : null}
+
+      {confirmEditOpen ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setConfirmEditOpen(false)}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-edit-confirm-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="report-edit-confirm-title" className="cv-panel-title">
+                  确认编辑报表
+                </h2>
+              </div>
+            </div>
+
+            <section className="cv-status-card cv-status-card--compact">
+              <strong>重要提示</strong>
+              <div className="cv-muted">
+                编辑后的报表需要重新积累一天数据，无法补充历史数据，建议优先新建报表，不要直接编辑现有报表。
+              </div>
+            </section>
+
+            <div className="cv-header-actions">
+              <button
+                type="button"
+                className="cv-action-button"
+                onClick={() => void handleConfirmOpenEditReport()}
+              >
+                继续编辑
+              </button>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                onClick={() => setConfirmEditOpen(false)}
+              >
+                取消
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

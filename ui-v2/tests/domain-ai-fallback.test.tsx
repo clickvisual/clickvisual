@@ -93,13 +93,14 @@ describe("v2 domain ai actions and fallback readiness", () => {
     }
 
     const scoped = within(pageSection);
-    expect(scoped.getByRole("button", { name: "连接测试" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "保存配置" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "导入模板" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "AI 配置" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "DingTalk 通知" })).toBeInTheDocument();
-    expect(scoped.getByText("System Prompt Context")).toBeInTheDocument();
-    expect(scoped.getByText("ClickHouse 数据源配置")).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "新增数据源" })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "新增 DingTalk" })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "手动同步数据结构" })).toBeInTheDocument();
+    expect(scoped.getByRole("heading", { name: "数据源" })).toBeInTheDocument();
+    expect(scoped.getByRole("heading", { name: "DingTalk 通知" })).toBeInTheDocument();
+    expect(scoped.getByRole("heading", { name: "系统状态" })).toBeInTheDocument();
+    expect(scoped.getByText("核心日志实例")).toBeInTheDocument();
+    expect(scoped.getByText("告警群通知")).toBeInTheDocument();
     expectNoGenericFallbackState();
   });
 });

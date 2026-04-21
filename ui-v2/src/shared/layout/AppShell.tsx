@@ -1,13 +1,6 @@
 import { NavLink } from "react-router-dom";
 import type { ReactNode } from "react";
-import {
-  DEFAULT_TIME_RANGE_OPTIONS,
-  TimeRangeSwitcher
-} from "../components/TimeRangeSwitcher";
-import {
-  TimeRangeProvider,
-  useTimeRange,
-} from "../state/TimeRangeContext";
+import { TimeRangeProvider } from "../state/TimeRangeContext";
 import VersionSwitcher from "./VersionSwitcher";
 
 const primaryNavigation = [
@@ -15,71 +8,44 @@ const primaryNavigation = [
   { to: "/v2/query", label: "日志查询", icon: "⌘" },
   { to: "/v2/reports", label: "定时报表", icon: "◌" },
   { to: "/v2/alerts/rules", label: "告警中心", icon: "!" },
-  { to: "/v2/settings/datasource", label: "配置中心", icon: "⋯" }
+  { to: "/v2/settings/datasource", label: "配置中心", icon: "⋯" },
+  { to: "/v2/permission/users", label: "权限中心", icon: "⌥" }
 ] as const;
 
 function ShellFrame({ children }: { children: ReactNode }) {
-  const { timeRange, setTimeRange } = useTimeRange();
-
   return (
     <div className="cv-shell">
-      <aside className="cv-shell__sidebar" data-testid="app-shell-sidebar">
-        <div className="cv-shell__brand">
-          <div className="cv-shell__brand-mark" aria-hidden="true">
-            CH
-          </div>
-          <div className="cv-shell__brand-copy">
-            <span className="cv-shell__brand-title">ClickHouse</span>
-            <span className="cv-shell__brand-subtitle">Log Engine</span>
-          </div>
-        </div>
-        <nav aria-label="v2 主导航" className="cv-shell__nav">
-          {primaryNavigation.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `cv-shell__nav-link${isActive ? " cv-shell__nav-link--active" : ""}`
-              }
-            >
-              <span className="cv-shell__nav-icon" aria-hidden="true">
-                {item.icon}
-              </span>
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-        <button type="button" className="cv-shell__sidebar-cta">
-          <span aria-hidden="true">+</span>
-          新建查询
-        </button>
-        <div className="cv-shell__sidebar-secondary" aria-label="辅助导航">
-          <a href="#support">
-            <span aria-hidden="true">?</span>
-            支持中心
-          </a>
-          <a href="#docs">
-            <span aria-hidden="true">/</span>
-            使用文档
-          </a>
-        </div>
-      </aside>
       <section className="cv-shell__main">
         <header className="cv-shell__topbar" data-testid="app-shell-topbar">
           <div className="cv-shell__topbar-inner">
-            <label className="cv-shell__search" aria-label="全局搜索">
-              <span aria-hidden="true">⌕</span>
-              <input
-                type="search"
-                placeholder="搜索日志、Trace、报表或配置"
-              />
-            </label>
+            <div className="cv-shell__topbar-start">
+              <div className="cv-shell__brand">
+                <div className="cv-shell__brand-mark" aria-hidden="true">
+                  CH
+                </div>
+                <div className="cv-shell__brand-copy">
+                  <span className="cv-shell__brand-title">ClickHouse</span>
+                  <span className="cv-shell__brand-subtitle">Log Engine</span>
+                </div>
+              </div>
+              <nav aria-label="v2 主导航" className="cv-shell__nav" data-testid="app-shell-nav">
+                {primaryNavigation.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `cv-shell__nav-link${isActive ? " cv-shell__nav-link--active" : ""}`
+                    }
+                  >
+                    <span className="cv-shell__nav-icon" aria-hidden="true">
+                      {item.icon}
+                    </span>
+                    <span>{item.label}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
             <div className="cv-shell__topbar-actions">
-              <TimeRangeSwitcher
-                options={DEFAULT_TIME_RANGE_OPTIONS}
-                value={timeRange}
-                onChange={setTimeRange}
-              />
               <VersionSwitcher />
             </div>
           </div>
