@@ -69,19 +69,19 @@ describe("report schedule form", () => {
     );
 
     fireEvent.change(screen.getByLabelText("常用计划"), {
-      target: { value: "daily-10" }
+      target: { value: "daily-930" }
     });
-    expect(screen.getByLabelText("Cron")).toHaveValue("0 0 10 * * *");
+    expect(screen.getByLabelText("Cron")).toHaveValue("0 30 9 * * *");
 
     fireEvent.change(screen.getByLabelText("常用计划"), {
-      target: { value: "weekly-mon-10" }
+      target: { value: "weekly-mon-930" }
     });
-    expect(screen.getByLabelText("Cron")).toHaveValue("0 0 10 * * 1");
+    expect(screen.getByLabelText("Cron")).toHaveValue("0 30 9 * * 1");
 
     fireEvent.change(screen.getByLabelText("常用计划"), {
-      target: { value: "weekday-10" }
+      target: { value: "weekday-930" }
     });
-    expect(screen.getByLabelText("Cron")).toHaveValue("0 0 10 * * 1-5");
+    expect(screen.getByLabelText("Cron")).toHaveValue("0 30 9 * * 1-5");
   });
 
   it("falls back to manual mode when cron is edited directly", () => {
@@ -94,7 +94,7 @@ describe("report schedule form", () => {
     );
 
     fireEvent.change(screen.getByLabelText("常用计划"), {
-      target: { value: "daily-10" }
+      target: { value: "daily-930" }
     });
     fireEvent.change(screen.getByLabelText("Cron"), {
       target: { value: "0 30 10 * * *" }

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	view "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/gotomicro/ego/core/econf"
 )
 
 var (
@@ -16,7 +17,7 @@ var (
 	reportAggregationAllowedMetricExpr = regexp.MustCompile(`^(count\(\*\)|sum\([A-Za-z0-9_.` + "`" + `]+\)|uniq\([A-Za-z0-9_.` + "`" + `]+\)|avg\([A-Za-z0-9_.` + "`" + `]+\))$`)
 )
 
-var reportAggregationAllowedFields = map[string]struct{}{
+var reportAggregationDefaultAllowedFields = map[string]struct{}{
 	"lv":                 {},
 	"application":        {},
 	"env":                {},
@@ -24,6 +25,7 @@ var reportAggregationAllowedFields = map[string]struct{}{
 	"method":             {},
 	"msg":                {},
 	"status":             {},
+	"_namespace_":        {},
 	"container.name":     {},
 	"host.name":          {},
 	"k8s.namespace.name": {},
@@ -34,11 +36,12 @@ var reportAggregationHighCostLikeFields = map[string]struct{}{
 	"_raw_log_": {},
 }
 
-var reportAggregationAllowedGroupByFields = map[string]struct{}{
+var reportAggregationDefaultAllowedGroupByFields = map[string]struct{}{
 	"lv":                 {},
 	"application":        {},
 	"env":                {},
 	"fileGuid":           {},
+	"_namespace_":        {},
 	"container.name":     {},
 	"host.name":          {},
 	"k8s.namespace.name": {},
@@ -187,10 +190,10 @@ func isAllowedAggregationField(field string, groupBy bool) bool {
 		return false
 	}
 	if groupBy {
-		_, ok := reportAggregationAllowedGroupByFields[field]
+		_, ok := aggregationAllowedGroupByFields(econf.GetStringSlice("report.aggregation.allowedGroupByFields"))[field]
 		return ok
 	}
-	_, ok := reportAggregationAllowedFields[field]
+	_, ok := aggregationAllowedFields(econf.GetStringSlice("report.aggregation.allowedFields"))[field]
 	return ok
 }
 
@@ -199,11 +202,34 @@ func isAllowedAggregationLikeField(field string) bool {
 	if !reportAggregationFieldPattern.MatchString(field) {
 		return false
 	}
-	if _, ok := reportAggregationAllowedFields[field]; ok {
+	if _, ok := aggregationAllowedFields(econf.GetStringSlice("report.aggregation.allowedFields"))[field]; ok {
 		return true
 	}
 	_, ok := reportAggregationHighCostLikeFields[field]
 	return ok
+}
+
+func aggregationAllowedFields(extra []string) map[string]struct{} {
+	return mergeAggregationAllowedFields(reportAggregationDefaultAllowedFields, extra)
+}
+
+func aggregationAllowedGroupByFields(extra []string) map[string]struct{} {
+	return mergeAggregationAllowedFields(reportAggregationDefaultAllowedGroupByFields, extra)
+}
+
+func mergeAggregationAllowedFields(defaults map[string]struct{}, extra []string) map[string]struct{} {
+	merged := make(map[string]struct{}, len(defaults)+len(extra))
+	for field := range defaults {
+		merged[field] = struct{}{}
+	}
+	for _, field := range extra {
+		field = normalizeFieldName(field)
+		if field == "" {
+			continue
+		}
+		merged[field] = struct{}{}
+	}
+	return merged
 }
 
 func isHighCostAggregationWhere(raw string) bool {

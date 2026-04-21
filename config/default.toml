@@ -38,6 +38,11 @@ model = ""
 timeout = 5
 maxRows = 5
 
+[report.aggregation]
+# Extend the default pre-aggregation whitelist without modifying code.
+allowedFields = []
+allowedGroupByFields = []
+
 # if isMultiCopy is true
 [redis]
 debug = true

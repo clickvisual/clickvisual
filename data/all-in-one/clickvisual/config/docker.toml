@@ -30,6 +30,10 @@ model = ""
 timeout = 5
 maxRows = 5
 
+[report.aggregation]
+allowedFields = []
+allowedGroupByFields = []
+
 [mysql]
 connMaxLifetime = "300s"
 debug = true

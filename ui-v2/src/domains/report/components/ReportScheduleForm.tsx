@@ -7,9 +7,9 @@ import type {
 
 const cronPresets = [
   { key: "", label: "手动填写", cron: "" },
-  { key: "daily-10", label: "每天早上 10 点", cron: "0 0 10 * * *" },
-  { key: "weekly-mon-10", label: "每周一早上 10 点", cron: "0 0 10 * * 1" },
-  { key: "weekday-10", label: "工作日早上 10 点", cron: "0 0 10 * * 1-5" }
+  { key: "daily-930", label: "每天早上 9:30", cron: "0 30 9 * * *" },
+  { key: "weekly-mon-930", label: "每周一早上 9:30", cron: "0 30 9 * * 1" },
+  { key: "weekday-930", label: "工作日早上 9:30", cron: "0 30 9 * * 1-5" }
 ] as const;
 
 type CronPresetKey = (typeof cronPresets)[number]["key"];

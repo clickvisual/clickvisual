@@ -179,3 +179,45 @@ func TestValidateAggregationEligibilityAcceptsMethodWhere(t *testing.T) {
 	})
 	assert.NoError(t, err)
 }
+
+func TestValidateAggregationEligibilityAcceptsNamespaceWhere(t *testing.T) {
+	err := validateAggregationEligibility(view.ReqReportBuilder{
+		Database:  "dev_log",
+		Table:     "app_stdout",
+		TimeField: "_time_second_",
+		TimeRange: "1h",
+		Blocks: []view.ReqReportBlock{
+			{
+				Key:   "default_namespace",
+				Label: "默认命名空间",
+				Where: "_namespace_='default'",
+				Metrics: []view.ReqReportMetric{
+					{Key: "count", Label: "总量"},
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+}
+
+func TestAggregationAllowedFieldsMergesConfiguredFields(t *testing.T) {
+	fields := aggregationAllowedFields([]string{" custom.field ", "`another_field`"})
+
+	_, hasDefault := fields["lv"]
+	_, hasCustom := fields["custom.field"]
+	_, hasAnother := fields["another_field"]
+
+	assert.True(t, hasDefault)
+	assert.True(t, hasCustom)
+	assert.True(t, hasAnother)
+}
+
+func TestAggregationAllowedGroupByFieldsMergesConfiguredFields(t *testing.T) {
+	fields := aggregationAllowedGroupByFields([]string{" `service.name` "})
+
+	_, hasDefault := fields["container.name"]
+	_, hasConfigured := fields["service.name"]
+
+	assert.True(t, hasDefault)
+	assert.True(t, hasConfigured)
+}
