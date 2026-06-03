@@ -85,3 +85,41 @@ CREATE TABLE IF NOT EXISTS `cv_report_acceleration` (
   KEY `idx_report_acceleration_fingerprint` (`builder_fingerprint`),
   KEY `idx_report_acceleration_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `cv_query_filter_profile` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+  `name` varchar(128) NOT NULL,
+  `instance_id` int(11) NOT NULL,
+  `instance_name` varchar(255) NOT NULL,
+  `database_name` varchar(255) NOT NULL,
+  `table_name` varchar(255) NOT NULL,
+  `start_time` datetime NOT NULL,
+  `end_time` datetime NOT NULL,
+  `conditions_json` json NOT NULL,
+  `creator` varchar(128) NOT NULL,
+  `updater` varchar(128) NOT NULL,
+  `ctime` bigint DEFAULT NULL COMMENT '创建时间',
+  `utime` bigint DEFAULT NULL COMMENT '更新时间',
+  `dtime` bigint DEFAULT 0 COMMENT '删除时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_query_filter_scope` (`instance_id`,`database_name`,`table_name`),
+  KEY `idx_query_filter_creator_name` (`creator`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `cv_ai_setting` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+  `enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `base_url` varchar(255) NOT NULL DEFAULT '',
+  `api_key_encrypted` text,
+  `model` varchar(128) NOT NULL DEFAULT '',
+  `timeout_seconds` int(11) NOT NULL DEFAULT 5,
+  `max_input_bytes` int(11) NOT NULL DEFAULT 32768,
+  `default_temperature` decimal(4,2) NOT NULL DEFAULT 0.20,
+  `default_max_tokens` int(11) NOT NULL DEFAULT 800,
+  `creator_uid` int(11) NOT NULL DEFAULT 0,
+  `updater_uid` int(11) NOT NULL DEFAULT 0,
+  `ctime` bigint DEFAULT NULL COMMENT '创建时间',
+  `utime` bigint DEFAULT NULL COMMENT '更新时间',
+  `dtime` bigint DEFAULT 0 COMMENT '删除时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

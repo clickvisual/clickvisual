@@ -19,6 +19,8 @@ func TestModelsIncludesReportTables(t *testing.T) {
 		reflect.TypeOf(dbmodel.ReportSchedule{}):     false,
 		reflect.TypeOf(dbmodel.ReportExecution{}):    false,
 		reflect.TypeOf(dbmodel.ReportAcceleration{}): false,
+		reflect.TypeOf(dbmodel.QueryFilterProfile{}): false,
+		reflect.TypeOf(dbmodel.AISetting{}):          false,
 	}
 
 	for _, model := range models {
@@ -55,6 +57,8 @@ func TestMigrationSQLContainsReportTables(t *testing.T) {
 		dbmodel.TableNameReportSchedule,
 		dbmodel.TableNameReportExecution,
 		dbmodel.TableNameReportAcceleration,
+		dbmodel.TableNameQueryFilterProfile,
+		dbmodel.TableNameAISetting,
 	} {
 		if !strings.Contains(sqlText, tableName) {
 			t.Fatalf("migration sql missing table %s", tableName)

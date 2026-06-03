@@ -8,16 +8,21 @@ import {
   deleteSettingsAlarmChannel,
   deleteSettingsDatasource,
   getSettingsAlarmChannel,
+  getSettingsAIConfig,
   getSettingsDatasource,
   listSettingsAlarmChannels,
   listSettingsDatasources,
   sendSettingsAlarmChannelTest,
   syncSystemSchema,
+  testSettingsAIConfig,
   testSettingsDatasource,
   updateSettingsAlarmChannel,
+  updateSettingsAIConfig,
   updateSettingsDatasource,
   type SettingsAlarmChannel,
   type SettingsAlarmChannelPayload,
+  type SettingsAIConfig,
+  type SettingsAIConfigPayload,
   type SettingsDatasourceItem,
   type SettingsDatasourcePayload
 } from "../api/settings";
@@ -53,6 +58,7 @@ type ChannelModalState = {
 
 type DatasourceFormState = SettingsDatasourcePayload;
 type ChannelFormState = SettingsAlarmChannelPayload;
+type AIFormState = SettingsAIConfigPayload;
 
 function datasourceKindLabel(value: string) {
   switch (value) {
@@ -114,6 +120,19 @@ function emptyChannelForm(): ChannelFormState {
   };
 }
 
+function emptyAIForm(): AIFormState {
+  return {
+    enabled: false,
+    baseURL: "",
+    apiKey: "",
+    model: "",
+    timeoutSeconds: 5,
+    maxInputBytes: 32768,
+    defaultTemperature: 0.2,
+    defaultMaxTokens: 800
+  };
+}
+
 function GuideList({ items }: { items: string[] }) {
   return (
     <div className="cv-settings-guide-list">
@@ -132,6 +151,7 @@ export default function SettingsDatasourcePage() {
   const [loading, setLoading] = useState(true);
   const [datasources, setDatasources] = useState<SettingsDatasourceItem[]>([]);
   const [channels, setChannels] = useState<SettingsAlarmChannel[]>([]);
+  const [aiConfig, setAIConfig] = useState<SettingsAIConfig | null>(null);
   const [syncStatus, setSyncStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [confirmSyncOpen, setConfirmSyncOpen] = useState(false);
@@ -141,20 +161,37 @@ export default function SettingsDatasourcePage() {
   const [channelModal, setChannelModal] = useState<ChannelModalState | null>(null);
   const [datasourceForm, setDatasourceForm] = useState<DatasourceFormState>(emptyDatasourceForm);
   const [channelForm, setChannelForm] = useState<ChannelFormState>(emptyChannelForm);
+  const [aiForm, setAIForm] = useState<AIFormState>(emptyAIForm);
   const [savingDatasource, setSavingDatasource] = useState(false);
   const [testingDatasource, setTestingDatasource] = useState(false);
   const [savingChannel, setSavingChannel] = useState(false);
   const [testingChannel, setTestingChannel] = useState(false);
+  const [savingAI, setSavingAI] = useState(false);
+  const [testingAI, setTestingAI] = useState(false);
 
   async function loadSettings() {
     setLoading(true);
     try {
-      const [nextDatasources, nextChannels] = await Promise.all([
+      const [nextDatasources, nextChannels, nextAIConfig] = await Promise.all([
         listSettingsDatasources(),
-        listSettingsAlarmChannels()
+        listSettingsAlarmChannels(),
+        getSettingsAIConfig().catch(() => null)
       ]);
       setDatasources(nextDatasources);
       setChannels(nextChannels);
+      setAIConfig(nextAIConfig);
+      if (nextAIConfig) {
+        setAIForm({
+          enabled: nextAIConfig.enabled,
+          baseURL: nextAIConfig.baseURL || "",
+          apiKey: "",
+          model: nextAIConfig.model || "",
+          timeoutSeconds: nextAIConfig.timeoutSeconds || 5,
+          maxInputBytes: nextAIConfig.maxInputBytes || 32768,
+          defaultTemperature: nextAIConfig.defaultTemperature ?? 0.2,
+          defaultMaxTokens: nextAIConfig.defaultMaxTokens || 800
+        });
+      }
     } catch (error) {
       setFeedbackDialog({
         title: "配置数据加载失败",
@@ -241,6 +278,55 @@ export default function SettingsDatasourcePage() {
       mode: "create",
       title: "新增 DingTalk 通知"
     });
+  }
+
+  async function handleSaveAIConfig() {
+    const payload = trimPayload(aiForm);
+    if (!payload.model) {
+      setFeedbackDialog({
+        title: "AI 配置不完整",
+        message: "请填写模型名称。"
+      });
+      return;
+    }
+    setSavingAI(true);
+    try {
+      const saved = await updateSettingsAIConfig(payload);
+      setAIConfig(saved);
+      setAIForm((current) => ({
+        ...current,
+        apiKey: ""
+      }));
+      setFeedbackDialog({
+        title: "AI 配置已保存",
+        message: "统一 AI 入口现在会读取这组系统配置。"
+      });
+    } catch (error) {
+      setFeedbackDialog({
+        title: "保存 AI 配置失败",
+        message: error instanceof Error ? error.message : "请稍后重试"
+      });
+    } finally {
+      setSavingAI(false);
+    }
+  }
+
+  async function handleTestAIConfig() {
+    setTestingAI(true);
+    try {
+      const result = await testSettingsAIConfig();
+      setFeedbackDialog({
+        title: result.ok ? "AI 连通性正常" : "AI 连通性异常",
+        message: `${result.message}${result.model ? `（模型：${result.model}）` : ""}`
+      });
+    } catch (error) {
+      setFeedbackDialog({
+        title: "AI 连通性测试失败",
+        message: error instanceof Error ? error.message : "请稍后重试"
+      });
+    } finally {
+      setTestingAI(false);
+    }
   }
 
   async function handleSaveDatasource() {
@@ -444,7 +530,174 @@ export default function SettingsDatasourcePage() {
         errorTitle="配置中心暂不可用"
       >
         <div className="cv-settings-layout">
-          <div className="cv-settings-main">
+        <div className="cv-settings-main">
+            <section className="cv-panel cv-settings-panel">
+              <div className="cv-panel-header cv-settings-panel__header">
+                <div>
+                  <div className="cv-settings-section-eyebrow">AI Platform</div>
+                  <h2 className="cv-panel-title">统一 AI 配置</h2>
+                </div>
+                <div className="cv-settings-section-meta">
+                  <span className="cv-settings-chip">
+                    {aiConfig?.enabled ? "已启用" : "未启用"}
+                  </span>
+                  <button
+                    type="button"
+                    className="cv-secondary-button"
+                    onClick={() => void handleTestAIConfig()}
+                    disabled={testingAI}
+                  >
+                    {testingAI ? "测试中..." : "测试连通性"}
+                  </button>
+                  <button
+                    type="button"
+                    className="cv-action-button"
+                    onClick={() => void handleSaveAIConfig()}
+                    disabled={savingAI}
+                  >
+                    {savingAI ? "保存中..." : "保存 AI 配置"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="cv-form-grid">
+                <label className="cv-form-row">
+                  <span>启用 AI</span>
+                  <select
+                    className="cv-input"
+                    aria-label="启用 AI"
+                    value={aiForm.enabled ? "1" : "0"}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        enabled: event.target.value === "1"
+                      }))
+                    }
+                  >
+                    <option value="1">启用</option>
+                    <option value="0">关闭</option>
+                  </select>
+                </label>
+
+                <label className="cv-form-row">
+                  <span>Base URL</span>
+                  <input
+                    className="cv-input"
+                    aria-label="AI Base URL"
+                    value={aiForm.baseURL}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        baseURL: event.target.value
+                      }))
+                    }
+                    placeholder="默认可留空，回退到 OpenAI 官方地址"
+                  />
+                </label>
+
+                <label className="cv-form-row">
+                  <span>模型</span>
+                  <input
+                    className="cv-input"
+                    aria-label="AI 模型"
+                    value={aiForm.model}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        model: event.target.value
+                      }))
+                    }
+                    placeholder="例如 gpt-4o-mini"
+                  />
+                </label>
+
+                <label className="cv-form-row">
+                  <span>API Key</span>
+                  <input
+                    className="cv-input"
+                    type="password"
+                    aria-label="AI API Key"
+                    value={aiForm.apiKey}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        apiKey: event.target.value
+                      }))
+                    }
+                    placeholder={aiConfig?.hasApiKey ? "已配置，留空表示不修改" : "输入新的 API Key"}
+                  />
+                  {aiConfig?.hasApiKey ? (
+                    <span className="cv-muted">{aiConfig.apiKeyMasked || "已配置"}</span>
+                  ) : null}
+                </label>
+
+                <label className="cv-form-row">
+                  <span>超时（秒）</span>
+                  <input
+                    className="cv-input"
+                    type="number"
+                    aria-label="AI 超时秒数"
+                    value={aiForm.timeoutSeconds}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        timeoutSeconds: Number(event.target.value)
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="cv-form-row">
+                  <span>最大输入字节</span>
+                  <input
+                    className="cv-input"
+                    type="number"
+                    aria-label="AI 最大输入字节"
+                    value={aiForm.maxInputBytes}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        maxInputBytes: Number(event.target.value)
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="cv-form-row">
+                  <span>默认温度</span>
+                  <input
+                    className="cv-input"
+                    type="number"
+                    step="0.1"
+                    aria-label="AI 默认温度"
+                    value={aiForm.defaultTemperature}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        defaultTemperature: Number(event.target.value)
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="cv-form-row">
+                  <span>默认最大 Tokens</span>
+                  <input
+                    className="cv-input"
+                    type="number"
+                    aria-label="AI 默认最大 Tokens"
+                    value={aiForm.defaultMaxTokens}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        defaultMaxTokens: Number(event.target.value)
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+            </section>
+
             <section className="cv-panel cv-settings-panel">
               <div className="cv-panel-header cv-settings-panel__header">
                 <div>
@@ -658,6 +911,15 @@ export default function SettingsDatasourcePage() {
                   </span>
                 </div>
                 <div className="cv-settings-status-card">
+                  <span className="cv-settings-status-card__label">AI</span>
+                  <strong className="cv-settings-status-card__value">
+                    {aiConfig?.enabled ? "开启" : "关闭"}
+                  </strong>
+                  <span className="cv-settings-status-card__meta">
+                    {aiConfig?.hasApiKey ? "密钥已配置" : "缺少密钥"}
+                  </span>
+                </div>
+                <div className="cv-settings-status-card">
                   <span className="cv-settings-status-card__label">DingTalk</span>
                   <strong className="cv-settings-status-card__value">{dingtalkChannels.length}</strong>
                   <span className="cv-settings-status-card__meta">
@@ -681,6 +943,8 @@ export default function SettingsDatasourcePage() {
                   <span className="cv-muted">
                     {datasourceErrorCount > 0
                       ? "存在异常数据源。"
+                      : aiConfig?.enabled && !aiConfig?.hasApiKey
+                        ? "AI 已启用但尚未配置密钥。"
                       : dingtalkChannels.length === 0
                         ? "缺少可投递渠道。"
                         : "可以继续使用。"}
@@ -699,6 +963,7 @@ export default function SettingsDatasourcePage() {
               <GuideList
                 items={[
                   "数据源先测通再保存。",
+                  "AI 配置保存后再做连通性测试。",
                   "Webhook 可先发测试消息。",
                   "结构变更后手动同步一次。"
                 ]}

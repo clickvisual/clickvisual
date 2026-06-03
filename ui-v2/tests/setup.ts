@@ -3,6 +3,28 @@ import { afterEach, beforeEach, vi } from "vitest";
 import { buildReportWorkspaceMock } from "../src/domains/report/mocks/reportMockData";
 
 beforeEach(() => {
+  const queryFilterProfiles: Array<Record<string, unknown>> = [];
+
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn()
+    }))
+  });
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: {
+      writeText: vi.fn(async () => undefined)
+    }
+  });
+
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -159,6 +181,37 @@ beforeEach(() => {
         };
       }
 
+      if (method === "GET" && url.pathname.endsWith("/api/v2/base/instances")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: [
+                {
+                  id: 1,
+                  instanceName: "生产 ClickHouse",
+                  desc: "主实例",
+                  databases: [
+                    {
+                      id: 11,
+                      iid: 1,
+                      databaseName: "default",
+                      desc: "",
+                      cluster: "",
+                      tables: [
+                        { id: 9527, did: 11, tableName: "logs", desc: "" },
+                        { id: 9528, did: 11, tableName: "app_logs", desc: "" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            })
+        };
+      }
+
       if (method === "GET" && url.pathname.endsWith("/api/v1/table/id")) {
         return {
           ok: true,
@@ -180,8 +233,8 @@ beforeEach(() => {
               msg: "succ",
               data: [
                 {
-                  id: 101,
-                  name: "核心日志实例",
+                  id: 1,
+                  name: "生产 ClickHouse",
                   datasource: "ch",
                   desc: "主集群日志查询入口",
                   clusters: ["cluster-main"],
@@ -190,6 +243,54 @@ beforeEach(() => {
                   error: ""
                 }
               ]
+            })
+        };
+      }
+
+      if (method === "GET" && url.pathname.endsWith("/api/v1/instances/1/databases-exist")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: ["default", "archive"]
+            })
+        };
+      }
+
+      if (method === "GET" && url.pathname.endsWith("/api/v2/query/instances/1/databases/default/tables")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: [{ name: "logs" }, { name: "app_logs" }]
+            })
+        };
+      }
+
+      if (method === "POST" && url.pathname.endsWith("/api/v1/instances/1/databases")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: null
+            })
+        };
+      }
+
+      if (method === "POST" && url.pathname.endsWith("/api/v1/instances/1/tables-exist")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: null
             })
         };
       }
@@ -214,7 +315,68 @@ beforeEach(() => {
         };
       }
 
-      if (method === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+      if (method === "GET" && url.pathname.endsWith("/api/v2/base/settings/ai")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: {
+                enabled: true,
+                baseURL: "https://api.openai.com",
+                model: "gpt-4o-mini",
+                timeoutSeconds: 5,
+                maxInputBytes: 32768,
+                defaultTemperature: 0.2,
+                defaultMaxTokens: 800,
+                hasApiKey: true,
+                apiKeyMasked: "已配置"
+              }
+            })
+        };
+      }
+
+      if (method === "PATCH" && url.pathname.endsWith("/api/v2/base/settings/ai")) {
+        const payload = JSON.parse(String(init?.body || "{}"));
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: {
+                enabled: Boolean(payload.enabled),
+                baseURL: String(payload.baseURL || "https://api.openai.com"),
+                model: String(payload.model || "gpt-4o-mini"),
+                timeoutSeconds: Number(payload.timeoutSeconds || 5),
+                maxInputBytes: Number(payload.maxInputBytes || 32768),
+                defaultTemperature: Number(payload.defaultTemperature ?? 0.2),
+                defaultMaxTokens: Number(payload.defaultMaxTokens || 800),
+                hasApiKey: true,
+                apiKeyMasked: "已配置"
+              }
+            })
+        };
+      }
+
+      if (method === "POST" && url.pathname.endsWith("/api/v2/base/settings/ai/test")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: {
+                ok: true,
+                message: "ai provider is reachable",
+                model: "gpt-4o-mini"
+              }
+            })
+        };
+      }
+
+      if (method === "GET" && /^\/api\/v1\/tables\/952(7|8)\/logs$/.test(url.pathname)) {
         return {
           ok: true,
           text: async () =>
@@ -246,7 +408,110 @@ beforeEach(() => {
         };
       }
 
-      if (method === "GET" && url.pathname.endsWith("/api/v1/tables/9527/charts")) {
+      if (method === "POST" && url.pathname.endsWith("/api/v2/query/run")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: {
+                count: 1,
+                cost: 12,
+                query: "SELECT * FROM `default`.`logs`",
+                sql: "SELECT * FROM `default`.`logs`",
+                plan: {
+                  table: "`default`.`logs`",
+                  plannedConditions: [],
+                  warnings: [],
+                  orderBy: ["_time_second_ DESC"]
+                },
+                keys: [
+                  { field: "_time", alias: "时间" },
+                  { field: "level", alias: "级别" },
+                  { field: "message", alias: "message" },
+                  { field: "trace_id", alias: "Trace ID" },
+                  { field: "request_id", alias: "Request ID" }
+                ],
+                logs: [
+                  {
+                    _time: "2026-04-15 10:30:00",
+                    level: "ERROR",
+                    message: "timeout",
+                    trace_id: "trace-9527",
+                    request_id: "req-1001"
+                  }
+                ]
+              }
+            })
+        };
+      }
+
+      if (method === "GET" && url.pathname.endsWith("/api/v2/query/filters")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: queryFilterProfiles
+            })
+        };
+      }
+
+      if (method === "POST" && url.pathname.endsWith("/api/v2/query/filters")) {
+        const payload = JSON.parse(String(init?.body || "{}"));
+        const profile = {
+          id: queryFilterProfiles.length + 1,
+          creator: "tester",
+          updater: "tester",
+          ctime: "2026-04-15T10:30:00+08:00",
+          utime: "2026-04-15T10:30:00+08:00",
+          ...payload
+        };
+        queryFilterProfiles.push(profile);
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: profile
+            })
+        };
+      }
+
+      if (method === "DELETE" && /^\/api\/v2\/query\/filters\/\d+$/.test(url.pathname)) {
+        const id = Number(url.pathname.split("/").pop());
+        const index = queryFilterProfiles.findIndex((item) => Number(item.id) === id);
+        if (index >= 0) {
+          queryFilterProfiles.splice(index, 1);
+        }
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: { id }
+            })
+        };
+      }
+
+      if (method === "POST" && url.pathname.endsWith("/api/v2/base/shorturls")) {
+        const payload = JSON.parse(String(init?.body || "{}")) as { originUrl?: string };
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: `http://localhost/api/share/test-code?from=${encodeURIComponent(payload.originUrl || "")}`
+            })
+        };
+      }
+
+      if (method === "GET" && /^\/api\/v1\/tables\/952(7|8)\/charts$/.test(url.pathname)) {
         return {
           ok: true,
           text: async () =>
@@ -260,7 +525,7 @@ beforeEach(() => {
         };
       }
 
-      if (method === "GET" && url.pathname.endsWith("/api/v2/storage/9527/analysis-fields")) {
+      if (method === "GET" && /^\/api\/v2\/storage\/952(7|8)\/analysis-fields$/.test(url.pathname)) {
         return {
           ok: true,
           text: async () =>

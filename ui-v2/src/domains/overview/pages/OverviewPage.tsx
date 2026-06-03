@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import AiActionPanel from "../../../shared/components/AiActionPanel";
 import ModuleRuntimeGate, {
   useModuleRuntimeState
@@ -27,38 +27,6 @@ type EventItem = {
   title: string;
   meta: string;
   status: string;
-};
-
-const pageStyle: CSSProperties = {
-  display: "grid",
-  gap: 12
-};
-
-const sectionCardStyle: CSSProperties = {
-  border: "1px solid rgba(37, 99, 235, 0.08)",
-  borderRadius: 14,
-  backgroundColor: "#ffffff",
-  padding: 12,
-  boxShadow: "0 10px 24px rgba(15, 23, 42, 0.04)"
-};
-
-const gridFourStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: 10
-};
-
-const gridMainStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1.4fr) minmax(320px, 0.9fr)",
-  gap: 12,
-  alignItems: "start"
-};
-
-const gridBottomStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-  gap: 12
 };
 
 const metrics: Metric[] = [
@@ -149,7 +117,7 @@ const reportEvents: EventItem[] = [
 ];
 
 function Sparkline({ points, tone = "default" }: { points: number[]; tone?: Metric["tone"] }) {
-  const stroke = tone === "danger" ? "#dc2626" : "#2563eb";
+  const stroke = tone === "danger" ? "var(--cv-danger)" : "var(--cv-primary)";
   const max = Math.max(...points);
   const min = Math.min(...points);
   const range = Math.max(max - min, 1);
@@ -180,22 +148,10 @@ function SectionHeading({
   aside?: ReactNode;
 }) {
   return (
-    <header
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        gap: 10,
-        alignItems: "center",
-        marginBottom: 10
-      }}
-    >
+    <header className="cv-workbench-section__header">
       <div>
-        {eyebrow ? (
-          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: "#64748b" }}>
-            {eyebrow}
-          </p>
-        ) : null}
-        <h2 style={{ margin: 0, fontSize: 14, color: "#111827" }}>{title}</h2>
+        {eyebrow ? <p className="cv-workbench-section__eyebrow">{eyebrow}</p> : null}
+        <h2 className="cv-workbench-section__title">{title}</h2>
       </div>
       {aside}
     </header>
@@ -203,25 +159,14 @@ function SectionHeading({
 }
 
 function TrendBars({ points, tone }: { points: TrendPoint[]; tone: "orange" | "red" }) {
-  const color = tone === "red" ? "#dc2626" : "#2563eb";
-  const soft = tone === "red" ? "#fca5a5" : "#93c5fd";
+  const color = tone === "red" ? "var(--cv-danger)" : "var(--cv-primary)";
+  const soft = tone === "red" ? "#fca5a5" : "#fed7aa";
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${points.length}, minmax(0, 1fr))`, gap: 8 }}>
+    <div className="cv-trend-bars" style={{ gridTemplateColumns: `repeat(${points.length}, minmax(0, 1fr))` }}>
       {points.map((point) => (
-        <div key={point.label} style={{ display: "grid", gap: 6, justifyItems: "center" }}>
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 36,
-              height: 104,
-              borderRadius: 999,
-              background: "linear-gradient(180deg, rgba(37,99,235,0.06) 0%, rgba(239,246,255,0.8) 100%)",
-              display: "flex",
-              alignItems: "flex-end",
-              padding: 4
-            }}
-          >
+        <div key={point.label} className="cv-trend-bars__item">
+          <div className="cv-trend-bars__track">
             <div
               style={{
                 width: "100%",
@@ -231,9 +176,9 @@ function TrendBars({ points, tone }: { points: TrendPoint[]; tone: "orange" | "r
               }}
             />
           </div>
-          <div style={{ textAlign: "center" }}>
-            <p style={{ margin: 0, fontWeight: 700, color: "#111827", fontSize: 12 }}>{point.value}%</p>
-            <p style={{ margin: "2px 0 0", fontSize: 11, color: "#6b7280" }}>{point.label}</p>
+          <div className="cv-trend-bars__meta">
+            <p className="cv-trend-bars__value">{point.value}%</p>
+            <p className="cv-trend-bars__label">{point.label}</p>
           </div>
         </div>
       ))}
@@ -243,41 +188,17 @@ function TrendBars({ points, tone }: { points: TrendPoint[]; tone: "orange" | "r
 
 function RankedList({ items, accent }: { items: RankedItem[]; accent: string }) {
   return (
-    <div style={{ display: "grid", gap: 8 }}>
+    <div className="cv-ranked-list">
       {items.map((item, index) => (
-        <article
-          key={item.name}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "auto 1fr auto",
-            gap: 10,
-            alignItems: "center",
-            padding: 10,
-            borderRadius: 12,
-            backgroundColor: "#f8fbff",
-            border: "1px solid rgba(37, 99, 235, 0.08)"
-          }}
-        >
-          <span
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 999,
-              display: "grid",
-              placeItems: "center",
-              backgroundColor: accent,
-              color: "#ffffff",
-              fontSize: 11,
-              fontWeight: 700
-            }}
-          >
+        <article key={item.name} className="cv-ranked-list__item">
+          <span className="cv-ranked-list__index" style={{ color: accent, backgroundColor: `${accent}14` }}>
             {index + 1}
           </span>
           <div>
-            <p style={{ margin: 0, fontWeight: 700, color: "#111827", fontSize: 12 }}>{item.name}</p>
-            <p style={{ margin: "2px 0 0", color: "#6b7280", fontSize: 12 }}>{item.detail}</p>
+            <p className="cv-ranked-list__name">{item.name}</p>
+            <p className="cv-ranked-list__detail">{item.detail}</p>
           </div>
-          <strong style={{ color: "#1d4ed8", fontSize: 12 }}>{item.value}</strong>
+          <strong className="cv-ranked-list__value">{item.value}</strong>
         </article>
       ))}
     </div>
@@ -286,41 +207,14 @@ function RankedList({ items, accent }: { items: RankedItem[]; accent: string }) 
 
 function EventList({ items }: { items: EventItem[] }) {
   return (
-    <div style={{ display: "grid", gap: 8 }}>
+    <div className="cv-event-list">
       {items.map((item) => (
-        <article
-          key={item.title}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 10,
-            flexWrap: "wrap",
-            padding: 10,
-            borderRadius: 12,
-            backgroundColor: "#ffffff",
-            border: "1px solid rgba(37, 99, 235, 0.08)"
-          }}
-        >
+        <article key={item.title} className="cv-event-list__item">
           <div>
-            <p style={{ margin: 0, fontWeight: 700, color: "#111827", fontSize: 12 }}>{item.title}</p>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: 12 }}>{item.meta}</p>
+            <p className="cv-event-list__title">{item.title}</p>
+            <p className="cv-event-list__meta">{item.meta}</p>
           </div>
-          <span
-            style={{
-              borderRadius: 999,
-              minHeight: 22,
-              padding: "0 8px",
-              backgroundColor: "#eff6ff",
-              color: "#1d4ed8",
-              fontWeight: 700,
-              fontSize: 12,
-              display: "inline-flex",
-              alignItems: "center",
-              alignSelf: "flex-start"
-            }}
-          >
-            {item.status}
-          </span>
+          <span className="cv-event-list__status">{item.status}</span>
         </article>
       ))}
     </div>
@@ -331,7 +225,7 @@ export default function OverviewPage() {
   const { viewState, aiMode } = useModuleRuntimeState();
 
   return (
-    <section style={pageStyle}>
+    <section className="cv-section-stack cv-overview-page">
       <header className="cv-page-toolbar">
         <div className="cv-page-toolbar__main">
           <div className="cv-breadcrumb" aria-label="页面路径">
@@ -341,75 +235,32 @@ export default function OverviewPage() {
           </div>
           <h1 className="cv-page-title cv-sr-only">总览大盘</h1>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignSelf: "flex-start" }}>
+        <div className="cv-header-actions">
           {["最近 1 小时", "生产环境", "service: all", "刷新中"].map((item) => (
-            <span
-              key={item}
-              style={{
-                borderRadius: 999,
-                minHeight: 24,
-                padding: "0 10px",
-                backgroundColor: "#eff6ff",
-                color: "#1d4ed8",
-                border: "1px solid rgba(37, 99, 235, 0.08)",
-                fontWeight: 700,
-                fontSize: 12,
-                display: "inline-flex",
-                alignItems: "center"
-              }}
-            >
+            <span key={item} className="cv-pill">
               {item}
             </span>
           ))}
         </div>
       </header>
+
       <ModuleRuntimeGate
         viewState={viewState}
         loadingTitle="总览聚合加载中"
         emptyTitle="当前没有总览聚合数据"
         errorTitle="总览聚合接口暂不可用"
       >
-        <section style={sectionCardStyle}>
-          <SectionHeading
-            eyebrow="核心指标"
-            title="KPI 概览区"
-            aside={
-              <span
-                style={{
-                  borderRadius: 999,
-                  minHeight: 24,
-                  padding: "0 10px",
-                  backgroundColor: "#eff6ff",
-                  color: "#1d4ed8",
-                  fontWeight: 700,
-                  fontSize: 12,
-                  display: "inline-flex",
-                  alignItems: "center"
-                }}
-              >
-                4 张卡
-              </span>
-            }
-          />
-          <div style={gridFourStyle}>
+        <section className="cv-panel cv-workbench-section">
+          <SectionHeading eyebrow="核心指标" title="KPI 概览区" aside={<span className="cv-chip">4 张卡</span>} />
+          <div className="cv-metric-grid">
             {metrics.map((metric) => (
-              <article
-                key={metric.label}
-                style={{
-                  borderRadius: 12,
-                  backgroundColor: "#f8fbff",
-                  border: "1px solid rgba(37, 99, 235, 0.08)",
-                  padding: 12,
-                  display: "grid",
-                  gap: 8
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                  <p style={{ margin: 0, color: "#475569", fontWeight: 700, fontSize: 12 }}>{metric.label}</p>
+              <article key={metric.label} className="cv-metric-card">
+                <div className="cv-metric-card__header">
+                  <p className="cv-metric-card__label">{metric.label}</p>
                   <Sparkline points={metric.sparkline} tone={metric.tone} />
                 </div>
-                <strong style={{ fontSize: 22, lineHeight: 1, color: "#111827" }}>{metric.value}</strong>
-                <span style={{ color: metric.tone === "danger" ? "#b91c1c" : "#1d4ed8", fontWeight: 700, fontSize: 12 }}>
+                <strong className="cv-metric-card__value">{metric.value}</strong>
+                <span className={`cv-metric-card__trend${metric.tone === "danger" ? " cv-metric-card__trend--danger" : ""}`}>
                   {metric.trend}
                 </span>
               </article>
@@ -417,106 +268,140 @@ export default function OverviewPage() {
           </div>
         </section>
 
-        <div style={gridMainStyle}>
-          <div style={{ display: "grid", gap: 12 }}>
-            <section style={sectionCardStyle}>
+        <div className="cv-dashboard-shell">
+          <div className="cv-dashboard-main">
+            <section className="cv-panel cv-workbench-section">
               <SectionHeading eyebrow="趋势分析" title="日志量与错误率趋势" />
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
-                <div
-                  style={{
-                    borderRadius: 12,
-                    border: "1px solid rgba(37, 99, 235, 0.08)",
-                    backgroundColor: "#f8fbff",
-                    padding: 12
-                  }}
-                >
-                  <h3 style={{ margin: "0 0 10px", color: "#111827", fontSize: 13 }}>日志量趋势</h3>
+              <div className="cv-trend-grid">
+                <div className="cv-subpanel">
+                  <h3 className="cv-subpanel__title">日志量趋势</h3>
                   <TrendBars points={volumeTrend} tone="orange" />
                 </div>
-                <div
-                  style={{
-                    borderRadius: 12,
-                    border: "1px solid rgba(37, 99, 235, 0.08)",
-                    backgroundColor: "#f8fbff",
-                    padding: 12
-                  }}
-                >
-                  <h3 style={{ margin: "0 0 10px", color: "#111827", fontSize: 13 }}>错误率趋势</h3>
+                <div className="cv-subpanel">
+                  <h3 className="cv-subpanel__title">错误率趋势</h3>
                   <TrendBars points={errorTrend} tone="red" />
                 </div>
               </div>
             </section>
 
-            <section style={sectionCardStyle}>
+            <section className="cv-panel cv-workbench-section">
               <SectionHeading eyebrow="热点与异常" title="Top 服务 / Top Error Code" />
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
+              <div className="cv-rank-grid">
                 <div>
-                  <h3 style={{ margin: "0 0 8px", fontSize: 13 }}>Top 服务</h3>
-                  <RankedList items={topServices} accent="#2563eb" />
+                  <h3 className="cv-subpanel__title">Top 服务</h3>
+                  <RankedList items={topServices} accent="var(--cv-primary)" />
                 </div>
                 <div>
-                  <h3 style={{ margin: "0 0 8px", fontSize: 13 }}>Top Error Code</h3>
-                  <RankedList items={topErrors} accent="#dc2626" />
+                  <h3 className="cv-subpanel__title">Top Error Code</h3>
+                  <RankedList items={topErrors} accent="var(--cv-danger)" />
                 </div>
               </div>
             </section>
+
+            <section className="cv-panel cv-workbench-section">
+              <SectionHeading eyebrow="近期动态" title="最近告警" />
+              <EventList items={alertEvents} />
+            </section>
+
+            <section className="cv-panel cv-workbench-section">
+              <SectionHeading eyebrow="报表投递" title="最近报表" />
+              <EventList items={reportEvents} />
+            </section>
           </div>
 
-          <section style={{ ...sectionCardStyle, display: "grid", gap: 12 }}>
-            <SectionHeading eyebrow="AI 建议" title="AI 建议区" />
-            {aiSuggestions.map((item) => (
-              <article
-                key={item.title}
-                style={{
-                  borderRadius: 12,
-                  border: "1px solid rgba(37, 99, 235, 0.08)",
-                  background: "#f8fbff",
-                  padding: 12
-                }}
-              >
-                <h3 style={{ margin: 0, fontSize: 13 }}>{item.title}</h3>
-                <p style={{ margin: "4px 0 0", color: "#6b7280", lineHeight: 1.5, fontSize: 12 }}>{item.summary}</p>
-              </article>
-            ))}
-            <AiActionPanel
-              title="AI 动作入口"
-              description=""
-              mode={aiMode}
-              actions={[
-                {
-                  id: "overview-alert",
-                  label: "一键生成告警规则",
-                  successMessage: "已生成基于 svc-auth 错误率的告警草稿。",
-                  errorMessage: "AI 生成告警规则失败，请稍后重试或手动创建。"
-                },
-                {
-                  id: "overview-report",
-                  label: "一键生成报表",
-                  successMessage: "已生成日报模板草稿，可直接跳转报表中心调整。",
-                  errorMessage: "AI 生成报表失败，请先使用固定模板。"
-                },
-                {
-                  id: "overview-index",
-                  label: "优化 SQL / 索引",
-                  successMessage: "已输出 service、level、timestamp 的优化建议。",
-                  errorMessage: "AI 优化建议暂不可用，请继续使用当前查询与手动排查。"
-                }
-              ]}
-            />
-          </section>
+          <aside className="cv-dashboard-aside">
+            <section className="cv-panel cv-workbench-section cv-workbench-section--sticky">
+              <SectionHeading eyebrow="AI 建议" title="AI 建议区" aside={<span className="cv-chip">Inspector</span>} />
+              <div className="cv-ai-list">
+                {aiSuggestions.map((item) => (
+                  <article key={item.title} className="cv-ai-list__item">
+                    <h3 className="cv-ai-list__title">{item.title}</h3>
+                    <p className="cv-ai-list__summary">{item.summary}</p>
+                  </article>
+                ))}
+              </div>
+              <AiActionPanel
+                title="AI 动作入口"
+                description=""
+                mode={aiMode}
+                actions={[
+                  {
+                    id: "overview-alert",
+                    label: "一键生成告警规则",
+                    successMessage: "已生成基于 svc-auth 错误率的告警草稿。",
+                    errorMessage: "AI 生成告警规则失败，请稍后重试或手动创建。"
+                  },
+                  {
+                    id: "overview-report",
+                    label: "一键生成报表",
+                    successMessage: "已生成日报模板草稿，可直接跳转报表中心调整。",
+                    errorMessage: "AI 生成报表失败，请先使用固定模板。"
+                  },
+                  {
+                    id: "overview-index",
+                    label: "优化 SQL / 索引",
+                    successMessage: "已输出 service、level、timestamp 的优化建议。",
+                    errorMessage: "AI 优化建议暂不可用，请继续使用当前查询与手动排查。"
+                  }
+                ]}
+              />
+            </section>
+
+            <section className="cv-panel cv-workbench-section">
+              <SectionHeading eyebrow="处理建议" title="当前值班动作" />
+              <div className="cv-duty-list">
+                <article className="cv-duty-list__item">
+                  <strong>先收敛 svc-auth 的 timeout 样本</strong>
+                  <span>按 namespace / pod / host 三层过滤，优先定位波动节点。</span>
+                </article>
+                <article className="cv-duty-list__item">
+                  <strong>回看 12:08 前后 10 分钟</strong>
+                  <span>重点比对 DB timeout 和 upstream reset 的共现比例。</span>
+                </article>
+                <article className="cv-duty-list__item">
+                  <strong>补充默认字段</strong>
+                  <span>将 service、level、timestamp 设为常用筛选，减少首轮查询成本。</span>
+                </article>
+              </div>
+            </section>
+
+            <section className="cv-panel cv-workbench-section">
+              <SectionHeading eyebrow="工作台摘要" title="值班状态" />
+              <div className="cv-summary-stack">
+                <div className="cv-summary-stack__row">
+                  <span>当前优先级</span>
+                  <strong>P1 / 登录链路</strong>
+                </div>
+                <div className="cv-summary-stack__row">
+                  <span>最近更新</span>
+                  <strong>14:00</strong>
+                </div>
+                <div className="cv-summary-stack__row">
+                  <span>建议动作</span>
+                  <strong>先查 trace，再补告警</strong>
+                </div>
+              </div>
+            </section>
+          </aside>
         </div>
 
-        <div style={gridBottomStyle}>
-          <section style={sectionCardStyle}>
-            <SectionHeading eyebrow="近期动态" title="最近告警" />
-            <EventList items={alertEvents} />
-          </section>
-
-          <section style={sectionCardStyle}>
-            <SectionHeading eyebrow="报表投递" title="最近报表" />
-            <EventList items={reportEvents} />
-          </section>
-        </div>
+        <section className="cv-panel cv-workbench-section">
+          <SectionHeading eyebrow="值班协同" title="跨模块入口" />
+          <div className="cv-cross-links">
+            <article className="cv-cross-links__item">
+              <strong>日志查询</strong>
+              <span>沿用相同工作台布局，直接下钻到命中的 namespace / pod。</span>
+            </article>
+            <article className="cv-cross-links__item">
+              <strong>定时报表</strong>
+              <span>将当前筛选沉淀为日报和异常快照，减少重复分析。</span>
+            </article>
+            <article className="cv-cross-links__item">
+              <strong>告警中心</strong>
+              <span>把 AI 草案转成正式规则，并挂到统一值班节奏里。</span>
+            </article>
+          </div>
+        </section>
       </ModuleRuntimeGate>
     </section>
   );

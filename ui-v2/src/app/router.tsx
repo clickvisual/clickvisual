@@ -2,6 +2,8 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
 import AlertRulesPage from "../domains/alert/pages/AlertRulesPage";
 import OverviewPage from "../domains/overview/pages/OverviewPage";
+import IngestionWorkbenchPage from "../domains/query/pages/IngestionWorkbenchPage";
+import QueryLinkPage from "../domains/query/pages/QueryLinkPage";
 import QueryPage from "../domains/query/pages/QueryPage";
 import PermissionResourcesPage from "../domains/permission/pages/PermissionResourcesPage";
 import PermissionRootPage from "../domains/permission/pages/PermissionRootPage";
@@ -35,6 +37,14 @@ export const routes = [
       {
         path: "query",
         element: <QueryPage />
+      },
+      {
+        path: "query/link",
+        element: <QueryLinkPage />
+      },
+      {
+        path: "query/ingestion",
+        element: <IngestionWorkbenchPage />
       },
       {
         path: "alerts/rules",

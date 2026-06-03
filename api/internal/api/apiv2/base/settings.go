@@ -16,6 +16,7 @@ import (
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	aisvc "github.com/clickvisual/clickvisual/api/internal/service/ai"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission/pmsplugin"
@@ -267,6 +268,50 @@ func SettingsInstanceTest(c *core.Context) {
 		return
 	}
 	c.JSONOK("connection test success")
+}
+
+func SettingsAIInfo(c *core.Context) {
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	resp, err := aisvc.GetSetting()
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONOK(resp)
+}
+
+func SettingsAIUpdate(c *core.Context) {
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	var req view.ReqUpdateAISetting
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	resp, err := aisvc.UpdateSetting(c.Uid(), req)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONOK(resp)
+}
+
+func SettingsAITest(c *core.Context) {
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	resp, err := aisvc.TestSetting()
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONOK(resp)
 }
 
 func SettingsAlarmChannelList(c *core.Context) {

@@ -1,133 +1,322 @@
-import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
-import { getTimeRangeLabel, useTimeRange } from "../../../shared/state/TimeRangeContext";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import QueryAccessLogLibraryModal from "../components/QueryAccessLogLibraryModal";
+import QueryCreateDatabaseModal from "../components/QueryCreateDatabaseModal";
+import QueryEditDatabaseModal from "../components/QueryEditDatabaseModal";
+import {
+  createQueryShareShortUrl,
+  deleteQueryDatabase,
+  deleteQueryTable
+} from "../api/query";
 import { useQueryWorkspace } from "../hooks/useQueryWorkspace";
+import type {
+  QueryFilterCondition,
+  QuerySourceDatabase,
+  QuerySourceInstance,
+  QuerySourceTable,
+  QuerySourceTreeTarget
+} from "../types/contracts";
+import ContextMenu from "../../../shared/components/ContextMenu";
 
-const pageStyle: CSSProperties = {
-  display: "grid",
-  gap: 12
+type QueryDateRange = [Date, Date] | null;
+type QueryConditionModalMode = "create" | "edit";
+type NormalizedLogRow = {
+  original: Record<string, unknown>;
+  parsed: Record<string, unknown>;
+  timeText: string;
+  levelText: string;
+  messageText: string;
+};
+type QueryResultColumn = {
+  key: string;
+  label: string;
+  kind: "builtin" | "field";
+};
+type TraceTag = {
+  key?: string;
+  vStr?: string;
+  vInt64?: number;
+  vBool?: boolean;
+  vFloat64?: number;
+  vType?: string;
+};
+type TraceSpanRaw = {
+  traceId: string;
+  spanId: string;
+  operationName?: string;
+  startTime?: string;
+  duration?: string | number;
+  references?: Array<{ spanId?: string }>;
+  process?: {
+    serviceName?: string;
+    tags?: TraceTag[];
+  };
+  tags?: TraceTag[];
+  logs?: Array<{ timestamp?: string; fields?: TraceTag[] }>;
+};
+type TraceSpanNode = {
+  key: string;
+  raw: TraceSpanRaw;
+  row: Record<string, unknown>;
+  children: TraceSpanNode[];
+  startMs: number;
+  durationMs: number;
+  depth: number;
+  virtual?: boolean;
+};
+type TraceGroup = {
+  key: string;
+  traceId: string;
+  root: TraceSpanNode;
+  startMs: number;
+  endMs: number;
+  durationMs: number;
+  serviceCount: number;
+  spanCount: number;
+};
+type LinkQueryTableTarget = {
+  id: number;
+  databaseName: string;
+  tableName: string;
+};
+type LinkQueryAnchor = {
+  field: string;
+  value: string;
+  timeMs: number;
+};
+type TableAutoQueryRequest = {
+  instanceId: number;
+  databaseName: string;
+  tableId: number;
+  tableName: string;
+  conditions: QueryFilterCondition[];
+  range: {
+    st: number;
+    et: number;
+  };
+};
+type OpenLogTab = {
+  id: number;
+  databaseName: string;
+  tableName: string;
+};
+type QuickTimeRange = {
+  label: string;
+  minutes: number;
 };
 
-const panelStyle: CSSProperties = {
-  background: "#ffffff",
-  border: "1px solid rgba(37, 99, 235, 0.08)",
-  borderRadius: 14,
-  padding: 12,
-  boxShadow: "0 10px 24px rgba(15, 23, 42, 0.04)"
-};
-
-const compactGridStyle: CSSProperties = {
-  display: "grid",
-  gap: 12
-};
-
-const rowStyle: CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 8
-};
-
-const fieldStyle: CSSProperties = {
-  display: "grid",
-  gap: 6,
-  minWidth: 180,
-  flex: "1 1 180px"
-};
-
-const labelStyle: CSSProperties = {
-  fontSize: 12,
-  fontWeight: 700,
-  color: "#335c99"
-};
-
-const selectStyle: CSSProperties = {
-  height: 32,
-  borderRadius: 10,
-  border: "1px solid rgba(37, 99, 235, 0.08)",
-  padding: "0 12px",
-  background: "#ffffff",
-  color: "#0f172a"
-};
-
-const textareaStyle: CSSProperties = {
-  width: "100%",
-  minHeight: 84,
-  borderRadius: 10,
-  border: "1px solid rgba(37, 99, 235, 0.08)",
-  padding: 10,
-  background: "#ffffff",
-  resize: "vertical",
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-  fontSize: 13,
-  lineHeight: 1.5,
-  color: "#0f172a"
-};
-
-const primaryButtonStyle: CSSProperties = {
-  height: 32,
-  borderRadius: 10,
-  border: "1px solid #2563eb",
-  background: "#2563eb",
-  color: "#ffffff",
-  padding: "0 12px",
-  fontWeight: 700,
-  cursor: "pointer",
-  fontSize: 13
-};
-
-const secondaryButtonStyle: CSSProperties = {
-  height: 32,
-  borderRadius: 10,
-  border: "1px solid rgba(37, 99, 235, 0.08)",
-  background: "#ffffff",
-  color: "#335c99",
-  padding: "0 12px",
-  fontWeight: 700,
-  fontSize: 13
-};
-
-const histogramStripStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(48px, 1fr))",
-  alignItems: "end",
-  gap: 8
-};
-
-const tableStyle: CSSProperties = {
-  width: "100%",
-  borderCollapse: "collapse"
-};
-
-const truncateTextStyle: CSSProperties = {
-  display: "inline-block",
-  maxWidth: 560,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-  verticalAlign: "bottom"
-};
-
-const suggestionChipStyle: CSSProperties = {
-  border: "1px solid rgba(37, 99, 235, 0.08)",
-  background: "#eff6ff",
-  color: "#1e3a8a",
-  borderRadius: 999,
-  minHeight: 24,
-  padding: "0 10px",
-  fontSize: 12,
-  fontWeight: 700,
-  cursor: "pointer"
-};
-
-const tabButtonStyle: CSSProperties = {
-  ...secondaryButtonStyle,
-  cursor: "pointer"
-};
-
-type QueryResultTab = "raw" | "agg" | "trace" | "json";
+const DEFAULT_RESULT_COLUMN_KEYS = ["__time", "__level", "__message"] as const;
+const RESULT_COLUMN_STORAGE_PREFIX = "clickvisual-v2-query-result-columns";
+const QUICK_TIME_RANGES: QuickTimeRange[] = [
+  { label: "Last 15 minutes", minutes: 15 },
+  { label: "Last 30 minutes", minutes: 30 },
+  { label: "Last 1 hour", minutes: 60 },
+  { label: "Last 6 hours", minutes: 6 * 60 },
+  { label: "Last 12 hours", minutes: 12 * 60 },
+  { label: "Last 24 hours", minutes: 24 * 60 },
+  { label: "Last 2 days", minutes: 2 * 24 * 60 },
+  { label: "Last 7 days", minutes: 7 * 24 * 60 },
+  { label: "Last 30 days", minutes: 30 * 24 * 60 },
+  { label: "Last 90 days", minutes: 90 * 24 * 60 },
+  { label: "Last 6 months", minutes: 183 * 24 * 60 },
+  { label: "Last 1 year", minutes: 365 * 24 * 60 }
+];
 
 function formatCount(value: number) {
   return new Intl.NumberFormat("zh-CN").format(value);
+}
+
+function roundUpChartAxisMax(value: number) {
+  if (value <= 10) {
+    return 10;
+  }
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  return Math.ceil(value / magnitude) * magnitude;
+}
+
+function formatDateTimeLocalValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function buildDefaultTimeRange() {
+  const end = new Date(Date.now());
+  end.setSeconds(0, 0);
+  const start = new Date(end.getTime() - 60 * 60 * 1000);
+  return [start, end] as [Date, Date];
+}
+
+function buildRecentMinutesTimeRange(minutes: number) {
+  const end = new Date(Date.now());
+  end.setSeconds(0, 0);
+  const start = new Date(end.getTime() - minutes * 60 * 1000);
+  return [start, end] as [Date, Date];
+}
+
+function toSecondRange(range: [Date, Date]) {
+  return {
+    st: Math.floor(range[0].getTime() / 1000),
+    et: Math.floor(range[1].getTime() / 1000)
+  };
+}
+
+async function copyTextToClipboard(text: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } finally {
+    document.body.removeChild(textarea);
+  }
+  return copied;
+}
+
+function formatTimeRangeDisplay(range: QueryDateRange) {
+  if (!range) {
+    return "Select time range";
+  }
+  const [start, end] = range;
+  const now = new Date(Date.now());
+  const endDeltaSeconds = Math.abs(end.getTime() - now.getTime()) / 1000;
+  const durationMinutes = Math.round((end.getTime() - start.getTime()) / 60_000);
+  const quickRange = QUICK_TIME_RANGES.find((item) => item.minutes === durationMinutes);
+  if (quickRange && endDeltaSeconds < 90) {
+    return quickRange.label;
+  }
+  return `${formatDateTimeLocalValue(start).replace("T", " ")} to ${formatDateTimeLocalValue(end).replace("T", " ")}`;
+}
+
+function TimeRangeDropdown({
+  value,
+  onChange
+}: {
+  value: QueryDateRange;
+  onChange: (value: QueryDateRange) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [quickSearch, setQuickSearch] = useState("");
+  const [absoluteStart, setAbsoluteStart] = useState(value ? formatDateTimeLocalValue(value[0]) : "");
+  const [absoluteEnd, setAbsoluteEnd] = useState(value ? formatDateTimeLocalValue(value[1]) : "");
+  const label = formatTimeRangeDisplay(value);
+  const activeDurationMinutes = value ? Math.round((value[1].getTime() - value[0].getTime()) / 60_000) : null;
+  const visibleRanges = QUICK_TIME_RANGES.filter((item) =>
+    item.label.toLowerCase().includes(quickSearch.trim().toLowerCase())
+  );
+
+  useEffect(() => {
+    if (!open || !value) {
+      return;
+    }
+    setAbsoluteStart(formatDateTimeLocalValue(value[0]));
+    setAbsoluteEnd(formatDateTimeLocalValue(value[1]));
+  }, [open, value]);
+
+  function applyQuickRange(range: QuickTimeRange) {
+    onChange(buildRecentMinutesTimeRange(range.minutes));
+    setOpen(false);
+  }
+
+  function applyAbsoluteRange() {
+    const start = new Date(absoluteStart);
+    const end = new Date(absoluteEnd);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start.getTime() >= end.getTime()) {
+      return;
+    }
+    onChange([start, end]);
+    setOpen(false);
+  }
+
+  return (
+    <div className="cv-query-time-range">
+      <button
+        type="button"
+        className={`cv-query-time-range__trigger${open ? " cv-query-time-range__trigger--open" : ""}`}
+        onClick={() => setOpen((current) => !current)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={`时间范围 ${label}`}
+      >
+        <span className="cv-query-time-range__icon" aria-hidden="true">◷</span>
+        <span>{label}</span>
+        <span className="cv-query-time-range__chevron" aria-hidden="true">⌄</span>
+      </button>
+      {open ? (
+        <div className="cv-query-time-popover" role="dialog" aria-label="选择时间范围">
+          <section className="cv-query-time-popover__absolute">
+            <h2>Absolute time range</h2>
+            <label className="cv-query-time-field">
+              <span>From</span>
+              <input
+                type="datetime-local"
+                value={absoluteStart}
+                onChange={(event) => setAbsoluteStart(event.target.value)}
+                aria-label="From"
+              />
+            </label>
+            <label className="cv-query-time-field">
+              <span>To</span>
+              <input
+                type="datetime-local"
+                value={absoluteEnd}
+                onChange={(event) => setAbsoluteEnd(event.target.value)}
+                aria-label="To"
+              />
+            </label>
+            <button type="button" className="cv-query-time-popover__apply" onClick={applyAbsoluteRange}>
+              Apply time range
+            </button>
+            <div className="cv-query-time-popover__recent">
+              <strong>Recently used absolute ranges</strong>
+              <span>{value ? `${formatClientDateTime(value[0])} to ${formatClientDateTime(value[1])}` : "No range selected"}</span>
+            </div>
+            <div className="cv-query-time-popover__footer">
+              <span>Browser Time</span>
+              <strong>China, CST</strong>
+            </div>
+          </section>
+          <section className="cv-query-time-popover__quick">
+            <label className="cv-query-time-search">
+              <span aria-hidden="true">⌕</span>
+              <input
+                value={quickSearch}
+                onChange={(event) => setQuickSearch(event.target.value)}
+                placeholder="Search quick ranges"
+                aria-label="Search quick ranges"
+              />
+            </label>
+            <div className="cv-query-time-popover__quick-list">
+              {visibleRanges.map((range) => {
+                const isActive = activeDurationMinutes === range.minutes;
+                return (
+                  <button
+                    key={range.label}
+                    type="button"
+                    className={`cv-query-time-popover__quick-item${isActive ? " cv-query-time-popover__quick-item--active" : ""}`}
+                    onClick={() => applyQuickRange(range)}
+                  >
+                    {range.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function truncate(value: unknown, maxLength = 96) {
@@ -138,108 +327,1473 @@ function truncate(value: unknown, maxLength = 96) {
   return `${text.slice(0, maxLength)}...`;
 }
 
-function pickMessageField(row: Record<string, unknown>) {
-  const priorities = ["message", "msg", "_raw_log_", "content"];
-  for (const key of priorities) {
-    if (row[key]) {
-      return row[key];
+function parseJsonObject(value: unknown): Record<string, unknown> | null {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  if (typeof value !== "string") {
+    return null;
+  }
+  const text = value.trim();
+  if (!text || (!text.startsWith("{") && !text.startsWith("["))) {
+    const objectStart = text.indexOf("{");
+    const objectEnd = text.lastIndexOf("}");
+    if (objectStart < 0 || objectEnd <= objectStart) {
+      return null;
+    }
+    return parseJsonObject(text.slice(objectStart, objectEnd + 1));
+  }
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function parseDurationToMs(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value < 10_000 ? value * 1000 : value;
+  }
+  if (typeof value !== "string") {
+    return 0;
+  }
+  const text = value.trim();
+  const match = text.match(/^(-?\d+(?:\.\d+)?)(ns|us|µs|ms|s|m|h)?$/i);
+  if (!match) {
+    return 0;
+  }
+  const amount = Number(match[1]);
+  if (!Number.isFinite(amount)) {
+    return 0;
+  }
+  switch ((match[2] || "ms").toLowerCase()) {
+    case "ns":
+      return amount / 1_000_000;
+    case "us":
+    case "µs":
+      return amount / 1_000;
+    case "s":
+      return amount * 1000;
+    case "m":
+      return amount * 60 * 1000;
+    case "h":
+      return amount * 60 * 60 * 1000;
+    case "ms":
+    default:
+      return amount;
+  }
+}
+
+function formatTraceDuration(valueMs: number) {
+  if (!Number.isFinite(valueMs) || valueMs <= 0) {
+    return "0 ms";
+  }
+  if (valueMs < 1) {
+    return `${(valueMs * 1000).toFixed(1)} us`;
+  }
+  if (valueMs < 1000) {
+    return `${valueMs.toFixed(valueMs < 10 ? 2 : 1)} ms`;
+  }
+  return `${(valueMs / 1000).toFixed(2)} s`;
+}
+
+function formatTraceTagValue(tag: TraceTag) {
+  if (isPresentLogValue(tag.vStr)) {
+    return stripAnsi(String(tag.vStr));
+  }
+  if (isPresentLogValue(tag.vInt64)) {
+    return String(tag.vInt64);
+  }
+  if (isPresentLogValue(tag.vFloat64)) {
+    return String(tag.vFloat64);
+  }
+  if (typeof tag.vBool === "boolean") {
+    return String(tag.vBool);
+  }
+  return "—";
+}
+
+function extractTraceSpan(row: Record<string, unknown>): TraceSpanRaw | null {
+  const rawSpan =
+    parseJsonObject(row.rawLogJson) ??
+    parseJsonObject(row["_raw_log_"]) ??
+    parseJsonObject(row["_raw_log"]) ??
+    parseJsonObject(row.raw);
+  const span = (rawSpan ?? row) as Record<string, unknown>;
+  if (!isPresentLogValue(span.traceId) || !isPresentLogValue(span.spanId)) {
+    return null;
+  }
+  return span as TraceSpanRaw;
+}
+
+function createTraceNode(row: Record<string, unknown>, raw: TraceSpanRaw): TraceSpanNode {
+  const startMs = raw.startTime ? toDateFromLogValue(raw.startTime)?.getTime() ?? 0 : 0;
+  return {
+    key: raw.spanId,
+    raw,
+    row,
+    children: [],
+    startMs,
+    durationMs: parseDurationToMs(raw.duration),
+    depth: 1
+  };
+}
+
+function collectTraceNodes(node: TraceSpanNode, result: TraceSpanNode[] = []) {
+  result.push(node);
+  node.children.forEach((child) => collectTraceNodes(child, result));
+  return result;
+}
+
+function assignTraceDepth(node: TraceSpanNode, depth: number) {
+  node.depth = depth;
+  node.children.forEach((child) => assignTraceDepth(child, depth + 1));
+}
+
+function buildTraceGroups(rows: Array<Record<string, unknown>>, isTrace?: number): TraceGroup[] {
+  const spans = rows
+    .map((row) => {
+      const raw = extractTraceSpan(row);
+      return raw ? createTraceNode(row, raw) : null;
+    })
+    .filter(Boolean) as TraceSpanNode[];
+  if (spans.length === 0 || (isTrace !== 1 && spans.length < 2)) {
+    return [];
+  }
+
+  const grouped = new Map<string, TraceSpanNode[]>();
+  spans.forEach((span) => {
+    const groupKey = String(span.row._key ?? span.raw.traceId);
+    grouped.set(groupKey, [...(grouped.get(groupKey) ?? []), span]);
+  });
+
+  return Array.from(grouped.entries()).flatMap(([groupKey, groupSpans]) => {
+    const bySpanId = new Map(groupSpans.map((span) => [span.raw.spanId, span]));
+    const serviceNames = new Set<string>();
+    const roots: TraceSpanNode[] = [];
+    const missingParentIds = new Set<string>();
+
+    groupSpans.forEach((span) => {
+      if (span.raw.process?.serviceName) {
+        serviceNames.add(span.raw.process.serviceName);
+      }
+      const parentSpanId = span.raw.references?.[0]?.spanId;
+      const parent = parentSpanId ? bySpanId.get(parentSpanId) : null;
+      if (parent) {
+        parent.children.push(span);
+      } else {
+        roots.push(span);
+        if (parentSpanId) {
+          missingParentIds.add(parentSpanId);
+        }
+      }
+    });
+
+    const sortedRoots = roots.sort((left, right) => left.startMs - right.startMs);
+    const root =
+      sortedRoots.length === 1 && missingParentIds.size === 0
+        ? sortedRoots[0]
+        : {
+            key: `virtual-${groupKey}`,
+            raw: {
+              traceId: groupSpans[0]?.raw.traceId ?? groupKey,
+              spanId: `virtual-${groupKey}`,
+              operationName: missingParentIds.size > 0 ? "Virtual Root Span" : "Trace Root",
+              startTime: groupSpans[0]?.raw.startTime,
+              process: { serviceName: "trace" },
+              tags: []
+            },
+            row: groupSpans[0]?.row ?? {},
+            children: sortedRoots,
+            startMs: Math.min(...groupSpans.map((span) => span.startMs || Number.POSITIVE_INFINITY)),
+            durationMs: 0,
+            depth: 1,
+            virtual: true
+          };
+
+    assignTraceDepth(root, 1);
+    const allNodes = collectTraceNodes(root).filter((node) => !node.virtual);
+    const startMs = Math.min(...allNodes.map((node) => node.startMs || Number.POSITIVE_INFINITY));
+    const endMs = Math.max(...allNodes.map((node) => (node.startMs || 0) + node.durationMs));
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+      return [];
+    }
+    return [
+      {
+        key: groupKey,
+        traceId: groupSpans[0]?.raw.traceId ?? groupKey,
+        root,
+        startMs,
+        endMs,
+        durationMs: Math.max(endMs - startMs, 0),
+        serviceCount: serviceNames.size,
+        spanCount: allNodes.length
+      }
+    ];
+  });
+}
+
+function parseNestedJsonFields(row: Record<string, unknown>) {
+  const parsed: Record<string, unknown> = {};
+  ["_raw_log_", "_raw_log", "_raw", "raw_log", "raw", "content", "message", "msg"].forEach((key) => {
+    const value = parseJsonObject(row[key]);
+    if (value) {
+      Object.assign(parsed, value);
+    }
+  });
+  return parsed;
+}
+
+function stripAnsi(value: string) {
+  return value.replace(/\u001b\[[0-9;]*m/g, "");
+}
+
+function toDateFromLogValue(value: unknown) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+  if (typeof value === "number") {
+    const milliseconds = Math.abs(value) < 10_000_000_000 ? value * 1000 : value;
+    const date = new Date(milliseconds);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  if (typeof value === "string") {
+    const text = value.trim();
+    const numeric = Number(text);
+    if (text && Number.isFinite(numeric)) {
+      return toDateFromLogValue(numeric);
+    }
+    const normalizedText =
+      /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(text) && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(text)
+        ? text.replace(" ", "T")
+        : text;
+    const date = new Date(normalizedText);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  return null;
+}
+
+function formatClientDateTime(value: unknown) {
+  const date = toDateFromLogValue(value);
+  if (!date) {
+    return value === undefined || value === null || value === "" ? "-" : String(value);
+  }
+  return date.toLocaleString("zh-CN", { hour12: false });
+}
+
+function formatTimeAxisLabel(value: unknown) {
+  const date = toDateFromLogValue(value);
+  if (!date) {
+    return String(value ?? "-");
+  }
+  return date.toLocaleString("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+}
+
+function isPresentLogValue(value: unknown) {
+  if (value === undefined || value === null || value === "") {
+    return false;
+  }
+  if (typeof value === "string") {
+    const text = value.trim().toLowerCase();
+    return text !== "[null]" && text !== "null" && text !== "nil";
+  }
+  return true;
+}
+
+function firstPresentValue(row: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = row[key];
+    if (isPresentLogValue(value)) {
+      return value;
     }
   }
-  return JSON.stringify(row);
+  return undefined;
+}
+
+function normalizeLogRow(row: Record<string, unknown>): NormalizedLogRow {
+  const parsed = parseNestedJsonFields(row);
+  const merged = { ...row, ...parsed };
+  const timeValue = firstPresentValue(merged, ["_time", "_time_", "_time_second_", "time", "timestamp", "ts"]);
+  const levelValue = firstPresentValue(merged, ["level", "severity", "lv", "log_level"]);
+  const messageValue = firstPresentValue(merged, ["message", "msg", "content", "body", "_raw_log_"]);
+  return {
+    original: row,
+    parsed: merged,
+    timeText: formatClientDateTime(timeValue),
+    levelText: levelValue === undefined ? "-" : String(levelValue),
+    messageText: messageValue === undefined ? JSON.stringify(row) : String(messageValue)
+  };
+}
+
+function formatConditionSummaryValue(value: unknown) {
+  if (value === undefined || value === null) {
+    return "";
+  }
+  return String(value);
+}
+
+function formatLogDetailValue(value: unknown) {
+  if (!isPresentLogValue(value)) {
+    return "—";
+  }
+  if (typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return typeof value === "string" ? stripAnsi(value) : String(value);
+}
+
+function sanitizeLogJsonValue(value: unknown): unknown {
+  if (!isPresentLogValue(value)) {
+    return undefined;
+  }
+  if (Array.isArray(value)) {
+    const items = value
+      .map((item) => sanitizeLogJsonValue(item))
+      .filter((item) => item !== undefined);
+    return items;
+  }
+  if (value && typeof value === "object") {
+    return sanitizeLogJsonObject(value as Record<string, unknown>);
+  }
+  if (typeof value === "string") {
+    const parsedJson = parseJsonObject(value);
+    if (parsedJson) {
+      return sanitizeLogJsonObject(parsedJson);
+    }
+    return stripAnsi(value);
+  }
+  return value;
+}
+
+function sanitizeLogJsonObject(row: Record<string, unknown>) {
+  const result: Record<string, unknown> = {};
+  Object.entries(row).forEach(([key, value]) => {
+    const sanitizedValue = sanitizeLogJsonValue(value);
+    if (sanitizedValue !== undefined) {
+      result[key] = sanitizedValue;
+    }
+  });
+  return result;
+}
+
+function formatLogJsonPreview(row: NormalizedLogRow) {
+  return JSON.stringify(sanitizeLogJsonObject(row.parsed), null, 2);
+}
+
+function canCreateConditionFromDetailValue(field: string, value: unknown) {
+  if (/^_?raw/i.test(field)) {
+    return false;
+  }
+  if (!isPresentLogValue(value)) {
+    return false;
+  }
+  if (value && typeof value === "object") {
+    return false;
+  }
+  return String(value).trim().length > 0 && String(value).trim().length <= 256;
+}
+
+function canStartAIAnalysisFromField(field: string, value: unknown) {
+  return canCreateConditionFromDetailValue(field, value);
+}
+
+function createDetailConditionValue(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return {
+      value,
+      valueType: "number" as const
+    };
+  }
+  const text = typeof value === "string" ? stripAnsi(value).trim() : String(value).trim();
+  return {
+    value: text,
+    valueType: /^-?\d+(\.\d+)?$/.test(text) ? "number" as const : "string" as const
+  };
+}
+
+function scalarJsonEntries(value: unknown) {
+  const parsed = parseJsonObject(value);
+  if (!parsed) {
+    return [] as Array<[string, string]>;
+  }
+  return Object.entries(parsed)
+    .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
+    .map(([key, item]) => [key, formatLogDetailValue(item)] as [string, string])
+    .filter(([, item]) => item.trim().length > 0 && item.trim().length <= 256);
+}
+
+function canUseOuterFieldForNestedJsonValue(row: NormalizedLogRow, field: string, value: string) {
+  const mergedValue = row.parsed[field];
+  return (
+    ((Object.prototype.hasOwnProperty.call(row.original, field) && isPresentLogValue(row.original[field])) ||
+      (Object.prototype.hasOwnProperty.call(row.parsed, field) && isPresentLogValue(mergedValue))) &&
+    canCreateConditionFromDetailValue(field, value)
+  );
+}
+
+function isLogTimeField(field: string) {
+  return /^_time(_[a-z]+)?_$/.test(field) || field === "time" || field === "timestamp" || field === "ts";
+}
+
+function formatDateTimeForQuery(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+function createDetailTimeRangeConditions(field: string, value: unknown): QueryFilterCondition[] {
+  const date = toDateFromLogValue(value);
+  if (!date) {
+    return [];
+  }
+  const start = new Date(date);
+  start.setMilliseconds(0);
+  const end = new Date(start.getTime() + 1000);
+  const idPrefix = `cond_detail_time_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  return [
+    {
+      id: `${idPrefix}_gte`,
+      field,
+      operator: ">=",
+      value: formatDateTimeForQuery(start),
+      valueType: "datetime"
+    },
+    {
+      id: `${idPrefix}_lt`,
+      field,
+      operator: "<",
+      value: formatDateTimeForQuery(end),
+      valueType: "datetime"
+    }
+  ];
+}
+
+function getLogRowTimeMs(row: NormalizedLogRow) {
+  const value = firstPresentValue(row.parsed, [
+    "_time",
+    "_time_",
+    "_time_nanosecond_",
+    "_time_second_",
+    "time",
+    "timestamp",
+    "ts"
+  ]);
+  return toDateFromLogValue(value)?.getTime() ?? null;
+}
+
+
+function readJsonUserKey(raw: string | null) {
+  if (!raw) {
+    return "";
+  }
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return String(parsed.uid ?? parsed.id ?? parsed.username ?? parsed.name ?? "").trim();
+  } catch {
+    return raw.trim();
+  }
+}
+
+function getCurrentBrowserUserKey() {
+  if (typeof window === "undefined") {
+    return "anonymous";
+  }
+  const localStorageKeys = ["clickvisual-current-user", "cv-current-user", "currentUser", "user"];
+  for (const key of localStorageKeys) {
+    const value = readJsonUserKey(window.localStorage.getItem(key));
+    if (value) {
+      return value;
+    }
+  }
+  const cookieUser = document.cookie
+    .split(";")
+    .map((item) => item.trim())
+    .find((item) => /^(uid|user_id|username)=/.test(item));
+  if (cookieUser) {
+    return decodeURIComponent(cookieUser.split("=").slice(1).join("=")) || "anonymous";
+  }
+  return "anonymous";
+}
+
+function readResultColumnKeys(storageKey: string) {
+  if (typeof window === "undefined") {
+    return [...DEFAULT_RESULT_COLUMN_KEYS];
+  }
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+    if (Array.isArray(parsed)) {
+      const keys = parsed.map((item) => String(item)).filter(Boolean);
+      return keys.length > 0 ? keys : [...DEFAULT_RESULT_COLUMN_KEYS];
+    }
+  } catch {
+    return [...DEFAULT_RESULT_COLUMN_KEYS];
+  }
+  return [...DEFAULT_RESULT_COLUMN_KEYS];
+}
+
+function writeResultColumnKeys(storageKey: string, columnKeys: string[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(storageKey, JSON.stringify(columnKeys));
+}
+
+function createConditionDraft(): QueryFilterCondition {
+  return {
+    id: `cond_modal_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+    field: "",
+    operator: "=",
+    value: "",
+    valueType: "string"
+  };
+}
+
+const queryOperatorOptions = [
+  { label: "=", value: "=" },
+  { label: "!=", value: "!=" },
+  { label: ">", value: ">" },
+  { label: ">=", value: ">=" },
+  { label: "<", value: "<" },
+  { label: "<=", value: "<=" },
+  { label: "like", value: "like" },
+  { label: "not like", value: "not like" }
+] as const;
+
+const queryValueTypeOptions = [
+  { label: "字符串", value: "string" },
+  { label: "数字", value: "number" },
+  { label: "时间", value: "datetime" }
+] as const;
+
+function TraceSpanRow({
+  node,
+  groupStartMs,
+  groupDurationMs
+}: {
+  node: TraceSpanNode;
+  groupStartMs: number;
+  groupDurationMs: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const safeDuration = Math.max(groupDurationMs, 1);
+  const offsetPercent = Math.max(0, Math.min(100, ((node.startMs - groupStartMs) / safeDuration) * 100));
+  const widthPercent = Math.max(0.6, Math.min(100 - offsetPercent, (node.durationMs / safeDuration) * 100));
+  const serviceName = node.raw.process?.serviceName || (node.virtual ? "trace" : "unknown");
+  const operationName = node.raw.operationName || node.raw.spanId;
+  const tags = node.raw.tags ?? [];
+  const processTags = node.raw.process?.tags ?? [];
+  const logs = node.raw.logs ?? [];
+
+  return (
+    <div className="cv-query-trace-span">
+      <button
+        type="button"
+        className={node.virtual ? "cv-query-trace-span__row cv-query-trace-span__row--virtual" : "cv-query-trace-span__row"}
+        style={{ paddingLeft: `${Math.min(node.depth - 1, 8) * 18 + 8}px` }}
+        aria-expanded={expanded}
+        onClick={() => setExpanded((current) => !current)}
+      >
+        <span className="cv-query-trace-span__name">
+          <strong>{serviceName}</strong>
+          <em>{operationName}</em>
+        </span>
+        <span className="cv-query-trace-span__timeline">
+          <span
+            className="cv-query-trace-span__bar"
+            style={{
+              marginLeft: `${offsetPercent}%`,
+              width: `${widthPercent}%`
+            }}
+          />
+          {logs.map((item, index) => {
+            const logTime = item.timestamp ? toDateFromLogValue(item.timestamp)?.getTime() : null;
+            const left = logTime ? Math.max(0, Math.min(100, ((logTime - groupStartMs) / safeDuration) * 100)) : -1;
+            return left >= 0 ? (
+              <span
+                key={`${item.timestamp}-${index}`}
+                className="cv-query-trace-span__event"
+                style={{ left: `${left}%` }}
+                title={item.timestamp}
+              />
+            ) : null;
+          })}
+        </span>
+        <span className="cv-query-trace-span__duration">{formatTraceDuration(node.durationMs)}</span>
+      </button>
+      {expanded ? (
+        <div className="cv-query-trace-span__detail">
+          <div>
+            <strong>SpanID</strong>
+            <span>{node.raw.spanId}</span>
+          </div>
+          <div>
+            <strong>开始</strong>
+            <span>{node.raw.startTime ? formatClientDateTime(node.raw.startTime) : "—"}</span>
+          </div>
+          {tags.length > 0 ? (
+            <div className="cv-query-trace-span__kv">
+              <strong>Tags</strong>
+              <span>
+                {tags.map((tag) => (
+                  <em key={tag.key}>
+                    {tag.key}={formatTraceTagValue(tag)}
+                  </em>
+                ))}
+              </span>
+            </div>
+          ) : null}
+          {processTags.length > 0 ? (
+            <div className="cv-query-trace-span__kv">
+              <strong>Process</strong>
+              <span>
+                {processTags.map((tag) => (
+                  <em key={tag.key}>
+                    {tag.key}={formatTraceTagValue(tag)}
+                  </em>
+                ))}
+              </span>
+            </div>
+          ) : null}
+          {logs.length > 0 ? (
+            <div className="cv-query-trace-span__logs">
+              <strong>Logs</strong>
+              <span>
+                {logs.map((item, index) => (
+                  <em key={`${item.timestamp}-${index}`}>
+                    {item.timestamp ? formatTraceDuration((toDateFromLogValue(item.timestamp)?.getTime() ?? groupStartMs) - groupStartMs) : "event"}
+                    {item.fields?.length ? ` ${item.fields.map((field) => `${field.key}=${formatTraceTagValue(field)}`).join(" ")}` : ""}
+                  </em>
+                ))}
+              </span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {node.children.map((child) => (
+        <TraceSpanRow
+          key={child.key}
+          node={child}
+          groupStartMs={groupStartMs}
+          groupDurationMs={groupDurationMs}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TraceTimeline({ groups }: { groups: TraceGroup[] }) {
+  if (groups.length === 0) {
+    return null;
+  }
+  return (
+    <section className="cv-query-trace-panel" aria-label="Trace 链路">
+      <div className="cv-query-trace-panel__header">
+        <div>
+          <strong>Trace 链路</strong>
+          <span>按 `_key` / traceId 分组，使用 Jaeger JSON 渲染 span 树</span>
+        </div>
+        <span>{groups.length} 条链路</span>
+      </div>
+      <div className="cv-query-trace-groups">
+        {groups.map((group) => (
+          <article key={group.key} className="cv-query-trace-group">
+            <header className="cv-query-trace-group__header">
+              <div>
+                <strong>{group.traceId}</strong>
+                <span>
+                  Trace Start: {formatClientDateTime(group.startMs)} · Duration: {formatTraceDuration(group.durationMs)}
+                </span>
+              </div>
+              <div>
+                <span>{group.serviceCount} services</span>
+                <span>{group.spanCount} spans</span>
+              </div>
+            </header>
+            <div className="cv-query-trace-axis" aria-hidden="true">
+              <span>Service & Operation</span>
+              <span>0</span>
+              <span>50%</span>
+              <span>{formatTraceDuration(group.durationMs)}</span>
+            </div>
+            <TraceSpanRow
+              node={group.root}
+              groupStartMs={group.startMs}
+              groupDurationMs={group.durationMs}
+            />
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default function QueryPage() {
-  const { timeRange } = useTimeRange();
-  const workspace = useQueryWorkspace(timeRange);
-  const [activeTab, setActiveTab] = useState<QueryResultTab>("raw");
+  const defaultRange = useMemo(() => buildDefaultTimeRange(), []);
+  const [timeRange, setTimeRange] = useState<QueryDateRange>(defaultRange);
+  const startTime = timeRange ? formatDateTimeLocalValue(timeRange[0]) : "";
+  const endTime = timeRange ? formatDateTimeLocalValue(timeRange[1]) : "";
+  const workspace = useQueryWorkspace(startTime, endTime);
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [shareLoading, setShareLoading] = useState(false);
+  const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
+  const [resultColumnSelectorOpen, setResultColumnSelectorOpen] = useState(false);
+  const [resultColumnKeys, setResultColumnKeys] = useState<string[]>([...DEFAULT_RESULT_COLUMN_KEYS]);
+  const [expandedLogIndex, setExpandedLogIndex] = useState<number | null>(null);
+  const [expandedLogDisplayMode, setExpandedLogDisplayMode] = useState<"fields" | "json">("fields");
+  const [conditionModalOpen, setConditionModalOpen] = useState(false);
+  const [conditionModalMode, setConditionModalMode] = useState<QueryConditionModalMode>("create");
+  const [conditionDraft, setConditionDraft] = useState<QueryFilterCondition | null>(null);
+  const [saveQueryModalOpen, setSaveQueryModalOpen] = useState(false);
+  const [saveQueryName, setSaveQueryName] = useState("");
+  const [savedQueryMenuOpen, setSavedQueryMenuOpen] = useState(false);
+  const [linkQueryAnchor, setLinkQueryAnchor] = useState<LinkQueryAnchor | null>(null);
+  const [linkQueryWindowMinutes, setLinkQueryWindowMinutes] = useState(5);
+  const [linkQuerySelectedTableIds, setLinkQuerySelectedTableIds] = useState<number[]>([]);
+  const [tableAutoQueryRequest, setTableAutoQueryRequest] = useState<TableAutoQueryRequest | null>(null);
+  const [openLogTabs, setOpenLogTabs] = useState<OpenLogTab[]>([]);
+  const [conditionsByLogTab, setConditionsByLogTab] = useState<Record<number, QueryFilterCondition[]>>({});
+  const [createDatabaseInstance, setCreateDatabaseInstance] = useState<QuerySourceInstance | null>(null);
+  const [accessLogLibraryState, setAccessLogLibraryState] = useState<{
+    instance: QuerySourceInstance | null;
+    databaseName?: string;
+  }>({
+    instance: null
+  });
+  const [editDatabaseState, setEditDatabaseState] = useState<{
+    instance: QuerySourceInstance | null;
+    database: QuerySourceDatabase | null;
+  }>({
+    instance: null,
+    database: null
+  });
+  const [treeContextMenu, setTreeContextMenu] = useState<{
+    ariaLabel: string;
+    items: Array<{ key: string; label: string; onSelect: () => void }>;
+    x: number;
+    y: number;
+  }>({
+    ariaLabel: "节点操作",
+    items: [],
+    x: 0,
+    y: 0
+  });
+  const [confirmState, setConfirmState] = useState<
+    | {
+        title: string;
+        content: string;
+        confirmLabel: string;
+        onConfirm: () => Promise<void>;
+      }
+    | null
+  >(null);
+  const initialQueryStartedRef = useRef(false);
+  const conditionRestoreTargetRef = useRef<number | null>(null);
 
   const chartMax = useMemo(
     () => workspace.charts.reduce((max, item) => Math.max(max, item.count), 0) || 1,
     [workspace.charts]
   );
+  const chartAxisMax = useMemo(() => roundUpChartAxisMax(chartMax), [chartMax]);
 
-  const aggregationRows = useMemo(() => {
-    const rows = workspace.logs?.logs ?? [];
-    const summary = new Map<string, number>();
-    rows.forEach((row) => {
-      const level = String(row.level ?? row.severity ?? "UNKNOWN");
-      summary.set(level, (summary.get(level) ?? 0) + 1);
+  const normalizedLogRows = useMemo(
+    () => (workspace.logs?.logs ?? []).map((row) => normalizeLogRow(row)),
+    [workspace.logs]
+  );
+  const traceGroups = useMemo(
+    () => buildTraceGroups(workspace.logs?.logs ?? [], workspace.logs?.isTrace),
+    [workspace.logs]
+  );
+  const linkQueryTableOptions = useMemo(() => {
+    return workspace.databases.flatMap((database) => {
+      const tables = workspace.tablesByDatabase[database.name] ?? database.tables ?? [];
+      return tables.map((table) => ({
+        id: table.id,
+        databaseName: database.name,
+        tableName: table.name
+      }));
     });
-    return Array.from(summary.entries()).map(([key, value]) => ({ key, value }));
+  }, [workspace.databases, workspace.tablesByDatabase]);
+  const validOpenLogTabs = useMemo(() => {
+    const tableIds = new Set(linkQueryTableOptions.map((item) => item.id));
+    return openLogTabs.filter((item) => tableIds.has(item.id));
+  }, [linkQueryTableOptions, openLogTabs]);
+
+  useEffect(() => {
+    setExpandedLogIndex(null);
+    setExpandedLogDisplayMode("fields");
   }, [workspace.logs]);
 
-  const traceTokens = useMemo(() => {
-    const fixed = ["trace-trace_id", "trace-span_id", "trace-request_id"];
-    const dynamic = new Set<string>();
-    (workspace.logs?.logs ?? []).forEach((row) => {
-      ["trace_id", "traceId", "span_id", "request_id"].forEach((key) => {
-        const value = row[key];
-        if (value) {
-          dynamic.add(`trace-${String(value)}`);
-        }
-      });
+  useEffect(() => {
+    if (initialQueryStartedRef.current || tableAutoQueryRequest || !workspace.selectedTableId) {
+      return;
+    }
+    initialQueryStartedRef.current = true;
+    const range = buildRecentMinutesTimeRange(15);
+    setTimeRange(range);
+    void workspace.runQuery(1, toSecondRange(range));
+  }, [tableAutoQueryRequest, workspace.selectedTableId]);
+
+  useEffect(() => {
+    setLinkQueryAnchor(null);
+  }, [workspace.selectedInstanceId]);
+
+  useEffect(() => {
+    setOpenLogTabs([]);
+    setConditionsByLogTab({});
+  }, [workspace.selectedInstanceId]);
+
+  useEffect(() => {
+    if (!workspace.selectedTableId) {
+      return;
+    }
+    if (
+      conditionRestoreTargetRef.current !== null &&
+      conditionRestoreTargetRef.current !== workspace.selectedTableId
+    ) {
+      return;
+    }
+    setConditionsByLogTab((current) => ({
+      ...current,
+      [workspace.selectedTableId as number]: workspace.conditions
+    }));
+    if (conditionRestoreTargetRef.current === workspace.selectedTableId) {
+      conditionRestoreTargetRef.current = null;
+    }
+  }, [workspace.conditions, workspace.selectedTableId]);
+
+  useEffect(() => {
+    if (!workspace.selectedTableId || !workspace.selectedDatabase || !workspace.selectedTable) {
+      return;
+    }
+    const nextTab: OpenLogTab = {
+      id: workspace.selectedTableId,
+      databaseName: workspace.selectedDatabase,
+      tableName: workspace.selectedTable
+    };
+    setOpenLogTabs((current) =>
+      current.some((item) => item.id === nextTab.id) ? current : [...current, nextTab]
+    );
+  }, [workspace.selectedDatabase, workspace.selectedTable, workspace.selectedTableId]);
+
+  useEffect(() => {
+    if (!feedbackMessage) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setFeedbackMessage("");
+    }, 2600);
+    return () => window.clearTimeout(timer);
+  }, [feedbackMessage]);
+
+  useEffect(() => {
+    if (!tableAutoQueryRequest) {
+      return;
+    }
+    const selectedMatches =
+      workspace.selectedInstanceId === tableAutoQueryRequest.instanceId &&
+      workspace.selectedDatabase === tableAutoQueryRequest.databaseName &&
+      workspace.selectedTable === tableAutoQueryRequest.tableName &&
+      workspace.selectedTableId === tableAutoQueryRequest.tableId;
+    if (!selectedMatches) {
+      return;
+    }
+    const request = tableAutoQueryRequest;
+    setTableAutoQueryRequest(null);
+    void workspace.runQuery(1, request.range, request.conditions);
+  }, [
+    tableAutoQueryRequest,
+    workspace.selectedDatabase,
+    workspace.selectedInstanceId,
+    workspace.selectedTable,
+    workspace.selectedTableId
+  ]);
+
+  const resultColumnStorageKey = useMemo(() => {
+    const userKey = getCurrentBrowserUserKey();
+    const scope = [
+      workspace.selectedInstanceId ?? "no-instance",
+      workspace.selectedDatabase || "no-database",
+      workspace.selectedTable || "no-table"
+    ].join(":");
+    return `${RESULT_COLUMN_STORAGE_PREFIX}:${userKey}:${scope}`;
+  }, [workspace.selectedDatabase, workspace.selectedInstanceId, workspace.selectedTable]);
+
+  useEffect(() => {
+    setResultColumnKeys(readResultColumnKeys(resultColumnStorageKey));
+  }, [resultColumnStorageKey]);
+
+  const resultColumnOptions = useMemo(() => {
+    const fields = new Set<string>();
+    normalizedLogRows.forEach((row) => {
+      Object.keys(row.parsed).forEach((key) => fields.add(key));
     });
-    return [...fixed, ...Array.from(dynamic)].slice(0, 6);
-  }, [workspace.logs]);
+    const builtinColumns: QueryResultColumn[] = [
+      { key: "__time", label: "时间", kind: "builtin" },
+      { key: "__level", label: "级别", kind: "builtin" },
+      { key: "__message", label: "内容", kind: "builtin" }
+    ];
+    const fieldColumns = Array.from(fields)
+      .sort((left, right) => left.localeCompare(right))
+      .map((field) => ({ key: field, label: field, kind: "field" as const }));
+    return [...builtinColumns, ...fieldColumns];
+  }, [normalizedLogRows]);
 
-  const jsonPreview = useMemo(() => {
-    if (!workspace.logs?.logs?.length) {
-      return "[]";
-    }
-    return JSON.stringify(workspace.logs.logs, null, 2);
-  }, [workspace.logs]);
+  const visibleResultColumns = useMemo(() => {
+    const optionMap = new Map(resultColumnOptions.map((item) => [item.key, item]));
+    const columns = resultColumnKeys.map((key) => optionMap.get(key)).filter(Boolean) as QueryResultColumn[];
+    return columns.length > 0 ? columns : resultColumnOptions.slice(0, 3);
+  }, [resultColumnKeys, resultColumnOptions]);
 
-  const selectedLog = useMemo(() => workspace.logs?.logs?.[0] ?? null, [workspace.logs]);
+  function parseProfileTime(value: string) {
+    const date = new Date(value.includes("T") ? value : value.replace(" ", "T"));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
 
-  const traceFieldEntries = useMemo(() => {
-    if (!selectedLog) {
-      return [];
-    }
-    return ["trace_id", "traceId", "span_id", "request_id"]
-      .map((key) => [key, selectedLog[key]] as const)
-      .filter(([, value]) => value !== undefined && value !== null && value !== "");
-  }, [selectedLog]);
-
-  const selectedJsonPreview = useMemo(() => {
-    if (!selectedLog) {
-      return "{}";
-    }
-    return JSON.stringify(selectedLog, null, 2);
-  }, [selectedLog]);
+  function openSaveQueryModal() {
+    setSaveQueryName(queryPreview && queryPreview !== "无条件" ? truncate(queryPreview, 32) : "");
+    setSaveQueryModalOpen(true);
+  }
 
   async function handleSaveQuery() {
-    const saved = workspace.saveCurrentQuery();
-    setFeedbackMessage(saved ? "已保存当前查询" : "请输入查询内容后再保存");
+    try {
+      await workspace.saveCurrentQuery(saveQueryName, {
+        startTime,
+        endTime
+      });
+      setFeedbackMessage("已保存到收藏查询");
+      setSaveQueryModalOpen(false);
+      setSavedQueryMenuOpen(true);
+    } catch (error) {
+      setFeedbackMessage(error instanceof Error ? error.message : "保存查询失败");
+    }
   }
 
-  function handleAiOptimize() {
-    const text = workspace.queryText.trim();
-    if (!text) {
-      workspace.setQueryText("level:error AND service:gateway");
-      setFeedbackMessage("已填入一条更适合排错的查询模板");
-      return;
+  function applySavedFilterProfile(profile: (typeof workspace.savedFilterProfiles)[number]) {
+    const start = parseProfileTime(profile.timeRange.startTime);
+    const end = parseProfileTime(profile.timeRange.endTime);
+    const nextRange = start && end ? ([start, end] as [Date, Date]) : timeRange;
+    if (nextRange) {
+      setTimeRange(nextRange);
     }
-    if (!text.includes("service:")) {
-      workspace.setQueryText(`${text} AND service:gateway`);
-      setFeedbackMessage("已补充 service 过滤，减少扫描范围");
-      return;
-    }
-    setFeedbackMessage("当前查询已经具备基础过滤条件");
+    workspace.applyFilterProfile(profile);
+    setSavedQueryMenuOpen(false);
+    void workspace.runQuery(1, nextRange ? toSecondRange(nextRange) : undefined, profile.conditions);
   }
 
-  async function handleTraceRefine(value: unknown) {
-    const text = String(value ?? "").trim();
-    if (!text) {
+  async function deleteSavedFilterProfile(id: number, name: string) {
+    try {
+      await workspace.deleteSavedFilterProfile(id);
+      setFeedbackMessage(`已删除收藏 ${name}`);
+    } catch (error) {
+      setFeedbackMessage(error instanceof Error ? error.message : "删除收藏失败");
+    }
+  }
+
+  async function handleShareQuery() {
+    if (shareLoading) {
       return;
     }
-    workspace.setQueryText(`trace_id:${text}`);
-    setFeedbackMessage(`已切换为 trace_id:${text}，请执行查询查看链路相关日志`);
-    setActiveTab("trace");
+    try {
+      setShareLoading(true);
+      const shareUrl = new URL(window.location.href);
+      shareUrl.pathname = shareUrl.pathname.endsWith("/query") ? shareUrl.pathname : "/v2/query";
+      shareUrl.hash = "";
+      if (queryPreview && queryPreview !== "无条件" && !queryPreview.includes("不合法")) {
+        shareUrl.searchParams.set("query", queryPreview);
+      } else {
+        shareUrl.searchParams.delete("query");
+      }
+      if (startTime) {
+        shareUrl.searchParams.set("startTime", startTime);
+      }
+      if (endTime) {
+        shareUrl.searchParams.set("endTime", endTime);
+      }
+      if (workspace.selectedInstanceId) {
+        shareUrl.searchParams.set("instanceId", String(workspace.selectedInstanceId));
+      }
+      if (workspace.selectedDatabase) {
+        shareUrl.searchParams.set("database", workspace.selectedDatabase);
+      }
+      if (workspace.selectedTable) {
+        shareUrl.searchParams.set("table", workspace.selectedTable);
+      }
+      const shortUrl = await createQueryShareShortUrl({ originUrl: shareUrl.toString() });
+      const copied = await copyTextToClipboard(shortUrl);
+      setFeedbackMessage(copied ? "分享短链已复制" : `分享短链已生成：${shortUrl}`);
+    } catch (error) {
+      setFeedbackMessage(error instanceof Error ? error.message : "分享失败，请稍后重试");
+    } finally {
+      setShareLoading(false);
+    }
   }
+
+  function updateResultColumnKeys(nextKeys: string[]) {
+    const uniqueKeys = Array.from(new Set(nextKeys));
+    const normalizedKeys = uniqueKeys.length > 0 ? uniqueKeys : [...DEFAULT_RESULT_COLUMN_KEYS];
+    setResultColumnKeys(normalizedKeys);
+    writeResultColumnKeys(resultColumnStorageKey, normalizedKeys);
+  }
+
+  function toggleResultColumn(columnKey: string) {
+    const nextKeys = resultColumnKeys.includes(columnKey)
+      ? resultColumnKeys.filter((key) => key !== columnKey)
+      : [...resultColumnKeys, columnKey];
+    updateResultColumnKeys(nextKeys);
+  }
+
+  function resetResultColumns() {
+    updateResultColumnKeys([...DEFAULT_RESULT_COLUMN_KEYS]);
+  }
+
+  function toggleExpandedLog(index: number) {
+    setExpandedLogIndex((current) => {
+      if (current === index) {
+        setExpandedLogDisplayMode("fields");
+        return null;
+      }
+      setExpandedLogDisplayMode("fields");
+      return index;
+    });
+  }
+
+  function formatResultColumnValue(row: NormalizedLogRow, column: QueryResultColumn) {
+    let rawValue: unknown;
+    if (column.key === "__time") {
+      rawValue = row.timeText;
+    } else if (column.key === "__level") {
+      rawValue = row.levelText;
+    } else if (column.key === "__message") {
+      rawValue = row.messageText;
+    } else {
+      rawValue = row.parsed[column.key];
+    }
+    const empty = !isPresentLogValue(rawValue) || rawValue === "-";
+    return {
+      empty,
+      text: empty ? "—" : formatLogDetailValue(rawValue)
+    };
+  }
+
+  function addConditionFromLogDetail(field: string, value: unknown) {
+    if (!canCreateConditionFromDetailValue(field, value)) {
+      return;
+    }
+    if (isLogTimeField(field)) {
+      const timeConditions = createDetailTimeRangeConditions(field, value);
+      if (timeConditions.length > 0) {
+        const existingRange = timeConditions.every((nextCondition) =>
+          workspace.conditions.some(
+            (condition) =>
+              condition.field === nextCondition.field &&
+              condition.operator === nextCondition.operator &&
+              condition.valueType === nextCondition.valueType &&
+              String(condition.value) === String(nextCondition.value)
+          )
+        );
+        if (existingRange) {
+          workspace.setActiveConditionId(
+            workspace.conditions.find(
+              (condition) =>
+                condition.field === timeConditions[0].field &&
+                condition.operator === timeConditions[0].operator &&
+                String(condition.value) === String(timeConditions[0].value)
+            )?.id ?? null
+          );
+          setFeedbackMessage(`已存在时间范围 ${field}`);
+          return;
+        }
+        workspace.setConditions([...workspace.conditions, ...timeConditions]);
+        workspace.setActiveConditionId(timeConditions[0].id);
+        setFeedbackMessage(`已添加时间范围 ${field} ${timeConditions[0].value} - ${timeConditions[1].value}`);
+        return;
+      }
+    }
+    const conditionValue = createDetailConditionValue(value);
+    const existingCondition = workspace.conditions.find(
+      (condition) =>
+        condition.field === field &&
+        condition.operator === "=" &&
+        condition.valueType === conditionValue.valueType &&
+        String(condition.value) === String(conditionValue.value)
+    );
+    if (existingCondition) {
+      workspace.setActiveConditionId(existingCondition.id);
+      setFeedbackMessage(`已存在条件 ${field} = ${conditionValue.value}`);
+      return;
+    }
+    const nextCondition: QueryFilterCondition = {
+      id: `cond_detail_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+      field,
+      operator: "=",
+      value: conditionValue.value,
+      valueType: conditionValue.valueType
+    };
+    workspace.setConditions([...workspace.conditions, nextCondition]);
+    workspace.setActiveConditionId(nextCondition.id);
+    setFeedbackMessage(`已添加条件 ${field} = ${conditionValue.value}`);
+  }
+
+  function addGlobalMatchFromLogDetailValue(value: string) {
+    const text = stripAnsi(value).trim();
+    if (!text || text.length > 256) {
+      return;
+    }
+    const existingCondition = workspace.conditions.find(
+      (condition) => condition.field === "全局匹配" && String(condition.value) === text
+    );
+    if (existingCondition) {
+      workspace.setActiveConditionId(existingCondition.id);
+      setFeedbackMessage(`已存在全局匹配 ${text}`);
+      return;
+    }
+    const nextCondition: QueryFilterCondition = {
+      id: `cond_detail_global_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+      field: "全局匹配",
+      operator: "like",
+      value: text,
+      valueType: "string"
+    };
+    workspace.setConditions([...workspace.conditions, nextCondition]);
+    workspace.setActiveConditionId(nextCondition.id);
+    setFeedbackMessage(`已添加全局匹配 ${text}`);
+  }
+
+  function addConditionFromNestedJsonValue(row: NormalizedLogRow, field: string, value: string) {
+    if (canUseOuterFieldForNestedJsonValue(row, field, value)) {
+      addConditionFromLogDetail(field, value);
+      return;
+    }
+    addGlobalMatchFromLogDetailValue(value);
+  }
+
+  function openLinkQueryModal(row: NormalizedLogRow, field: string, value: unknown) {
+    const text = formatLogDetailValue(value).trim();
+    const timeMs = getLogRowTimeMs(row);
+    if (!text || text === "—") {
+      setFeedbackMessage("链路查询需要一个有效的字段值");
+      return;
+    }
+    if (!timeMs) {
+      setFeedbackMessage("当前日志缺少可识别时间，无法创建链路查询窗口");
+      return;
+    }
+    setLinkQueryAnchor({ field, value: text, timeMs });
+    setLinkQueryWindowMinutes(5);
+    setLinkQuerySelectedTableIds(workspace.selectedTableId ? [workspace.selectedTableId] : []);
+  }
+
+  function closeLinkQueryModal() {
+    setLinkQueryAnchor(null);
+  }
+
+  function toggleLinkQueryTable(tableId: number) {
+    setLinkQuerySelectedTableIds((current) =>
+      current.includes(tableId) ? current.filter((item) => item !== tableId) : [...current, tableId]
+    );
+  }
+
+  function openLinkQueryPage() {
+    if (!linkQueryAnchor) {
+      return;
+    }
+    const targets = linkQueryTableOptions.filter((item) => linkQuerySelectedTableIds.includes(item.id));
+    if (targets.length === 0) {
+      setFeedbackMessage("请至少选择一张日志表");
+      return;
+    }
+    const params = new URLSearchParams();
+    params.set("field", linkQueryAnchor.field);
+    params.set("value", linkQueryAnchor.value);
+    params.set("time", String(linkQueryAnchor.timeMs));
+    params.set("window", String(linkQueryWindowMinutes));
+    params.set(
+      "tables",
+      targets
+        .map((item) => `${item.id}:${encodeURIComponent(item.databaseName)}.${encodeURIComponent(item.tableName)}`)
+        .join(",")
+    );
+    window.open(`/v2/query/link?${params.toString()}`, "_blank");
+    setLinkQueryAnchor(null);
+  }
+
+  function selectTableAndQueryRecentLogs(
+    instance: QuerySourceInstance,
+    database: QuerySourceDatabase,
+    table: QuerySourceTable
+  ) {
+    const nextConditions =
+      table.id === workspace.selectedTableId ? workspace.conditions : conditionsByLogTab[table.id] ?? [];
+    conditionRestoreTargetRef.current = table.id;
+    workspace.setConditions(nextConditions);
+    workspace.setActiveConditionId(nextConditions[0]?.id ?? null);
+    setOpenLogTabs((current) =>
+      current.some((item) => item.id === table.id)
+        ? current
+        : [...current, { id: table.id, databaseName: database.name, tableName: table.name }]
+    );
+    const range = buildRecentMinutesTimeRange(15);
+    setTimeRange(range);
+    workspace.setSelectedInstanceId(instance.id);
+    workspace.setSelectedDatabase(database.name);
+    workspace.setSelectedTable(table.name);
+    setTableAutoQueryRequest({
+      instanceId: instance.id,
+      databaseName: database.name,
+      tableId: table.id,
+      tableName: table.name,
+      conditions: nextConditions,
+      range: toSecondRange(range)
+    });
+  }
+
+  function switchLogTab(tab: OpenLogTab) {
+    if (tab.id === workspace.selectedTableId) {
+      return;
+    }
+    const database = workspace.databases.find((item) => item.name === tab.databaseName);
+    const table = (workspace.tablesByDatabase[tab.databaseName] ?? database?.tables ?? []).find(
+      (item) => item.id === tab.id
+    );
+    if (!workspace.selectedInstance || !database || !table) {
+      setFeedbackMessage("日志表不存在或已被移除");
+      setOpenLogTabs((current) => current.filter((item) => item.id !== tab.id));
+      return;
+    }
+    selectTableAndQueryRecentLogs(workspace.selectedInstance, database, table);
+  }
+
+  function closeLogTab(tab: OpenLogTab) {
+    setConditionsByLogTab((current) => {
+      const next = { ...current };
+      delete next[tab.id];
+      return next;
+    });
+    setOpenLogTabs((current) => {
+      const index = current.findIndex((item) => item.id === tab.id);
+      const next = current.filter((item) => item.id !== tab.id);
+      if (tab.id === workspace.selectedTableId && next.length > 0) {
+        const fallback = next[Math.max(0, Math.min(index, next.length - 1))];
+        window.setTimeout(() => switchLogTab(fallback), 0);
+      }
+      return next;
+    });
+  }
+
+  async function handleTreeRefreshSuccess(target: QuerySourceTreeTarget) {
+    await workspace.refreshSourceTree(target);
+    if (target.tableName) {
+      setFeedbackMessage(`已接入 ${target.databaseName}.${target.tableName}`);
+      return;
+    }
+    if (target.databaseName) {
+      setFeedbackMessage(`已定位到 ${target.databaseName}`);
+    }
+  }
+
+  function closeInstanceContextMenu() {
+    setTreeContextMenu((current) =>
+      current.items.length > 0 ? { ariaLabel: "节点操作", items: [], x: 0, y: 0 } : current
+    );
+  }
+
+  function openCreateDatabase(instance: QuerySourceInstance) {
+    setCreateDatabaseInstance(instance);
+  }
+
+  function openAccessLogLibrary(instance: QuerySourceInstance, databaseName?: string) {
+    setAccessLogLibraryState({
+      instance,
+      databaseName
+    });
+  }
+
+  function openEditDatabase(instance: QuerySourceInstance, database: QuerySourceDatabase) {
+    setEditDatabaseState({
+      instance,
+      database
+    });
+  }
+
+  function openContextMenu(
+    x: number,
+    y: number,
+    ariaLabel: string,
+    items: Array<{ key: string; label: string; onSelect: () => void }>
+  ) {
+    setTreeContextMenu({
+      ariaLabel,
+      items,
+      x,
+      y
+    });
+  }
+
+  function requestDeleteDatabase(instance: QuerySourceInstance, database: QuerySourceDatabase) {
+    setConfirmState({
+      title: "删除数据库",
+      content: `确认删除数据库 ${database.name}？`,
+      confirmLabel: "删除",
+      onConfirm: async () => {
+        await deleteQueryDatabase(database.id);
+        await workspace.refreshSourceTree({ instanceId: instance.id });
+        setFeedbackMessage(`已删除 ${database.name}`);
+      }
+    });
+  }
+
+  function requestDeleteTable(
+    instance: QuerySourceInstance,
+    database: QuerySourceDatabase,
+    table: QuerySourceTable
+  ) {
+    setConfirmState({
+      title: "删除表",
+      content: `确认删除日志表 ${table.name}？`,
+      confirmLabel: "删除",
+      onConfirm: async () => {
+        await deleteQueryTable(table.id);
+        await workspace.refreshSourceTree({
+          instanceId: instance.id,
+          databaseName: database.name
+        });
+        setFeedbackMessage(`已删除 ${table.name}`);
+      }
+    });
+  }
+
+  function openNewConditionModal() {
+    setConditionDraft(createConditionDraft());
+    setConditionModalMode("create");
+    setFieldPickerOpen(false);
+    setConditionModalOpen(true);
+  }
+
+  function openEditConditionModal(conditionId: string) {
+    const condition = workspace.conditions.find((item) => item.id === conditionId);
+    if (!condition) {
+      return;
+    }
+    workspace.setActiveConditionId(conditionId);
+    setConditionDraft({ ...condition });
+    setConditionModalMode("edit");
+    setFieldPickerOpen(false);
+    setConditionModalOpen(true);
+  }
+
+  function closeConditionModal() {
+    setFieldPickerOpen(false);
+    setConditionModalOpen(false);
+    setConditionDraft(null);
+  }
+
+  function saveConditionModal() {
+    if (!conditionDraft) {
+      return;
+    }
+    if (conditionModalMode === "create") {
+      workspace.setConditions([...workspace.conditions, conditionDraft]);
+      workspace.setActiveConditionId(conditionDraft.id);
+    } else {
+      workspace.updateCondition(conditionDraft.id, conditionDraft);
+    }
+    closeConditionModal();
+  }
+
+  function deleteConditionFromModal() {
+    if (!conditionDraft) {
+      return;
+    }
+    workspace.removeCondition(conditionDraft.id);
+    closeConditionModal();
+  }
+
+  function toggleConditionDisabled(condition: QueryFilterCondition) {
+    const nextConditions = workspace.conditions.map((item) =>
+      item.id === condition.id ? { ...item, disabled: !condition.disabled } : item
+    );
+    workspace.setConditions(nextConditions);
+    workspace.setActiveConditionId(condition.id);
+    setFeedbackMessage(condition.disabled ? `已启用条件 ${condition.field}` : `已禁用条件 ${condition.field}`);
+    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions);
+  }
+
+  const activeCondition = useMemo(
+    () =>
+      workspace.conditions.find((item) => item.id === workspace.activeConditionId) ??
+      workspace.conditions[0] ??
+      null,
+    [workspace.activeConditionId, workspace.conditions]
+  );
+
+  const conditionFieldOptions = useMemo(() => workspace.suggestionFieldOptions, [workspace.suggestionFieldOptions]);
+
+  const activeFieldOption = useMemo(() => {
+    const field = String(conditionDraft ? conditionDraft.field : activeCondition?.field || "").trim();
+    if (!field) {
+      return null;
+    }
+    return conditionFieldOptions.find((item) => item.field === field) ?? null;
+  }, [activeCondition?.field, conditionDraft?.field, conditionFieldOptions]);
+
+  const visibleFieldOptions = useMemo(() => {
+    const keyword = String(conditionDraft ? conditionDraft.field : activeCondition?.field || "").trim().toLowerCase();
+    const filtered = keyword
+      ? conditionFieldOptions.filter((item) => item.field.toLowerCase().includes(keyword))
+      : conditionFieldOptions;
+    return filtered.slice(0, 40);
+  }, [activeCondition?.field, conditionDraft?.field, conditionFieldOptions]);
+  const isGlobalMatchDraft = conditionDraft?.field === "全局匹配";
+
+  function handleConditionDraftFieldChange(field: string) {
+    const matched = conditionFieldOptions.find((item) => item.field === field);
+    setConditionDraft((current) =>
+      current
+        ? {
+            ...current,
+            field,
+            ...(matched ? { valueType: matched.valueType } : {}),
+            ...(field === "全局匹配" ? { operator: "like" as const, valueType: "string" as const } : {})
+          }
+        : current
+    );
+  }
+
+  const queryPreview = (() => {
+    if (workspace.queryText.trim()) {
+      return workspace.queryText.trim();
+    }
+    try {
+      return workspace.buildQueryText() || "无条件";
+    } catch (error) {
+      return error instanceof Error ? error.message : "筛选条件不合法";
+    }
+  })();
 
   return (
-    <section style={pageStyle}>
+    <section className="cv-section-stack cv-query-page">
       <header className="cv-page-toolbar">
         <div className="cv-page-toolbar__main">
           <div className="cv-breadcrumb" aria-label="页面路径">
@@ -249,525 +1803,619 @@ export default function QueryPage() {
           </div>
           <h1 className="cv-page-title cv-sr-only">日志查询</h1>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>
-            {getTimeRangeLabel(timeRange)}
-          </span>
-          <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>
-            {workspace.selectedTableId ? `tableId #${workspace.selectedTableId}` : "等待解析日志库"}
-          </span>
+        <div className="cv-query-toolbar-chips">
+          <TimeRangeDropdown value={timeRange} onChange={setTimeRange} />
         </div>
       </header>
 
-      <section aria-label="查询上下文" style={panelStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 14, color: "#0f172a" }}>查询上下文</h2>
-          </div>
-          {workspace.contextLoading ? <span style={{ color: "#2563eb", fontSize: 13 }}>加载中...</span> : null}
-        </div>
-        <div className="cv-query-context">
-          <section role="tree" aria-label="实例与数据库" className="cv-query-tree">
-            <div className="cv-query-tree__heading">
-              <strong>数据源结构</strong>
-              <span>实例 / 数据库</span>
+      <div className="cv-query-shell">
+        <aside aria-label="查询上下文" className="cv-panel cv-query-panel cv-query-sidebar">
+          <div className="cv-panel-header">
+            <div>
+              <h2 className="cv-panel-title">数据源</h2>
             </div>
-            {workspace.instances.map((item) => {
-              const isActiveInstance = workspace.selectedInstanceId === item.id;
-              return (
-                <div
-                  key={item.id}
-                  role="treeitem"
-                  aria-label={item.name}
-                  aria-expanded={isActiveInstance}
-                  className="cv-query-tree__group"
-                >
+            {workspace.contextLoading ? <span className="cv-query-panel__status">加载中...</span> : null}
+          </div>
+          <div className="cv-query-sidebar__body">
+            <section role="tree" aria-label="实例、数据库与日志表" className="cv-query-tree">
+              <div className="cv-query-tree__heading">
+                <strong>实例 / 数据库 / 日志表</strong>
+              </div>
+              {workspace.instances.map((item) => {
+                const isActiveInstance = workspace.selectedInstanceId === item.id;
+                return (
+                  <div
+                    key={item.id}
+                    role="treeitem"
+                    aria-label={item.name}
+                    aria-expanded={isActiveInstance}
+                    className="cv-query-tree__group"
+                  >
+                    <div className={`cv-query-tree__instance-row${isActiveInstance ? " cv-query-tree__instance-row--active" : ""}`}>
+                      <button
+                        type="button"
+                        className={`cv-query-tree__instance${isActiveInstance ? " cv-query-tree__instance--active" : ""}`}
+                        onClick={() => workspace.setSelectedInstanceId(item.id)}
+                        onContextMenu={(event) => {
+                          event.preventDefault();
+                          workspace.setSelectedInstanceId(item.id);
+                          openContextMenu(event.clientX, event.clientY, "实例操作", [
+                            {
+                              key: "create-database",
+                              label: "新增数据库",
+                              onSelect: () => openCreateDatabase(item)
+                            }
+                          ]);
+                        }}
+                        aria-haspopup="menu"
+                        aria-expanded={treeContextMenu.items.length > 0}
+                      >
+                        <span className="cv-query-tree__instance-mark" aria-hidden="true" />
+                        <span className="cv-query-tree__instance-name">{item.name}</span>
+                      </button>
+                    </div>
+                    {isActiveInstance ? (
+                      <div role="group" aria-label={`${item.name} 数据库`} className="cv-query-tree__children">
+                        {workspace.databases.map((database) => {
+                          const isActiveDatabase = workspace.selectedDatabase === database.name;
+                          const databaseTables = workspace.tablesByDatabase[database.name] ?? [];
+                          return (
+                            <div key={database.name} className="cv-query-tree__database-group">
+                              <button
+                                type="button"
+                                aria-pressed={isActiveDatabase}
+                                aria-label={`数据库 ${database.name}`}
+                                className={`cv-query-tree__database${isActiveDatabase ? " cv-query-tree__database--active" : ""}`}
+                                onClick={() => workspace.setSelectedDatabase(database.name)}
+                                onContextMenu={(event) => {
+                                  event.preventDefault();
+                                  workspace.setSelectedInstanceId(item.id);
+                                  workspace.setSelectedDatabase(database.name);
+                                  openContextMenu(event.clientX, event.clientY, "数据库操作", [
+                                    {
+                                      key: "edit-database",
+                                      label: "编辑数据库",
+                                      onSelect: () => openEditDatabase(item, database)
+                                    },
+                                    {
+                                      key: "access-log-library",
+                                      label: "接入已有日志表",
+                                      onSelect: () => openAccessLogLibrary(item, database.name)
+                                    },
+                                    {
+                                      key: "delete-database",
+                                      label: "删除数据库",
+                                      onSelect: () => requestDeleteDatabase(item, database)
+                                    }
+                                  ]);
+                                }}
+                              >
+                                <span className="cv-query-tree__database-rail" aria-hidden="true" />
+                                <span className="cv-query-tree__database-dot" aria-hidden="true" />
+                                {database.name}
+                              </button>
+                              {isActiveDatabase ? (
+                                <div role="group" aria-label={`${database.name} 日志表`} className="cv-query-tree__tables">
+                                  {databaseTables.map((table) => {
+                                    const isActiveTable = workspace.selectedTable === table.name;
+                                    return (
+                                      <button
+                                        key={table.name}
+                                        type="button"
+                                        aria-pressed={isActiveTable}
+                                        aria-label={`日志表 ${table.name}`}
+                                        className={`cv-query-tree__table${isActiveTable ? " cv-query-tree__table--active" : ""}`}
+                                        onClick={() => selectTableAndQueryRecentLogs(item, database, table)}
+                                        onContextMenu={(event) => {
+                                          event.preventDefault();
+                                          workspace.setSelectedInstanceId(item.id);
+                                          workspace.setSelectedDatabase(database.name);
+                                          workspace.setSelectedTable(table.name);
+                                          openContextMenu(event.clientX, event.clientY, "日志表操作", [
+                                            {
+                                              key: "delete-table",
+                                              label: "删除表",
+                                              onSelect: () => requestDeleteTable(item, database, table)
+                                            }
+                                          ]);
+                                        }}
+                                      >
+                                        <span className="cv-query-tree__table-rail" aria-hidden="true" />
+                                        <span className="cv-query-tree__table-dot" aria-hidden="true" />
+                                        {table.name}
+                                      </button>
+                                    );
+                                  })}
+                                  {databaseTables.length === 0 ? (
+                                    <span className="cv-query-tree__empty">无日志表</span>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                        {workspace.databases.length === 0 ? (
+                          <span className="cv-query-tree__empty">无库</span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </section>
+          </div>
+        </aside>
+
+        <div className="cv-query-main">
+          {validOpenLogTabs.length > 0 ? (
+            <div className="cv-query-log-tabs" role="tablist" aria-label="日志表工作区标签">
+              {validOpenLogTabs.map((tab) => {
+                const active = tab.id === workspace.selectedTableId;
+                return (
+                  <span
+                    key={tab.id}
+                    className={active ? "cv-query-log-tab cv-query-log-tab--active" : "cv-query-log-tab"}
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      className="cv-query-log-tab__main"
+                      onClick={() => switchLogTab(tab)}
+                    >
+                      <strong>{tab.tableName}</strong>
+                      <span>{tab.databaseName}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="cv-query-log-tab__close"
+                      aria-label={`关闭日志表 ${tab.tableName}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        closeLogTab(tab);
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          ) : null}
+          <section aria-label="查询输入" className="cv-panel cv-query-panel">
+            <div className="cv-panel-header">
+              <div>
+                <h2 className="cv-panel-title">筛选</h2>
+              </div>
+              <div className="cv-query-action-row">
+                <button type="button" className="cv-secondary-button" onClick={openNewConditionModal}>
+                  新增条件
+                </button>
+                <div className="cv-query-saved">
                   <button
                     type="button"
-                    className={`cv-query-tree__instance${isActiveInstance ? " cv-query-tree__instance--active" : ""}`}
-                    onClick={() => workspace.setSelectedInstanceId(item.id)}
+                    className="cv-secondary-button"
+                    onClick={() => setSavedQueryMenuOpen((current) => !current)}
+                    aria-expanded={savedQueryMenuOpen}
+                    aria-haspopup="menu"
                   >
-                    <span className="cv-query-tree__instance-mark" aria-hidden="true" />
-                    {item.name}
+                    收藏查询
+                    {workspace.savedFilterProfiles.length > 0 ? ` ${workspace.savedFilterProfiles.length}` : ""}
                   </button>
-                  {isActiveInstance ? (
-                    <div role="group" aria-label={`${item.name} 数据库`} className="cv-query-tree__children">
-                      {workspace.databases.map((database) => {
-                        const isActiveDatabase = workspace.selectedDatabase === database.name;
-                        return (
-                          <button
-                            key={database.name}
-                            type="button"
-                            aria-pressed={isActiveDatabase}
-                            aria-label={`数据库 ${database.name}`}
-                            className={`cv-query-tree__database${isActiveDatabase ? " cv-query-tree__database--active" : ""}`}
-                            onClick={() => workspace.setSelectedDatabase(database.name)}
-                          >
-                            <span className="cv-query-tree__database-rail" aria-hidden="true" />
-                            <span className="cv-query-tree__database-dot" aria-hidden="true" />
-                            {database.name}
-                          </button>
-                        );
-                      })}
-                      {workspace.databases.length === 0 ? (
-                        <span className="cv-query-tree__empty">
-                          当前实例暂无数据库
-                        </span>
-                      ) : null}
+                  {savedQueryMenuOpen ? (
+                    <div className="cv-query-saved__menu" role="menu" aria-label="收藏查询">
+                      <div className="cv-query-saved__menu-header">
+                        <strong>收藏查询</strong>
+                        <span>{workspace.savedFilterLoading ? "加载中..." : `${workspace.savedFilterProfiles.length} 条`}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="cv-query-saved__create"
+                        onClick={() => {
+                          setSavedQueryMenuOpen(false);
+                          openSaveQueryModal();
+                        }}
+                      >
+                        保存当前查询
+                      </button>
+                      {workspace.savedFilterProfiles.length > 0 ? (
+                        <div className="cv-query-saved__list">
+                          {workspace.savedFilterProfiles.map((profile) => (
+                            <article key={profile.id} className="cv-query-saved__item">
+                              <button type="button" role="menuitem" onClick={() => applySavedFilterProfile(profile)}>
+                                <strong>{profile.name}</strong>
+                                <span>{profile.conditions.length} 条条件 · {profile.creator || "system"}</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="cv-query-saved__delete"
+                                aria-label={`删除收藏 ${profile.name}`}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  void deleteSavedFilterProfile(profile.id, profile.name);
+                                }}
+                              >
+                                删除
+                              </button>
+                            </article>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="cv-query-saved__empty">暂无收藏查询</div>
+                      )}
                     </div>
                   ) : null}
                 </div>
-              );
-            })}
-          </section>
-
-          <div className="cv-query-context__main">
-            <div className="cv-query-context__meta">
-              <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>
-                {workspace.selectedInstance?.name ?? "未选择实例"}
-              </span>
-              <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>
-                {workspace.selectedDatabase || "未选择数据库"}
-              </span>
-            </div>
-            <label style={fieldStyle}>
-              <span style={labelStyle}>表</span>
-              <select
-                aria-label="表"
-                style={selectStyle}
-                value={workspace.selectedTable}
-                onChange={(event) => workspace.setSelectedTable(event.target.value)}
-              >
-                {workspace.tables.map((item) => (
-                  <option key={item.name} value={item.name}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {workspace.tables.length === 0 ? (
-              <span className="cv-query-context__empty">
-                当前数据库下暂无数据表，请切换其他数据库继续查询。
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </section>
-
-      <section aria-label="查询输入" style={panelStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 14, color: "#0f172a" }}>查询输入</h2>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ ...secondaryButtonStyle, display: "inline-flex", alignItems: "center" }}>DSL 模式</span>
-            <button
-              type="button"
-              style={primaryButtonStyle}
-              onClick={() => void workspace.runQuery(1)}
-              disabled={workspace.loading}
-            >
-              {workspace.loading ? "查询中..." : "查询"}
-            </button>
-            <button
-              type="button"
-              style={tabButtonStyle}
-              onClick={() => void handleSaveQuery()}
-            >
-              保存查询
-            </button>
-            <button
-              type="button"
-              style={tabButtonStyle}
-              onClick={() => setActiveTab("agg")}
-            >
-              生成图表
-            </button>
-            <button
-              type="button"
-              style={tabButtonStyle}
-              onClick={handleAiOptimize}
-            >
-              AI 优化查询
-            </button>
-            <button
-              type="button"
-              style={primaryButtonStyle}
-              onClick={() => void workspace.runQuery(1)}
-              disabled={workspace.loading}
-            >
-              {workspace.loading ? "查询中..." : "执行查询"}
-            </button>
-          </div>
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <textarea
-            style={textareaStyle}
-            placeholder="输入查询语句，例如 level:error AND service:gateway"
-            value={workspace.queryText}
-            onChange={(event) => workspace.setQueryText(event.target.value)}
-          />
-        </div>
-        {feedbackMessage ? (
-          <div
-            style={{
-              marginTop: 10,
-              borderRadius: 12,
-              padding: "6px 10px",
-              background: "#eff6ff",
-              border: "1px solid rgba(37, 99, 235, 0.08)",
-              color: "#1d4ed8",
-              fontSize: 12,
-              fontWeight: 700
-            }}
-          >
-            {feedbackMessage}
-          </div>
-        ) : null}
-        <div style={{ ...compactGridStyle, marginTop: 12 }}>
-          <div style={{ display: "grid", gap: 6 }}>
-            <strong style={{ fontSize: 12, color: "#335c99" }}>字段提示</strong>
-            <div style={rowStyle}>
-              {workspace.suggestionFields.length > 0 ? (
-                workspace.suggestionFields.map((item) => (
-                  <button
-                    key={`field-${item}`}
-                    type="button"
-                    style={suggestionChipStyle}
-                    onClick={() => workspace.applySuggestion(item)}
-                  >
-                    {item}
-                  </button>
-                ))
-              ) : (
-                <span style={{ color: "#64748b", fontSize: 12 }}>当前表暂无可用字段提示</span>
-              )}
-            </div>
-          </div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <strong style={{ fontSize: 12, color: "#335c99" }}>历史记录</strong>
-            <div style={rowStyle}>
-              {workspace.queryHistory.length > 0 ? (
-                workspace.queryHistory.map((item) => (
-                  <button
-                    key={`history-${item}`}
-                    type="button"
-                    style={suggestionChipStyle}
-                    onClick={() => workspace.applySuggestion(item)}
-                  >
-                    {truncate(item, 42)}
-                  </button>
-                ))
-              ) : (
-                <span style={{ color: "#64748b", fontSize: 12 }}>执行查询后会按日志库保存最近 10 条记录</span>
-              )}
-            </div>
-          </div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <strong style={{ fontSize: 12, color: "#335c99" }}>自动补全</strong>
-            <div style={rowStyle}>
-              {workspace.autocompleteItems.length > 0 ? (
-                workspace.autocompleteItems.map((item) => (
-                  <button
-                    key={`auto-${item}`}
-                    type="button"
-                    style={suggestionChipStyle}
-                    onClick={() => workspace.applySuggestion(item)}
-                  >
-                    {truncate(item, 42)}
-                  </button>
-                ))
-              ) : (
-                <span style={{ color: "#64748b", fontSize: 12 }}>输入查询内容后会返回实例侧的补全建议</span>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section aria-label="直方图" style={panelStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 14, color: "#0f172a" }}>直方图</h2>
-          </div>
-          {workspace.chartLoading ? <span style={{ color: "#2563eb", fontSize: 13 }}>加载中...</span> : null}
-        </div>
-        {workspace.charts.length > 0 ? (
-          <div style={{ ...histogramStripStyle, marginTop: 14 }}>
-            {workspace.charts.map((item) => (
-              <div key={`${item.from}-${item.to}`} style={{ display: "grid", gap: 6, justifyItems: "center" }}>
                 <button
                   type="button"
-                  title={`${item.count}`}
-                  onClick={() => void workspace.runQuery(1, { st: item.from, et: item.to })}
-                  style={{
-                    width: "100%",
-                    minHeight: 12,
-                    height: `${Math.max(12, Math.round((item.count / chartMax) * 72))}px`,
-                    borderRadius: 10,
-                    background: "linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)",
-                    border: "none",
-                    cursor: "pointer"
-                  }}
-                />
-                <span style={{ fontSize: 12, color: "#475569" }}>{item.count}</span>
+                  className="cv-secondary-button"
+                  onClick={() => void handleShareQuery()}
+                  disabled={shareLoading}
+                >
+                  {shareLoading ? "生成中..." : "分享"}
+                </button>
+                <button
+                  type="button"
+                  className="cv-action-button"
+                  onClick={() => void workspace.runQuery(1)}
+                  disabled={workspace.loading}
+                >
+                  {workspace.loading ? "查询中..." : "执行查询"}
+                </button>
               </div>
-            ))}
+            </div>
+
+            <div className="cv-query-builder">
+              <section
+                aria-label="条件清单"
+                className="cv-query-builder__list"
+                onClick={(event) => {
+                  if (event.target === event.currentTarget) {
+                    openNewConditionModal();
+                  }
+                }}
+              >
+                <div className="cv-query-builder__list-header">
+                  <h3 className="cv-query-builder__title">条件</h3>
+                  <span>{workspace.conditions.length} 项</span>
+                </div>
+                {workspace.conditions.length > 0 ? (
+                  <div className="cv-query-condition-list">
+                    {workspace.conditions.map((condition) => (
+                      <span
+                        key={condition.id}
+                        className={
+                          [
+                            "cv-query-condition",
+                            condition.id === activeCondition?.id ? "cv-query-condition--active" : "",
+                            condition.disabled ? "cv-query-condition--disabled" : ""
+                          ]
+                            .filter(Boolean)
+                            .join(" ")
+                        }
+                      >
+                        <button
+                          type="button"
+                          className="cv-query-condition__main"
+                          onClick={() => openEditConditionModal(condition.id)}
+                        >
+                          {`${condition.field || "未选字段"} / ${condition.operator} / ${formatConditionSummaryValue(condition.value)}`}
+                        </button>
+                        <button
+                          type="button"
+                          className="cv-query-condition__toggle"
+                          aria-label={`${condition.disabled ? "启用" : "禁用"}条件 ${condition.field || "未选字段"}`}
+                          title={condition.disabled ? "启用条件" : "禁用条件"}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleConditionDisabled(condition);
+                          }}
+                        >
+                          {condition.disabled ? "启用" : "禁用"}
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <button type="button" className="cv-query-empty-action" onClick={openNewConditionModal}>
+                    暂无条件，点击添加
+                  </button>
+                )}
+              </section>
+            </div>
+
+            <div className="cv-query-builder__preview">
+              <strong>查询预览</strong>
+              <code>{queryPreview}</code>
+            </div>
+
+            {feedbackMessage ? (
+              <div className="cv-query-feedback" role="status" aria-live="polite">
+                {feedbackMessage}
+              </div>
+            ) : null}
+          </section>
+
+          <div className="cv-query-workspace">
+            <section aria-label="直方图" className="cv-panel cv-query-panel">
+        <div className="cv-panel-header">
+          <div>
+            <h2 className="cv-panel-title">时间分布</h2>
+          </div>
+          {workspace.chartLoading ? <span className="cv-query-panel__status">加载中...</span> : null}
+        </div>
+        {workspace.charts.length > 0 ? (
+          <div className="cv-query-histogram">
+            <div className="cv-query-histogram__y-axis" aria-hidden="true">
+              <span>{formatCount(chartAxisMax)}</span>
+              <span>0</span>
+            </div>
+            <div className="cv-query-histogram__plot">
+              {workspace.charts.map((item) => {
+                const hasCount = item.count > 0;
+                return (
+                  <div key={`${item.from}-${item.to}`} className="cv-query-histogram__item">
+                    <span className="cv-query-histogram__value">{hasCount ? formatCount(item.count) : ""}</span>
+                    <button
+                      type="button"
+                      title={
+                        hasCount
+                          ? `${formatTimeAxisLabel(item.from)} - ${formatTimeAxisLabel(item.to)}：${formatCount(item.count)} 条`
+                          : undefined
+                      }
+                      onClick={() => {
+                        if (hasCount) {
+                          void workspace.runQuery(1, { st: item.from, et: item.to });
+                        }
+                      }}
+                      className={hasCount ? "cv-query-histogram__bar" : "cv-query-histogram__bar cv-query-histogram__bar--empty"}
+                      aria-disabled={!hasCount}
+                      tabIndex={hasCount ? 0 : -1}
+                      style={{
+                        height: hasCount ? `${Math.max(12, Math.round((item.count / chartAxisMax) * 72))}px` : "0px"
+                      }}
+                    />
+                    <span className="cv-query-histogram__axis">{formatTimeAxisLabel(item.from)}</span>
+                  </div>
+                );
+              })}
+              <div className="cv-query-histogram__baseline" aria-hidden="true" />
+            </div>
           </div>
         ) : (
-          <div style={{ marginTop: 12, color: "#64748b", fontSize: 13 }}>当前没有可展示的直方图数据。</div>
+          <div className="cv-query-empty-text cv-query-empty-text--spaced">暂无分布</div>
         )}
-      </section>
+            </section>
 
-      <section aria-label="查询结果" style={panelStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+            <section aria-label="查询结果" className="cv-panel cv-query-panel">
+        <div className="cv-panel-header">
           <div>
-            <h2 style={{ margin: 0, fontSize: 14, color: "#0f172a" }}>查询结果</h2>
+            <h2 className="cv-panel-title">查询结果</h2>
           </div>
           {workspace.logs ? (
-            <div style={{ display: "flex", gap: 16, color: "#1e3a8a", fontWeight: 700 }}>
+            <div className="cv-query-result-meta">
               <span>共 {formatCount(workspace.logs.count)} 条结果</span>
               <span>耗时 {workspace.logs.cost} ms</span>
             </div>
           ) : null}
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-          <button type="button" style={activeTab === "raw" ? primaryButtonStyle : tabButtonStyle} onClick={() => setActiveTab("raw")}>
-            原始日志
-          </button>
-          <button type="button" style={activeTab === "agg" ? primaryButtonStyle : tabButtonStyle} onClick={() => setActiveTab("agg")}>
-            聚合统计
-          </button>
-          <button type="button" style={activeTab === "trace" ? primaryButtonStyle : tabButtonStyle} onClick={() => setActiveTab("trace")}>
-            Trace 视图
-          </button>
-          <button type="button" style={activeTab === "json" ? primaryButtonStyle : tabButtonStyle} onClick={() => setActiveTab("json")}>
-            JSON 视图
-          </button>
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-          {traceTokens.map((item) => (
+        <div className="cv-query-result-tools">
+          <div className="cv-query-column-config">
             <button
-              key={item}
               type="button"
-              style={tabButtonStyle}
-              onClick={() => workspace.applySuggestion(item.replace(/^trace-/, ""))}
+              className="cv-secondary-button"
+              onClick={() => setResultColumnSelectorOpen((current) => !current)}
             >
-              {item}
+              列配置
             </button>
-          ))}
+            {resultColumnSelectorOpen ? (
+              <div className="cv-query-column-config__panel" role="dialog" aria-label="结果列配置">
+                <div className="cv-query-column-config__header">
+                  <strong>显示字段</strong>
+                  <button type="button" className="cv-link-button" onClick={resetResultColumns}>
+                    恢复默认
+                  </button>
+                </div>
+                <div className="cv-query-column-config__list">
+                  {resultColumnOptions.map((item) => (
+                    <label key={item.key} className="cv-query-column-config__item">
+                      <input
+                        type="checkbox"
+                        checked={resultColumnKeys.includes(item.key)}
+                        onChange={() => toggleResultColumn(item.key)}
+                      />
+                      <span>{item.label}</span>
+                      <em>{item.kind === "builtin" ? "摘要" : "字段"}</em>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
-
         {workspace.errorMessage ? (
-          <div
-            role="alert"
-            style={{
-              marginTop: 12,
-              borderRadius: 12,
-              padding: "10px 12px",
-              background: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              color: "#1d4ed8"
-            }}
-          >
+          <div role="alert" className="cv-query-alert">
             {workspace.errorMessage}
           </div>
         ) : null}
 
         {!workspace.errorMessage && workspace.logs && workspace.logs.logs.length > 0 ? (
-          <div style={{ ...compactGridStyle, marginTop: 12 }}>
-            {activeTab === "raw" ? (
-              <table style={tableStyle}>
+          <div className="cv-query-result-stack">
+            <TraceTimeline groups={traceGroups} />
+            <table className="cv-query-result-table">
                 <thead>
-                  <tr style={{ textAlign: "left", borderBottom: "1px solid rgba(37, 99, 235, 0.08)" }}>
-                    <th style={{ padding: "0 0 10px", color: "#335c99", fontSize: 12 }}>时间</th>
-                    <th style={{ padding: "0 0 10px", color: "#335c99", fontSize: 12 }}>级别</th>
-                    <th style={{ padding: "0 0 10px", color: "#335c99", fontSize: 12 }}>内容</th>
+                  <tr>
+                    {visibleResultColumns.map((column) => (
+                      <th key={column.key}>{column.label}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {workspace.logs.logs.map((row, index) => (
-                    <tr
-                      key={`${index}-${String(row._time ?? row.time ?? "")}`}
-                      style={{
-                        borderBottom: "1px solid rgba(37, 99, 235, 0.06)",
-                        background: index === 0 ? "#f8fbff" : "transparent"
-                      }}
-                    >
-                      <td style={{ padding: "8px 0", color: "#0f172a", verticalAlign: "top", fontSize: 12 }}>
-                        {String(row._time ?? row.time ?? "-")}
-                      </td>
-                      <td style={{ padding: "8px 0", color: "#1d4ed8", verticalAlign: "top", fontWeight: 700, fontSize: 12 }}>
-                        {String(row.level ?? row.severity ?? "-")}
-                      </td>
-                      <td style={{ padding: "8px 0", color: "#334155", verticalAlign: "top", fontSize: 12 }}>
-                        <span style={truncateTextStyle} title={String(pickMessageField(row))}>
-                          {truncate(pickMessageField(row))}
-                        </span>
-                      </td>
-                    </tr>
+                  {normalizedLogRows.map((row, index) => (
+                    <Fragment key={`${index}-${row.timeText}`}>
+                      <tr
+                        className={
+                          expandedLogIndex === index
+                            ? "cv-query-result-table__row cv-query-result-table__row--active"
+                            : "cv-query-result-table__row"
+                        }
+                        tabIndex={0}
+                        aria-expanded={expandedLogIndex === index}
+                        onClick={() => toggleExpandedLog(index)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            toggleExpandedLog(index);
+                          }
+                        }}
+                      >
+                        {visibleResultColumns.map((column) => {
+                          const value = formatResultColumnValue(row, column);
+                          const cellClassName = [
+                            column.key === "__level" || column.key === "lv" ? "cv-query-result-table__level" : "",
+                            value.empty ? "cv-query-result-table__empty" : ""
+                          ]
+                            .filter(Boolean)
+                            .join(" ");
+                          return (
+                            <td
+                              key={column.key}
+                              className={cellClassName || undefined}
+                            >
+                              <span className="cv-query-truncate-text" title={value.text}>
+                                {truncate(value.text)}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      {expandedLogIndex === index ? (
+                        <tr className="cv-query-result-table__detail-row">
+                          <td colSpan={visibleResultColumns.length}>
+                            <section
+                              aria-label="日志详情"
+                              className="cv-query-detail cv-query-detail--inline"
+                            >
+                              <div className="cv-query-detail__header">
+                                <div>
+                                  <strong>日志详情</strong>
+                                  <span>{Object.keys(row.parsed).length} 个字段</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="cv-secondary-button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setExpandedLogDisplayMode((current) => (current === "json" ? "fields" : "json"));
+                                  }}
+                                >
+                                  {expandedLogDisplayMode === "json" ? "字段" : "JSON"}
+                                </button>
+                              </div>
+                              {expandedLogDisplayMode === "json" ? (
+                                <pre className="cv-query-pre cv-query-detail__json">
+                                  {formatLogJsonPreview(row)}
+                                </pre>
+                              ) : (
+                                <div className="cv-query-detail__body">
+                                  {Object.entries(row.parsed).map(([key, value]) => {
+                                    const nestedEntries = scalarJsonEntries(value);
+                                    return (
+                                      <Fragment key={key}>
+                                        <div className="cv-query-detail__row">
+                                          <strong title={key}>{key}</strong>
+                                          {canCreateConditionFromDetailValue(key, value) ? (
+                                            <span className="cv-query-detail__value-actions">
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__value-button"
+                                                title={`添加条件：${key} = ${formatLogDetailValue(value)}`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  addConditionFromLogDetail(key, value);
+                                                }}
+                                              >
+                                                {formatLogDetailValue(value)}
+                                              </button>
+                                              {canStartAIAnalysisFromField(key, value) ? (
+                                                <button
+                                                  type="button"
+                                                  className="cv-query-detail__link-button"
+                                                  title={`用 ${key} 进行 AI 分析`}
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    openLinkQueryModal(row, key, value);
+                                                  }}
+                                                >
+                                                  AI 分析
+                                                </button>
+                                              ) : null}
+                                            </span>
+                                          ) : (
+                                            <span title={formatLogDetailValue(value)}>{formatLogDetailValue(value)}</span>
+                                          )}
+                                        </div>
+                                        {nestedEntries.map(([nestedKey, nestedValue]) => (
+                                          <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
+                                            <strong title={`${key}.${nestedKey}`}>{nestedKey}</strong>
+                                            <span className="cv-query-detail__value-actions">
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__value-button"
+                                                title={
+                                                  canUseOuterFieldForNestedJsonValue(row, nestedKey, nestedValue)
+                                                    ? `添加条件：${nestedKey} = ${nestedValue}`
+                                                    : `添加全局匹配：${nestedValue}`
+                                                }
+                                                aria-label={
+                                                  canUseOuterFieldForNestedJsonValue(row, nestedKey, nestedValue)
+                                                    ? `从 JSON 添加条件 ${nestedKey} = ${nestedValue}`
+                                                    : `从 JSON 添加全局匹配 ${nestedValue}`
+                                                }
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  addConditionFromNestedJsonValue(row, nestedKey, nestedValue);
+                                                }}
+                                              >
+                                                {nestedValue}
+                                              </button>
+                                              {canStartAIAnalysisFromField(nestedKey, nestedValue) ? (
+                                                <button
+                                                  type="button"
+                                                  className="cv-query-detail__link-button"
+                                                  title={`用 ${nestedKey} 进行 AI 分析`}
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    openLinkQueryModal(row, nestedKey, nestedValue);
+                                                  }}
+                                                >
+                                                  AI 分析
+                                                </button>
+                                              ) : null}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </Fragment>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </section>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
                   ))}
                 </tbody>
-              </table>
-            ) : null}
-            {activeTab === "agg" ? (
-              <div style={{ display: "grid", gap: 8 }}>
-                {aggregationRows.map((item) => (
-                  <div
-                    key={item.key}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      border: "1px solid rgba(37, 99, 235, 0.08)",
-                      borderRadius: 10,
-                      padding: "8px 10px",
-                      background: "#f8fbff"
-                    }}
-                  >
-                    <strong style={{ color: "#0f172a" }}>{item.key}</strong>
-                    <span style={{ color: "#1d4ed8", fontWeight: 700 }}>{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            {activeTab === "trace" ? (
-              <div style={{ display: "grid", gap: 10 }}>
-                <div style={{ display: "grid", gap: 8 }}>
-                  {traceFieldEntries.length > 0 ? (
-                    traceFieldEntries.map(([key, value]) => (
-                      <div
-                        key={key}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: 12,
-                          alignItems: "center",
-                          border: "1px solid rgba(37, 99, 235, 0.08)",
-                          borderRadius: 10,
-                          padding: "8px 10px",
-                          background: "#f8fbff"
-                        }}
-                      >
-                        <div style={{ display: "grid", gap: 4 }}>
-                          <strong style={{ color: "#0f172a" }}>{key}</strong>
-                          <span style={{ color: "#475569", fontSize: 12 }}>{String(value)}</span>
-                        </div>
-                        <button type="button" style={tabButtonStyle} onClick={() => void handleTraceRefine(value)}>
-                          按 {key} 重查
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ color: "#64748b", fontSize: 13 }}>当前日志没有可用的 trace 字段。</div>
-                  )}
-                </div>
-                <div style={{ color: "#64748b", fontSize: 13 }}>
-                  当前视图优先暴露 trace 相关 hook，后续可继续接入 trace 链路详情和关联跳转。
-                </div>
-              </div>
-            ) : null}
-            {activeTab === "json" ? (
-              <div style={{ display: "grid", gap: 12 }}>
-                <div
-                  style={{
-                    borderRadius: 10,
-                    border: "1px solid rgba(37, 99, 235, 0.08)",
-                    padding: "8px 10px",
-                    background: "#f8fbff"
-                  }}
-                >
-                  <strong style={{ color: "#0f172a" }}>当前选中日志</strong>
-                  <div style={{ marginTop: 6, color: "#64748b", fontSize: 12 }}>
-                    默认展示第一条命中日志的完整 JSON，便于复制和比对字段。
-                  </div>
-                </div>
-                <pre
-                  style={{
-                    margin: 0,
-                    borderRadius: 10,
-                    border: "1px solid rgba(37, 99, 235, 0.08)",
-                    padding: 10,
-                    background: "#f8fbff",
-                    color: "#0f172a",
-                    overflow: "auto",
-                    fontSize: 12,
-                    lineHeight: 1.6
-                  }}
-                >
-                  {selectedJsonPreview}
-                </pre>
-                <details>
-                  <summary style={{ cursor: "pointer", color: "#1d4ed8", fontWeight: 700 }}>查看当前页全部 JSON</summary>
-                  <pre
-                    style={{
-                      margin: "10px 0 0",
-                      borderRadius: 10,
-                      border: "1px solid rgba(37, 99, 235, 0.08)",
-                      padding: 10,
-                      background: "#f8fbff",
-                      color: "#0f172a",
-                      overflow: "auto",
-                      fontSize: 12,
-                      lineHeight: 1.6
-                    }}
-                  >
-                    {jsonPreview}
-                  </pre>
-                </details>
-              </div>
-            ) : null}
-            {selectedLog ? (
-              <section
-                aria-label="日志详情"
-                style={{
-                  borderRadius: 12,
-                  border: "1px solid rgba(37, 99, 235, 0.08)",
-                  padding: 10,
-                  background: "#f8fbff",
-                  display: "grid",
-                  gap: 10
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <div>
-                    <strong style={{ color: "#0f172a" }}>日志详情</strong>
-                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>
-                      当前先展示首条命中日志的关键字段，后续可扩到显式行选择。
-                    </div>
-                  </div>
-                  <button type="button" style={tabButtonStyle} onClick={() => setActiveTab("json")}>
-                    查看 JSON 详情
-                  </button>
-                </div>
-                <div style={{ display: "grid", gap: 8 }}>
-                  {Object.entries(selectedLog)
-                    .slice(0, 6)
-                    .map(([key, value]) => (
-                      <div
-                        key={key}
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "160px minmax(0, 1fr)",
-                          gap: 12,
-                          alignItems: "start"
-                        }}
-                      >
-                        <strong style={{ color: "#335c99", fontSize: 12 }}>{key}</strong>
-                        <span style={{ color: "#334155", fontSize: 13, wordBreak: "break-all" }}>{String(value)}</span>
-                      </div>
-                    ))}
-                </div>
-              </section>
-            ) : null}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-              <span style={{ color: "#64748b", fontSize: 13 }}>
+            </table>
+            <div className="cv-query-pagination">
+              <span className="cv-query-empty-text">
                 第 {workspace.page} 页，每页 {workspace.pageSize} 条
               </span>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div className="cv-query-action-row">
                 <button
                   type="button"
-                  style={secondaryButtonStyle}
+                  className="cv-secondary-button"
                   disabled={workspace.page <= 1 || workspace.loading}
                   onClick={() => void workspace.runQuery(workspace.page - 1)}
                 >
@@ -775,7 +2423,7 @@ export default function QueryPage() {
                 </button>
                 <button
                   type="button"
-                  style={secondaryButtonStyle}
+                  className="cv-secondary-button"
                   disabled={workspace.loading || workspace.logs.logs.length < workspace.pageSize}
                   onClick={() => void workspace.runQuery(workspace.page + 1)}
                 >
@@ -787,15 +2435,389 @@ export default function QueryPage() {
         ) : null}
 
         {!workspace.errorMessage && workspace.logs && workspace.logs.logs.length === 0 ? (
-          <div style={{ marginTop: 12, color: "#64748b", fontSize: 13 }}>当前查询没有命中结果。</div>
+          <div className="cv-query-empty-text cv-query-empty-text--spaced">无结果</div>
         ) : null}
 
         {!workspace.errorMessage && !workspace.logs ? (
-          <div style={{ marginTop: 12, color: "#64748b", fontSize: 13 }}>
-            选择上下文并执行查询后，这里会展示真实日志结果。
+          <div className="cv-query-empty-text cv-query-empty-text--spaced">
+            执行后显示结果
           </div>
         ) : null}
-      </section>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <ContextMenu
+        open={treeContextMenu.items.length > 0}
+        x={treeContextMenu.x}
+        y={treeContextMenu.y}
+        ariaLabel={treeContextMenu.ariaLabel}
+        items={treeContextMenu.items}
+        onClose={closeInstanceContextMenu}
+      />
+
+      {conditionModalOpen && conditionDraft ? (
+        <div className="cv-report-modal-backdrop" role="presentation" onClick={closeConditionModal}>
+          <section
+            className="cv-report-modal cv-query-modal cv-query-condition-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={conditionModalMode === "create" ? "新增条件" : "编辑条件"}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 className="cv-panel-title">
+                  {conditionModalMode === "create" ? "新增条件" : "编辑条件"}
+                </h2>
+              </div>
+              <button type="button" className="cv-secondary-button" onClick={closeConditionModal}>
+                关闭
+              </button>
+            </div>
+            <div className="cv-query-condition-modal__body">
+              <div className="cv-query-builder-form cv-query-builder-form--modal">
+                <label
+                  className="cv-query-builder-form__field cv-query-builder-form__field--field-picker"
+                  htmlFor="query-condition-field"
+                >
+                  字段
+                  <input
+                    id="query-condition-field"
+                    value={conditionDraft.field}
+                    onFocus={() => setFieldPickerOpen(true)}
+                    onBlur={() => window.setTimeout(() => setFieldPickerOpen(false), 120)}
+                    onChange={(event) => {
+                      handleConditionDraftFieldChange(event.target.value);
+                      setFieldPickerOpen(true);
+                    }}
+                    placeholder="请输入字段名"
+                  />
+                  {fieldPickerOpen && visibleFieldOptions.length > 0 ? (
+                    <div className="cv-query-field-picker" role="listbox" aria-label="字段候选">
+                      {visibleFieldOptions.map((item) => (
+                        <button
+                          key={`field-${item.source}-${item.field}`}
+                          type="button"
+                          className={
+                            item.field === conditionDraft.field
+                              ? "cv-query-field-picker__option cv-query-field-picker__option--active"
+                              : "cv-query-field-picker__option"
+                          }
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            handleConditionDraftFieldChange(item.field);
+                            setFieldPickerOpen(false);
+                          }}
+                        >
+                          <span className="cv-query-field-picker__name">{item.field}</span>
+                          <span className="cv-query-field-picker__meta">
+                            <span>{item.sourceLabel}</span>
+                            <span>{item.queryLabel}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  {fieldPickerOpen && visibleFieldOptions.length === 0 ? (
+                    <div className="cv-query-field-picker cv-query-field-picker--empty">
+                      未匹配字段目录
+                    </div>
+                  ) : null}
+                  <div className="cv-query-field-meta">
+                    {activeFieldOption ? (
+                      <>
+                        <span className="cv-query-field-meta__badge">{activeFieldOption.sourceLabel}</span>
+                        <span>{activeFieldOption.queryLabel}</span>
+                      </>
+                    ) : (
+                      <span>未匹配字段目录，默认按 JSON 路径查询</span>
+                    )}
+                  </div>
+                </label>
+
+                {!isGlobalMatchDraft ? (
+                  <label className="cv-query-builder-form__field" htmlFor="query-condition-operator">
+                    运算符
+                    <select
+                      id="query-condition-operator"
+                      value={conditionDraft.operator}
+                      onChange={(event) =>
+                        setConditionDraft((current) =>
+                          current
+                            ? {
+                                ...current,
+                                operator: event.target.value as (typeof queryOperatorOptions)[number]["value"]
+                              }
+                            : current
+                        )
+                      }
+                    >
+                      {queryOperatorOptions.map((item) => (
+                        <option key={`operator-${item.value}`} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+
+                {!isGlobalMatchDraft ? (
+                  <label className="cv-query-builder-form__field" htmlFor="query-condition-value-type">
+                    值类型
+                    <select
+                      id="query-condition-value-type"
+                      value={conditionDraft.valueType}
+                      onChange={(event) =>
+                        setConditionDraft((current) =>
+                          current
+                            ? {
+                                ...current,
+                                valueType: event.target.value as (typeof queryValueTypeOptions)[number]["value"],
+                                operator:
+                                  event.target.value !== "string" &&
+                                  (current.operator === "like" || current.operator === "not like")
+                                    ? "="
+                                    : current.operator
+                              }
+                            : current
+                        )
+                      }
+                    >
+                      {queryValueTypeOptions.map((item) => (
+                        <option key={`value-type-${item.value}`} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+
+                <label className="cv-query-builder-form__field" htmlFor="query-condition-value">
+                  条件值
+                  <input
+                    id="query-condition-value"
+                    value={String(conditionDraft.value ?? "")}
+                    onChange={(event) =>
+                      setConditionDraft((current) =>
+                        current
+                          ? {
+                              ...current,
+                              value: event.target.value
+                            }
+                          : current
+                      )
+                    }
+                    placeholder={conditionDraft.valueType === "number" ? "请输入数字" : "请输入筛选值"}
+                  />
+                </label>
+              </div>
+              <div className="cv-query-condition-modal__footer">
+                {conditionModalMode === "edit" ? (
+                  <button type="button" className="cv-secondary-button" onClick={deleteConditionFromModal}>
+                    删除条件
+                  </button>
+                ) : (
+                  <span />
+                )}
+                <div className="cv-query-condition-modal__actions">
+                  <button type="button" className="cv-secondary-button" onClick={closeConditionModal}>
+                    取消
+                  </button>
+                  <button type="button" className="cv-action-button" onClick={saveConditionModal}>
+                    确认
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {linkQueryAnchor ? (
+        <div className="cv-report-modal-backdrop" role="presentation" onClick={closeLinkQueryModal}>
+          <section
+            className="cv-report-modal cv-query-modal cv-query-link-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="链路查询"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 className="cv-panel-title">链路查询</h2>
+              </div>
+              <button type="button" className="cv-secondary-button" onClick={closeLinkQueryModal}>
+                关闭
+              </button>
+            </div>
+            <div className="cv-query-link-modal__body">
+              <div className="cv-query-link-anchor">
+                <span>锚点字段</span>
+                <strong>{linkQueryAnchor.field}</strong>
+                <span>锚点值</span>
+                <code>{linkQueryAnchor.value}</code>
+              </div>
+              <label className="cv-query-builder-form__field" htmlFor="query-link-window">
+                时间窗口
+                <select
+                  id="query-link-window"
+                  value={linkQueryWindowMinutes}
+                  onChange={(event) => setLinkQueryWindowMinutes(Number(event.target.value))}
+                >
+                  <option value={1}>前后 1 分钟</option>
+                  <option value={5}>前后 5 分钟</option>
+                  <option value={15}>前后 15 分钟</option>
+                  <option value={30}>前后 30 分钟</option>
+                </select>
+              </label>
+              <div className="cv-query-link-table-picker" role="group" aria-label="选择日志表">
+                <div className="cv-query-link-table-picker__header">
+                  <strong>查询日志表</strong>
+                  <button
+                    type="button"
+                    className="cv-link-button"
+                    onClick={() => setLinkQuerySelectedTableIds(linkQueryTableOptions.map((item) => item.id))}
+                  >
+                    全选
+                  </button>
+                </div>
+                <div className="cv-query-link-table-picker__list">
+                  {linkQueryTableOptions.map((item) => (
+                    <label key={`${item.databaseName}.${item.tableName}`} className="cv-query-link-table-picker__item">
+                      <input
+                        type="checkbox"
+                        checked={linkQuerySelectedTableIds.includes(item.id)}
+                        onChange={() => toggleLinkQueryTable(item.id)}
+                      />
+                      <span>{item.databaseName}.{item.tableName}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="cv-query-modal__footer">
+                <button type="button" className="cv-secondary-button" onClick={closeLinkQueryModal}>
+                  取消
+                </button>
+                <button type="button" className="cv-action-button" onClick={openLinkQueryPage}>
+                  打开链路查询
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      <QueryCreateDatabaseModal
+        open={Boolean(createDatabaseInstance)}
+        instance={createDatabaseInstance}
+        onClose={() => setCreateDatabaseInstance(null)}
+        onSuccess={(target) => void handleTreeRefreshSuccess(target)}
+      />
+      <QueryAccessLogLibraryModal
+        open={Boolean(accessLogLibraryState.instance)}
+        instance={accessLogLibraryState.instance}
+        initialDatabaseName={accessLogLibraryState.databaseName}
+        onClose={() => setAccessLogLibraryState({ instance: null })}
+        onSuccess={(target) => void handleTreeRefreshSuccess(target)}
+      />
+      <QueryEditDatabaseModal
+        open={Boolean(editDatabaseState.instance && editDatabaseState.database)}
+        instance={editDatabaseState.instance}
+        database={editDatabaseState.database}
+        onClose={() => setEditDatabaseState({ instance: null, database: null })}
+        onSuccess={(target) => void handleTreeRefreshSuccess(target)}
+      />
+      {saveQueryModalOpen ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setSaveQueryModalOpen(false)}
+        >
+          <section
+            className="cv-report-modal cv-query-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="保存查询"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 className="cv-panel-title">保存查询</h2>
+              </div>
+              <button type="button" className="cv-secondary-button" onClick={() => setSaveQueryModalOpen(false)}>
+                关闭
+              </button>
+            </div>
+            <div className="cv-form-grid cv-query-modal__form">
+              <label className="cv-query-field">
+                <span className="cv-query-label">收藏名称</span>
+                <input
+                  className="cv-input"
+                  value={saveQueryName}
+                  onChange={(event) => setSaveQueryName(event.target.value)}
+                  placeholder="例如：错误日志排查"
+                  aria-label="收藏名称"
+                />
+              </label>
+              <div className="cv-query-builder__preview">
+                <strong>保存内容</strong>
+                <code>{queryPreview}</code>
+              </div>
+              <div className="cv-query-modal__footer">
+                <button type="button" className="cv-secondary-button" onClick={() => setSaveQueryModalOpen(false)}>
+                  取消
+                </button>
+                <button type="button" className="cv-action-button" onClick={() => void handleSaveQuery()}>
+                  保存
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
+      {confirmState ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => setConfirmState(null)}
+        >
+          <section
+            className="cv-report-modal cv-query-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={confirmState.title}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 className="cv-panel-title">{confirmState.title}</h2>
+              </div>
+              <button type="button" className="cv-secondary-button" onClick={() => setConfirmState(null)}>
+                关闭
+              </button>
+            </div>
+            <div className="cv-form-grid cv-query-modal__form">
+              <div className="cv-query-confirm__content">{confirmState.content}</div>
+              <div className="cv-query-modal__footer">
+                <button type="button" className="cv-secondary-button" onClick={() => setConfirmState(null)}>
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="cv-action-button cv-action-button--danger"
+                  onClick={() => {
+                    void confirmState.onConfirm().finally(() => setConfirmState(null));
+                  }}
+                >
+                  {confirmState.confirmLabel}
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -327,6 +327,10 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 		}
 		repeatMap[key] = struct{}{}
 	}
+	data, err = filterAnalysisFieldsCollidingBase(tid, data)
+	if err != nil {
+		return
+	}
 	req := view.ReqCreateIndex{
 		Tid:  tid,
 		Data: data,
@@ -341,6 +345,44 @@ func AnalysisFieldsUpdate(tid int, data []view.IndexItem) (err error) {
 		return
 	}
 	return nil
+}
+
+func filterAnalysisFieldsCollidingBase(tid int, data []view.IndexItem) ([]view.IndexItem, error) {
+	conds := egorm.Conds{}
+	conds["tid"] = tid
+	conds["kind"] = db.IndexKindBase
+	baseIndexes, err := db.IndexList(conds)
+	if err != nil {
+		return nil, err
+	}
+	if len(baseIndexes) == 0 || len(data) == 0 {
+		return data, nil
+	}
+	baseKeys := make(map[string]struct{}, len(baseIndexes))
+	for _, item := range baseIndexes {
+		baseKeys[analysisFieldKey(item.RootName, item.Field)] = struct{}{}
+	}
+	return filterAnalysisFieldsByBaseKeys(data, baseKeys), nil
+}
+
+func filterAnalysisFieldsByBaseKeys(data []view.IndexItem, baseKeys map[string]struct{}) []view.IndexItem {
+	filtered := make([]view.IndexItem, 0, len(data))
+	for _, item := range data {
+		if _, exists := baseKeys[analysisFieldKey(item.RootName, item.Field)]; exists {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	return filtered
+}
+
+func analysisFieldKey(rootName, field string) string {
+	rootName = strings.TrimSpace(rootName)
+	field = strings.TrimSpace(field)
+	if rootName == "" {
+		return field
+	}
+	return rootName + "." + field
 }
 
 func InstanceFilterPms(uid int) (res []view.RespInstanceSimple, err error) {

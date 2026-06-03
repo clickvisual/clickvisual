@@ -50,10 +50,10 @@ describe("v2 domain ai actions and fallback readiness", () => {
     }
 
     const scoped = within(pageSection);
-    expect(scoped.getByRole("button", { name: "查询" })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "执行查询" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "保存查询" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "生成图表" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "AI 优化查询" })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "新增条件" })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "分享" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "原始日志" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "聚合统计" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "Trace 视图" })).toBeInTheDocument();
@@ -96,11 +96,13 @@ describe("v2 domain ai actions and fallback readiness", () => {
     expect(scoped.getByRole("button", { name: "新增数据源" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "新增 DingTalk" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "手动同步数据结构" })).toBeInTheDocument();
+    expect(scoped.getByRole("heading", { name: "统一 AI 配置" })).toBeInTheDocument();
     expect(scoped.getByRole("heading", { name: "数据源" })).toBeInTheDocument();
     expect(scoped.getByRole("heading", { name: "DingTalk 通知" })).toBeInTheDocument();
     expect(scoped.getByRole("heading", { name: "系统状态" })).toBeInTheDocument();
-    expect(scoped.getByText("核心日志实例")).toBeInTheDocument();
+    expect(scoped.getByText("生产 ClickHouse")).toBeInTheDocument();
     expect(scoped.getByText("告警群通知")).toBeInTheDocument();
+    expect(scoped.getByDisplayValue("gpt-4o-mini")).toBeInTheDocument();
     expectNoGenericFallbackState();
   });
 });

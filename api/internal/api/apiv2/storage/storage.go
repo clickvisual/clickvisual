@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -122,7 +121,7 @@ func AnalysisFields(c *core.Context) {
 			Alias:      row.Alias,
 			Ctime:      row.Ctime,
 			Utime:      row.Utime,
-			OrderField: fmt.Sprintf("%s.%s", row.RootName, row.Field),
+			OrderField: row.GetFieldName(),
 		}
 		if row.Kind == 0 {
 			res.BaseFields = append(res.BaseFields, f)
