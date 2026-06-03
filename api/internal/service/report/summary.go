@@ -1,10 +1,8 @@
 package report
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -12,6 +10,7 @@ import (
 
 	dbmodel "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	aisvc "github.com/clickvisual/clickvisual/api/internal/service/ai"
 )
 
 type reportSummaryInput struct {
@@ -45,71 +44,29 @@ func (openAICompatibleSummarizer) Summarize(input reportSummaryInput) (string, e
 		return "", nil
 	}
 
-	baseURL := strings.TrimRight(strings.TrimSpace(econf.GetString("report.summary.ai.baseURL")), "/")
-	if baseURL == "" {
-		baseURL = "https://api.openai.com"
-	}
-	apiKey := strings.TrimSpace(econf.GetString("report.summary.ai.apiKey"))
 	model := strings.TrimSpace(econf.GetString("report.summary.ai.model"))
-	if apiKey == "" || model == "" {
+	apiKey := strings.TrimSpace(econf.GetString("report.summary.ai.apiKey"))
+	if model == "" || apiKey == "" {
 		return "", fmt.Errorf("report summary ai config is incomplete")
 	}
-
-	timeoutSeconds := econf.GetInt("report.summary.ai.timeout")
-	if timeoutSeconds <= 0 {
-		timeoutSeconds = 5
-	}
-
-	client := &http.Client{Timeout: time.Duration(timeoutSeconds) * time.Second}
-	reqBody := map[string]interface{}{
-		"model": model,
-		"messages": []map[string]string{
-			{
-				"role":    "system",
-				"content": "你是报表推送摘要助手。请用1到3句中文总结业务趋势，只基于输入事实，不暴露SQL、DSL、where原文，不编造业务背景。",
-			},
-			{
-				"role":    "user",
-				"content": buildSummaryPrompt(input, econf.GetInt("report.summary.ai.maxRows")),
-			},
+	provider := aisvc.OpenAICompatibleProvider{}
+	return provider.CompleteText(context.Background(), aisvc.ProviderConfig{
+		BaseURL:            strings.TrimSpace(econf.GetString("report.summary.ai.baseURL")),
+		APIKey:             apiKey,
+		Model:              model,
+		TimeoutSeconds:     econf.GetInt("report.summary.ai.timeout"),
+		DefaultTemperature: 0.2,
+		DefaultMaxTokens:   0,
+	}, []aisvc.Message{
+		{
+			Role:    "system",
+			Content: "你是报表推送摘要助手。请用1到3句中文总结业务趋势，只基于输入事实，不暴露SQL、DSL、where原文，不编造业务背景。",
 		},
-		"temperature": 0.2,
-	}
-
-	data, err := json.Marshal(reqBody)
-	if err != nil {
-		return "", err
-	}
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/v1/chat/completions", bytes.NewReader(data))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode >= http.StatusBadRequest {
-		return "", fmt.Errorf("report summary request failed: %s", resp.Status)
-	}
-
-	var payload struct {
-		Choices []struct {
-			Message struct {
-				Content string `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-		return "", err
-	}
-	if len(payload.Choices) == 0 {
-		return "", fmt.Errorf("report summary response is empty")
-	}
-	return strings.TrimSpace(payload.Choices[0].Message.Content), nil
+		{
+			Role:    "user",
+			Content: buildSummaryPrompt(input, econf.GetInt("report.summary.ai.maxRows")),
+		},
+	}, aisvc.CompletionOptions{})
 }
 
 func buildSummaryPrompt(input reportSummaryInput, maxRows int) string {

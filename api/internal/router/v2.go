@@ -8,9 +8,11 @@ import (
 	goredoc "github.com/link-duan/go-redoc"
 
 	"github.com/clickvisual/clickvisual/api/docs"
+	aiv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/ai"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/pandas"
+	queryv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/query"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/report"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
@@ -55,6 +57,9 @@ func v2(r *gin.RouterGroup) {
 		r.PATCH("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceUpdate))
 		r.DELETE("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceDelete))
 		r.POST("/base/settings/instances/test", core.Handle(base.SettingsInstanceTest))
+		r.GET("/base/settings/ai", core.Handle(base.SettingsAIInfo))
+		r.PATCH("/base/settings/ai", core.Handle(base.SettingsAIUpdate))
+		r.POST("/base/settings/ai/test", core.Handle(base.SettingsAITest))
 		r.GET("/base/settings/alarm-channels", core.Handle(base.SettingsAlarmChannelList))
 		r.GET("/base/settings/alarm-channels/:channel-id", core.Handle(base.SettingsAlarmChannelInfo))
 		r.POST("/base/settings/alarm-channels", core.Handle(base.SettingsAlarmChannelCreate))
@@ -85,6 +90,25 @@ func v2(r *gin.RouterGroup) {
 		r.POST("/pandas/utils/structural-transfer", core.Handle(pandas.StructuralTransfer))
 		// TableName Create SQL
 		r.GET("/pandas/instances/:instance-id/databases/:database/tables/:table/create-sql", core.Handle(pandas.TableCreateSQL))
+	}
+	// The query module - query
+	{
+		r.POST("/ai/run", core.Handle(aiv2.Run))
+	}
+	// The query module - query
+	{
+		r.GET("/query/filters", core.Handle(queryv2.List))
+		r.GET("/query/filters/:filter-id", core.Handle(queryv2.Get))
+		r.POST("/query/filters", core.Handle(queryv2.Create))
+		r.PUT("/query/filters/:filter-id", core.Handle(queryv2.Update))
+		r.DELETE("/query/filters/:filter-id", core.Handle(queryv2.Delete))
+		r.GET("/query/instances/:instance-id/databases/:database/tables", core.Handle(queryv2.SourceTables))
+		r.POST("/query/ingestion/detect", core.Handle(queryv2.Detect))
+		r.POST("/query/ingestion/fields", core.Handle(queryv2.Fields))
+		r.POST("/query/ingestion/publish-draft", core.Handle(queryv2.PublishDraft))
+		r.POST("/query/ingestion/publish", core.Handle(queryv2.Publish))
+		r.POST("/query/compile", core.Handle(queryv2.Compile))
+		r.POST("/query/run", core.Handle(queryv2.Run))
 	}
 	// The log module - storage
 	{

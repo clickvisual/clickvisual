@@ -51,6 +51,35 @@ export interface SettingsAlarmChannelPayload {
   typ: number;
 }
 
+export interface SettingsAIConfig {
+  enabled: boolean;
+  baseURL: string;
+  model: string;
+  timeoutSeconds: number;
+  maxInputBytes: number;
+  defaultTemperature: number;
+  defaultMaxTokens: number;
+  hasApiKey: boolean;
+  apiKeyMasked: string;
+}
+
+export interface SettingsAIConfigPayload {
+  enabled: boolean;
+  baseURL: string;
+  apiKey: string;
+  model: string;
+  timeoutSeconds: number;
+  maxInputBytes: number;
+  defaultTemperature: number;
+  defaultMaxTokens: number;
+}
+
+export interface SettingsAIConfigTestResult {
+  ok: boolean;
+  message: string;
+  model: string;
+}
+
 export async function syncSystemSchema(): Promise<string> {
   return client.post<string>("/api/v2/base/system/schema-sync", {});
 }
@@ -129,4 +158,18 @@ export async function sendSettingsAlarmChannelTest(
     "/api/v2/base/settings/alarm-channels/send-test",
     payload
   );
+}
+
+export async function getSettingsAIConfig(): Promise<SettingsAIConfig> {
+  return client.get<SettingsAIConfig>("/api/v2/base/settings/ai");
+}
+
+export async function updateSettingsAIConfig(
+  payload: SettingsAIConfigPayload
+): Promise<SettingsAIConfig> {
+  return client.patch<SettingsAIConfig>("/api/v2/base/settings/ai", payload);
+}
+
+export async function testSettingsAIConfig(): Promise<SettingsAIConfigTestResult> {
+  return client.post<SettingsAIConfigTestResult>("/api/v2/base/settings/ai/test", {});
 }

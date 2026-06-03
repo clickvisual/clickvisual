@@ -21,7 +21,7 @@ describe("v2 app shell", () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId("app-shell-nav")).toHaveClass("cv-shell__nav");
     expect(screen.getByTestId("app-shell-topbar")).toHaveClass("cv-shell__topbar");
-    expect(screen.getByText("ClickHouse")).toBeInTheDocument();
+    expect(screen.getByText("ClickVisual")).toBeInTheDocument();
     await screen.findByRole("heading", { name: "总览大盘" });
 
     const overviewLink = screen.getByRole("link", { name: "总览大盘" });
