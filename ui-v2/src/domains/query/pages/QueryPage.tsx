@@ -16,6 +16,7 @@ import type {
   QuerySourceTreeTarget
 } from "../types/contracts";
 import ContextMenu from "../../../shared/components/ContextMenu";
+import { buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
 
 type QueryDateRange = [Date, Date] | null;
 type QueryConditionModalMode = "create" | "edit";
@@ -147,6 +148,20 @@ function buildDefaultTimeRange() {
   end.setSeconds(0, 0);
   const start = new Date(end.getTime() - 60 * 60 * 1000);
   return [start, end] as [Date, Date];
+}
+
+function buildInitialTimeRangeFromSearchParams(searchParams: URLSearchParams) {
+  const start = Number(searchParams.get("start") || "");
+  const end = Number(searchParams.get("end") || "");
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start <= 0 || end <= start) {
+    return buildDefaultTimeRange();
+  }
+  return [new Date(start * 1000), new Date(end * 1000)] as [Date, Date];
+}
+
+function readPositiveIntSearchParam(searchParams: URLSearchParams, key: string) {
+  const value = Number(searchParams.get(key) || "");
+  return Number.isInteger(value) && value > 0 ? value : undefined;
 }
 
 function buildRecentMinutesTimeRange(minutes: number) {
@@ -1050,11 +1065,42 @@ function TraceTimeline({ groups }: { groups: TraceGroup[] }) {
 }
 
 export default function QueryPage() {
-  const defaultRange = useMemo(() => buildDefaultTimeRange(), []);
+  const initialSearchParams = useMemo(
+    () => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search),
+    []
+  );
+  const initialTreeTarget = useMemo<QuerySourceTreeTarget | undefined>(() => {
+    const instanceId = Number(initialSearchParams.get("instanceId") || "");
+    const databaseName = initialSearchParams.get("database") || "";
+    const tableName = initialSearchParams.get("table") || "";
+    const tableId = Number(initialSearchParams.get("tableId") || initialSearchParams.get("tid") || "");
+    if (Number.isInteger(tableId) && tableId > 0) {
+      return {
+        instanceId: Number.isFinite(instanceId) && instanceId > 0 ? instanceId : undefined,
+        databaseName: databaseName || undefined,
+        tableName: tableName || undefined,
+        tableId
+      };
+    }
+    if (!Number.isFinite(instanceId) || instanceId <= 0 || !databaseName || !tableName) {
+      return undefined;
+    }
+    return {
+      instanceId,
+      databaseName,
+      tableName
+    };
+  }, [initialSearchParams]);
+  const defaultRange = useMemo(() => buildInitialTimeRangeFromSearchParams(initialSearchParams), [initialSearchParams]);
+  const initialPage = useMemo(() => readPositiveIntSearchParam(initialSearchParams, "page"), [initialSearchParams]);
+  const initialPageSize = useMemo(() => readPositiveIntSearchParam(initialSearchParams, "size"), [initialSearchParams]);
   const [timeRange, setTimeRange] = useState<QueryDateRange>(defaultRange);
   const startTime = timeRange ? formatDateTimeLocalValue(timeRange[0]) : "";
   const endTime = timeRange ? formatDateTimeLocalValue(timeRange[1]) : "";
-  const workspace = useQueryWorkspace(startTime, endTime);
+  const workspace = useQueryWorkspace(startTime, endTime, initialTreeTarget, {
+    initialPage,
+    initialPageSize
+  });
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
   const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
@@ -1150,10 +1196,11 @@ export default function QueryPage() {
       return;
     }
     initialQueryStartedRef.current = true;
-    const range = buildRecentMinutesTimeRange(15);
+    const hasURLRange = Boolean(initialSearchParams.get("start") && initialSearchParams.get("end"));
+    const range = hasURLRange && timeRange ? timeRange : buildRecentMinutesTimeRange(15);
     setTimeRange(range);
-    void workspace.runQuery(1, toSecondRange(range));
-  }, [tableAutoQueryRequest, workspace.selectedTableId]);
+    void workspace.runQuery(initialPage ?? 1, toSecondRange(range));
+  }, [initialPage, initialSearchParams, tableAutoQueryRequest, timeRange, workspace.selectedTableId]);
 
   useEffect(() => {
     setLinkQueryAnchor(null);
@@ -1535,7 +1582,7 @@ export default function QueryPage() {
         .map((item) => `${item.id}:${encodeURIComponent(item.databaseName)}.${encodeURIComponent(item.tableName)}`)
         .join(",")
     );
-    window.open(`/v2/query/link?${params.toString()}`, "_blank");
+    window.open(buildV2RouteHref("query/link", params), "_blank");
     setLinkQueryAnchor(null);
   }
 

@@ -99,6 +99,54 @@ describe("report create form", () => {
     expect(screen.getByRole("button", { name: "确认创建" })).toBeDisabled();
   });
 
+  it("does not generate default level filters when the selected table has no level field", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ReportCreateForm
+        instances={[
+          {
+            id: 1,
+            name: "生产集群",
+            desc: "主实例"
+          }
+        ]}
+        databases={[{ name: "default" }]}
+        tables={[{ name: "ratelimit_hourly" }]}
+        columns={[{ field: "hour_ts", type: "DateTime" }]}
+        isSubmitting={false}
+        onInstanceChange={vi.fn().mockResolvedValue(undefined)}
+        onDatabaseChange={vi.fn().mockResolvedValue(undefined)}
+        onLoadColumns={vi.fn().mockResolvedValue(undefined)}
+        onSubmit={onSubmit}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("时间字段")).toHaveValue("hour_ts");
+      expect(screen.getByLabelText("WHERE 条件")).toHaveValue("");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "确认创建" }));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder: expect.objectContaining({
+            table: "ratelimit_hourly",
+            timeField: "hour_ts",
+            where: "",
+            blocks: [
+              expect.objectContaining({
+                where: ""
+              })
+            ]
+          })
+        })
+      )
+    );
+  });
+
   it("shows loading status instead of empty-table warning while tables are loading", () => {
     render(
       <ReportCreateForm
@@ -458,9 +506,7 @@ describe("report create form", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "填写说明" }));
-    expect(screen.getByRole("note")).toHaveTextContent(
-      "表达式只填 ClickHouse 聚合表达式，不要写 SELECT、FROM、WHERE。"
-    );
+    expect(screen.getByText("表达式只填 ClickHouse 聚合表达式，不要写 SELECT、FROM、WHERE。")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "新增指标" }));
     fireEvent.change(screen.getByLabelText("指标名称 1-2"), {

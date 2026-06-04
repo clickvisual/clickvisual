@@ -200,14 +200,39 @@ func TestValidateAggregationEligibilityAcceptsNamespaceWhere(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestValidateAggregationEligibilityAcceptsDefaultLevelWhere(t *testing.T) {
+	err := validateAggregationEligibility(view.ReqReportBuilder{
+		Database:  "dev_log",
+		Table:     "app_stdout",
+		TimeField: "_time_second_",
+		TimeRange: "1h",
+		Blocks: []view.ReqReportBlock{
+			{
+				Key:   "default_level",
+				Label: "默认级别",
+				Where: "level = 'error'",
+				Metrics: []view.ReqReportMetric{
+					{Key: "count", Label: "总量"},
+					{Key: "topn", Label: "级别分布", GroupBy: "level", Limit: 5},
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+}
+
 func TestAggregationAllowedFieldsMergesConfiguredFields(t *testing.T) {
 	fields := aggregationAllowedFields([]string{" custom.field ", "`another_field`"})
 
 	_, hasDefault := fields["lv"]
+	_, hasLevel := fields["level"]
+	_, hasTraceID := fields["trace_id"]
 	_, hasCustom := fields["custom.field"]
 	_, hasAnother := fields["another_field"]
 
 	assert.True(t, hasDefault)
+	assert.True(t, hasLevel)
+	assert.True(t, hasTraceID)
 	assert.True(t, hasCustom)
 	assert.True(t, hasAnother)
 }
@@ -216,8 +241,10 @@ func TestAggregationAllowedGroupByFieldsMergesConfiguredFields(t *testing.T) {
 	fields := aggregationAllowedGroupByFields([]string{" `service.name` "})
 
 	_, hasDefault := fields["container.name"]
+	_, hasLevel := fields["level"]
 	_, hasConfigured := fields["service.name"]
 
 	assert.True(t, hasDefault)
+	assert.True(t, hasLevel)
 	assert.True(t, hasConfigured)
 }

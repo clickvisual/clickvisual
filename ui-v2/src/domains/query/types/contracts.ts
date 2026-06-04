@@ -25,6 +25,7 @@ export interface QuerySourceTreeTarget {
   instanceId?: number | null;
   databaseName?: string;
   tableName?: string;
+  tableId?: number | null;
 }
 
 export interface QueryManageInstance {

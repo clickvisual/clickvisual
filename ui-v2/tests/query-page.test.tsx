@@ -183,6 +183,129 @@ describe("query page", () => {
     expect(screen.getByRole("button", { name: "service / = / gateway" })).toBeInTheDocument();
   });
 
+  it("maps legacy v1 query URL parameters into the v2 query workspace", async () => {
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        const method = init?.method || "GET";
+        requests.push(`${method} ${url.pathname}${url.search} ${String(init?.body || "")}`);
+
+        if (method === "GET" && url.pathname.endsWith("/api/v2/base/instances")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: [
+                  {
+                    id: 1,
+                    instanceName: "生产 ClickHouse",
+                    desc: "主实例",
+                    databases: [
+                      {
+                        id: 11,
+                        iid: 1,
+                        databaseName: "default",
+                        desc: "",
+                        cluster: "",
+                        tables: [
+                          { id: 9527, did: 11, tableName: "logs", desc: "" },
+                          { id: 9528, did: 11, tableName: "app_logs", desc: "" }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              })
+          };
+        }
+
+        if (method === "GET" && url.pathname.endsWith("/api/v2/storage/9528/analysis-fields")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: { baseFields: ["_raw_log_"], logFields: [] }
+              })
+          };
+        }
+
+        if (method === "GET" && url.pathname.endsWith("/api/v2/query/filters")) {
+          return {
+            ok: true,
+            text: async () => JSON.stringify({ code: 0, msg: "succ", data: [] })
+          };
+        }
+
+        if (method === "POST" && url.pathname.endsWith("/api/v2/query/run")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 1,
+                  query: "_raw_log_ like '%aud%'",
+                  keys: [{ field: "_raw_log_", alias: "_raw_log_" }],
+                  logs: [{ _raw_log_: "aud matched" }]
+                }
+              })
+          };
+        }
+
+        if (method === "GET" && url.pathname.endsWith("/api/v1/tables/9528/charts")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: { histograms: [{ count: 1, from: 1780538785, to: 1780539685, progress: "100%" }] }
+              })
+          };
+        }
+
+        return {
+          ok: false,
+          text: async () => JSON.stringify({ code: 1, msg: `unhandled ${method} ${url.pathname}`, data: null })
+        };
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "/v2/query/?end=1780539685&index=2&kw=aud&logState=0&page=3&queryType=rawLog&size=10&start=1780538785&tab=relative&tid=9528"
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    expect(await screen.findByRole("tab", { name: /app_logs/ })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("button", { name: "全局匹配 / like / aud" })).toBeInTheDocument();
+    await screen.findByText("aud matched");
+
+    const runRequest = requests.find((item) => item.includes("POST /api/v2/query/run"));
+    expect(runRequest).toContain('"tid":9528');
+    expect(runRequest).toContain('"st":1780538785');
+    expect(runRequest).toContain('"et":1780539685');
+    expect(runRequest).toContain('"page":3');
+    expect(runRequest).toContain('"pageSize":10');
+    expect(runRequest).toContain('"fieldKey":"_raw_log_"');
+    expect(runRequest).toContain('"operator":"contains"');
+    expect(runRequest).toContain('"value":"aud"');
+  });
+
   it("ignores stale autocomplete and stale runQuery responses", async () => {
     vi.stubGlobal(
       "fetch",
@@ -917,6 +1040,7 @@ describe("query page", () => {
   it("runs a field anchored link query across selected log tables", async () => {
     const requests: string[] = [];
     const openSpy = vi.fn();
+    window.history.replaceState({}, "", "/clickvisual/v2/query");
     vi.stubGlobal("open", openSpy);
     vi.stubGlobal(
       "fetch",
@@ -1058,7 +1182,7 @@ describe("query page", () => {
     fireEvent.click(screen.getByLabelText("default.app_logs"));
     fireEvent.click(screen.getByRole("button", { name: "打开链路查询" }));
 
-    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("/v2/query/link?"), "_blank");
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("/clickvisual/v2/query/link?"), "_blank");
     const openedUrl = openSpy.mock.calls[0][0] as string;
     expect(openedUrl).toContain("field=msg");
     expect(openedUrl).toContain("value=GetTableRepo");
