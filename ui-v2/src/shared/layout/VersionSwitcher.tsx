@@ -27,12 +27,22 @@ export function getV2BasePath(pathname?: string) {
 
 export function getV1Href(pathname?: string) {
   const basePath = getV2BasePath(pathname);
-  return `${basePath}/query`;
+  return `${basePath}/query?ui=v1`;
 }
 
 export function getV2Href(pathname?: string) {
   const basePath = getV2BasePath(pathname) || pathname?.replace(/\/query\/?$/, "") || "";
-  return `${basePath}/v2/reports`;
+  return `${basePath}/v2/query`;
+}
+
+export function buildV2RouteHref(
+  routePath: string,
+  searchParams?: URLSearchParams,
+  pathname?: string
+) {
+  const normalizedRoutePath = routePath.replace(/^\/+/, "");
+  const query = searchParams?.toString();
+  return `${getV2BasePath(pathname)}/v2/${normalizedRoutePath}${query ? `?${query}` : ""}`;
 }
 
 export default function VersionSwitcher() {

@@ -34,6 +34,51 @@ func TestIsV2Asset(t *testing.T) {
 	}
 }
 
+func TestShouldRedirectLegacyQueryEntry(t *testing.T) {
+	cases := []struct {
+		name     string
+		path     string
+		rawQuery string
+		want     bool
+	}{
+		{name: "legacy query", path: "/query", want: true},
+		{name: "legacy query slash", path: "/query/", want: true},
+		{name: "legacy query explicit v1", path: "/query", rawQuery: "ui=v1", want: false},
+		{name: "v2 query", path: "/v2/query", want: false},
+		{name: "api query", path: "/api/v2/query/run", want: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := shouldRedirectLegacyQueryEntry(tc.path, tc.rawQuery); got != tc.want {
+				t.Fatalf("shouldRedirectLegacyQueryEntry(%q, %q) = %v, want %v", tc.path, tc.rawQuery, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestBuildDefaultV2QueryRedirectURL(t *testing.T) {
+	cases := []struct {
+		name      string
+		appSubURL string
+		rawQuery  string
+		want      string
+	}{
+		{name: "root", want: "/v2/query"},
+		{name: "subpath", appSubURL: "/clickvisual", want: "/clickvisual/v2/query"},
+		{name: "preserve query", appSubURL: "/clickvisual", rawQuery: "instanceId=1&database=default", want: "/clickvisual/v2/query?database=default&instanceId=1"},
+		{name: "drop ui bypass", appSubURL: "/clickvisual", rawQuery: "ui=v1&instanceId=1", want: "/clickvisual/v2/query?instanceId=1"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := buildDefaultV2QueryRedirectURL(tc.appSubURL, tc.rawQuery); got != tc.want {
+				t.Fatalf("buildDefaultV2QueryRedirectURL(%q, %q) = %q, want %q", tc.appSubURL, tc.rawQuery, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestNoRouteServesV2Index(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

@@ -20,7 +20,7 @@ export const routes = [
     children: [
       {
         index: true,
-        element: <ReportSchedulePage />
+        element: <QueryPage />
       },
       {
         path: "reports",
