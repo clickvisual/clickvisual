@@ -94,11 +94,31 @@ function createEmptyMetric(): ReportMetricInput {
   };
 }
 
-function buildDefaultBlock(index = 0): ReportBlockInput {
+function buildDefaultWhere(columns: ReportSourceColumn[]): string {
+  const fields = new Set(
+    columns
+      .map((column) => column.field?.trim())
+      .filter((field): field is string => Boolean(field))
+  );
+  if (fields.has("lv")) {
+    return "lv = 'error'";
+  }
+  if (fields.has("level")) {
+    return "level = 'error'";
+  }
+  return "";
+}
+
+function isGeneratedDefaultWhere(where: string): boolean {
+  const normalized = where.trim().toLowerCase().replace(/\s+/g, "");
+  return normalized === "level='error'" || normalized === "lv='error'";
+}
+
+function buildDefaultBlock(index = 0, where = "level = 'error'"): ReportBlockInput {
   return {
     key: index === 0 ? "default" : `block_${index + 1}`,
     label: index === 0 ? "默认条件块" : `条件块 ${index + 1}`,
-    where: index === 0 ? "level = 'error'" : "",
+    where: index === 0 ? where : "",
     metrics: buildCountOnlyMetrics()
   };
 }
@@ -216,6 +236,24 @@ function sortedGroupByOptions(columns: ReportSourceColumn[], currentValue: strin
   return fields;
 }
 
+function preferredTimeField(columns: ReportSourceColumn[]): string {
+  const preferred = [
+    "event_time",
+    "hour_ts",
+    "_time_second_",
+    "_time_nanosecond_",
+    "timestamp",
+    "time",
+    "ts"
+  ];
+  for (const field of preferred) {
+    if (columns.some((column) => column.field === field)) {
+      return field;
+    }
+  }
+  return columns[0]?.field ?? "";
+}
+
 export default function ReportCreateForm({
   instances,
   databases,
@@ -253,7 +291,7 @@ export default function ReportCreateForm({
     initialValue?.builder.timeRange ?? "1h"
   );
   const [blocks, setBlocks] = useState<ReportBlockInput[]>(() =>
-    normalizeBlocks(initialValue?.builder)
+    initialValue?.builder ? normalizeBlocks(initialValue.builder) : [buildDefaultBlock(0, buildDefaultWhere(safeColumns))]
   );
   const [metricGuideOpenBlockKey, setMetricGuideOpenBlockKey] = useState<string | null>(null);
   const onInstanceChangeRef = useRef(onInstanceChange);
@@ -360,13 +398,23 @@ export default function ReportCreateForm({
 
   useEffect(() => {
     if (!timeField && safeColumns.length > 0) {
-      const autoField =
-        safeColumns.find((column) =>
-          ["event_time", "timestamp", "time"].includes(column.field)
-        )?.field ?? safeColumns[0]?.field ?? "";
-      setTimeField(autoField);
+      setTimeField(preferredTimeField(safeColumns));
     }
   }, [safeColumns, timeField]);
+
+  useEffect(() => {
+    if (initialValue || safeColumns.length === 0) {
+      return;
+    }
+    const nextWhere = buildDefaultWhere(safeColumns);
+    setBlocks((current) =>
+      current.map((block, index) =>
+        index === 0 && isGeneratedDefaultWhere(block.where)
+          ? { ...block, where: nextWhere }
+          : block
+      )
+    );
+  }, [initialValue, safeColumns]);
 
   const preview = buildPreview(database, table, timeField, timeRange, blocks);
   const formattedPreview = formatSqlForDisplay(preview);
@@ -618,7 +666,7 @@ export default function ReportCreateForm({
               className="cv-action-button"
               disabled={blocks.length >= 5}
               onClick={() =>
-                setBlocks((current) => [...current, buildDefaultBlock(current.length)])
+                setBlocks((current) => [...current, buildDefaultBlock(current.length, buildDefaultWhere(safeColumns))])
               }
             >
               新增条件块
@@ -629,7 +677,7 @@ export default function ReportCreateForm({
               disabled={blocks.length === 0 || blocks.length >= 5}
               onClick={() =>
                 setBlocks((current) => {
-                  const source = current[current.length - 1] ?? buildDefaultBlock();
+                  const source = current[current.length - 1] ?? buildDefaultBlock(0, buildDefaultWhere(safeColumns));
                   return [
                     ...current,
                     {

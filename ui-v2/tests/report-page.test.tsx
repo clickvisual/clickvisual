@@ -68,6 +68,21 @@ function LocationProbe() {
   return <div data-testid="location-pathname">{location.pathname}</div>;
 }
 
+async function openReportEditor() {
+  fireEvent.click(screen.getByRole("button", { name: "编辑报表" }));
+  await waitFor(() => {
+    expect(
+      screen.queryByRole("button", { name: "继续编辑" }) ??
+        screen.queryByRole("heading", { name: "编辑真实报表" })
+    ).toBeInTheDocument();
+  });
+  const continueButton = screen.queryByRole("button", { name: "继续编辑" });
+  if (continueButton) {
+    fireEvent.click(continueButton);
+  }
+  await screen.findByRole("heading", { name: "编辑真实报表" });
+}
+
 describe("report schedule page", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -144,7 +159,7 @@ describe("report schedule page", () => {
       </MemoryRouter>
     );
 
-    await screen.findByLabelText("Cron");
+    await screen.findByRole("heading", { name: "调度配置" });
     await waitFor(() =>
       expect(screen.getByTestId("location-pathname")).toHaveTextContent(
         "/v2/reports/1001"
@@ -194,6 +209,8 @@ describe("report schedule page", () => {
 
     renderReportPage();
 
+    await screen.findByRole("heading", { name: "调度配置" });
+    fireEvent.click(await screen.findByRole("button", { name: "编辑调度" }));
     const cronInput = await screen.findByLabelText("Cron");
 
     fireEvent.change(cronInput, {
@@ -224,6 +241,8 @@ describe("report schedule page", () => {
 
     renderReportPage();
 
+    await screen.findByRole("heading", { name: "调度配置" });
+    fireEvent.click(await screen.findByRole("button", { name: "编辑调度" }));
     await screen.findByLabelText("Cron");
 
     fireEvent.click(
@@ -258,7 +277,7 @@ describe("report schedule page", () => {
     expect(screen.getAllByText("ops-dingtalk").length).toBeGreaterThan(0);
     expect(screen.getByText("0 0 10 * * 1")).toBeInTheDocument();
     expect(screen.getByText("已暂停")).toBeInTheDocument();
-    expect(screen.getByText("未记录")).toBeInTheDocument();
+    expect(screen.getAllByText("未记录").length).toBeGreaterThan(0);
     expect(screen.getByText("未知")).toBeInTheDocument();
     expect(
       screen.getByText("schedule / system")
@@ -268,13 +287,28 @@ describe("report schedule page", () => {
   it("renders report task list above report config", async () => {
     renderReportPage();
 
-    const taskHeading = await screen.findByRole("heading", { name: "报表任务" });
+    const taskHeading = await screen.findByRole("heading", { name: "任务导航" });
     const configHeading = screen.getByRole("heading", { name: "报表配置" });
 
     expect(
       taskHeading.compareDocumentPosition(configHeading) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
+  });
+
+  it("renders report tasks as a compact navigation list", async () => {
+    renderReportPage();
+
+    await screen.findByRole("list", { name: "报表任务列表" });
+    const activeTaskButton = screen.getByRole("button", {
+      name: "切换到报表 日报-核心指标概览"
+    });
+
+    expect(screen.getByRole("list", { name: "报表任务列表" })).toBeInTheDocument();
+    expect(activeTaskButton).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/2\s*个任务/)).toBeInTheDocument();
+    expect(screen.getByText("1 启用")).toBeInTheDocument();
+    expect(screen.getByText("1 停用")).toBeInTheDocument();
   });
 
   it("requires explicit confirmation before deleting a report task", async () => {
@@ -287,7 +321,7 @@ describe("report schedule page", () => {
 
     renderReportPage();
 
-    await screen.findByRole("heading", { name: "报表任务" });
+    await screen.findByRole("heading", { name: "任务导航" });
 
     fireEvent.click(screen.getByRole("button", { name: "删除报表 日报-核心指标概览" }));
 
@@ -310,7 +344,7 @@ describe("report schedule page", () => {
 
     renderReportPage();
 
-    await screen.findByRole("heading", { name: "报表任务" });
+    await screen.findByRole("heading", { name: "任务导航" });
 
     fireEvent.click(screen.getByRole("button", { name: "删除报表 日报-核心指标概览" }));
     fireEvent.click(screen.getByRole("button", { name: "确认删除 报表 日报-核心指标概览" }));
@@ -357,6 +391,7 @@ describe("report schedule page", () => {
 
     await screen.findByRole("heading", { name: "调度配置" });
 
+    fireEvent.click(await screen.findByRole("button", { name: "编辑调度" }));
     fireEvent.click(screen.getByLabelText("运维钉钉群"));
     fireEvent.click(screen.getByRole("button", { name: "保存报表调度" }));
 
@@ -377,6 +412,8 @@ describe("report schedule page", () => {
 
     renderReportPage();
 
+    await screen.findByRole("heading", { name: "调度配置" });
+    fireEvent.click(await screen.findByRole("button", { name: "编辑调度" }));
     const cronInput = await screen.findByLabelText("Cron");
 
     fireEvent.change(cronInput, {
@@ -678,18 +715,19 @@ describe("report schedule page", () => {
         name: "错误日志小时报",
         reportId: undefined,
         builder: {
+          cluster: "",
           instanceId: 1,
           database: "default",
           table: "logs",
           timeField: "event_time",
           timeRange: "1h",
-          where: "level = 'error'",
+          where: "",
           metrics: [{ key: "count", label: "总量", groupBy: "", limit: 3 }],
           blocks: [
             {
               key: "default",
               label: "默认条件块",
-              where: "level = 'error'",
+              where: "",
               metrics: [{ key: "count", label: "总量", groupBy: "", limit: 3 }]
             }
           ]
@@ -766,9 +804,7 @@ describe("report schedule page", () => {
     renderReportPage();
 
     await screen.findByRole("heading", { name: "报表配置" });
-    fireEvent.click(screen.getByRole("button", { name: "编辑报表" }));
-
-    await screen.findByRole("heading", { name: "编辑真实报表" });
+    await openReportEditor();
     fireEvent.change(screen.getByLabelText("数据库"), {
       target: { value: "default" }
     });
@@ -833,9 +869,7 @@ describe("report schedule page", () => {
 
     await screen.findByRole("heading", { name: "报表配置" });
 
-    fireEvent.click(screen.getByRole("button", { name: "编辑报表" }));
-
-    await screen.findByRole("heading", { name: "编辑真实报表" });
+    await openReportEditor();
     expect(screen.getByLabelText("报表名称")).toHaveValue("日报-核心指标概览");
     expect(screen.getByLabelText("数据库")).toHaveValue("dev_log");
     expect(screen.getByLabelText("数据表")).toHaveValue("app_stdout");
@@ -853,6 +887,13 @@ describe("report schedule page", () => {
         expect.objectContaining({
           reportId: 1001,
           name: "日报-核心指标概览-更新",
+          desc: "按天汇总核心服务请求量、错误率与延迟分位。",
+          queryMode: "sql",
+          queryText:
+            "SELECT service, count() AS requests, quantile(0.95)(latency) AS p95 FROM logs WHERE env = 'prod' GROUP BY service",
+          templateKey: "daily-core-kpi",
+          outputFormat: "markdown",
+          dutyUid: 10086,
           builder: expect.objectContaining({
             database: "dev_log",
             table: "app_stdout",

@@ -530,174 +530,7 @@ export default function SettingsDatasourcePage() {
         errorTitle="配置中心暂不可用"
       >
         <div className="cv-settings-layout">
-        <div className="cv-settings-main">
-            <section className="cv-panel cv-settings-panel">
-              <div className="cv-panel-header cv-settings-panel__header">
-                <div>
-                  <div className="cv-settings-section-eyebrow">AI Platform</div>
-                  <h2 className="cv-panel-title">统一 AI 配置</h2>
-                </div>
-                <div className="cv-settings-section-meta">
-                  <span className="cv-settings-chip">
-                    {aiConfig?.enabled ? "已启用" : "未启用"}
-                  </span>
-                  <button
-                    type="button"
-                    className="cv-secondary-button"
-                    onClick={() => void handleTestAIConfig()}
-                    disabled={testingAI}
-                  >
-                    {testingAI ? "测试中..." : "测试连通性"}
-                  </button>
-                  <button
-                    type="button"
-                    className="cv-action-button"
-                    onClick={() => void handleSaveAIConfig()}
-                    disabled={savingAI}
-                  >
-                    {savingAI ? "保存中..." : "保存 AI 配置"}
-                  </button>
-                </div>
-              </div>
-
-              <div className="cv-form-grid">
-                <label className="cv-form-row">
-                  <span>启用 AI</span>
-                  <select
-                    className="cv-input"
-                    aria-label="启用 AI"
-                    value={aiForm.enabled ? "1" : "0"}
-                    onChange={(event) =>
-                      setAIForm((current) => ({
-                        ...current,
-                        enabled: event.target.value === "1"
-                      }))
-                    }
-                  >
-                    <option value="1">启用</option>
-                    <option value="0">关闭</option>
-                  </select>
-                </label>
-
-                <label className="cv-form-row">
-                  <span>Base URL</span>
-                  <input
-                    className="cv-input"
-                    aria-label="AI Base URL"
-                    value={aiForm.baseURL}
-                    onChange={(event) =>
-                      setAIForm((current) => ({
-                        ...current,
-                        baseURL: event.target.value
-                      }))
-                    }
-                    placeholder="默认可留空，回退到 OpenAI 官方地址"
-                  />
-                </label>
-
-                <label className="cv-form-row">
-                  <span>模型</span>
-                  <input
-                    className="cv-input"
-                    aria-label="AI 模型"
-                    value={aiForm.model}
-                    onChange={(event) =>
-                      setAIForm((current) => ({
-                        ...current,
-                        model: event.target.value
-                      }))
-                    }
-                    placeholder="例如 gpt-4o-mini"
-                  />
-                </label>
-
-                <label className="cv-form-row">
-                  <span>API Key</span>
-                  <input
-                    className="cv-input"
-                    type="password"
-                    aria-label="AI API Key"
-                    value={aiForm.apiKey}
-                    onChange={(event) =>
-                      setAIForm((current) => ({
-                        ...current,
-                        apiKey: event.target.value
-                      }))
-                    }
-                    placeholder={aiConfig?.hasApiKey ? "已配置，留空表示不修改" : "输入新的 API Key"}
-                  />
-                  {aiConfig?.hasApiKey ? (
-                    <span className="cv-muted">{aiConfig.apiKeyMasked || "已配置"}</span>
-                  ) : null}
-                </label>
-
-                <label className="cv-form-row">
-                  <span>超时（秒）</span>
-                  <input
-                    className="cv-input"
-                    type="number"
-                    aria-label="AI 超时秒数"
-                    value={aiForm.timeoutSeconds}
-                    onChange={(event) =>
-                      setAIForm((current) => ({
-                        ...current,
-                        timeoutSeconds: Number(event.target.value)
-                      }))
-                    }
-                  />
-                </label>
-
-                <label className="cv-form-row">
-                  <span>最大输入字节</span>
-                  <input
-                    className="cv-input"
-                    type="number"
-                    aria-label="AI 最大输入字节"
-                    value={aiForm.maxInputBytes}
-                    onChange={(event) =>
-                      setAIForm((current) => ({
-                        ...current,
-                        maxInputBytes: Number(event.target.value)
-                      }))
-                    }
-                  />
-                </label>
-
-                <label className="cv-form-row">
-                  <span>默认温度</span>
-                  <input
-                    className="cv-input"
-                    type="number"
-                    step="0.1"
-                    aria-label="AI 默认温度"
-                    value={aiForm.defaultTemperature}
-                    onChange={(event) =>
-                      setAIForm((current) => ({
-                        ...current,
-                        defaultTemperature: Number(event.target.value)
-                      }))
-                    }
-                  />
-                </label>
-
-                <label className="cv-form-row">
-                  <span>默认最大 Tokens</span>
-                  <input
-                    className="cv-input"
-                    type="number"
-                    aria-label="AI 默认最大 Tokens"
-                    value={aiForm.defaultMaxTokens}
-                    onChange={(event) =>
-                      setAIForm((current) => ({
-                        ...current,
-                        defaultMaxTokens: Number(event.target.value)
-                      }))
-                    }
-                  />
-                </label>
-              </div>
-            </section>
-
+          <div className="cv-settings-main">
             <section className="cv-panel cv-settings-panel">
               <div className="cv-panel-header cv-settings-panel__header">
                 <div>
@@ -895,6 +728,174 @@ export default function SettingsDatasourcePage() {
           </div>
 
           <div className="cv-settings-side">
+            <section className="cv-panel cv-settings-panel cv-settings-panel--aside">
+              <div className="cv-panel-header cv-settings-panel__header">
+                <div>
+                  <div className="cv-settings-section-eyebrow">AI Platform</div>
+                  <h2 className="cv-panel-title">统一 AI 配置</h2>
+                </div>
+                <span className="cv-settings-chip">
+                  {aiConfig?.enabled ? "已启用" : "未启用"}
+                </span>
+              </div>
+
+              <div className="cv-form-grid cv-form-grid--settings-side">
+                <label className="cv-form-row">
+                  <span>启用 AI</span>
+                  <select
+                    className="cv-input"
+                    aria-label="启用 AI"
+                    value={aiForm.enabled ? "1" : "0"}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        enabled: event.target.value === "1"
+                      }))
+                    }
+                  >
+                    <option value="1">启用</option>
+                    <option value="0">关闭</option>
+                  </select>
+                </label>
+
+                <label className="cv-form-row">
+                  <span>模型</span>
+                  <input
+                    className="cv-input"
+                    aria-label="AI 模型"
+                    value={aiForm.model}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        model: event.target.value
+                      }))
+                    }
+                    placeholder="例如 gpt-4o-mini"
+                  />
+                </label>
+
+                <label className="cv-form-row cv-form-row--span-2">
+                  <span>Base URL</span>
+                  <input
+                    className="cv-input"
+                    aria-label="AI Base URL"
+                    value={aiForm.baseURL}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        baseURL: event.target.value
+                      }))
+                    }
+                    placeholder="默认可留空，回退到 OpenAI 官方地址"
+                  />
+                </label>
+
+                <label className="cv-form-row cv-form-row--span-2">
+                  <span>API Key</span>
+                  <input
+                    className="cv-input"
+                    type="password"
+                    aria-label="AI API Key"
+                    value={aiForm.apiKey}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        apiKey: event.target.value
+                      }))
+                    }
+                    placeholder={aiConfig?.hasApiKey ? "已配置，留空表示不修改" : "输入新的 API Key"}
+                  />
+                  {aiConfig?.hasApiKey ? (
+                    <span className="cv-muted">{aiConfig.apiKeyMasked || "已配置"}</span>
+                  ) : null}
+                </label>
+
+                <label className="cv-form-row">
+                  <span>超时（秒）</span>
+                  <input
+                    className="cv-input"
+                    type="number"
+                    aria-label="AI 超时秒数"
+                    value={aiForm.timeoutSeconds}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        timeoutSeconds: Number(event.target.value)
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="cv-form-row">
+                  <span>最大输入字节</span>
+                  <input
+                    className="cv-input"
+                    type="number"
+                    aria-label="AI 最大输入字节"
+                    value={aiForm.maxInputBytes}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        maxInputBytes: Number(event.target.value)
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="cv-form-row">
+                  <span>默认温度</span>
+                  <input
+                    className="cv-input"
+                    type="number"
+                    step="0.1"
+                    aria-label="AI 默认温度"
+                    value={aiForm.defaultTemperature}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        defaultTemperature: Number(event.target.value)
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="cv-form-row">
+                  <span>最大 Tokens</span>
+                  <input
+                    className="cv-input"
+                    type="number"
+                    aria-label="AI 默认最大 Tokens"
+                    value={aiForm.defaultMaxTokens}
+                    onChange={(event) =>
+                      setAIForm((current) => ({
+                        ...current,
+                        defaultMaxTokens: Number(event.target.value)
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+
+              <div className="cv-settings-action-row">
+                <button
+                  type="button"
+                  className="cv-secondary-button"
+                  onClick={() => void handleTestAIConfig()}
+                  disabled={testingAI}
+                >
+                  {testingAI ? "测试中..." : "测试连通性"}
+                </button>
+                <button
+                  type="button"
+                  className="cv-action-button"
+                  onClick={() => void handleSaveAIConfig()}
+                  disabled={savingAI}
+                >
+                  {savingAI ? "保存中..." : "保存 AI 配置"}
+                </button>
+              </div>
+            </section>
+
             <section className="cv-panel cv-settings-panel cv-settings-panel--aside">
               <div className="cv-panel-header cv-settings-panel__header">
                 <div>

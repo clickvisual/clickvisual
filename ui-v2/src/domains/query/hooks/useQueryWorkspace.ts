@@ -170,7 +170,22 @@ function readInitialQueryConditions() {
   if (typeof window === "undefined") {
     return [] as QueryFilterCondition[];
   }
-  const query = new URLSearchParams(window.location.search).get("query") ?? "";
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get("query") ?? "";
+  if (!query.trim()) {
+    const keyword = params.get("kw")?.trim();
+    if (keyword) {
+      return [
+        {
+          id: "cond_url_kw",
+          field: GLOBAL_MATCH_FIELD,
+          operator: "like",
+          value: keyword,
+          valueType: "string"
+        }
+      ] as QueryFilterCondition[];
+    }
+  }
   return query
     .split(/\s+AND\s+/i)
     .map((item, index) => createConditionFromQueryToken(item, index))
@@ -332,7 +347,15 @@ function buildStructuredConditions(
     }));
 }
 
-export function useQueryWorkspace(startTime: string, endTime: string) {
+export function useQueryWorkspace(
+  startTime: string,
+  endTime: string,
+  initialTreeTarget?: QuerySourceTreeTarget,
+  options?: {
+    initialPage?: number;
+    initialPageSize?: number;
+  }
+) {
   const initialConditions = useMemo(() => readInitialQueryConditions(), []);
   const [instances, setInstances] = useState<QuerySourceInstance[]>([]);
   const [databases, setDatabases] = useState<QuerySourceDatabase[]>([]);
@@ -347,8 +370,10 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
   const [activeConditionId, setActiveConditionId] = useState<string | null>(initialConditions[0]?.id ?? null);
   const [savedFilterProfiles, setSavedFilterProfiles] = useState<QueryFilterProfile[]>([]);
   const [savedFilterLoading, setSavedFilterLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useState(options?.initialPage && options.initialPage > 0 ? options.initialPage : 1);
+  const [pageSize] = useState(
+    options?.initialPageSize && options.initialPageSize > 0 ? options.initialPageSize : DEFAULT_PAGE_SIZE
+  );
   const [logs, setLogs] = useState<QueryLogsResponse | null>(null);
   const [charts, setCharts] = useState<QueryHistogramBucket[]>([]);
   const [analysisFields, setAnalysisFields] = useState<QueryAnalysisFieldsResponse>({
@@ -395,14 +420,35 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
     return options[0] ?? "";
   }
 
+  function findTreeTargetByTableId(data: QuerySourceInstance[], tableId?: number | null): QuerySourceTreeTarget | null {
+    if (!tableId) {
+      return null;
+    }
+    for (const instance of data) {
+      for (const database of instance.databases ?? []) {
+        const table = (database.tables ?? []).find((item) => item.id === tableId);
+        if (table) {
+          return {
+            instanceId: instance.id,
+            databaseName: database.name,
+            tableName: table.name,
+            tableId
+          };
+        }
+      }
+    }
+    return null;
+  }
+
   async function refreshSourceTree(target?: QuerySourceTreeTarget) {
     setContextLoading(true);
     try {
       const data = await listQuerySourceInstances();
-      treeSelectionTargetRef.current = target ?? null;
+      treeSelectionTargetRef.current = findTreeTargetByTableId(data, target?.tableId) ?? target ?? null;
       setInstances(data);
       setSelectedInstanceId((current) => {
-        const preferredId = target?.instanceId ?? current;
+        const resolvedTarget = treeSelectionTargetRef.current;
+        const preferredId = resolvedTarget?.instanceId ?? target?.instanceId ?? current;
         if (preferredId && data.some((item) => item.id === preferredId)) {
           return preferredId;
         }
@@ -420,7 +466,7 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
     let active = true;
     void (async () => {
       if (active) {
-        await refreshSourceTree();
+        await refreshSourceTree(initialTreeTarget);
       }
     })();
     return () => {
@@ -443,8 +489,11 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
     clearQueryResults();
     const nextDatabases = selectedInstance.databases ?? [];
     const target = treeSelectionTargetRef.current;
+    const tableIdTargetDatabase = target?.tableId
+      ? nextDatabases.find((database) => (database.tables ?? []).some((table) => table.id === target.tableId))
+      : undefined;
     const nextDatabase = pickTreeName(
-      target?.instanceId === selectedInstance.id ? target.databaseName : undefined,
+      target?.instanceId === selectedInstance.id ? tableIdTargetDatabase?.name ?? target.databaseName : undefined,
       selectedDatabase,
       nextDatabases.map((item) => item.name)
     );
@@ -468,9 +517,12 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
     }
     const nextTables = selectedDatabaseEntry.tables ?? [];
     const target = treeSelectionTargetRef.current;
+    const tableIdTargetTable = target?.tableId
+      ? nextTables.find((table) => table.id === target.tableId)
+      : undefined;
     const nextTable = pickTreeName(
       target?.instanceId === selectedInstanceId && target.databaseName === selectedDatabaseEntry.name
-        ? target.tableName
+        ? tableIdTargetTable?.name ?? target.tableName
         : undefined,
       selectedTable,
       nextTables.map((item) => item.name)
@@ -492,7 +544,8 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
       target &&
       target.instanceId === selectedInstanceId &&
       target.databaseName === selectedDatabase &&
-      (!target.tableName || target.tableName === selectedTableEntry.name)
+      (!target.tableName || target.tableName === selectedTableEntry.name) &&
+      (!target.tableId || target.tableId === selectedTableEntry.id)
     ) {
       treeSelectionTargetRef.current = null;
     }

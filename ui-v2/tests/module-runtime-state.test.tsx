@@ -16,20 +16,21 @@ describe("v2 module runtime states", () => {
       await screen.findByRole("alert", { name: "总览聚合接口暂不可用" })
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "KPI 概览区" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "一键生成告警规则" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "一键生成告警规则" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "当前值班动作" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "值班状态" })).not.toBeInTheDocument();
   });
 
-  it("shows loading state on query route", async () => {
+  it("keeps query workspace visible on query route", async () => {
     const memoryRouter = createMemoryRouter(routes, {
       initialEntries: ["/v2/query?cv_state=loading"]
     });
 
     render(<RouterProvider router={memoryRouter} />);
 
-    expect(
-      await screen.findByRole("status", { name: "查询工作台加载中" })
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "查询输入区" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "日志查询" })).toBeInTheDocument();
+    expect(screen.getByLabelText("查询上下文")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "筛选" })).toBeInTheDocument();
   });
 
   it("shows AI failure feedback on alert route without removing rule list", async () => {
@@ -45,16 +46,16 @@ describe("v2 module runtime states", () => {
     expect(screen.getByRole("heading", { name: "告警规则列表" })).toBeInTheDocument();
   });
 
-  it("disables AI actions on settings route when ai service is unavailable", async () => {
+  it("keeps settings ai configuration form visible when ai service is unavailable", async () => {
     const memoryRouter = createMemoryRouter(routes, {
       initialEntries: ["/v2/settings/datasource?cv_ai=disabled"]
     });
 
     render(<RouterProvider router={memoryRouter} />);
 
-    const button = await screen.findByRole("button", { name: "生成 Schema 建议" });
-    expect(button).toBeDisabled();
-    expect(screen.getByText("AI 服务暂不可用，页面保留手动操作能力。")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "数据源与通知配置" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "统一 AI 配置" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "测试连通性" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "保存 AI 配置" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "数据源" })).toBeInTheDocument();
   });
 });
