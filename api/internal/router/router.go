@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -42,9 +43,13 @@ func GetServerRouter() *egin.Component {
 		if maxAge == 0 {
 			maxAge = 31536000
 		}
+		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
+		if shouldRedirectLegacyQueryEntry(path, c.Request.URL.RawQuery) {
+			c.Redirect(http.StatusFound, buildDefaultV2QueryRedirectURL(appSubUrl, c.Request.URL.RawQuery))
+			return
+		}
 		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d, public", maxAge))
 		c.Header("Expires", time.Now().AddDate(1, 0, 0).Format("Mon, 01 Jan 2006 00:00:00 GMT"))
-		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
 		if isV2Asset(path) {
 			v2dist.Serve(c, path)
 			return
@@ -89,4 +94,28 @@ func isV2Asset(path string) bool {
 		return true
 	}
 	return strings.HasPrefix(path, "/v2/")
+}
+
+func shouldRedirectLegacyQueryEntry(pathValue string, rawQuery string) bool {
+	if pathValue != "/query" && pathValue != "/query/" {
+		return false
+	}
+	values, err := url.ParseQuery(rawQuery)
+	if err == nil && values.Get("ui") == "v1" {
+		return false
+	}
+	return true
+}
+
+func buildDefaultV2QueryRedirectURL(appSubURL string, rawQuery string) string {
+	target := strings.TrimRight(appSubURL, "/") + "/v2/query"
+	values, err := url.ParseQuery(rawQuery)
+	if err == nil {
+		values.Del("ui")
+		rawQuery = values.Encode()
+	}
+	if rawQuery == "" {
+		return target
+	}
+	return target + "?" + rawQuery
 }

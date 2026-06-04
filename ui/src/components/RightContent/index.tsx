@@ -9,7 +9,7 @@ export type SiderTheme = "light" | "dark";
 const VERSION_STORAGE_KEY = "clickvisual-preferred-ui-version";
 
 function getV2Href() {
-  return `${process.env.PUBLIC_PATH || "/"}v2/reports`;
+  return `${process.env.PUBLIC_PATH || "/"}v2/query`;
 }
 
 const RightContent: React.FC = () => {
