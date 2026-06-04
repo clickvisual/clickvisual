@@ -8,6 +8,7 @@ import {
   getV2Href,
   getV2BasePath,
   getPreferredUiVersion,
+  normalizePublicPath,
   setPreferredUiVersion
 } from "../src/shared/layout/VersionSwitcher";
 
@@ -33,6 +34,18 @@ describe("v2 version switcher", () => {
     const params = new URLSearchParams({ field: "tid", value: "abc" });
     expect(buildV2RouteHref("query/link", params, "/console/v2/query")).toBe(
       "/console/v2/query/link?field=tid&value=abc"
+    );
+  });
+
+  it("prefers the compiled public path for v2 links", () => {
+    const params = new URLSearchParams({ field: "level", value: "30" });
+
+    expect(normalizePublicPath("/mdp/clickvisual/")).toBe("/mdp/clickvisual");
+    expect(normalizePublicPath("https://mdp.shimodev.com/clickvisual/")).toBe("/clickvisual");
+    expect(getV2BasePath("/v2/query", "/mdp/clickvisual/")).toBe("/mdp/clickvisual");
+    expect(getV1Href("/v2/query", "/mdp/clickvisual/")).toBe("/mdp/clickvisual/query?ui=v1");
+    expect(buildV2RouteHref("query/link", params, "/v2/query", "/mdp/clickvisual/")).toBe(
+      "/mdp/clickvisual/v2/query/link?field=level&value=30"
     );
   });
 

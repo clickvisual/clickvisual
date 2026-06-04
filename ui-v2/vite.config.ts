@@ -4,6 +4,9 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   base: "./",
+  define: {
+    __CLICKVISUAL_PUBLIC_PATH__: JSON.stringify(process.env.PUBLIC_PATH || process.env.VITE_PUBLIC_PATH || "")
+  },
   server: {
     proxy: {
       "/api": {
