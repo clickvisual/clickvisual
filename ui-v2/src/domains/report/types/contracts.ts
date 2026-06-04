@@ -208,6 +208,13 @@ export interface ReportCreatePayload {
   reportId?: number;
   name: string;
   desc?: string;
+  status?: ReportTaskStatus;
+  queryMode?: ReportQueryMode;
+  queryText?: string;
+  templateKey?: string;
+  outputFormat?: ReportOutputFormat;
+  dutyUid?: number;
+  creatorUid?: number;
   builder: ReportBuilderInput;
 }
 

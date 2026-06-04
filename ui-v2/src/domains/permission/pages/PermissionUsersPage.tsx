@@ -402,10 +402,7 @@ export default function PermissionUsersPage() {
           />
         </label>
         <div className="cv-permission-toolbar__meta">
-          <div className="cv-permission-toolbar__stat">
-            <span className="cv-label">当前结果</span>
-            <strong>{users.length}</strong>
-          </div>
+          <span className="cv-permission-toolbar__count">当前结果 {users.length}</span>
           <div className="cv-header-actions cv-permission-toolbar__actions">
             <button
               type="button"
@@ -454,11 +451,11 @@ export default function PermissionUsersPage() {
       ) : null}
       {!loading && !errorMessage && users.length > 0 ? (
         <div className="cv-permission-grid">
-          <section className="cv-permission-card">
+          <section className="cv-permission-card cv-permission-card--list">
             <div className="cv-panel-header">
               <div>
                 <h3 className="cv-panel-title cv-permission-card__title">用户列表</h3>
-                <p className="cv-muted">创建、编辑、重置密码。</p>
+                <p className="cv-muted">创建、编辑、重置密码</p>
               </div>
             </div>
             <div className="cv-table-wrap">
@@ -539,7 +536,7 @@ export default function PermissionUsersPage() {
             </div>
           </section>
 
-          <section className="cv-permission-card">
+          <section className="cv-permission-card cv-permission-card--inspector">
             <div className="cv-panel-header">
               <div>
                 <h3 className="cv-panel-title cv-permission-card__title">授权详情</h3>

@@ -128,6 +128,33 @@ func TestBuildReportAccelerationPlanForCluster(t *testing.T) {
 	assert.Contains(t, plan.CreateMaterializedViewSQL, "CREATE MATERIALIZED VIEW IF NOT EXISTS `dev_log`.`cv_report_mv_9_1` ON CLUSTER 'test_cluster' TO `dev_log`.`cv_report_agg_9_local`")
 }
 
+func TestBuildReportAccelerationPlanRejectsMissingSourceField(t *testing.T) {
+	now := time.Date(2026, 4, 8, 10, 0, 0, 0, time.Local)
+	_, err := buildReportAccelerationPlan(11, view.ReqReportBuilder{
+		InstanceID: 7,
+		Database:   "default",
+		Table:      "ratelimit_hourly",
+		TimeField:  "hour_ts",
+		TimeRange:  "1h",
+		Blocks: []view.ReqReportBlock{
+			{
+				Key:   "default",
+				Label: "默认条件块",
+				Where: "lv='error'",
+				Metrics: []view.ReqReportMetric{
+					{Key: "count", Label: "总量"},
+				},
+			},
+		},
+	}, reportAccelerationTopology{
+		SourceColumns: []view.Column{
+			{Field: "hour_ts", Type: "DateTime"},
+		},
+	}, now)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "字段 lv 不存在于源表 default.ratelimit_hourly")
+}
+
 func TestBuildReportAccelerationPlanWithUnixSecondTimeField(t *testing.T) {
 	now := time.Date(2026, 4, 8, 10, 0, 0, 0, time.Local)
 	plan, err := buildReportAccelerationPlan(10, view.ReqReportBuilder{

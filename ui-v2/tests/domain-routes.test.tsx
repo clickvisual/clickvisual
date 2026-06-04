@@ -15,9 +15,24 @@ describe("v2 domain routes", () => {
     expect(await screen.findByRole("heading", { name: "总览大盘" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "KPI 概览区" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "日志量与错误率趋势" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "AI 建议区" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "最近报表" })).toBeInTheDocument();
-    expect(screen.getByText("一键生成告警规则")).toBeInTheDocument();
+    expect(screen.queryByText("一键生成告警规则")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "当前值班动作" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "值班状态" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "最近告警" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "跨模块入口" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "日报-核心指标概览" })).toHaveAttribute(
+      "href",
+      "/v2/reports/1001"
+    );
+    expect(screen.queryByText("生产错误汇总日报")).not.toBeInTheDocument();
+    expect(await screen.findByText("真实数据")).toBeInTheDocument();
+    expect(screen.getByText("2 张日志表")).toBeInTheDocument();
+    const tableLinks = await screen.findAllByRole("link", { name: "logs" });
+    expect(tableLinks.some((link) =>
+      link.getAttribute("href") ===
+        "/v2/query?instanceId=1&database=default&table=logs&tableId=9527&query=_raw_log_+like+%27%25ERROR%25%27"
+    )).toBe(true);
   });
 
   it("renders the query route with real query workspace sections", async () => {
@@ -28,12 +43,12 @@ describe("v2 domain routes", () => {
     render(<RouterProvider router={memoryRouter} />);
 
     expect(await screen.findByRole("heading", { name: "日志查询" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "查询上下文" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "查询输入" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "直方图" })).toBeInTheDocument();
+    expect(screen.getByLabelText("查询上下文")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "筛选" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "时间分布" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "查询结果" })).toBeInTheDocument();
-    expect(screen.getByText("DSL 模式")).toBeInTheDocument();
-    expect(screen.getByText("执行查询")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "新增条件" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /执行查询|查询中/ })).toBeInTheDocument();
   });
 
   it("renders the alert route with rules and events", async () => {
