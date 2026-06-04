@@ -3,6 +3,7 @@ import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { routes } from "../src/app/router";
 import {
+  buildV2RouteHref,
   getV1Href,
   getV2Href,
   getV2BasePath,
@@ -25,13 +26,33 @@ describe("v2 version switcher", () => {
 
   it("builds links with the detected v2 base path", () => {
     expect(getV2BasePath("/console/v2/reports")).toBe("/console");
-    expect(getV1Href("/console/v2/reports")).toBe("/console/query");
-    expect(getV1Href("/v2/reports")).toBe("/query");
-    expect(getV2Href("/console/query")).toBe("/console/v2/reports");
-    expect(getV2Href("/query")).toBe("/v2/reports");
+    expect(getV1Href("/console/v2/reports")).toBe("/console/query?ui=v1");
+    expect(getV1Href("/v2/reports")).toBe("/query?ui=v1");
+    expect(getV2Href("/console/query")).toBe("/console/v2/query");
+    expect(getV2Href("/query")).toBe("/v2/query");
+    const params = new URLSearchParams({ field: "tid", value: "abc" });
+    expect(buildV2RouteHref("query/link", params, "/console/v2/query")).toBe(
+      "/console/v2/query/link?field=tid&value=abc"
+    );
   });
 
-  it("redirects /v2 to the report page and records v2 as preferred version", async () => {
+  it("records v2 as preferred version on the report page", async () => {
+    window.localStorage.clear();
+
+    const memoryRouter = createMemoryRouter(routes, {
+      initialEntries: ["/v2/reports/1001"]
+    });
+
+    render(<RouterProvider router={memoryRouter} />);
+
+    expect(
+      screen.getByRole("heading", { name: "定时报表" })
+    ).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "任务导航" });
+    expect(window.localStorage.getItem(VERSION_STORAGE_KEY)).toBe("v2");
+  });
+
+  it("uses the query page as the v2 default entry", async () => {
     window.localStorage.clear();
 
     const memoryRouter = createMemoryRouter(routes, {
@@ -40,10 +61,7 @@ describe("v2 version switcher", () => {
 
     render(<RouterProvider router={memoryRouter} />);
 
-    expect(
-      screen.getByRole("heading", { name: "定时报表" })
-    ).toBeInTheDocument();
-    await screen.findByRole("heading", { name: "报表任务" });
+    await screen.findByRole("heading", { name: "日志查询" });
     expect(window.localStorage.getItem(VERSION_STORAGE_KEY)).toBe("v2");
   });
 
@@ -51,18 +69,18 @@ describe("v2 version switcher", () => {
     window.localStorage.setItem(VERSION_STORAGE_KEY, "v1");
 
     const memoryRouter = createMemoryRouter(routes, {
-      initialEntries: ["/v2/reports"]
+      initialEntries: ["/v2/reports/1001"]
     });
 
     render(<RouterProvider router={memoryRouter} />);
 
-    await screen.findByRole("heading", { name: "报表任务" });
+    await screen.findByRole("heading", { name: "任务导航" });
 
     const link = screen.getByRole("link", { name: "返回上次使用的 v1" });
 
     expect(link).toHaveAttribute(
       "href",
-      "/query"
+      "/query?ui=v1"
     );
     fireEvent.click(link);
     expect(window.localStorage.getItem(VERSION_STORAGE_KEY)).toBe("v1");
@@ -70,19 +88,19 @@ describe("v2 version switcher", () => {
 
   it("keeps the v1 target correct in the report page context under a subpath", async () => {
     window.localStorage.setItem(VERSION_STORAGE_KEY, "v1");
-    window.history.pushState({}, "", "/console/v2/reports");
+    window.history.pushState({}, "", "/console/v2/reports/1001");
 
     const memoryRouter = createMemoryRouter(routes, {
-      initialEntries: ["/v2/reports"]
+      initialEntries: ["/v2/reports/1001"]
     });
 
     render(<RouterProvider router={memoryRouter} />);
 
-    await screen.findByRole("heading", { name: "报表任务" });
+    await screen.findByRole("heading", { name: "任务导航" });
 
     const link = screen.getByRole("link", { name: "返回上次使用的 v1" });
 
-    expect(link).toHaveAttribute("href", "/console/query");
+    expect(link).toHaveAttribute("href", "/console/query?ui=v1");
 
     fireEvent.click(link);
 
@@ -102,6 +120,6 @@ describe("v2 version switcher", () => {
     await screen.findByRole("heading", { name: "日志查询" });
 
     const link = screen.getByRole("link", { name: "返回上次使用的 v1" });
-    expect(link).toHaveAttribute("href", "/console/query");
+    expect(link).toHaveAttribute("href", "/console/query?ui=v1");
   });
 });
