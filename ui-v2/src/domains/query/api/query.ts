@@ -14,6 +14,8 @@ import type {
   IngestionPublishResult,
   QueryAIRunRequest,
   QueryFilterDeleteResult,
+  QueryFieldStatsRequest,
+  QueryFieldStatsResponse,
   QueryFilterListParams,
   QueryFilterProfile,
   QueryManageInstance,
@@ -281,6 +283,12 @@ export async function getQueryAnalysisFields(
 
 export async function runQueryV2(payload: QueryRequestV2): Promise<QueryRunResponse> {
   return client.post<QueryRunResponse>("/api/v2/query/run", payload);
+}
+
+export async function getQueryFieldStats(
+  payload: QueryFieldStatsRequest
+): Promise<QueryFieldStatsResponse> {
+  return client.post<QueryFieldStatsResponse>("/api/v2/query/field-stats", payload);
 }
 
 export async function getQueryAutocomplete(

@@ -51,6 +51,25 @@ describe("v2 domain routes", () => {
     expect(screen.getByRole("button", { name: /执行查询|查询中/ })).toBeInTheDocument();
   });
 
+  it("renders the report display route with landed result data", async () => {
+    const memoryRouter = createMemoryRouter(routes, {
+      initialEntries: ["/v2/reports/1001/display"]
+    });
+
+    render(<RouterProvider router={memoryRouter} />);
+
+    expect(await screen.findByRole("heading", { name: "日报-核心指标概览" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "结果趋势" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "展示摘要" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "结果明细" })).toBeInTheDocument();
+    expect(screen.getAllByText("默认条件块 / 总量").length).toBeGreaterThan(0);
+    expect(screen.getByText("2026-03-30 08:00:00")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "返回配置" })).toHaveAttribute(
+      "href",
+      "/v2/reports/1001"
+    );
+  });
+
   it("renders the alert route with rules and events", async () => {
     const memoryRouter = createMemoryRouter(routes, {
       initialEntries: ["/v2/alerts/rules"]

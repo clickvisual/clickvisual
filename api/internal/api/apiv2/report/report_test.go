@@ -161,6 +161,48 @@ func TestReportPreviewAndExecutions(t *testing.T) {
 	_ = execList.Run()
 }
 
+func TestReportResultsGet(t *testing.T) {
+	reportservice.ResetForTest()
+
+	obj := gintest.Init()
+	obj.GET(core.Handle(ResultGet), func(m *gintest.Mock) error {
+		body := m.Exec(gintest.WithUri("/reports/results?reportId=1001"))
+		assert.Contains(t, string(body), `"reportId":1001`)
+		assert.Contains(t, string(body), `"targetTable":"cv_report_agg_1001"`)
+		assert.Contains(t, string(body), `"series"`)
+		assert.Contains(t, string(body), `"metricName":"总量"`)
+		return nil
+	}, gintest.WithRoutePath("/reports/results"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = obj.Run()
+}
+
+func TestReportWhereCheckRun(t *testing.T) {
+	reportservice.ResetForTest()
+
+	obj := gintest.Init()
+	obj.POST(core.Handle(WhereCheckRun), func(m *gintest.Mock) error {
+		body := m.Exec(
+			gintest.WithUri("/reports/where-check"),
+			gintest.WithJsonBody(view.ReqReportWhereCheck{
+				Builder: view.ReqReportBuilder{
+					InstanceID: 1,
+					Database:   "default",
+					Table:      "logs",
+					TimeField:  "event_time",
+					TimeRange:  "1h",
+				},
+				Where:         "level = 'error'",
+				WindowSeconds: 900,
+			}),
+		)
+		assert.Contains(t, string(body), `"passed":true`)
+		assert.Contains(t, string(body), `"rowCount":12`)
+		assert.Contains(t, string(body), `"SELECT count() AS row_count`)
+		return nil
+	}, gintest.WithRoutePath("/reports/where-check"), gintest.WithRouteMiddleware(middlewares.SetMockUser()))
+	_ = obj.Run()
+}
+
 func TestReportPreviewRun(t *testing.T) {
 	reportservice.ResetForTest()
 

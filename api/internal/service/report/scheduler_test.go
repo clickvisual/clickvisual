@@ -30,3 +30,26 @@ func TestReportSchedulerUsesShanghaiLocation(t *testing.T) {
 	assert.Equal(t, 0, next.Second())
 	assert.Equal(t, reportScheduleLocation, next.Location())
 }
+
+func TestReportSchedulerSkipsEmptyCron(t *testing.T) {
+	ResetForTest()
+
+	schedule := defaultService.schedules[1001]
+	schedule.Cron = " "
+	defaultService.schedules[1001] = schedule
+
+	err := defaultService.StartScheduler()
+	require.NoError(t, err)
+	defer defaultService.StopScheduler()
+
+	registered, next := defaultService.scheduler.Snapshot(1001)
+	assert.False(t, registered)
+	assert.True(t, next.IsZero())
+}
+
+func TestValidateReportScheduleCronRejectsEmptySpec(t *testing.T) {
+	err := validateReportScheduleCron(" ")
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cron 不能为空")
+}
