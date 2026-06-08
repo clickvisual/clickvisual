@@ -852,62 +852,15 @@ function createTypedDetailConditionValue(value: unknown, valueType: QueryFilterV
   return { value: String(sample.value), valueType };
 }
 
-function isRawLogDetailParent(parentKey: string) {
-  const normalized = parentKey.trim().toLowerCase();
-  return normalized === "_raw_log_" || normalized === "_raw_log" || normalized === "raw_log";
-}
-
-function scalarJsonEntries(parentKey: string, value: unknown) {
+function scalarJsonEntries(value: unknown) {
   const parsed = parseJsonObject(value);
-  if (parsed) {
-    return Object.entries(parsed)
-      .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
-      .map(([key, item]) => {
-        const fieldKey = isRawLogDetailParent(parentKey) ? key : `${parentKey}.${key}`;
-        return {
-          key,
-          value: formatLogDetailValue(item),
-          fieldRef: {
-            fieldKey,
-            displayName: key,
-            source: "json_path",
-            path: fieldKey,
-            valueType: createDetailConditionValue(item).valueType,
-            isAccelerated: false
-          }
-        } as LogDetailNestedEntry;
-      })
-      .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
+  if (!parsed) {
+    return [] as Array<[string, string]>;
   }
-  const parsedArray = parseJsonArray(value);
-  if (!parsedArray) {
-    return [] as LogDetailNestedEntry[];
+  if (valueType === "datetime") {
+    return { value: String(sample.value), valueType };
   }
-  return parsedArray
-    .map((item, index) => {
-      const text = formatLogDetailValue(item).trim();
-      const separatorIndex = text.indexOf("=");
-      if (separatorIndex > 0) {
-        const key = text.slice(0, separatorIndex).trim();
-        const itemValue = text.slice(separatorIndex + 1).trim();
-        if (key && itemValue) {
-          return {
-            key,
-            value: itemValue,
-            fieldRef: {
-              fieldKey: `${parentKey}.${key}`,
-              displayName: key,
-              source: "tag_path",
-              path: `${parentKey}.${key}`,
-              valueType: "string",
-              isAccelerated: false
-            }
-          } as LogDetailNestedEntry;
-        }
-      }
-      return { key: `#${index + 1}`, value: text } as LogDetailNestedEntry;
-    })
-    .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
+  return { value: String(sample.value), valueType };
 }
 
 function isLogTimeField(field: string) {
@@ -1691,12 +1644,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
 
   function buildRawLogFieldStatsRef(field: string, sampleValue: unknown) {
     const sample = createDetailConditionValue(sampleValue);
-    const path = field.replace(/^_?raw_log_?\./i, "");
     return {
-      fieldKey: path,
-      displayName: path,
+      fieldKey: field,
+      displayName: field,
       source: "json_path" as const,
-      path,
+      path: field,
       valueType: sample.valueType === "number" ? "number" as const : "string" as const,
       isAccelerated: false
     };
@@ -1716,12 +1668,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     );
   }
 
-  async function openFieldStatsModal(
-    field: string,
-    sampleValue: unknown,
-    preferRawLog = false,
-    explicitFieldRef?: QueryFieldRef
-  ) {
+  async function openFieldStatsModal(field: string, sampleValue: unknown, preferRawLog = false) {
     if (!workspace.selectedTableId || !timeRange) {
       setFeedbackMessage("请先选择日志表和时间范围");
       return;
@@ -1731,23 +1678,18 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       return;
     }
     const sample = createDetailConditionValue(sampleValue);
-    const catalogFieldRef =
-      explicitFieldRef ??
-      buildQueryFieldRef(
-        {
-          id: "field_stats",
-          field,
-          operator: "=",
-          value: sample.value,
-          valueType: sample.valueType
-        },
-        workspace.analysisFields
-      );
-    const fieldRef =
-      explicitFieldRef ??
-      (preferRawLog && !(catalogFieldRef.source === "column" && catalogFieldRef.isAccelerated)
-        ? buildRawLogFieldStatsRef(field, sampleValue)
-        : catalogFieldRef);
+    const fieldRef = preferRawLog
+      ? buildRawLogFieldStatsRef(field, sampleValue)
+      : buildQueryFieldRef(
+          {
+            id: "field_stats",
+            field,
+            operator: "=",
+            value: sample.value,
+            valueType: sample.valueType
+          },
+          workspace.analysisFields
+        );
     const range = toSecondRange(timeRange);
     setFieldStatsState({ field, fieldRef, loading: true, data: null, error: "" });
     try {
@@ -1892,10 +1834,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }
 
   function addConditionFromFieldStatsValue(fieldRef: QueryFieldRef, value: string) {
-    if (fieldRef.source === "tag_path") {
-      addConditionFromLogDetail(fieldRef.fieldKey, value);
-      return;
-    }
     if (fieldRef.source !== "column" || !fieldRef.isAccelerated) {
       addGlobalMatchFromLogDetailValue(value);
       return;
@@ -1908,18 +1846,10 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       fieldRef,
       value,
       actionText:
-        fieldRef.source === "tag_path" || (fieldRef.source === "column" && fieldRef.isAccelerated)
-          ? `${fieldRef.fieldKey} = ${value}`
-          : `全局匹配：${value}`
+        fieldRef.source === "column" && fieldRef.isAccelerated
+          ? `${fieldRef.fieldKey} = ${truncate(value, 120)}`
+          : `全局匹配：${truncate(value, 120)}`
     });
-  }
-
-  async function copyFieldStatsConfirmText() {
-    if (!fieldStatsConfirmState) {
-      return;
-    }
-    const copied = await copyTextToClipboard(fieldStatsConfirmState.actionText);
-    setFeedbackMessage(copied ? "已复制完整条件" : "复制失败，请手动选择条件内容");
   }
 
   function confirmAddConditionFromFieldStatsValue() {
@@ -2865,22 +2795,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                                                 title={`查看 ${key} = ${formatLogDetailValue(value)} 的分布`}
                                                 onClick={(event) => {
                                                   event.stopPropagation();
-                                                  if (isLogTimeField(key)) {
-                                                    addConditionFromLogDetail(key, value);
-                                                    return;
-                                                  }
                                                   void openFieldStatsModal(key, value, !isPresentLogValue(row.original[key]));
-                                                }}
-                                              >
-                                                {formatLogDetailValue(value)}
-                                              </button>
-                                              <button
-                                                type="button"
-                                                className="cv-query-detail__link-button"
-                                                title={`添加条件：${key} = ${formatLogDetailValue(value)}`}
-                                                onClick={(event) => {
-                                                  event.stopPropagation();
-                                                  addConditionFromLogDetail(key, value);
                                                 }}
                                               >
                                                 添加
@@ -2905,37 +2820,35 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                                             </span>
                                           )}
                                         </div>
-                                        {nestedEntries.map((nestedEntry) => {
-                                          const nestedKey = nestedEntry.key;
-                                          const nestedValue = nestedEntry.value;
-                                          return (
-                                            <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
-                                              <strong title={`${key}.${nestedKey}`}>
-                                                <button
-                                                  type="button"
-                                                  className="cv-query-detail__key-button"
-                                                  title={`查看 ${nestedKey} 的值分布`}
-                                                  onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    void openFieldStatsModal(nestedKey, nestedValue, true, nestedEntry.fieldRef);
-                                                  }}
-                                                >
-                                                  {nestedKey}
-                                                </button>
-                                              </strong>
-                                              <span className="cv-query-detail__value-actions">
-                                                <button
-                                                  type="button"
-                                                  className="cv-query-detail__value-button"
-                                                  title={`查看 ${nestedKey} = ${nestedValue} 的分布`}
-                                                  aria-label={`查看 JSON 字段 ${nestedKey} 的值分布`}
-                                                  onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    void openFieldStatsModal(nestedKey, nestedValue, true, nestedEntry.fieldRef);
-                                                  }}
-                                                >
-                                                  {nestedValue}
-                                                </button>
+                                        {nestedEntries.map(([nestedKey, nestedValue]) => (
+                                          <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
+                                            <strong title={`${key}.${nestedKey}`}>
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__key-button"
+                                                title={`查看 ${nestedKey} 的值分布`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  void openFieldStatsModal(nestedKey, nestedValue, true);
+                                                }}
+                                              >
+                                                {nestedKey}
+                                              </button>
+                                            </strong>
+                                            <span className="cv-query-detail__value-actions">
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__value-button"
+                                                title={`查看 ${nestedKey} = ${nestedValue} 的分布`}
+                                                aria-label={`查看 JSON 字段 ${nestedKey} 的值分布`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  void openFieldStatsModal(nestedKey, nestedValue, true);
+                                                }}
+                                              >
+                                                {nestedValue}
+                                              </button>
+                                              {canStartAIAnalysisFromField(nestedKey, nestedValue) ? (
                                                 <button
                                                   type="button"
                                                   className="cv-query-detail__link-button"
@@ -3043,7 +2956,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                   当前时间范围和筛选条件下的字段值占比
                   {fieldStatsState.data ? ` · 非空 ${formatCount(fieldStatsState.data.total)} 条` : ""}
                   {fieldStatsState.fieldRef.source !== "column" || !fieldStatsState.fieldRef.isAccelerated
-                    ? " · 来源日志内容字段"
+                    ? " · 来源 _raw_log_"
                     : " · 来源外层字段"}
                   {" · 点击值加入搜索条件"}
                 </p>
@@ -3113,16 +3026,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               </button>
             </div>
             <div className="cv-query-field-stats-confirm__body">
-              <div className="cv-query-field-stats-confirm__body-header">
-                <span>将加入</span>
-                <button
-                  type="button"
-                  className="cv-query-field-stats-confirm__copy"
-                  onClick={() => void copyFieldStatsConfirmText()}
-                >
-                  复制全部
-                </button>
-              </div>
+              <span>将加入</span>
               <code title={fieldStatsConfirmState.actionText}>{fieldStatsConfirmState.actionText}</code>
             </div>
             <div className="cv-query-modal__footer">

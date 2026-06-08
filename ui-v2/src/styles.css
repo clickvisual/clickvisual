@@ -2628,7 +2628,7 @@ textarea {
 }
 
 .cv-query-field-stats-confirm {
-  width: min(640px, calc(100vw - 24px));
+  width: min(420px, calc(100vw - 24px));
   padding: 14px;
   border-radius: 12px;
   background: #ffffff;
@@ -2651,44 +2651,19 @@ textarea {
   background: #fffaf5;
 }
 
-.cv-query-field-stats-confirm__body-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.cv-query-field-stats-confirm__body-header span {
+.cv-query-field-stats-confirm__body span {
   color: #64748b;
   font-size: 12px;
 }
 
-.cv-query-field-stats-confirm__copy {
-  flex: 0 0 auto;
-  min-height: 24px;
-  border: 1px solid color-mix(in srgb, var(--cv-primary) 22%, var(--cv-border));
-  border-radius: 7px;
-  background: #ffffff;
-  color: var(--cv-primary-strong);
-  padding: 0 8px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.cv-query-field-stats-confirm__copy:hover {
-  background: var(--cv-primary-soft);
-}
-
 .cv-query-field-stats-confirm__body code {
-  max-height: 110px;
-  overflow: auto;
+  overflow: hidden;
   color: #334155;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   line-height: 1.5;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cv-query-field-stats {
