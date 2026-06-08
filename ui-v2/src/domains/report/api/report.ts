@@ -5,6 +5,7 @@ import {
   reportExecutionPreviewMockById,
   reportListMock,
   reportRecentExecutionsMockById,
+  reportResultMockById,
   reportScheduleRuntimeMockById,
   reportScheduleMockById,
   reportSendSummaryMockById
@@ -22,12 +23,15 @@ import type {
   ReportExecutionRecord,
   ReportListItem,
   ReportPushChannel,
+  ReportResultData,
   ReportScheduleConfig,
   ReportSourceColumn,
   ReportSourceDatabase,
   ReportSourceInstance,
   ReportSourceTable,
   ReportSendResultSummary,
+  ReportWhereCheckPayload,
+  ReportWhereCheckResult,
   ReportWorkspace
 } from "../types/contracts";
 
@@ -565,6 +569,19 @@ export async function getReportWorkspace(reportId?: number): Promise<ReportWorks
   }
 }
 
+export async function getReportResults(reportId: number): Promise<ReportResultData> {
+  try {
+    return await client.get<ReportResultData>(
+      `/api/v2/reports/results?reportId=${reportId}`
+    );
+  } catch (error) {
+    if (typeof window !== "undefined" && window.navigator.userAgent.includes("jsdom")) {
+      return clone(findByReportId(reportResultMockById, reportId));
+    }
+    throw error;
+  }
+}
+
 export async function runReportPreview(
   reportId: number
 ): Promise<ReportPreviewRunResponse> {
@@ -584,4 +601,28 @@ export async function runReportAccelerationCheck(
     ...raw,
     acceleration: normalizeAcceleration(raw.acceleration)
   };
+}
+
+export async function checkReportWhere(
+  payload: ReportWhereCheckPayload
+): Promise<ReportWhereCheckResult> {
+  try {
+    return await client.post<ReportWhereCheckResult>(
+      "/api/v2/reports/where-check",
+      payload
+    );
+  } catch (error) {
+    if (typeof window !== "undefined" && window.navigator.userAgent.includes("jsdom")) {
+      return {
+        passed: true,
+        rowCount: 12,
+        windowStart: "2026-03-30 08:45:00",
+        windowEnd: "2026-03-30 09:00:00",
+        windowSeconds: payload.windowSeconds,
+        query: `SELECT count() AS row_count FROM \`${payload.builder.database}\`.\`${payload.builder.table}\` WHERE ${payload.where || "1 = 1"}`,
+        message: "试跑通过，最近 15 分钟命中 12 行。"
+      };
+    }
+    throw error;
+  }
 }

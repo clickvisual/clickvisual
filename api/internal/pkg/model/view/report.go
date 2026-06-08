@@ -41,6 +41,12 @@ type ReqReportBuilder struct {
 	Blocks     []ReqReportBlock  `json:"blocks" form:"blocks"`
 }
 
+type ReqReportWhereCheck struct {
+	Builder       ReqReportBuilder `json:"builder" form:"builder"`
+	Where         string           `json:"where" form:"where"`
+	WindowSeconds int              `json:"windowSeconds" form:"windowSeconds"`
+}
+
 type RespReportDefinition struct {
 	ReportID     int               `json:"reportId"`
 	Name         string            `json:"name"`
@@ -208,6 +214,44 @@ type RespReportAccelerationBackfillResult struct {
 	Check        RespReportAccelerationCheck `json:"check"`
 }
 
+type RespReportResultPoint struct {
+	BucketTime string  `json:"bucketTime"`
+	BlockKey   string  `json:"blockKey"`
+	BlockLabel string  `json:"blockLabel"`
+	MetricName string  `json:"metricName"`
+	MetricKind string  `json:"metricKind"`
+	GroupKind  int     `json:"groupKind"`
+	GroupValue string  `json:"groupValue"`
+	Value      float64 `json:"value"`
+	SumValue   float64 `json:"sumValue"`
+	CountValue float64 `json:"countValue"`
+	UniqValue  float64 `json:"uniqValue"`
+}
+
+type RespReportResultSeries struct {
+	SeriesKey  string                  `json:"seriesKey"`
+	BlockKey   string                  `json:"blockKey"`
+	BlockLabel string                  `json:"blockLabel"`
+	MetricName string                  `json:"metricName"`
+	MetricKind string                  `json:"metricKind"`
+	GroupKind  int                     `json:"groupKind"`
+	GroupValue string                  `json:"groupValue"`
+	Total      float64                 `json:"total"`
+	Points     []RespReportResultPoint `json:"points"`
+}
+
+type RespReportResultData struct {
+	ReportID    int                      `json:"reportId"`
+	Source      string                   `json:"source"`
+	Database    string                   `json:"database"`
+	TargetTable string                   `json:"targetTable"`
+	WindowStart string                   `json:"windowStart"`
+	WindowEnd   string                   `json:"windowEnd"`
+	BucketCount int                      `json:"bucketCount"`
+	Series      []RespReportResultSeries `json:"series"`
+	Rows        []RespReportResultPoint  `json:"rows"`
+}
+
 type RespReportWorkspace struct {
 	ActiveReportID int                         `json:"activeReportId"`
 	List           []RespReportListItem        `json:"list"`
@@ -244,4 +288,14 @@ type RespReportSourceDatabase struct {
 
 type RespReportSourceTable struct {
 	Name string `json:"name"`
+}
+
+type RespReportWhereCheck struct {
+	Passed        bool   `json:"passed"`
+	RowCount      int64  `json:"rowCount"`
+	WindowStart   string `json:"windowStart"`
+	WindowEnd     string `json:"windowEnd"`
+	WindowSeconds int    `json:"windowSeconds"`
+	Query         string `json:"query"`
+	Message       string `json:"message"`
 }

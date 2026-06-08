@@ -79,6 +79,105 @@ func TestCompileUsesJSONPathExecutionForNonAcceleratedField(t *testing.T) {
 	assert.True(t, plan.PlannedConditions[0].HighCost)
 }
 
+func TestCompileRawLogContainsMatchesEscapedJSONQuotes(t *testing.T) {
+	req := view.QueryRequestV2{
+		Tid: 1,
+		ST:  1710000000,
+		ET:  1710003600,
+		Conditions: []view.QueryConditionV2{
+			{
+				Field: view.QueryFieldRef{
+					FieldKey:       "_raw_log_",
+					DisplayName:    "全局匹配",
+					Source:         view.QueryFieldSourceColumn,
+					Path:           "_raw_log_",
+					ValueType:      view.QueryValueTypeString,
+					IsAccelerated:  true,
+					AcceleratedCol: "_raw_log_",
+				},
+				Operator: view.QueryOperatorContains,
+				Value:    `sum(container_fs_usage_bytes{namespace="sdk-open"})`,
+			},
+		},
+	}
+	ctx := CompileContext{
+		TableName:     "`default`.`logs`",
+		TimeField:     "_time_second_",
+		TimeFieldType: 0,
+		RawJSONColumn: "_raw_log_",
+	}
+
+	sql, _, err := Compile(req, ctx)
+	require.NoError(t, err)
+	assert.Contains(t, sql, "`_raw_log_` LIKE '%sum(container_fs_usage_bytes{namespace=\"sdk-open\"})%'")
+	assert.Contains(t, sql, "`_raw_log_` LIKE '%sum(container_fs_usage_bytes{namespace=\\\\\"sdk-open\\\\\"})%'")
+}
+
+func TestCompileNormalizesLogLevelEquality(t *testing.T) {
+	req := view.QueryRequestV2{
+		Tid: 1,
+		ST:  1710000000,
+		ET:  1710003600,
+		Conditions: []view.QueryConditionV2{
+			{
+				Field: view.QueryFieldRef{
+					FieldKey:      "lv",
+					DisplayName:   "lv",
+					Source:        view.QueryFieldSourceJSONPath,
+					Path:          "lv",
+					ValueType:     view.QueryValueTypeString,
+					IsAccelerated: false,
+				},
+				Operator: view.QueryOperatorEQ,
+				Value:    "warn",
+			},
+		},
+	}
+
+	sql, _, err := Compile(req, CompileContext{
+		TableName:     "`default`.`logs`",
+		TimeField:     "_time_second_",
+		RawJSONColumn: "_raw_log_",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, sql, "lowerUTF8(replaceRegexpAll(JSONExtractString(_raw_log_, 'lv')")
+	assert.Contains(t, sql, "= 'warn'")
+}
+
+func TestCompileNormalizesLogLevelColumnEquality(t *testing.T) {
+	req := view.QueryRequestV2{
+		Tid: 1,
+		ST:  1710000000,
+		ET:  1710003600,
+		Conditions: []view.QueryConditionV2{
+			{
+				Field: view.QueryFieldRef{
+					FieldKey:       "lv",
+					DisplayName:    "lv",
+					Source:         view.QueryFieldSourceColumn,
+					Path:           "lv",
+					ValueType:      view.QueryValueTypeString,
+					IsAccelerated:  true,
+					AcceleratedCol: "lv",
+				},
+				Operator: view.QueryOperatorEQ,
+				Value:    "WARN",
+			},
+		},
+	}
+
+	sql, _, err := Compile(req, CompileContext{
+		TableName: "`default`.`logs`",
+		TimeField: "_time_second_",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, sql, "lowerUTF8(replaceRegexpAll(`lv`")
+	assert.NotContains(t, sql, "JSONExtractString(_raw_log_, 'lv')")
+	assert.Contains(t, sql, "= 'warn'")
+}
+
 func TestCompileSupportsNestedJSONPath(t *testing.T) {
 	req := view.QueryRequestV2{
 		Tid: 1,
@@ -144,4 +243,93 @@ func TestCompileRejectsInvalidOperatorForBooleanField(t *testing.T) {
 	_, _, err := Compile(req, ctx)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "operator")
+}
+
+func TestCompileFieldStatsUsesCurrentFilters(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid: 1,
+			ST:  1710000000,
+			ET:  1710003600,
+			Conditions: []view.QueryConditionV2{
+				{
+					Field: view.QueryFieldRef{
+						FieldKey:       "lv",
+						DisplayName:    "lv",
+						Source:         view.QueryFieldSourceColumn,
+						Path:           "lv",
+						ValueType:      view.QueryValueTypeString,
+						IsAccelerated:  true,
+						AcceleratedCol: "lv",
+					},
+					Operator: view.QueryOperatorEQ,
+					Value:    "error",
+				},
+			},
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:       "container.name",
+			DisplayName:    "container.name",
+			Source:         view.QueryFieldSourceColumn,
+			Path:           "container.name",
+			ValueType:      view.QueryValueTypeString,
+			IsAccelerated:  true,
+			AcceleratedCol: "container.name",
+		},
+		Limit: 5,
+	}
+
+	statsSQL, totalSQL, plan, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`dev_log`.`app_stdout`",
+		TimeField:     "_time_second_",
+		TimeFieldType: 0,
+		RawJSONColumn: "_raw_log_",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "_time_second_ >= toDateTime(1710000000)")
+	assert.Contains(t, statsSQL, "lowerUTF8(replaceRegexpAll(`lv`")
+	assert.Contains(t, statsSQL, "= 'error'")
+	assert.Contains(t, statsSQL, "ifNull(toString(`container.name`), '') != ''")
+	assert.Contains(t, statsSQL, "GROUP BY field_value")
+	assert.Contains(t, statsSQL, "LIMIT 5")
+	assert.Contains(t, totalSQL, "SELECT count() AS count")
+	require.Len(t, plan.PlannedConditions, 2)
+	assert.Equal(t, "container.name", plan.PlannedConditions[1].FieldKey)
+}
+
+func TestCompileFieldStatsSupportsRawLogJSONKey(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid: 1,
+			ST:  1710000000,
+			ET:  1710003600,
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:      "msg",
+			DisplayName:   "msg",
+			Source:        view.QueryFieldSourceJSONPath,
+			Path:          "msg",
+			ValueType:     view.QueryValueTypeString,
+			IsAccelerated: false,
+		},
+		Limit: 10,
+	}
+
+	statsSQL, totalSQL, plan, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`dev_log`.`app_stdout`",
+		TimeField:     "_time_second_",
+		TimeFieldType: 0,
+		RawJSONColumn: "_raw_log_",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "JSONExtractString(_raw_log_, 'msg')")
+	assert.Contains(t, statsSQL, "GROUP BY field_value")
+	assert.Contains(t, statsSQL, "ORDER BY count DESC")
+	assert.Contains(t, totalSQL, "JSONExtractString(_raw_log_, 'msg')")
+	require.Len(t, plan.PlannedConditions, 1)
+	assert.Equal(t, "msg", plan.PlannedConditions[0].FieldKey)
+	assert.Equal(t, "json_path", plan.PlannedConditions[0].Execution)
+	assert.True(t, plan.PlannedConditions[0].HighCost)
 }

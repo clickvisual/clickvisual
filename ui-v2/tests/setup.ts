@@ -1,6 +1,9 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, vi } from "vitest";
-import { buildReportWorkspaceMock } from "../src/domains/report/mocks/reportMockData";
+import {
+  buildReportWorkspaceMock,
+  reportResultMockById
+} from "../src/domains/report/mocks/reportMockData";
 
 beforeEach(() => {
   const queryFilterProfiles: Array<Record<string, unknown>> = [];
@@ -114,6 +117,18 @@ beforeEach(() => {
         };
       }
 
+      if (method === "GET" && url.pathname.endsWith("/api/v2/reports/results")) {
+        const reportId = Number(url.searchParams.get("reportId") || "1001");
+        return {
+          ok: true,
+          json: async () => ({
+            code: 0,
+            msg: "succ",
+            data: reportResultMockById[reportId]
+          })
+        };
+      }
+
       if (method === "POST" && url.pathname.endsWith("/api/v2/reports/configs")) {
         const payload = JSON.parse(String(init?.body || "{}")) as {
           nodeId: number;
@@ -176,6 +191,30 @@ beforeEach(() => {
                   }
                 ]
               }
+            }
+          })
+        };
+      }
+
+      if (method === "POST" && url.pathname.endsWith("/api/v2/reports/where-check")) {
+        const payload = JSON.parse(String(init?.body || "{}")) as {
+          where?: string;
+          builder?: { database?: string; table?: string };
+          windowSeconds?: number;
+        };
+        return {
+          ok: true,
+          json: async () => ({
+            code: 0,
+            msg: "succ",
+            data: {
+              passed: true,
+              rowCount: 12,
+              windowStart: "2026-03-30 08:45:00",
+              windowEnd: "2026-03-30 09:00:00",
+              windowSeconds: payload.windowSeconds ?? 900,
+              query: `SELECT count() AS row_count FROM \`${payload.builder?.database ?? "default"}\`.\`${payload.builder?.table ?? "logs"}\` WHERE ${payload.where || "1 = 1"}`,
+              message: "试跑通过，最近 15 分钟命中 12 行。"
             }
           })
         };

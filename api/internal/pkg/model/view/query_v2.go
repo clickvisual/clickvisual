@@ -71,6 +71,12 @@ type QueryRequestV2 struct {
 	DisplayFields []string           `json:"displayFields" form:"displayFields"`
 }
 
+type QueryFieldStatsRequest struct {
+	QueryRequestV2
+	Field QueryFieldRef `json:"field" form:"field"`
+	Limit int           `json:"limit" form:"limit"`
+}
+
 type PlannedCondition struct {
 	FieldKey    string `json:"fieldKey"`
 	Execution   string `json:"execution"`
