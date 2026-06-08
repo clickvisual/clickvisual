@@ -47,6 +47,46 @@ func CompileCount(req view.QueryRequestV2, ctx CompileContext) (sql string, plan
 	return sql, plan, nil
 }
 
+func CompileFieldStats(req view.QueryFieldStatsRequest, ctx CompileContext) (statsSQL string, totalSQL string, plan view.QueryPlan, err error) {
+	whereParts, plan, err := buildWherePlan(req.QueryRequestV2, ctx)
+	if err != nil {
+		return "", "", view.QueryPlan{}, err
+	}
+	fieldExpr, execution, highCost, err := buildFieldExpression(req.Field, ctx)
+	if err != nil {
+		return "", "", view.QueryPlan{}, err
+	}
+	valueExpr := fmt.Sprintf("ifNull(toString(%s), '')", fieldExpr)
+	whereParts = append(whereParts, fmt.Sprintf("%s != ''", valueExpr))
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	if limit > 50 {
+		limit = 50
+	}
+	plan.PlannedConditions = append(plan.PlannedConditions, view.PlannedCondition{
+		FieldKey:    req.Field.FieldKey,
+		Execution:   execution,
+		Expression:  fieldExpr,
+		HighCost:    highCost,
+		WarningCode: warningCode(execution, highCost),
+	})
+	statsSQL = fmt.Sprintf(
+		"SELECT %s AS field_value, count() AS count FROM %s WHERE %s GROUP BY field_value ORDER BY count DESC, field_value ASC LIMIT %d",
+		valueExpr,
+		ctx.TableName,
+		strings.Join(whereParts, " AND "),
+		limit,
+	)
+	totalSQL = fmt.Sprintf(
+		"SELECT count() AS count FROM %s WHERE %s",
+		ctx.TableName,
+		strings.Join(whereParts, " AND "),
+	)
+	return statsSQL, totalSQL, plan, nil
+}
+
 func buildWherePlan(req view.QueryRequestV2, ctx CompileContext) (whereParts []string, plan view.QueryPlan, err error) {
 	if ctx.TableName == "" {
 		return nil, view.QueryPlan{}, fmt.Errorf("table name is required")
@@ -100,9 +140,13 @@ func compileCondition(cond view.QueryConditionV2, ctx CompileContext) (expr stri
 	if err != nil {
 		return "", view.PlannedCondition{}, err
 	}
+	fieldExpr, cond = normalizeLogLevelCondition(fieldExpr, cond)
 	expr, err = compileOperator(fieldExpr, cond.Operator, cond.Value, cond.ValueTo, cond.Field.ValueType)
 	if err != nil {
 		return "", view.PlannedCondition{}, err
+	}
+	if fallbackExpr := compileRawLogEscapedQuoteFallback(fieldExpr, cond, ctx); fallbackExpr != "" {
+		expr = fallbackExpr
 	}
 	planned = view.PlannedCondition{
 		FieldKey:    cond.Field.FieldKey,
@@ -112,6 +156,82 @@ func compileCondition(cond view.QueryConditionV2, ctx CompileContext) (expr stri
 		WarningCode: warningCode(execution, highCost),
 	}
 	return expr, planned, nil
+}
+
+func compileRawLogEscapedQuoteFallback(expr string, cond view.QueryConditionV2, ctx CompileContext) string {
+	if cond.Operator != view.QueryOperatorContains && cond.Operator != view.QueryOperatorNotContains {
+		return ""
+	}
+	if cond.Field.ValueType != view.QueryValueTypeString && cond.Field.ValueType != view.QueryValueTypeUnknown {
+		return ""
+	}
+	value, ok := cond.Value.(string)
+	if !ok || !strings.Contains(value, "\"") {
+		return ""
+	}
+	rawColumn := ctx.RawJSONColumn
+	if rawColumn == "" {
+		rawColumn = "_raw_log_"
+	}
+	if strings.Trim(expr, "`") != rawColumn {
+		return ""
+	}
+	normalPattern := escapeLikeString(value)
+	jsonEscapedPattern := escapeLikeString(strings.ReplaceAll(value, "\"", "\\\\\""))
+	if normalPattern == jsonEscapedPattern {
+		return ""
+	}
+	if cond.Operator == view.QueryOperatorNotContains {
+		return fmt.Sprintf("(%s NOT LIKE '%%%s%%' AND %s NOT LIKE '%%%s%%')", expr, normalPattern, expr, jsonEscapedPattern)
+	}
+	return fmt.Sprintf("(%s LIKE '%%%s%%' OR %s LIKE '%%%s%%')", expr, normalPattern, expr, jsonEscapedPattern)
+}
+
+func normalizeLogLevelCondition(expr string, cond view.QueryConditionV2) (string, view.QueryConditionV2) {
+	if !isLogLevelField(cond.Field.FieldKey) && !isLogLevelField(cond.Field.Path) {
+		return expr, cond
+	}
+	if cond.Field.ValueType != view.QueryValueTypeString && cond.Field.ValueType != view.QueryValueTypeUnknown {
+		return expr, cond
+	}
+	switch cond.Operator {
+	case view.QueryOperatorEQ, view.QueryOperatorNEQ, view.QueryOperatorContains, view.QueryOperatorNotContains, view.QueryOperatorIn:
+	default:
+		return expr, cond
+	}
+	cond.Value = normalizeLogLevelValue(cond.Value)
+	cond.ValueTo = normalizeLogLevelValue(cond.ValueTo)
+	return fmt.Sprintf("lowerUTF8(replaceRegexpAll(%s, '\\x1b\\\\[[0-9;]*m', ''))", expr), cond
+}
+
+func isLogLevelField(field string) bool {
+	switch strings.ToLower(strings.TrimSpace(field)) {
+	case "lv", "level", "severity", "log_level":
+		return true
+	default:
+		return false
+	}
+}
+
+func normalizeLogLevelValue(value interface{}) interface{} {
+	switch typed := value.(type) {
+	case []interface{}:
+		items := make([]interface{}, 0, len(typed))
+		for _, item := range typed {
+			items = append(items, normalizeLogLevelValue(item))
+		}
+		return items
+	case []string:
+		items := make([]string, 0, len(typed))
+		for _, item := range typed {
+			items = append(items, strings.ToLower(strings.TrimSpace(item)))
+		}
+		return items
+	case string:
+		return strings.ToLower(strings.TrimSpace(typed))
+	default:
+		return value
+	}
 }
 
 func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr string, execution string, highCost bool, err error) {

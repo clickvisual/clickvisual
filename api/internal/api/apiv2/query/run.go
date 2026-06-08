@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gotomicro/ego/core/elog"
@@ -25,6 +26,33 @@ type RunResponse struct {
 	Query string                   `json:"query"`
 	SQL   string                   `json:"sql"`
 	Plan  view.QueryPlan           `json:"plan"`
+}
+
+type queryRunResult struct {
+	Count uint64
+	Logs  []map[string]interface{}
+	SQL   string
+	Plan  view.QueryPlan
+}
+
+type fieldStatsRunResult struct {
+	Total uint64
+	Items []FieldStatsItem
+	SQL   string
+	Plan  view.QueryPlan
+}
+
+type FieldStatsItem struct {
+	Value      string  `json:"value"`
+	Count      uint64  `json:"count"`
+	Percentage float64 `json:"percentage"`
+}
+
+type FieldStatsResponse struct {
+	Total uint64           `json:"total"`
+	Items []FieldStatsItem `json:"items"`
+	SQL   string           `json:"sql"`
+	Plan  view.QueryPlan   `json:"plan"`
 }
 
 // Run godoc
@@ -57,26 +85,67 @@ func Run(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	sql, plan, err := querycompile.Compile(req, ctx)
-	if err != nil {
-		c.JSONE(1, err.Error(), nil)
-		return
-	}
-	countSQL, _, err := querycompile.CompileCount(req, ctx)
-	if err != nil {
-		c.JSONE(1, err.Error(), nil)
-		return
-	}
 	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
 	if err != nil {
 		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
 		return
 	}
+	result, err := runStructuredQueryWithFallback(op, req, ctx)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
+	c.JSONOK(RunResponse{
+		Count: result.Count,
+		Cost:  time.Since(startedAt).Milliseconds(),
+		Keys:  buildQueryLogFields(result.Logs),
+		Logs:  result.Logs,
+		Query: result.SQL,
+		SQL:   result.SQL,
+		Plan:  result.Plan,
+	})
+}
+
+func runStructuredQueryWithFallback(op interface {
+	DoSQL(string) (view.RespComplete, error)
+}, req view.QueryRequestV2, ctx querycompile.CompileContext) (queryRunResult, error) {
+	result, err := runStructuredQueryOnce(op, req, ctx)
+	if err != nil {
+		return queryRunResult{}, err
+	}
+	if result.Count > 0 || len(result.Logs) > 0 {
+		return result, nil
+	}
+	fallbackReq, ok := rawLogFallbackRequest(req)
+	if !ok {
+		return result, nil
+	}
+	fallbackResult, err := runStructuredQueryOnce(op, fallbackReq, ctx)
+	if err != nil {
+		elog.Warn("query v2 raw log fallback failed", elog.FieldErr(err), elog.String("sql", result.SQL))
+		return result, nil
+	}
+	if fallbackResult.Count > 0 || len(fallbackResult.Logs) > 0 {
+		return fallbackResult, nil
+	}
+	return result, nil
+}
+
+func runStructuredQueryOnce(op interface {
+	DoSQL(string) (view.RespComplete, error)
+}, req view.QueryRequestV2, ctx querycompile.CompileContext) (queryRunResult, error) {
+	sql, plan, err := querycompile.Compile(req, ctx)
+	if err != nil {
+		return queryRunResult{}, err
+	}
+	countSQL, _, err := querycompile.CompileCount(req, ctx)
+	if err != nil {
+		return queryRunResult{}, err
+	}
 	logs, err := op.DoSQL(sql)
 	if err != nil {
 		elog.Error("query v2 run logs failed", elog.FieldErr(err), elog.String("sql", sql))
-		c.JSONE(core.CodeErr, err.Error(), err)
-		return
+		return queryRunResult{}, err
 	}
 	count := uint64(len(logs.Logs))
 	if countResp, countErr := op.DoSQL(countSQL); countErr == nil {
@@ -84,15 +153,192 @@ func Run(c *core.Context) {
 	} else {
 		elog.Warn("query v2 run count failed", elog.FieldErr(countErr), elog.String("sql", countSQL))
 	}
-	c.JSONOK(RunResponse{
+	return queryRunResult{
 		Count: count,
-		Cost:  time.Since(startedAt).Milliseconds(),
-		Keys:  buildQueryLogFields(logs.Logs),
 		Logs:  logs.Logs,
-		Query: sql,
 		SQL:   sql,
 		Plan:  plan,
+	}, nil
+}
+
+func rawLogFallbackRequest(req view.QueryRequestV2) (view.QueryRequestV2, bool) {
+	next := req
+	next.Conditions = append([]view.QueryConditionV2(nil), req.Conditions...)
+	changed := false
+	for idx, cond := range next.Conditions {
+		if !canFallbackQueryFieldToRawLog(cond.Field) {
+			continue
+		}
+		switch cond.Operator {
+		case view.QueryOperatorEQ, view.QueryOperatorNEQ, view.QueryOperatorContains, view.QueryOperatorNotContains, view.QueryOperatorIn:
+		default:
+			continue
+		}
+		cond.Field = rawLogFallbackFieldRef(cond.Field)
+		next.Conditions[idx] = cond
+		changed = true
+	}
+	return next, changed
+}
+
+func canFallbackQueryFieldToRawLog(field view.QueryFieldRef) bool {
+	if field.Source != view.QueryFieldSourceColumn {
+		return false
+	}
+	key := rawLogFallbackFieldKey(field)
+	if key == "" {
+		return false
+	}
+	if strings.EqualFold(key, "_raw_log_") || strings.EqualFold(key, "_raw_log") {
+		return false
+	}
+	return !isQuerySystemTimeField(key)
+}
+
+func rawLogFallbackFieldRef(field view.QueryFieldRef) view.QueryFieldRef {
+	field.Source = view.QueryFieldSourceJSONPath
+	field.Path = rawLogFallbackFieldKey(field)
+	field.IsAccelerated = false
+	field.AcceleratedCol = ""
+	return field
+}
+
+func rawLogFallbackFieldKey(field view.QueryFieldRef) string {
+	key := strings.TrimSpace(field.Path)
+	if key == "" {
+		key = strings.TrimSpace(field.FieldKey)
+	}
+	return key
+}
+
+func isQuerySystemTimeField(field string) bool {
+	field = strings.ToLower(strings.TrimSpace(field))
+	return field == "time" || field == "timestamp" || strings.HasPrefix(field, "_time")
+}
+
+// FieldStats godoc
+// @Summary      执行字段值分布统计
+// @Tags         QUERY
+// @Accept       json
+// @Produce      json
+// @Router       /api/v2/query/field-stats [post]
+func FieldStats(c *core.Context) {
+	var req view.QueryFieldStatsRequest
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	ctx, tableInfo, err := buildRunContext(req.Tid)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      c.Uid(),
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		c.JSONE(1, "permission verification failed", err)
+		return
+	}
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
+		return
+	}
+	result, err := runFieldStatsWithFallback(op, req, ctx)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), err)
+		return
+	}
+	c.JSONOK(FieldStatsResponse{
+		Total: result.Total,
+		Items: result.Items,
+		SQL:   result.SQL,
+		Plan:  result.Plan,
 	})
+}
+
+func runFieldStatsWithFallback(op interface {
+	DoSQL(string) (view.RespComplete, error)
+}, req view.QueryFieldStatsRequest, ctx querycompile.CompileContext) (fieldStatsRunResult, error) {
+	result, err := runFieldStatsOnce(op, req, ctx)
+	if err != nil {
+		return fieldStatsRunResult{}, err
+	}
+	if result.Total > 0 || len(result.Items) > 0 {
+		return result, nil
+	}
+	fallbackReq, ok := rawLogFieldStatsFallbackRequest(req)
+	if !ok {
+		return result, nil
+	}
+	fallbackResult, err := runFieldStatsOnce(op, fallbackReq, ctx)
+	if err != nil {
+		elog.Warn("query v2 field stats raw log fallback failed", elog.FieldErr(err), elog.String("sql", result.SQL))
+		return result, nil
+	}
+	if fallbackResult.Total > 0 || len(fallbackResult.Items) > 0 {
+		return fallbackResult, nil
+	}
+	return result, nil
+}
+
+func runFieldStatsOnce(op interface {
+	DoSQL(string) (view.RespComplete, error)
+}, req view.QueryFieldStatsRequest, ctx querycompile.CompileContext) (fieldStatsRunResult, error) {
+	statsSQL, totalSQL, plan, err := querycompile.CompileFieldStats(req, ctx)
+	if err != nil {
+		return fieldStatsRunResult{}, err
+	}
+	totalResp, err := op.DoSQL(totalSQL)
+	if err != nil {
+		elog.Error("query v2 field stats total failed", elog.FieldErr(err), elog.String("sql", totalSQL))
+		return fieldStatsRunResult{}, err
+	}
+	total := extractCount(totalResp.Logs, 0)
+	statsResp, err := op.DoSQL(statsSQL)
+	if err != nil {
+		elog.Error("query v2 field stats failed", elog.FieldErr(err), elog.String("sql", statsSQL))
+		return fieldStatsRunResult{}, err
+	}
+	items := make([]FieldStatsItem, 0, len(statsResp.Logs))
+	for _, row := range statsResp.Logs {
+		count := extractCount([]map[string]interface{}{row}, 0)
+		percentage := float64(0)
+		if total > 0 {
+			percentage = float64(count) / float64(total) * 100
+		}
+		items = append(items, FieldStatsItem{
+			Value:      fmt.Sprint(row["field_value"]),
+			Count:      count,
+			Percentage: percentage,
+		})
+	}
+	return fieldStatsRunResult{
+		Total: total,
+		Items: items,
+		SQL:   statsSQL,
+		Plan:  plan,
+	}, nil
+}
+
+func rawLogFieldStatsFallbackRequest(req view.QueryFieldStatsRequest) (view.QueryFieldStatsRequest, bool) {
+	next := req
+	changed := false
+	if canFallbackQueryFieldToRawLog(next.Field) {
+		next.Field = rawLogFallbackFieldRef(next.Field)
+		changed = true
+	}
+	if fallbackQuery, ok := rawLogFallbackRequest(next.QueryRequestV2); ok {
+		next.QueryRequestV2 = fallbackQuery
+		changed = true
+	}
+	return next, changed
 }
 
 func buildRunContext(tid int) (querycompile.CompileContext, dbmodel.BaseTable, error) {

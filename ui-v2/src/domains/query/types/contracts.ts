@@ -250,6 +250,24 @@ export interface QueryRunResponse extends QueryLogsResponse {
   plan: QueryPlan;
 }
 
+export interface QueryFieldStatsRequest extends QueryRequestV2 {
+  field: QueryFieldRef;
+  limit: number;
+}
+
+export interface QueryFieldStatsItem {
+  value: string;
+  count: number;
+  percentage: number;
+}
+
+export interface QueryFieldStatsResponse {
+  total: number;
+  items: QueryFieldStatsItem[];
+  sql: string;
+  plan: QueryPlan;
+}
+
 export interface Candidate {
   path: string;
   label: string;

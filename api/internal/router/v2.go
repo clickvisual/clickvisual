@@ -109,6 +109,7 @@ func v2(r *gin.RouterGroup) {
 		r.POST("/query/ingestion/publish", core.Handle(queryv2.Publish))
 		r.POST("/query/compile", core.Handle(queryv2.Compile))
 		r.POST("/query/run", core.Handle(queryv2.Run))
+		r.POST("/query/field-stats", core.Handle(queryv2.FieldStats))
 	}
 	// The log module - storage
 	{
@@ -147,7 +148,9 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/reports/preview", core.Handle(report.PreviewGet))
 		r.POST("/reports/preview-run", core.Handle(report.PreviewRun))
 		r.POST("/reports/acceleration/check-run", core.Handle(report.AccelerationCheckRun))
+		r.POST("/reports/where-check", core.Handle(report.WhereCheckRun))
 		r.GET("/reports/executions", core.Handle(report.ExecutionList))
+		r.GET("/reports/results", core.Handle(report.ResultGet))
 		r.GET("/reports/workspace", core.Handle(report.WorkspaceGet))
 		r.GET("/reports/instances", core.Handle(report.ReportSourceInstances))
 		r.GET("/reports/instances/:instance-id/databases", core.Handle(report.ReportSourceDatabases))

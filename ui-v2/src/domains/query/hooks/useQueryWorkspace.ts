@@ -277,7 +277,7 @@ function conditionOperator(condition: QueryFilterCondition) {
   return condition.operator;
 }
 
-function buildQueryFieldRef(
+export function buildQueryFieldRef(
   condition: QueryFilterCondition,
   analysisFields: QueryAnalysisFieldsResponse
 ): QueryFieldRef {
@@ -312,7 +312,7 @@ function buildQueryFieldRef(
       displayName: baseField.alias || name,
       source: "column",
       path: name,
-      valueType: fieldValueType(condition),
+      valueType: storageFieldTyp(baseField),
       isAccelerated: true,
       acceleratedCol: name
     };
@@ -324,12 +324,12 @@ function buildQueryFieldRef(
     displayName: logField?.alias || name,
     source: "json_path",
     path: name,
-    valueType: fieldValueType(condition),
+    valueType: logField ? storageFieldTyp(logField) : fieldValueType(condition),
     isAccelerated: false
   };
 }
 
-function buildStructuredConditions(
+export function buildStructuredConditions(
   conditions: QueryFilterCondition[],
   analysisFields: QueryAnalysisFieldsResponse
 ): QueryConditionV2[] {

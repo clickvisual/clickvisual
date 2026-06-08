@@ -179,7 +179,10 @@ describe("report contracts and mock reader", () => {
       status: "missing",
       targetTable: "",
       mvName: "",
-      errorMessage: ""
+      errorMessage: "",
+      backfillStartAt: "",
+      backfillEndAt: "",
+      lastCheck: null
     });
   });
 

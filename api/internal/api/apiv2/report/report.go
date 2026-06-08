@@ -220,6 +220,23 @@ func ExecutionList(c *core.Context) {
 	c.JSONOK(resp)
 }
 
+// ResultGet godoc
+// @Summary      获取报表运行结果数据
+// @Tags         REPORT
+// @Accept       json
+// @Produce      json
+// @Router       /api/v2/reports/results [get]
+func ResultGet(c *core.Context) {
+	reportID := cast.ToInt(c.Query("reportId"))
+	resp, err := reportservice.GetResults(reportID)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
 // PreviewRun godoc
 // @Summary      执行一次报表预览
 // @Tags         REPORT
@@ -254,6 +271,22 @@ func AccelerationCheckRun(c *core.Context) {
 	}
 
 	resp, err := reportservice.RunAccelerationCheck(req.ReportID)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+
+	c.JSONOK(resp)
+}
+
+func WhereCheckRun(c *core.Context) {
+	var req view.ReqReportWhereCheck
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+
+	resp, err := reportservice.CheckWhere(req)
 	if err != nil {
 		c.JSONE(1, err.Error(), nil)
 		return

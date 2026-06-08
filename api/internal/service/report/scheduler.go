@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 )
 
 var reportScheduleLocation = loadReportScheduleLocation()
+var reportScheduleParser = cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 
 type Scheduler struct {
 	service *Service
@@ -33,6 +35,21 @@ func loadReportScheduleLocation() *time.Location {
 		return location
 	}
 	return time.FixedZone("CST", 8*60*60)
+}
+
+func normalizeReportScheduleCron(spec string) string {
+	return strings.TrimSpace(spec)
+}
+
+func validateReportScheduleCron(spec string) error {
+	spec = normalizeReportScheduleCron(spec)
+	if spec == "" {
+		return fmt.Errorf("cron 不能为空")
+	}
+	if _, err := reportScheduleParser.Parse(spec); err != nil {
+		return fmt.Errorf("cron 表达式非法: %w", err)
+	}
+	return nil
 }
 
 func (s *Scheduler) Start() error {
@@ -94,7 +111,7 @@ func (s *Scheduler) Reload(reportID int) error {
 			_ = s.service.syncScheduleNextRun(reportID, time.Time{})
 			return nil
 		}
-		spec = schedule.Cron
+		spec = normalizeReportScheduleCron(schedule.Cron)
 	} else {
 		s.service.mu.RLock()
 		item, ok := s.service.reportItem(reportID)
@@ -111,8 +128,15 @@ func (s *Scheduler) Reload(reportID int) error {
 			s.service.mu.RUnlock()
 			return nil
 		}
-		spec = schedule.Cron
+		spec = normalizeReportScheduleCron(schedule.Cron)
 		s.service.mu.RUnlock()
+	}
+	if err := validateReportScheduleCron(spec); err != nil {
+		elog.Warn("reportScheduler", elog.String("step", "skipInvalidCron"), elog.Any("reportId", reportID), elog.String("cron", spec), elog.FieldErr(err))
+		if s.service.useDB() {
+			_ = s.service.syncScheduleNextRun(reportID, time.Time{})
+		}
+		return nil
 	}
 
 	entryID, err := s.cron.AddFunc(spec, func() {

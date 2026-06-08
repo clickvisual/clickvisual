@@ -213,6 +213,124 @@ func TestBuildAcceleratedReportQuery(t *testing.T) {
 	assert.Contains(t, query, "GROUP BY group_value")
 }
 
+func TestBuildReportResultTableQuery(t *testing.T) {
+	query := buildReportResultTableQuery(
+		"dev_log",
+		"cv_report_agg_8",
+		time.Date(2026, 4, 7, 15, 0, 0, 0, time.Local),
+		time.Date(2026, 4, 7, 16, 0, 0, 0, time.Local),
+		200,
+	)
+
+	assert.Contains(t, query, "FROM `dev_log`.`cv_report_agg_8`")
+	assert.Contains(t, query, "sumMerge(sum_value)")
+	assert.Contains(t, query, "sumMerge(count_value)")
+	assert.Contains(t, query, "uniqMerge(uniq_state)")
+	assert.Contains(t, query, "GROUP BY bucket_time, block_key, metric_name, group_kind, group_value")
+	assert.Contains(t, query, "LIMIT 200")
+}
+
+func TestBuildReportWhereCheckQuery(t *testing.T) {
+	query := buildReportWhereCheckQuery(
+		view.ReqReportBuilder{
+			Database:  "dev_log",
+			Table:     "app_stdout",
+			TimeField: "_time_second_",
+		},
+		dbmodel.TimeFieldTypeDT,
+		"lv = 'error'",
+		time.Date(2026, 4, 7, 15, 45, 0, 0, time.Local),
+		time.Date(2026, 4, 7, 16, 0, 0, 0, time.Local),
+	)
+
+	assert.Contains(t, query, "SELECT count() AS row_count FROM `dev_log`.`app_stdout`")
+	assert.Contains(t, query, "`_time_second_` >= toDateTime('2026-04-07 15:45:00', 'Asia/Shanghai')")
+	assert.Contains(t, query, "AND (lv = 'error')")
+}
+
+func TestValidateReportWhereCheckLiteralsSuggestsQuotes(t *testing.T) {
+	err := validateReportWhereCheckLiterals("lv = error")
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "请把 lv = error 改成 lv = 'error'")
+}
+
+func TestBuildAggregationSelectBodiesNormalizesLegacyBareStringLiteral(t *testing.T) {
+	parts, err := buildAggregationSelectBodies(
+		11,
+		view.ReqReportBuilder{
+			Database:  "dev_log",
+			Table:     "app_stdout",
+			TimeField: "_time_second_",
+			TimeRange: "1h",
+			Blocks: []view.ReqReportBlock{
+				{
+					Key:   "default",
+					Label: "默认条件块",
+					Where: "lv = error",
+					Metrics: []view.ReqReportMetric{
+						{Key: "count", Label: "报错日志数量"},
+					},
+				},
+			},
+		},
+		reportAccelerationTopology{SourceTimeType: dbmodel.TimeFieldTypeDT},
+		false,
+		time.Time{},
+		time.Time{},
+	)
+
+	require.NoError(t, err)
+	require.Len(t, parts, 1)
+	assert.Contains(t, parts[0].SelectSQL, "AND (lv = 'error')")
+	assert.NotContains(t, parts[0].SelectSQL, "lv = error")
+}
+
+func TestReportResultPointsFromRowsUsesMetricKind(t *testing.T) {
+	rows := reportResultPointsFromRows(
+		[]map[string]interface{}{
+			{
+				"bucket_time": time.Date(2026, 4, 7, 15, 0, 0, 0, time.Local),
+				"block_key":   "default",
+				"metric_name": "平均耗时",
+				"group_kind":  int64(0),
+				"group_value": "",
+				"sum_value":   float64(30),
+				"count_value": float64(3),
+				"uniq_value":  float64(0),
+			},
+			{
+				"bucket_time": time.Date(2026, 4, 7, 15, 0, 0, 0, time.Local),
+				"block_key":   "default",
+				"metric_name": "去重 Pod",
+				"group_kind":  int64(0),
+				"group_value": "",
+				"sum_value":   float64(0),
+				"count_value": float64(0),
+				"uniq_value":  float64(7),
+			},
+		},
+		view.ReqReportBuilder{
+			Blocks: []view.ReqReportBlock{
+				{
+					Key:   "default",
+					Label: "默认条件块",
+					Metrics: []view.ReqReportMetric{
+						{Key: "custom", Label: "平均耗时", Expression: "avg(cost)"},
+						{Key: "custom", Label: "去重 Pod", Expression: "uniq(pod)"},
+					},
+				},
+			},
+		},
+	)
+
+	require.Len(t, rows, 2)
+	assert.Equal(t, "avg", rows[0].MetricKind)
+	assert.Equal(t, float64(10), rows[0].Value)
+	assert.Equal(t, "uniq", rows[1].MetricKind)
+	assert.Equal(t, float64(7), rows[1].Value)
+}
+
 func TestPreferredClusterNameIgnoresDefaultAlias(t *testing.T) {
 	assert.Equal(t, "default_cluster", preferredClusterName([]string{"default", "default_cluster"}))
 }

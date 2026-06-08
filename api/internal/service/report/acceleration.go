@@ -1031,14 +1031,14 @@ func accelerationPreviewMessage(acceleration dbmodel.ReportAcceleration, found b
 	case dbmodel.ReportAccelerationStatusReady:
 		return ""
 	case dbmodel.ReportAccelerationStatusProvisioning, dbmodel.ReportAccelerationStatusBackfilling, dbmodel.ReportAccelerationStatusRebuilding:
-		return fmt.Sprintf("报表加速处理中，当前状态：%s。请稍后再执行预览。", acceleration.Status)
+		return fmt.Sprintf("报表加速处理中，当前状态：%s；预览执行会临时直查源表。", acceleration.Status)
 	case dbmodel.ReportAccelerationStatusError:
 		if strings.TrimSpace(acceleration.ErrorMessage) != "" {
-			return fmt.Sprintf("报表加速失败：%s", acceleration.ErrorMessage)
+			return fmt.Sprintf("报表加速失败，预览执行会临时直查源表：%s", acceleration.ErrorMessage)
 		}
-		return "报表加速失败，请检查加速配置。"
+		return "报表加速失败，预览执行会临时直查源表。"
 	default:
-		return fmt.Sprintf("报表加速未就绪，当前状态：%s。", acceleration.Status)
+		return fmt.Sprintf("报表加速未就绪，当前状态：%s；预览执行会临时直查源表。", acceleration.Status)
 	}
 }
 

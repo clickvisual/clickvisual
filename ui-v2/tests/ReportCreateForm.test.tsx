@@ -99,6 +99,40 @@ describe("report create form", () => {
     expect(screen.getByRole("button", { name: "确认创建" })).toBeDisabled();
   });
 
+  it("runs a short where check for the current block", async () => {
+    render(
+      <ReportCreateForm
+        instances={[
+          {
+            id: 1,
+            name: "生产集群",
+            desc: "主实例"
+          }
+        ]}
+        databases={[{ name: "default" }]}
+        tables={[{ name: "logs" }]}
+        columns={[
+          { field: "event_time", type: "DateTime" },
+          { field: "level", type: "String" }
+        ]}
+        isSubmitting={false}
+        onInstanceChange={vi.fn().mockResolvedValue(undefined)}
+        onDatabaseChange={vi.fn().mockResolvedValue(undefined)}
+        onLoadColumns={vi.fn().mockResolvedValue(undefined)}
+        onSubmit={vi.fn().mockResolvedValue(undefined)}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("WHERE 条件"), {
+      target: { value: "level = 'error'" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "试跑 15m" }));
+
+    expect(await screen.findByText("WHERE 条件试跑通过")).toBeInTheDocument();
+    expect(screen.getByText("试跑通过，最近 15 分钟命中 12 行。")).toBeInTheDocument();
+    expect(screen.getByText(/SELECT count\(\) AS row_count/)).toBeInTheDocument();
+  });
+
   it("does not generate default level filters when the selected table has no level field", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
@@ -651,5 +685,46 @@ describe("report create form", () => {
     expect(groupBySelect).toHaveTextContent("level");
     expect(groupBySelect).not.toHaveTextContent("event_time");
     expect(groupBySelect).not.toHaveTextContent("duration");
+  });
+
+  it("normalizes bare string where literals when editing existing reports", async () => {
+    render(
+      <ReportCreateForm
+        mode="edit"
+        initialValue={{
+          reportId: 1001,
+          name: "小时报",
+          builder: {
+            instanceId: 1,
+            database: "dev_log",
+            table: "app_stdout",
+            timeField: "time",
+            timeRange: "1h",
+            blocks: [
+              {
+                key: "default",
+                label: "默认条件块",
+                where: "lv = error",
+                metrics: [{ key: "count", label: "总量" }]
+              }
+            ]
+          }
+        }}
+        instances={[{ id: 1, name: "生产集群", desc: "主实例" }]}
+        databases={[{ name: "dev_log" }]}
+        tables={[{ name: "app_stdout" }]}
+        columns={[
+          { field: "time", type: "DateTime" },
+          { field: "lv", type: "String" }
+        ]}
+        isSubmitting={false}
+        onInstanceChange={vi.fn().mockResolvedValue(undefined)}
+        onDatabaseChange={vi.fn().mockResolvedValue(undefined)}
+        onLoadColumns={vi.fn().mockResolvedValue(undefined)}
+        onSubmit={vi.fn().mockResolvedValue(undefined)}
+      />
+    );
+
+    expect(screen.getByLabelText("WHERE 条件")).toHaveValue("lv = 'error'");
   });
 });

@@ -5,11 +5,15 @@ import QueryEditDatabaseModal from "../components/QueryEditDatabaseModal";
 import {
   createQueryShareShortUrl,
   deleteQueryDatabase,
-  deleteQueryTable
+  deleteQueryTable,
+  getQueryFieldStats
 } from "../api/query";
-import { useQueryWorkspace } from "../hooks/useQueryWorkspace";
+import { buildQueryFieldRef, buildStructuredConditions, useQueryWorkspace } from "../hooks/useQueryWorkspace";
 import type {
+  QueryFieldStatsResponse,
+  QueryFieldRef,
   QueryFilterCondition,
+  QueryFilterValueType,
   QuerySourceDatabase,
   QuerySourceInstance,
   QuerySourceTable,
@@ -124,6 +128,13 @@ const QUICK_TIME_RANGES: QuickTimeRange[] = [
 
 function formatCount(value: number) {
   return new Intl.NumberFormat("zh-CN").format(value);
+}
+
+function formatPercentage(value: number) {
+  if (!Number.isFinite(value)) {
+    return "0%";
+  }
+  return `${value.toFixed(value >= 10 ? 1 : 2)}%`;
 }
 
 function roundUpChartAxisMax(value: number) {
@@ -725,6 +736,10 @@ function canCreateConditionFromDetailValue(field: string, value: unknown) {
   return String(value).trim().length > 0 && String(value).trim().length <= 256;
 }
 
+function canOpenFieldStats(field: string, value: unknown) {
+  return Boolean(field) && !/^_?raw/i.test(field) && !(value && typeof value === "object");
+}
+
 function canStartAIAnalysisFromField(field: string, value: unknown) {
   return canCreateConditionFromDetailValue(field, value);
 }
@@ -743,6 +758,18 @@ function createDetailConditionValue(value: unknown) {
   };
 }
 
+function createTypedDetailConditionValue(value: unknown, valueType: QueryFilterValueType) {
+  const sample = createDetailConditionValue(value);
+  if (valueType === "number") {
+    const numeric = typeof sample.value === "number" ? sample.value : Number(sample.value);
+    return Number.isFinite(numeric) ? { value: numeric, valueType } : null;
+  }
+  if (valueType === "datetime") {
+    return { value: String(sample.value), valueType };
+  }
+  return { value: String(sample.value), valueType };
+}
+
 function scalarJsonEntries(value: unknown) {
   const parsed = parseJsonObject(value);
   if (!parsed) {
@@ -752,15 +779,6 @@ function scalarJsonEntries(value: unknown) {
     .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
     .map(([key, item]) => [key, formatLogDetailValue(item)] as [string, string])
     .filter(([, item]) => item.trim().length > 0 && item.trim().length <= 256);
-}
-
-function canUseOuterFieldForNestedJsonValue(row: NormalizedLogRow, field: string, value: string) {
-  const mergedValue = row.parsed[field];
-  return (
-    ((Object.prototype.hasOwnProperty.call(row.original, field) && isPresentLogValue(row.original[field])) ||
-      (Object.prototype.hasOwnProperty.call(row.parsed, field) && isPresentLogValue(mergedValue))) &&
-    canCreateConditionFromDetailValue(field, value)
-  );
 }
 
 function isLogTimeField(field: string) {
@@ -1120,6 +1138,18 @@ export default function QueryPage() {
   const [tableAutoQueryRequest, setTableAutoQueryRequest] = useState<TableAutoQueryRequest | null>(null);
   const [openLogTabs, setOpenLogTabs] = useState<OpenLogTab[]>([]);
   const [conditionsByLogTab, setConditionsByLogTab] = useState<Record<number, QueryFilterCondition[]>>({});
+  const [fieldStatsState, setFieldStatsState] = useState<{
+    field: string;
+    fieldRef: QueryFieldRef;
+    loading: boolean;
+    data: QueryFieldStatsResponse | null;
+    error: string;
+  } | null>(null);
+  const [fieldStatsConfirmState, setFieldStatsConfirmState] = useState<{
+    fieldRef: QueryFieldRef;
+    value: string;
+    actionText: string;
+  } | null>(null);
   const [createDatabaseInstance, setCreateDatabaseInstance] = useState<QuerySourceInstance | null>(null);
   const [accessLogLibraryState, setAccessLogLibraryState] = useState<{
     instance: QuerySourceInstance | null;
@@ -1415,6 +1445,80 @@ export default function QueryPage() {
     updateResultColumnKeys([...DEFAULT_RESULT_COLUMN_KEYS]);
   }
 
+  function closeFieldStatsModal() {
+    setFieldStatsState(null);
+  }
+
+  function buildRawLogFieldStatsRef(field: string, sampleValue: unknown) {
+    const sample = createDetailConditionValue(sampleValue);
+    return {
+      fieldKey: field,
+      displayName: field,
+      source: "json_path" as const,
+      path: field,
+      valueType: sample.valueType === "number" ? "number" as const : "string" as const,
+      isAccelerated: false
+    };
+  }
+
+  function buildDetailFieldRef(field: string, value: unknown) {
+    const sample = createDetailConditionValue(value);
+    return buildQueryFieldRef(
+      {
+        id: "detail_field",
+        field,
+        operator: "=",
+        value: sample.value,
+        valueType: sample.valueType
+      },
+      workspace.analysisFields
+    );
+  }
+
+  async function openFieldStatsModal(field: string, sampleValue: unknown, preferRawLog = false) {
+    if (!workspace.selectedTableId || !timeRange) {
+      setFeedbackMessage("请先选择日志表和时间范围");
+      return;
+    }
+    if (!field || /^_?raw/i.test(field)) {
+      setFeedbackMessage("原始日志字段不适合做值分布统计");
+      return;
+    }
+    const sample = createDetailConditionValue(sampleValue);
+    const fieldRef = preferRawLog
+      ? buildRawLogFieldStatsRef(field, sampleValue)
+      : buildQueryFieldRef(
+          {
+            id: "field_stats",
+            field,
+            operator: "=",
+            value: sample.value,
+            valueType: sample.valueType
+          },
+          workspace.analysisFields
+        );
+    const range = toSecondRange(timeRange);
+    setFieldStatsState({ field, fieldRef, loading: true, data: null, error: "" });
+    try {
+      const data = await getQueryFieldStats({
+        tid: workspace.selectedTableId,
+        st: range.st,
+        et: range.et,
+        page: 1,
+        pageSize: workspace.pageSize,
+        conditions: buildStructuredConditions(workspace.conditions, workspace.analysisFields),
+        sorts: [],
+        displayFields: [],
+        field: fieldRef,
+        limit: 10
+      });
+      setFieldStatsState({ field, fieldRef, loading: false, data, error: "" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "字段统计失败";
+      setFieldStatsState({ field, fieldRef, loading: false, data: null, error: message });
+    }
+  }
+
   function toggleExpandedLog(index: number) {
     setExpandedLogIndex((current) => {
       if (current === index) {
@@ -1448,7 +1552,8 @@ export default function QueryPage() {
     if (!canCreateConditionFromDetailValue(field, value)) {
       return;
     }
-    if (isLogTimeField(field)) {
+    const fieldRef = buildDetailFieldRef(field, value);
+    if (fieldRef.valueType === "datetime" && isLogTimeField(fieldRef.fieldKey)) {
       const timeConditions = createDetailTimeRangeConditions(field, value);
       if (timeConditions.length > 0) {
         const existingRange = timeConditions.every((nextCondition) =>
@@ -1478,7 +1583,14 @@ export default function QueryPage() {
         return;
       }
     }
-    const conditionValue = createDetailConditionValue(value);
+    const conditionValue = createTypedDetailConditionValue(
+      value,
+      fieldRef.valueType === "number" || fieldRef.valueType === "datetime" ? fieldRef.valueType : "string"
+    );
+    if (!conditionValue) {
+      setFeedbackMessage(`${field} 的值无法按数字条件加入查询`);
+      return;
+    }
     const existingCondition = workspace.conditions.find(
       (condition) =>
         condition.field === field &&
@@ -1528,12 +1640,32 @@ export default function QueryPage() {
     setFeedbackMessage(`已添加全局匹配 ${text}`);
   }
 
-  function addConditionFromNestedJsonValue(row: NormalizedLogRow, field: string, value: string) {
-    if (canUseOuterFieldForNestedJsonValue(row, field, value)) {
-      addConditionFromLogDetail(field, value);
+  function addConditionFromFieldStatsValue(fieldRef: QueryFieldRef, value: string) {
+    if (fieldRef.source !== "column" || !fieldRef.isAccelerated) {
+      addGlobalMatchFromLogDetailValue(value);
       return;
     }
-    addGlobalMatchFromLogDetailValue(value);
+    addConditionFromLogDetail(fieldRef.fieldKey, value);
+  }
+
+  function requestAddConditionFromFieldStatsValue(fieldRef: QueryFieldRef, value: string) {
+    setFieldStatsConfirmState({
+      fieldRef,
+      value,
+      actionText:
+        fieldRef.source === "column" && fieldRef.isAccelerated
+          ? `${fieldRef.fieldKey} = ${truncate(value, 120)}`
+          : `全局匹配：${truncate(value, 120)}`
+    });
+  }
+
+  function confirmAddConditionFromFieldStatsValue() {
+    if (!fieldStatsConfirmState) {
+      return;
+    }
+    addConditionFromFieldStatsValue(fieldStatsConfirmState.fieldRef, fieldStatsConfirmState.value);
+    setFieldStatsConfirmState(null);
+    closeFieldStatsModal();
   }
 
   function openLinkQueryModal(row: NormalizedLogRow, field: string, value: unknown) {
@@ -2370,16 +2502,32 @@ export default function QueryPage() {
                                     return (
                                       <Fragment key={key}>
                                         <div className="cv-query-detail__row">
-                                          <strong title={key}>{key}</strong>
+                                          <strong title={key}>
+                                            {canOpenFieldStats(key, value) ? (
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__key-button"
+                                                title={`查看 ${key} 的值分布`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  void openFieldStatsModal(key, value, !isPresentLogValue(row.original[key]));
+                                                }}
+                                              >
+                                                {key}
+                                              </button>
+                                            ) : (
+                                              key
+                                            )}
+                                          </strong>
                                           {canCreateConditionFromDetailValue(key, value) ? (
                                             <span className="cv-query-detail__value-actions">
                                               <button
                                                 type="button"
                                                 className="cv-query-detail__value-button"
-                                                title={`添加条件：${key} = ${formatLogDetailValue(value)}`}
+                                                title={`查看 ${key} = ${formatLogDetailValue(value)} 的分布`}
                                                 onClick={(event) => {
                                                   event.stopPropagation();
-                                                  addConditionFromLogDetail(key, value);
+                                                  void openFieldStatsModal(key, value, !isPresentLogValue(row.original[key]));
                                                 }}
                                               >
                                                 {formatLogDetailValue(value)}
@@ -2399,29 +2547,35 @@ export default function QueryPage() {
                                               ) : null}
                                             </span>
                                           ) : (
-                                            <span title={formatLogDetailValue(value)}>{formatLogDetailValue(value)}</span>
+                                            <span className="cv-query-detail__value-text" title={formatLogDetailValue(value)}>
+                                              {formatLogDetailValue(value)}
+                                            </span>
                                           )}
                                         </div>
                                         {nestedEntries.map(([nestedKey, nestedValue]) => (
                                           <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
-                                            <strong title={`${key}.${nestedKey}`}>{nestedKey}</strong>
+                                            <strong title={`${key}.${nestedKey}`}>
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__key-button"
+                                                title={`查看 ${nestedKey} 的值分布`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  void openFieldStatsModal(nestedKey, nestedValue, true);
+                                                }}
+                                              >
+                                                {nestedKey}
+                                              </button>
+                                            </strong>
                                             <span className="cv-query-detail__value-actions">
                                               <button
                                                 type="button"
                                                 className="cv-query-detail__value-button"
-                                                title={
-                                                  canUseOuterFieldForNestedJsonValue(row, nestedKey, nestedValue)
-                                                    ? `添加条件：${nestedKey} = ${nestedValue}`
-                                                    : `添加全局匹配：${nestedValue}`
-                                                }
-                                                aria-label={
-                                                  canUseOuterFieldForNestedJsonValue(row, nestedKey, nestedValue)
-                                                    ? `从 JSON 添加条件 ${nestedKey} = ${nestedValue}`
-                                                    : `从 JSON 添加全局匹配 ${nestedValue}`
-                                                }
+                                                title={`查看 ${nestedKey} = ${nestedValue} 的分布`}
+                                                aria-label={`查看 JSON 字段 ${nestedKey} 的值分布`}
                                                 onClick={(event) => {
                                                   event.stopPropagation();
-                                                  addConditionFromNestedJsonValue(row, nestedKey, nestedValue);
+                                                  void openFieldStatsModal(nestedKey, nestedValue, true);
                                                 }}
                                               >
                                                 {nestedValue}
@@ -2503,6 +2657,107 @@ export default function QueryPage() {
         items={treeContextMenu.items}
         onClose={closeInstanceContextMenu}
       />
+
+      {fieldStatsState ? (
+        <div className="cv-report-modal-backdrop" role="presentation" onClick={closeFieldStatsModal}>
+          <section
+            className="cv-report-modal cv-query-modal cv-query-field-stats-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${fieldStatsState.field} 字段值分布`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 className="cv-panel-title">{fieldStatsState.field}</h2>
+                <p className="cv-panel-description">
+                  当前时间范围和筛选条件下的字段值占比
+                  {fieldStatsState.data ? ` · 非空 ${formatCount(fieldStatsState.data.total)} 条` : ""}
+                  {fieldStatsState.fieldRef.source !== "column" || !fieldStatsState.fieldRef.isAccelerated
+                    ? " · 来源 _raw_log_"
+                    : " · 来源外层字段"}
+                  {" · 点击值加入搜索条件"}
+                </p>
+              </div>
+              <button type="button" className="cv-secondary-button" onClick={closeFieldStatsModal}>
+                关闭
+              </button>
+            </div>
+            <div className="cv-query-field-stats">
+              {fieldStatsState.loading ? <div className="cv-query-empty-text">统计中...</div> : null}
+              {fieldStatsState.error ? (
+                <div className="cv-query-alert" role="alert">{fieldStatsState.error}</div>
+              ) : null}
+              {!fieldStatsState.loading && !fieldStatsState.error && fieldStatsState.data?.items.length === 0 ? (
+                <div className="cv-query-empty-text">当前条件下没有非空字段值</div>
+              ) : null}
+              {fieldStatsState.data?.items.map((item) => (
+                <button
+                  key={`${item.value}-${item.count}`}
+                  type="button"
+                  className="cv-query-field-stats__item"
+                  title={
+                    fieldStatsState.fieldRef.source === "column" && fieldStatsState.fieldRef.isAccelerated
+                      ? `添加条件：${fieldStatsState.field} = ${item.value}`
+                      : `添加全局匹配：${item.value}`
+                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    requestAddConditionFromFieldStatsValue(fieldStatsState.fieldRef, item.value);
+                  }}
+                >
+                  <span className="cv-query-field-stats__value">{item.value}</span>
+                  <span className="cv-query-field-stats__bar" aria-hidden="true">
+                    <span style={{ width: `${Math.max(item.percentage, 1)}%` }} />
+                  </span>
+                  <span className="cv-query-field-stats__meta">
+                    <strong>{formatPercentage(item.percentage)}</strong>
+                    <span>{formatCount(item.count)}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {fieldStatsConfirmState ? (
+        <div
+          className="cv-report-modal-backdrop cv-query-confirm-backdrop"
+          role="presentation"
+          onClick={() => setFieldStatsConfirmState(null)}
+        >
+          <section
+            className="cv-report-modal cv-query-field-stats-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-label="确认加入搜索条件"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-query-field-stats-confirm__header">
+              <div>
+                <h2 className="cv-panel-title">加入搜索条件</h2>
+                <p className="cv-panel-description">确认后会追加到当前查询条件中。</p>
+              </div>
+              <button type="button" className="cv-secondary-button" onClick={() => setFieldStatsConfirmState(null)}>
+                关闭
+              </button>
+            </div>
+            <div className="cv-query-field-stats-confirm__body">
+              <span>将加入</span>
+              <code title={fieldStatsConfirmState.actionText}>{fieldStatsConfirmState.actionText}</code>
+            </div>
+            <div className="cv-query-modal__footer">
+              <button type="button" className="cv-secondary-button" onClick={() => setFieldStatsConfirmState(null)}>
+                取消
+              </button>
+              <button type="button" className="cv-action-button" onClick={confirmAddConditionFromFieldStatsValue}>
+                加入查询
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       {conditionModalOpen && conditionDraft ? (
         <div className="cv-report-modal-backdrop" role="presentation" onClick={closeConditionModal}>

@@ -134,6 +134,20 @@ func TestUpsertScheduleReloadsSchedulerWithoutDeadlock(t *testing.T) {
 	}
 }
 
+func TestUpsertScheduleRejectsEmptyCronWhenEnabled(t *testing.T) {
+	ResetForTest()
+
+	_, err := defaultService.UpsertSchedule(view.ReqReportSchedule{
+		NodeID:     1001,
+		Typ:        0,
+		ChannelIDs: []int{201},
+		Cron:       " ",
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cron 不能为空")
+}
+
 func TestGetWorkspaceIncludesSchedulerRuntime(t *testing.T) {
 	ResetForTest()
 

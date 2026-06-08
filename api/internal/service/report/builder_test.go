@@ -92,6 +92,37 @@ func TestBuildReportQuery(t *testing.T) {
 	}
 }
 
+func TestBuildWhereClauseRejectsBareStringLiteral(t *testing.T) {
+	whereClause, err := buildWhereClause("lv = error")
+
+	require.Error(t, err)
+	assert.Empty(t, whereClause)
+	assert.Contains(t, err.Error(), "请把 lv = error 改成 lv = 'error'")
+}
+
+func TestBuildReportQueryNormalizesLegacyBareStringLiteral(t *testing.T) {
+	queryText, err := buildReportQuery(view.ReqReportBuilder{
+		Database:  "dev_log",
+		Table:     "app_stdout",
+		TimeField: "_time_second_",
+		TimeRange: "1h",
+		Blocks: []view.ReqReportBlock{
+			{
+				Key:   "default",
+				Label: "默认条件块",
+				Where: "lv = error",
+				Metrics: []view.ReqReportMetric{
+					{Key: "count", Label: "报错日志数量"},
+				},
+			},
+		},
+	}, time.Date(2026, 6, 5, 15, 0, 0, 0, time.FixedZone("CST", 8*3600)))
+
+	require.NoError(t, err)
+	assert.Contains(t, queryText, "AND (lv = 'error')")
+	assert.NotContains(t, queryText, "lv = error")
+}
+
 func TestQuoteTableWithoutDatabase(t *testing.T) {
 	assert.Equal(t, "`cv_report_agg_8`", quoteTable("", "cv_report_agg_8"))
 	assert.Equal(t, "`cv``report`.`agg``8`", quoteTable("cv`report", "agg`8"))

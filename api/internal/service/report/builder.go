@@ -44,11 +44,12 @@ func normalizeReportBlocks(req view.ReqReportBuilder) []view.ReqReportBlock {
 			if block.Metrics == nil {
 				block.Metrics = []view.ReqReportMetric{}
 			}
+			block.Where = normalizeReportWhereLiteralQuotes(block.Where)
 			blocks = append(blocks, block)
 		}
 		return blocks
 	}
-	return []view.ReqReportBlock{defaultReportBlock(req.Where, req.Metrics)}
+	return []view.ReqReportBlock{defaultReportBlock(normalizeReportWhereLiteralQuotes(req.Where), req.Metrics)}
 }
 
 func sanitizeReportBuilder(req view.ReqReportBuilder) view.ReqReportBuilder {
@@ -312,6 +313,9 @@ func buildWhereClause(raw string) (string, error) {
 	}
 	if strings.Contains(trimmed, ";") {
 		return "", fmt.Errorf("where 不能为空或包含非法多语句")
+	}
+	if err := validateReportWhereCheckLiterals(trimmed); err != nil {
+		return "", err
 	}
 	return fmt.Sprintf(" AND (%s)", trimmed), nil
 }

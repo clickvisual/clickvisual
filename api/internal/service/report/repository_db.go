@@ -211,6 +211,13 @@ func (s *Service) upsertScheduleFromDB(req view.ReqReportSchedule) (view.RespRep
 	if len(req.ChannelIDs) == 0 {
 		return view.RespReportSchedule{}, fmt.Errorf("channelIds 不能为空")
 	}
+	cronSpec := normalizeReportScheduleCron(req.Cron)
+	status := reportScheduleStatusByTyp(req.Typ)
+	if status == dbmodel.ReportScheduleStatusEnabled {
+		if err := validateReportScheduleCron(cronSpec); err != nil {
+			return view.RespReportSchedule{}, err
+		}
+	}
 
 	report, err := s.getReportByIDFromDB(req.NodeID)
 	if err != nil {
@@ -219,8 +226,8 @@ func (s *Service) upsertScheduleFromDB(req view.ReqReportSchedule) (view.RespRep
 
 	schedule := dbmodel.ReportSchedule{
 		ReportID:      req.NodeID,
-		Cron:          req.Cron,
-		Status:        reportScheduleStatusByTyp(req.Typ),
+		Cron:          cronSpec,
+		Status:        status,
 		ChannelIDs:    append([]int(nil), req.ChannelIDs...),
 		IsRetry:       req.IsRetry,
 		RetryTimes:    req.RetryTimes,
@@ -436,8 +443,7 @@ func (s *Service) getPreviewFromDB(reportID int) (view.RespReportExecutionPrevie
 	canRun := hasSchedule &&
 		report.Status == dbmodel.ReportStatusEnabled &&
 		schedule.Status == dbmodel.ReportScheduleStatusEnabled &&
-		len(schedule.ChannelIDs) > 0 &&
-		(!isAccelerationManagedReport(report) || acceleration.Status == dbmodel.ReportAccelerationStatusReady)
+		len(schedule.ChannelIDs) > 0
 
 	nextRunAt := formatUnix(schedule.NextRunAt)
 	if nextRunAt == "" {
@@ -738,31 +744,50 @@ func (s *Service) runExecutionQuery(report dbmodel.Report, startedAt time.Time) 
 		return nil, "", err
 	}
 	if !found || acceleration.Status != dbmodel.ReportAccelerationStatusReady {
-		return s.runDirectExecutionFallback(report, nil)
+		return s.runDirectExecutionFallback(report, nil, startedAt)
 	}
 	hasWindowData, err := s.accelerationWindowHasData(report, acceleration, startedAt)
 	if err != nil {
-		return s.runDirectExecutionFallback(report, err)
+		return s.runDirectExecutionFallback(report, err, startedAt)
 	}
 	if !hasWindowData {
-		return s.runDirectExecutionFallback(report, fmt.Errorf("聚合窗口无数据"))
+		return s.runDirectExecutionFallback(report, fmt.Errorf("聚合窗口无数据"), startedAt)
 	}
 	queryText, err := buildAcceleratedReportQuery(report, acceleration, startedAt)
 	if err != nil {
-		return s.runDirectExecutionFallback(report, err)
+		return s.runDirectExecutionFallback(report, err, startedAt)
 	}
 	rows, err := s.runQueryStage(queryText)
 	if err != nil {
-		return s.runDirectExecutionFallback(report, err)
+		return s.runDirectExecutionFallback(report, err, startedAt)
 	}
 	if len(rows) == 0 {
-		return s.runDirectExecutionFallback(report, fmt.Errorf("聚合表返回空结果"))
+		return s.runDirectExecutionFallback(report, fmt.Errorf("聚合表返回空结果"), startedAt)
 	}
 	return rows, reportQuerySourceAggregation, nil
 }
 
-func (s *Service) runDirectExecutionFallback(report dbmodel.Report, reason error) ([]map[string]interface{}, reportQuerySource, error) {
-	rows, err := s.runQueryStage(report.QueryText)
+func (s *Service) runDirectExecutionFallback(report dbmodel.Report, reason error, startedAt time.Time) ([]map[string]interface{}, reportQuerySource, error) {
+	queryText := report.QueryText
+	if isAccelerationManagedReport(report) {
+		builder := resolveReportBuilder(report)
+		if builder == nil {
+			err := fmt.Errorf("报表 builder 不存在")
+			if reason != nil {
+				return nil, "", fmt.Errorf("聚合查询失败且源表直查 SQL 生成失败: aggregation=%v; direct=%w", reason, err)
+			}
+			return nil, "", err
+		}
+		rebuilt, err := buildReportQuery(*builder, startedAt)
+		if err != nil {
+			if reason != nil {
+				return nil, "", fmt.Errorf("聚合查询失败且源表直查 SQL 生成失败: aggregation=%v; direct=%w", reason, err)
+			}
+			return nil, "", err
+		}
+		queryText = rebuilt
+	}
+	rows, err := s.runQueryStage(queryText)
 	if err != nil {
 		if reason != nil {
 			return nil, "", fmt.Errorf("聚合查询失败且源表直查失败: aggregation=%v; direct=%w", reason, err)
@@ -1271,7 +1296,7 @@ func (s *Service) enabledReportIDsFromDB() ([]int, error) {
 	if err := invoker.Db.Table(dbmodel.TableNameReport+" AS r").
 		Select("r.id").
 		Joins("JOIN "+dbmodel.TableNameReportSchedule+" AS s ON s.report_id = r.id").
-		Where("r.status = ? AND s.status = ?", dbmodel.ReportStatusEnabled, dbmodel.ReportScheduleStatusEnabled).
+		Where("r.status = ? AND s.status = ? AND TRIM(s.cron) <> ?", dbmodel.ReportStatusEnabled, dbmodel.ReportScheduleStatusEnabled, "").
 		Order("r.id ASC").
 		Scan(&rows).Error; err != nil {
 		return nil, err

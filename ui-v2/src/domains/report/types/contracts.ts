@@ -164,6 +164,44 @@ export interface ReportAccelerationBackfillResult {
   check: ReportAccelerationCheck;
 }
 
+export interface ReportResultPoint {
+  bucketTime: string;
+  blockKey: string;
+  blockLabel: string;
+  metricName: string;
+  metricKind: string;
+  groupKind: number;
+  groupValue: string;
+  value: number;
+  sumValue: number;
+  countValue: number;
+  uniqValue: number;
+}
+
+export interface ReportResultSeries {
+  seriesKey: string;
+  blockKey: string;
+  blockLabel: string;
+  metricName: string;
+  metricKind: string;
+  groupKind: number;
+  groupValue: string;
+  total: number;
+  points: ReportResultPoint[];
+}
+
+export interface ReportResultData {
+  reportId: number;
+  source: string;
+  database: string;
+  targetTable: string;
+  windowStart: string;
+  windowEnd: string;
+  bucketCount: number;
+  series: ReportResultSeries[];
+  rows: ReportResultPoint[];
+}
+
 export interface ReportWorkspace {
   activeReportId: number;
   list: ReportListItem[];
@@ -202,6 +240,22 @@ export interface ReportBuilderInput {
   where: string;
   metrics: ReportMetricInput[];
   blocks: ReportBlockInput[];
+}
+
+export interface ReportWhereCheckPayload {
+  builder: ReportBuilderInput;
+  where: string;
+  windowSeconds: number;
+}
+
+export interface ReportWhereCheckResult {
+  passed: boolean;
+  rowCount: number;
+  windowStart: string;
+  windowEnd: string;
+  windowSeconds: number;
+  query: string;
+  message: string;
 }
 
 export interface ReportCreatePayload {
