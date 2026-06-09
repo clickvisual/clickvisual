@@ -2674,7 +2674,7 @@ export default function QueryPage() {
                   当前时间范围和筛选条件下的字段值占比
                   {fieldStatsState.data ? ` · 非空 ${formatCount(fieldStatsState.data.total)} 条` : ""}
                   {fieldStatsState.fieldRef.source !== "column" || !fieldStatsState.fieldRef.isAccelerated
-                    ? " · 来源 _raw_log_"
+                    ? " · 来源日志内容字段"
                     : " · 来源外层字段"}
                   {" · 点击值加入搜索条件"}
                 </p>

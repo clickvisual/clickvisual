@@ -235,6 +235,9 @@ func normalizeLogLevelValue(value interface{}) interface{} {
 }
 
 func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr string, execution string, highCost bool, err error) {
+	if isRawLogFieldRef(field) {
+		return rawLogColumnExpr(ctx), "column", false, nil
+	}
 	if field.IsAccelerated && field.AcceleratedCol != "" {
 		return fmt.Sprintf("`%s`", field.AcceleratedCol), "column", false, nil
 	}
@@ -254,6 +257,24 @@ func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr st
 	default:
 		return "", "", false, fmt.Errorf("unsupported field source: %s", field.Source)
 	}
+}
+
+func isRawLogFieldRef(field view.QueryFieldRef) bool {
+	for _, item := range []string{field.FieldKey, field.Path, field.AcceleratedCol} {
+		switch strings.ToLower(strings.TrimSpace(item)) {
+		case "_raw_log_", "_raw_log", "raw_log":
+			return true
+		}
+	}
+	return false
+}
+
+func rawLogColumnExpr(ctx CompileContext) string {
+	rawColumn := strings.TrimSpace(ctx.RawJSONColumn)
+	if rawColumn == "" {
+		rawColumn = "_raw_log_"
+	}
+	return rawColumn
 }
 
 func pageSizeOrDefault(size uint32) uint32 {

@@ -79,6 +79,38 @@ func TestCompileUsesJSONPathExecutionForNonAcceleratedField(t *testing.T) {
 	assert.True(t, plan.PlannedConditions[0].HighCost)
 }
 
+func TestCompileFieldStatsUsesConfiguredRawColumnForJSONKey(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid: 1,
+			ST:  1710000000,
+			ET:  1710003600,
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:      "city",
+			DisplayName:   "city",
+			Source:        view.QueryFieldSourceJSONPath,
+			Path:          "city",
+			ValueType:     view.QueryValueTypeString,
+			IsAccelerated: false,
+		},
+		Limit: 10,
+	}
+
+	statsSQL, totalSQL, _, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`bigdata`.`web_events_all`",
+		TimeField:     "ts",
+		TimeFieldType: 0,
+		RawJSONColumn: "body",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "JSONExtractString(body, 'city')")
+	assert.Contains(t, totalSQL, "JSONExtractString(body, 'city')")
+	assert.NotContains(t, statsSQL, "_raw_log_")
+	assert.NotContains(t, totalSQL, "_raw_log_")
+}
+
 func TestCompileRawLogContainsMatchesEscapedJSONQuotes(t *testing.T) {
 	req := view.QueryRequestV2{
 		Tid: 1,
@@ -109,8 +141,42 @@ func TestCompileRawLogContainsMatchesEscapedJSONQuotes(t *testing.T) {
 
 	sql, _, err := Compile(req, ctx)
 	require.NoError(t, err)
-	assert.Contains(t, sql, "`_raw_log_` LIKE '%sum(container_fs_usage_bytes{namespace=\"sdk-open\"})%'")
-	assert.Contains(t, sql, "`_raw_log_` LIKE '%sum(container_fs_usage_bytes{namespace=\\\\\"sdk-open\\\\\"})%'")
+	assert.Contains(t, sql, "_raw_log_ LIKE '%sum(container_fs_usage_bytes{namespace=\"sdk-open\"})%'")
+	assert.Contains(t, sql, "_raw_log_ LIKE '%sum(container_fs_usage_bytes{namespace=\\\\\"sdk-open\\\\\"})%'")
+}
+
+func TestCompileRawLogLogicalFieldUsesConfiguredRawColumn(t *testing.T) {
+	req := view.QueryRequestV2{
+		Tid: 1,
+		ST:  1710000000,
+		ET:  1710003600,
+		Conditions: []view.QueryConditionV2{
+			{
+				Field: view.QueryFieldRef{
+					FieldKey:       "_raw_log_",
+					DisplayName:    "全局匹配",
+					Source:         view.QueryFieldSourceColumn,
+					Path:           "_raw_log_",
+					ValueType:      view.QueryValueTypeString,
+					IsAccelerated:  true,
+					AcceleratedCol: "_raw_log_",
+				},
+				Operator: view.QueryOperatorContains,
+				Value:    "Beijing",
+			},
+		},
+	}
+	ctx := CompileContext{
+		TableName:     "`bigdata`.`web_events_all`",
+		TimeField:     "ts",
+		TimeFieldType: 0,
+		RawJSONColumn: "body",
+	}
+
+	sql, _, err := Compile(req, ctx)
+	require.NoError(t, err)
+	assert.Contains(t, sql, "body LIKE '%Beijing%'")
+	assert.NotContains(t, sql, "_raw_log_ LIKE")
 }
 
 func TestCompileNormalizesLogLevelEquality(t *testing.T) {
