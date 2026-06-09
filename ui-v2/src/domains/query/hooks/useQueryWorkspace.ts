@@ -749,7 +749,7 @@ export function useQueryWorkspace(
           field: GLOBAL_MATCH_FIELD,
           source: "column" as const,
           sourceLabel: "全局匹配",
-          queryLabel: "_raw_log_ LIKE",
+          queryLabel: "日志内容 LIKE",
           valueType: "string" as const
         },
         ...analysisFields.baseFields.map((item) => ({

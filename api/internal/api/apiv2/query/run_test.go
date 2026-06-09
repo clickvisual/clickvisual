@@ -108,3 +108,8 @@ func TestRawLogFieldStatsFallbackRequestRewritesFieldAndFilters(t *testing.T) {
 	assert.Equal(t, "status", next.Conditions[0].Field.Path)
 	assert.False(t, next.Conditions[0].Field.IsAccelerated)
 }
+
+func TestRawLogColumnOrDefaultUsesStoredRawLogField(t *testing.T) {
+	assert.Equal(t, "body", rawLogColumnOrDefault(" body "))
+	assert.Equal(t, "_raw_log_", rawLogColumnOrDefault(""))
+}
