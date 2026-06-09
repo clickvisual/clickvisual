@@ -2,6 +2,7 @@ package query
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
@@ -63,6 +64,14 @@ func buildCompileContext(tid int) (querycompile.CompileContext, error) {
 		TableName:     fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name),
 		TimeField:     tableInfo.GetTimeField(),
 		TimeFieldType: tableInfo.TimeFieldType,
-		RawJSONColumn: "_raw_log_",
+		RawJSONColumn: rawLogColumnOrDefault(tableInfo.RawLogField),
 	}, nil
+}
+
+func rawLogColumnOrDefault(rawLogField string) string {
+	rawLogField = strings.TrimSpace(rawLogField)
+	if rawLogField == "" {
+		return "_raw_log_"
+	}
+	return rawLogField
 }

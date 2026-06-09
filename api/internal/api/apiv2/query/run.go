@@ -356,7 +356,7 @@ func buildRunContext(tid int) (querycompile.CompileContext, dbmodel.BaseTable, e
 		TableName:     fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name),
 		TimeField:     tableInfo.GetTimeField(),
 		TimeFieldType: tableInfo.TimeFieldType,
-		RawJSONColumn: "_raw_log_",
+		RawJSONColumn: rawLogColumnOrDefault(tableInfo.RawLogField),
 	}, tableInfo, nil
 }
 
