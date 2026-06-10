@@ -238,6 +238,9 @@ func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr st
 	if isRawLogFieldRef(field) {
 		return rawLogColumnExpr(ctx), "column", false, nil
 	}
+	if isContextTimeFieldRef(field, ctx) {
+		return normalizedTimeField(ctx), "column", false, nil
+	}
 	if field.IsAccelerated && field.AcceleratedCol != "" {
 		return fmt.Sprintf("`%s`", field.AcceleratedCol), "column", false, nil
 	}
@@ -248,7 +251,9 @@ func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr st
 			col = field.AcceleratedCol
 		}
 		return fmt.Sprintf("`%s`", col), "column", false, nil
-	case view.QueryFieldSourceJSONPath, view.QueryFieldSourceTagPath, view.QueryFieldSourceDerived:
+	case view.QueryFieldSourceTagPath:
+		return buildTagPathExpr(field.Path, field.ValueType)
+	case view.QueryFieldSourceJSONPath, view.QueryFieldSourceDerived:
 		if nestedPath, ok := ctx.NestedJSONPaths[field.Path]; ok && nestedPath != "" {
 			innerPath := strings.TrimPrefix(field.Path, nestedPath+".")
 			return buildNestedJSONExpr(ctx.RawJSONColumn, nestedPath, innerPath, field.ValueType)
@@ -259,10 +264,55 @@ func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr st
 	}
 }
 
+func buildTagPathExpr(path string, valueType view.QueryValueType) (string, string, bool, error) {
+	parts := strings.Split(strings.TrimSpace(path), ".")
+	if len(parts) < 2 || strings.TrimSpace(parts[0]) == "" || strings.TrimSpace(parts[len(parts)-1]) == "" {
+		return "", "", false, fmt.Errorf("tag path %s is incomplete", path)
+	}
+	column := strings.TrimSpace(parts[0])
+	tagKey := strings.TrimSpace(parts[len(parts)-1])
+	pattern := fmt.Sprintf("%s=([^\",\\]]+)", escapeRegexpLiteral(tagKey))
+	expr := fmt.Sprintf("extract(toString(`%s`), '%s')", strings.ReplaceAll(column, "`", "``"), escapeString(pattern))
+	return expr, "tag_path", true, nil
+}
+
+func escapeRegexpLiteral(value string) string {
+	replacer := strings.NewReplacer(
+		`\`, `\\`,
+		`.`, `\.`,
+		`+`, `\+`,
+		`*`, `\*`,
+		`?`, `\?`,
+		`^`, `\^`,
+		`$`, `\$`,
+		`(`, `\(`,
+		`)`, `\)`,
+		`[`, `\[`,
+		`]`, `\]`,
+		`{`, `\{`,
+		`}`, `\}`,
+		`|`, `\|`,
+	)
+	return replacer.Replace(value)
+}
+
 func isRawLogFieldRef(field view.QueryFieldRef) bool {
 	for _, item := range []string{field.FieldKey, field.Path, field.AcceleratedCol} {
 		switch strings.ToLower(strings.TrimSpace(item)) {
 		case "_raw_log_", "_raw_log", "raw_log":
+			return true
+		}
+	}
+	return false
+}
+
+func isContextTimeFieldRef(field view.QueryFieldRef, ctx CompileContext) bool {
+	timeField := strings.TrimSpace(ctx.TimeField)
+	if timeField == "" {
+		timeField = "_time_second_"
+	}
+	for _, item := range []string{field.FieldKey, field.Path, field.AcceleratedCol} {
+		if strings.TrimSpace(item) == timeField {
 			return true
 		}
 	}
