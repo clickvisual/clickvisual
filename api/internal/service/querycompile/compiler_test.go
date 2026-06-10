@@ -111,6 +111,102 @@ func TestCompileFieldStatsUsesConfiguredRawColumnForJSONKey(t *testing.T) {
 	assert.NotContains(t, totalSQL, "_raw_log_")
 }
 
+func TestCompileFieldStatsMapsJSONPathTimeFieldToColumn(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid: 1,
+			ST:  1710000000,
+			ET:  1710003600,
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:      "ts",
+			DisplayName:   "ts",
+			Source:        view.QueryFieldSourceJSONPath,
+			Path:          "ts",
+			ValueType:     view.QueryValueTypeString,
+			IsAccelerated: false,
+		},
+		Limit: 10,
+	}
+
+	statsSQL, totalSQL, _, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`metrics`.`samples`",
+		TimeField:     "ts",
+		TimeFieldType: 0,
+		RawJSONColumn: "_raw_log_",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "ifNull(toString(ts), '') != ''")
+	assert.Contains(t, totalSQL, "ifNull(toString(ts), '') != ''")
+	assert.NotContains(t, statsSQL, "JSONExtractString(_raw_log_, 'ts')")
+	assert.NotContains(t, totalSQL, "JSONExtractString(_raw_log_, 'ts')")
+}
+
+func TestCompileFieldStatsSupportsTagKeyValueArray(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid: 1,
+			ST:  1710000000,
+			ET:  1710003600,
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:      "tags.prometheus_replica",
+			DisplayName:   "prometheus_replica",
+			Source:        view.QueryFieldSourceTagPath,
+			Path:          "tags.prometheus_replica",
+			ValueType:     view.QueryValueTypeString,
+			IsAccelerated: false,
+		},
+		Limit: 10,
+	}
+
+	statsSQL, totalSQL, plan, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`metrics`.`samples`",
+		TimeField:     "ts",
+		TimeFieldType: 0,
+		RawJSONColumn: "_raw_log_",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "extract(toString(`tags`), 'prometheus_replica=")
+	assert.Contains(t, totalSQL, "extract(toString(`tags`), 'prometheus_replica=")
+	assert.NotContains(t, statsSQL, "JSONExtractString(_raw_log_, 'prometheus_replica')")
+	assert.NotContains(t, totalSQL, "JSONExtractString(_raw_log_, 'prometheus_replica')")
+	require.Len(t, plan.PlannedConditions, 1)
+	assert.Equal(t, "tag_path", plan.PlannedConditions[0].Execution)
+}
+
+func TestCompileFieldStatsSupportsKeyValueArrayFromAnyParentField(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid: 1,
+			ST:  1710000000,
+			ET:  1710003600,
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:      "labels.cluster",
+			DisplayName:   "cluster",
+			Source:        view.QueryFieldSourceTagPath,
+			Path:          "labels.cluster",
+			ValueType:     view.QueryValueTypeString,
+			IsAccelerated: false,
+		},
+		Limit: 10,
+	}
+
+	statsSQL, _, _, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`metrics`.`samples`",
+		TimeField:     "ts",
+		TimeFieldType: 0,
+		RawJSONColumn: "_raw_log_",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "extract(toString(`labels`), 'cluster=")
+	assert.NotContains(t, statsSQL, "`tags`")
+}
+
 func TestCompileRawLogContainsMatchesEscapedJSONQuotes(t *testing.T) {
 	req := view.QueryRequestV2{
 		Tid: 1,

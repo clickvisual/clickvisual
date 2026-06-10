@@ -108,6 +108,11 @@ type QuickTimeRange = {
   label: string;
   minutes: number;
 };
+type LogDetailNestedEntry = {
+  key: string;
+  value: string;
+  fieldRef?: QueryFieldRef;
+};
 
 const DEFAULT_RESULT_COLUMN_KEYS = ["__time", "__level", "__message"] as const;
 const RESULT_COLUMN_STORAGE_PREFIX = "clickvisual-v2-query-result-columns";
@@ -378,6 +383,25 @@ function parseJsonObject(value: unknown): Record<string, unknown> | null {
     return null;
   }
   return null;
+}
+
+function parseJsonArray(value: unknown): unknown[] | null {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (typeof value !== "string") {
+    return null;
+  }
+  const text = value.trim();
+  if (!text.startsWith("[")) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function parseDurationToMs(value: unknown) {
@@ -703,6 +727,12 @@ function sanitizeLogJsonValue(value: unknown): unknown {
     if (parsedJson) {
       return sanitizeLogJsonObject(parsedJson);
     }
+    const parsedJsonArray = parseJsonArray(value);
+    if (parsedJsonArray) {
+      return parsedJsonArray
+        .map((item) => sanitizeLogJsonValue(item))
+        .filter((item) => item !== undefined);
+    }
     return stripAnsi(value);
   }
   return value;
@@ -770,15 +800,54 @@ function createTypedDetailConditionValue(value: unknown, valueType: QueryFilterV
   return { value: String(sample.value), valueType };
 }
 
-function scalarJsonEntries(value: unknown) {
+function scalarJsonEntries(parentKey: string, value: unknown) {
   const parsed = parseJsonObject(value);
-  if (!parsed) {
-    return [] as Array<[string, string]>;
+  if (parsed) {
+    return Object.entries(parsed)
+      .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
+      .map(([key, item]) => ({
+        key,
+        value: formatLogDetailValue(item),
+        fieldRef: {
+          fieldKey: `${parentKey}.${key}`,
+          displayName: key,
+          source: "json_path",
+          path: `${parentKey}.${key}`,
+          valueType: createDetailConditionValue(item).valueType,
+          isAccelerated: false
+        }
+      }) as LogDetailNestedEntry)
+      .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
   }
-  return Object.entries(parsed)
-    .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
-    .map(([key, item]) => [key, formatLogDetailValue(item)] as [string, string])
-    .filter(([, item]) => item.trim().length > 0 && item.trim().length <= 256);
+  const parsedArray = parseJsonArray(value);
+  if (!parsedArray) {
+    return [] as LogDetailNestedEntry[];
+  }
+  return parsedArray
+    .map((item, index) => {
+      const text = formatLogDetailValue(item).trim();
+      const separatorIndex = text.indexOf("=");
+      if (separatorIndex > 0) {
+        const key = text.slice(0, separatorIndex).trim();
+        const itemValue = text.slice(separatorIndex + 1).trim();
+        if (key && itemValue) {
+          return {
+            key,
+            value: itemValue,
+            fieldRef: {
+              fieldKey: `${parentKey}.${key}`,
+              displayName: key,
+              source: "tag_path",
+              path: `${parentKey}.${key}`,
+              valueType: "string",
+              isAccelerated: false
+            }
+          } as LogDetailNestedEntry;
+        }
+      }
+      return { key: `#${index + 1}`, value: text } as LogDetailNestedEntry;
+    })
+    .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
 }
 
 function isLogTimeField(field: string) {
@@ -1475,7 +1544,12 @@ export default function QueryPage() {
     );
   }
 
-  async function openFieldStatsModal(field: string, sampleValue: unknown, preferRawLog = false) {
+  async function openFieldStatsModal(
+    field: string,
+    sampleValue: unknown,
+    preferRawLog = false,
+    explicitFieldRef?: QueryFieldRef
+  ) {
     if (!workspace.selectedTableId || !timeRange) {
       setFeedbackMessage("请先选择日志表和时间范围");
       return;
@@ -1485,18 +1559,22 @@ export default function QueryPage() {
       return;
     }
     const sample = createDetailConditionValue(sampleValue);
-    const fieldRef = preferRawLog
-      ? buildRawLogFieldStatsRef(field, sampleValue)
-      : buildQueryFieldRef(
-          {
-            id: "field_stats",
-            field,
-            operator: "=",
-            value: sample.value,
-            valueType: sample.valueType
-          },
-          workspace.analysisFields
-        );
+    const catalogFieldRef =
+      explicitFieldRef ??
+      buildQueryFieldRef(
+        {
+          id: "field_stats",
+          field,
+          operator: "=",
+          value: sample.value,
+          valueType: sample.valueType
+        },
+        workspace.analysisFields
+      );
+    const fieldRef =
+      preferRawLog && !(catalogFieldRef.source === "column" && catalogFieldRef.isAccelerated)
+        ? buildRawLogFieldStatsRef(field, sampleValue)
+        : catalogFieldRef;
     const range = toSecondRange(timeRange);
     setFieldStatsState({ field, fieldRef, loading: true, data: null, error: "" });
     try {
@@ -2498,7 +2576,7 @@ export default function QueryPage() {
                               ) : (
                                 <div className="cv-query-detail__body">
                                   {Object.entries(row.parsed).map(([key, value]) => {
-                                    const nestedEntries = scalarJsonEntries(value);
+                                    const nestedEntries = scalarJsonEntries(key, value);
                                     return (
                                       <Fragment key={key}>
                                         <div className="cv-query-detail__row">
@@ -2552,50 +2630,54 @@ export default function QueryPage() {
                                             </span>
                                           )}
                                         </div>
-                                        {nestedEntries.map(([nestedKey, nestedValue]) => (
-                                          <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
-                                            <strong title={`${key}.${nestedKey}`}>
-                                              <button
-                                                type="button"
-                                                className="cv-query-detail__key-button"
-                                                title={`查看 ${nestedKey} 的值分布`}
-                                                onClick={(event) => {
-                                                  event.stopPropagation();
-                                                  void openFieldStatsModal(nestedKey, nestedValue, true);
-                                                }}
-                                              >
-                                                {nestedKey}
-                                              </button>
-                                            </strong>
-                                            <span className="cv-query-detail__value-actions">
-                                              <button
-                                                type="button"
-                                                className="cv-query-detail__value-button"
-                                                title={`查看 ${nestedKey} = ${nestedValue} 的分布`}
-                                                aria-label={`查看 JSON 字段 ${nestedKey} 的值分布`}
-                                                onClick={(event) => {
-                                                  event.stopPropagation();
-                                                  void openFieldStatsModal(nestedKey, nestedValue, true);
-                                                }}
-                                              >
-                                                {nestedValue}
-                                              </button>
-                                              {canStartAIAnalysisFromField(nestedKey, nestedValue) ? (
+                                        {nestedEntries.map((nestedEntry) => {
+                                          const nestedKey = nestedEntry.key;
+                                          const nestedValue = nestedEntry.value;
+                                          return (
+                                            <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
+                                              <strong title={`${key}.${nestedKey}`}>
                                                 <button
                                                   type="button"
-                                                  className="cv-query-detail__link-button"
-                                                  title={`用 ${nestedKey} 进行 AI 分析`}
+                                                  className="cv-query-detail__key-button"
+                                                  title={`查看 ${nestedKey} 的值分布`}
                                                   onClick={(event) => {
                                                     event.stopPropagation();
-                                                    openLinkQueryModal(row, nestedKey, nestedValue);
+                                                    void openFieldStatsModal(nestedKey, nestedValue, true, nestedEntry.fieldRef);
                                                   }}
                                                 >
-                                                  AI 分析
+                                                  {nestedKey}
                                                 </button>
-                                              ) : null}
-                                            </span>
-                                          </div>
-                                        ))}
+                                              </strong>
+                                              <span className="cv-query-detail__value-actions">
+                                                <button
+                                                  type="button"
+                                                  className="cv-query-detail__value-button"
+                                                  title={`查看 ${nestedKey} = ${nestedValue} 的分布`}
+                                                  aria-label={`查看 JSON 字段 ${nestedKey} 的值分布`}
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    void openFieldStatsModal(nestedKey, nestedValue, true, nestedEntry.fieldRef);
+                                                  }}
+                                                >
+                                                  {nestedValue}
+                                                </button>
+                                                {canStartAIAnalysisFromField(nestedKey, nestedValue) ? (
+                                                  <button
+                                                    type="button"
+                                                    className="cv-query-detail__link-button"
+                                                    title={`用 ${nestedKey} 进行 AI 分析`}
+                                                    onClick={(event) => {
+                                                      event.stopPropagation();
+                                                      openLinkQueryModal(row, nestedKey, nestedValue);
+                                                    }}
+                                                  >
+                                                    AI 分析
+                                                  </button>
+                                                ) : null}
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
                                       </Fragment>
                                     );
                                   })}
