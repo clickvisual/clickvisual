@@ -257,6 +257,25 @@ function storageFieldTyp(field: QueryStorageAnalysisField): QueryFilterValueType
   return field.typ === 1 || field.typ === 2 ? "number" : "string";
 }
 
+function findStorageField(
+  fields: QueryStorageAnalysisField[],
+  fieldKey: string
+) {
+  return fields.find((item) => storageFieldName(item) === fieldKey || item.field === fieldKey);
+}
+
+function findParentStorageField(
+  fields: QueryStorageAnalysisField[],
+  fieldKey: string
+) {
+  const separatorIndex = fieldKey.indexOf(".");
+  if (separatorIndex <= 0) {
+    return null;
+  }
+  const parentKey = fieldKey.slice(0, separatorIndex);
+  return findStorageField(fields, parentKey) ?? null;
+}
+
 function fieldValueType(condition: QueryFilterCondition) {
   if (condition.valueType === "datetime") {
     return "datetime";
@@ -304,7 +323,7 @@ export function buildQueryFieldRef(
       acceleratedCol: fieldKey
     };
   }
-  const baseField = analysisFields.baseFields.find((item) => storageFieldName(item) === fieldKey || item.field === fieldKey);
+  const baseField = findStorageField(analysisFields.baseFields, fieldKey);
   if (baseField) {
     const name = storageFieldName(baseField);
     return {
@@ -317,7 +336,18 @@ export function buildQueryFieldRef(
       acceleratedCol: name
     };
   }
-  const logField = analysisFields.logFields.find((item) => storageFieldName(item) === fieldKey || item.field === fieldKey);
+  const parentBaseField = findParentStorageField(analysisFields.baseFields, fieldKey);
+  if (parentBaseField) {
+    return {
+      fieldKey,
+      displayName: fieldKey,
+      source: "tag_path",
+      path: fieldKey,
+      valueType: fieldValueType(condition),
+      isAccelerated: false
+    };
+  }
+  const logField = findStorageField(analysisFields.logFields, fieldKey);
   const name = logField ? storageFieldName(logField) : fieldKey;
   return {
     fieldKey: name,
