@@ -800,23 +800,31 @@ function createTypedDetailConditionValue(value: unknown, valueType: QueryFilterV
   return { value: String(sample.value), valueType };
 }
 
+function isRawLogDetailParent(parentKey: string) {
+  const normalized = parentKey.trim().toLowerCase();
+  return normalized === "_raw_log_" || normalized === "_raw_log" || normalized === "raw_log";
+}
+
 function scalarJsonEntries(parentKey: string, value: unknown) {
   const parsed = parseJsonObject(value);
   if (parsed) {
     return Object.entries(parsed)
       .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
-      .map(([key, item]) => ({
-        key,
-        value: formatLogDetailValue(item),
-        fieldRef: {
-          fieldKey: `${parentKey}.${key}`,
-          displayName: key,
-          source: "json_path",
-          path: `${parentKey}.${key}`,
-          valueType: createDetailConditionValue(item).valueType,
-          isAccelerated: false
-        }
-      }) as LogDetailNestedEntry)
+      .map(([key, item]) => {
+        const fieldKey = isRawLogDetailParent(parentKey) ? key : `${parentKey}.${key}`;
+        return {
+          key,
+          value: formatLogDetailValue(item),
+          fieldRef: {
+            fieldKey,
+            displayName: key,
+            source: "json_path",
+            path: fieldKey,
+            valueType: createDetailConditionValue(item).valueType,
+            isAccelerated: false
+          }
+        } as LogDetailNestedEntry;
+      })
       .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
   }
   const parsedArray = parseJsonArray(value);
@@ -1520,11 +1528,12 @@ export default function QueryPage() {
 
   function buildRawLogFieldStatsRef(field: string, sampleValue: unknown) {
     const sample = createDetailConditionValue(sampleValue);
+    const path = field.replace(/^_?raw_log_?\./i, "");
     return {
-      fieldKey: field,
-      displayName: field,
+      fieldKey: path,
+      displayName: path,
       source: "json_path" as const,
-      path: field,
+      path,
       valueType: sample.valueType === "number" ? "number" as const : "string" as const,
       isAccelerated: false
     };
@@ -1572,9 +1581,10 @@ export default function QueryPage() {
         workspace.analysisFields
       );
     const fieldRef =
-      preferRawLog && !(catalogFieldRef.source === "column" && catalogFieldRef.isAccelerated)
+      explicitFieldRef ??
+      (preferRawLog && !(catalogFieldRef.source === "column" && catalogFieldRef.isAccelerated)
         ? buildRawLogFieldStatsRef(field, sampleValue)
-        : catalogFieldRef;
+        : catalogFieldRef);
     const range = toSecondRange(timeRange);
     setFieldStatsState({ field, fieldRef, loading: true, data: null, error: "" });
     try {
@@ -1719,6 +1729,10 @@ export default function QueryPage() {
   }
 
   function addConditionFromFieldStatsValue(fieldRef: QueryFieldRef, value: string) {
+    if (fieldRef.source === "tag_path") {
+      addConditionFromLogDetail(fieldRef.fieldKey, value);
+      return;
+    }
     if (fieldRef.source !== "column" || !fieldRef.isAccelerated) {
       addGlobalMatchFromLogDetailValue(value);
       return;
@@ -1731,7 +1745,7 @@ export default function QueryPage() {
       fieldRef,
       value,
       actionText:
-        fieldRef.source === "column" && fieldRef.isAccelerated
+        fieldRef.source === "tag_path" || (fieldRef.source === "column" && fieldRef.isAccelerated)
           ? `${fieldRef.fieldKey} = ${truncate(value, 120)}`
           : `全局匹配：${truncate(value, 120)}`
     });
