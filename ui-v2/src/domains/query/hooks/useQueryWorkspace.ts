@@ -347,6 +347,21 @@ export function buildStructuredConditions(
     }));
 }
 
+function hasUnsupportedGlobalMatchCondition(
+  conditions: QueryFilterCondition[],
+  analysisFields: QueryAnalysisFieldsResponse
+) {
+  return (
+    analysisFields.supportsGlobalMatch === false &&
+    conditions.some(
+      (condition) =>
+        !condition.disabled &&
+        String(condition.field || "").trim() === GLOBAL_MATCH_FIELD &&
+        String(condition.value ?? "").trim()
+    )
+  );
+}
+
 export function useQueryWorkspace(
   startTime: string,
   endTime: string,
@@ -378,7 +393,8 @@ export function useQueryWorkspace(
   const [charts, setCharts] = useState<QueryHistogramBucket[]>([]);
   const [analysisFields, setAnalysisFields] = useState<QueryAnalysisFieldsResponse>({
     baseFields: [],
-    logFields: []
+    logFields: [],
+    supportsGlobalMatch: true
   });
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
   const [autocompleteItems, setAutocompleteItems] = useState<string[]>([]);
@@ -556,7 +572,7 @@ export function useQueryWorkspace(
 
   useEffect(() => {
     if (!selectedTableId) {
-      setAnalysisFields({ baseFields: [], logFields: [] });
+      setAnalysisFields({ baseFields: [], logFields: [], supportsGlobalMatch: true });
       return;
     }
     let active = true;
@@ -568,7 +584,7 @@ export function useQueryWorkspace(
       })
       .catch(() => {
         if (active) {
-          setAnalysisFields({ baseFields: [], logFields: [] });
+          setAnalysisFields({ baseFields: [], logFields: [], supportsGlobalMatch: true });
         }
       });
     return () => {
@@ -662,6 +678,10 @@ export function useQueryWorkspace(
       return;
     }
     const effectiveConditions = overrideConditions ?? conditions;
+    if (hasUnsupportedGlobalMatchCondition(effectiveConditions, analysisFields)) {
+      setErrorMessage("当前日志表未配置日志内容字段，不能使用全局匹配");
+      return;
+    }
     let generatedQuery = "";
     try {
       generatedQuery = buildVisualQuery(effectiveConditions);
@@ -743,15 +763,21 @@ export function useQueryWorkspace(
   }
 
   const suggestionFieldOptions = useMemo(
-    () =>
-      [
-        {
-          field: GLOBAL_MATCH_FIELD,
-          source: "column" as const,
-          sourceLabel: "全局匹配",
-          queryLabel: "日志内容 LIKE",
-          valueType: "string" as const
-        },
+    () => {
+      const globalMatchOptions =
+        analysisFields.supportsGlobalMatch === false
+          ? []
+          : [
+              {
+                field: GLOBAL_MATCH_FIELD,
+                source: "column" as const,
+                sourceLabel: "全局匹配",
+                queryLabel: "日志内容 LIKE",
+                valueType: "string" as const
+              }
+            ];
+      return [
+        ...globalMatchOptions,
         ...analysisFields.baseFields.map((item) => ({
           field: storageFieldName(item),
           source: "column" as const,
@@ -766,7 +792,8 @@ export function useQueryWorkspace(
           queryLabel: "JSON 路径查询",
           valueType: storageFieldTyp(item)
         }))
-      ].filter((item) => item.field),
+      ].filter((item) => item.field);
+    },
     [analysisFields]
   );
   const suggestionFields = useMemo(

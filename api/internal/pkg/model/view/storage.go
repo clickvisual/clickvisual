@@ -170,8 +170,9 @@ func (r *ReqStorageCreate) Mapping2String(withType bool, rawLogFieldParent strin
 }
 
 type RespStorageAnalysisFields struct {
-	BaseFields []StorageAnalysisField `json:"baseFields"`
-	LogFields  []StorageAnalysisField `json:"logFields"`
+	BaseFields          []StorageAnalysisField `json:"baseFields"`
+	LogFields           []StorageAnalysisField `json:"logFields"`
+	SupportsGlobalMatch bool                   `json:"supportsGlobalMatch"`
 }
 
 type StorageAnalysisField struct {

@@ -103,13 +103,20 @@ func AnalysisFields(c *core.Context) {
 		return
 	}
 	res := view.RespStorageAnalysisFields{
-		BaseFields: make([]view.StorageAnalysisField, 0),
-		LogFields:  make([]view.StorageAnalysisField, 0),
+		BaseFields:          make([]view.StorageAnalysisField, 0),
+		LogFields:           make([]view.StorageAnalysisField, 0),
+		SupportsGlobalMatch: true,
+	}
+	tableInfo, err := db.TableInfo(invoker.Db, storageId)
+	if err != nil {
+		c.JSONE(1, "load storage failed: "+err.Error(), nil)
+		return
 	}
 	// Read the index data
 	conds := egorm.Conds{}
 	conds["tid"] = storageId
 	fields, _ := db.IndexList(conds)
+	res.SupportsGlobalMatch = supportsGlobalMatchForTable(tableInfo, fields)
 	for _, row := range fields {
 		f := view.StorageAnalysisField{
 			Id:         row.ID,
@@ -137,6 +144,33 @@ func AnalysisFields(c *core.Context) {
 		return res.LogFields[i].OrderField < res.LogFields[j].OrderField
 	})
 	c.JSONOK(res)
+}
+
+func supportsGlobalMatchForTable(tableInfo db.BaseTable, fields []*db.BaseIndex) bool {
+	if tableInfo.CreateType != constx.TableCreateTypeExist {
+		return true
+	}
+	rawLogField := strings.TrimSpace(tableInfo.RawLogField)
+	if rawLogField != "" && analysisFieldExists(fields, rawLogField) {
+		return true
+	}
+	return analysisFieldExists(fields, "_raw_log_")
+}
+
+func analysisFieldExists(fields []*db.BaseIndex, field string) bool {
+	field = strings.TrimSpace(field)
+	if field == "" {
+		return false
+	}
+	for _, item := range fields {
+		if item == nil {
+			continue
+		}
+		if item.GetFieldName() == field || strings.TrimSpace(item.Field) == field {
+			return true
+		}
+	}
+	return false
 }
 
 // Update  godoc

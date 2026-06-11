@@ -8,11 +8,12 @@ import (
 )
 
 type CompileContext struct {
-	TableName       string
-	TimeField       string
-	TimeFieldType   int
-	RawJSONColumn   string
-	NestedJSONPaths map[string]string
+	TableName                string
+	TimeField                string
+	TimeFieldType            int
+	RawJSONColumn            string
+	RawJSONColumnUnavailable bool
+	NestedJSONPaths          map[string]string
 }
 
 func Compile(req view.QueryRequestV2, ctx CompileContext) (sql string, plan view.QueryPlan, err error) {
@@ -94,7 +95,7 @@ func buildWherePlan(req view.QueryRequestV2, ctx CompileContext) (whereParts []s
 	if ctx.TimeField == "" {
 		ctx.TimeField = "_time_second_"
 	}
-	if ctx.RawJSONColumn == "" {
+	if ctx.RawJSONColumn == "" && !ctx.RawJSONColumnUnavailable {
 		ctx.RawJSONColumn = "_raw_log_"
 	}
 
@@ -236,7 +237,11 @@ func normalizeLogLevelValue(value interface{}) interface{} {
 
 func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr string, execution string, highCost bool, err error) {
 	if isRawLogFieldRef(field) {
-		return rawLogColumnExpr(ctx), "column", false, nil
+		rawColumn, rawErr := rawLogColumnExpr(ctx)
+		if rawErr != nil {
+			return "", "", false, rawErr
+		}
+		return rawColumn, "column", false, nil
 	}
 	if isContextTimeFieldRef(field, ctx) {
 		return normalizedTimeField(ctx), "column", false, nil
@@ -254,11 +259,15 @@ func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr st
 	case view.QueryFieldSourceTagPath:
 		return buildTagPathExpr(field.Path, field.ValueType)
 	case view.QueryFieldSourceJSONPath, view.QueryFieldSourceDerived:
+		rawColumn, rawErr := rawLogColumnExpr(ctx)
+		if rawErr != nil {
+			return "", "", false, rawErr
+		}
 		if nestedPath, ok := ctx.NestedJSONPaths[field.Path]; ok && nestedPath != "" {
 			innerPath := strings.TrimPrefix(field.Path, nestedPath+".")
-			return buildNestedJSONExpr(ctx.RawJSONColumn, nestedPath, innerPath, field.ValueType)
+			return buildNestedJSONExpr(rawColumn, nestedPath, innerPath, field.ValueType)
 		}
-		return buildJSONValueExpr(ctx.RawJSONColumn, field.Path, field.ValueType)
+		return buildJSONValueExpr(rawColumn, field.Path, field.ValueType)
 	default:
 		return "", "", false, fmt.Errorf("unsupported field source: %s", field.Source)
 	}
@@ -319,12 +328,15 @@ func isContextTimeFieldRef(field view.QueryFieldRef, ctx CompileContext) bool {
 	return false
 }
 
-func rawLogColumnExpr(ctx CompileContext) string {
+func rawLogColumnExpr(ctx CompileContext) (string, error) {
+	if ctx.RawJSONColumnUnavailable {
+		return "", fmt.Errorf("当前日志表未配置日志内容字段，不能使用全局匹配或日志内容字段查询")
+	}
 	rawColumn := strings.TrimSpace(ctx.RawJSONColumn)
 	if rawColumn == "" {
 		rawColumn = "_raw_log_"
 	}
-	return rawColumn
+	return rawColumn, nil
 }
 
 func pageSizeOrDefault(size uint32) uint32 {
