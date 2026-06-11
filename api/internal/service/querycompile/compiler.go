@@ -263,14 +263,30 @@ func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr st
 		if rawErr != nil {
 			return "", "", false, rawErr
 		}
-		if nestedPath, ok := ctx.NestedJSONPaths[field.Path]; ok && nestedPath != "" {
-			innerPath := strings.TrimPrefix(field.Path, nestedPath+".")
+		jsonPath := normalizeRawJSONPath(field.Path, rawColumn)
+		if nestedPath, ok := ctx.NestedJSONPaths[jsonPath]; ok && nestedPath != "" {
+			innerPath := strings.TrimPrefix(jsonPath, nestedPath+".")
 			return buildNestedJSONExpr(rawColumn, nestedPath, innerPath, field.ValueType)
 		}
-		return buildJSONValueExpr(rawColumn, field.Path, field.ValueType)
+		return buildJSONValueExpr(rawColumn, jsonPath, field.ValueType)
 	default:
 		return "", "", false, fmt.Errorf("unsupported field source: %s", field.Source)
 	}
+}
+
+func normalizeRawJSONPath(path string, rawColumn string) string {
+	path = strings.TrimSpace(path)
+	rawColumn = strings.Trim(strings.TrimSpace(rawColumn), "`")
+	for _, prefix := range []string{rawColumn, "_raw_log_", "_raw_log", "raw_log"} {
+		prefix = strings.TrimSpace(prefix)
+		if prefix == "" {
+			continue
+		}
+		if strings.HasPrefix(path, prefix+".") {
+			return strings.TrimPrefix(path, prefix+".")
+		}
+	}
+	return path
 }
 
 func buildTagPathExpr(path string, valueType view.QueryValueType) (string, string, bool, error) {

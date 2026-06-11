@@ -527,3 +527,35 @@ func TestCompileFieldStatsSupportsRawLogJSONKey(t *testing.T) {
 	assert.Equal(t, "json_path", plan.PlannedConditions[0].Execution)
 	assert.True(t, plan.PlannedConditions[0].HighCost)
 }
+
+func TestCompileFieldStatsNormalizesRawLogPrefixedJSONKey(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid: 1,
+			ST:  1710000000,
+			ET:  1710003600,
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:      "_raw_log_.filename",
+			DisplayName:   "filename",
+			Source:        view.QueryFieldSourceJSONPath,
+			Path:          "_raw_log_.filename",
+			ValueType:     view.QueryValueTypeString,
+			IsAccelerated: false,
+		},
+		Limit: 10,
+	}
+
+	statsSQL, totalSQL, _, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`dev_log`.`app_stdout`",
+		TimeField:     "_time_second_",
+		TimeFieldType: 0,
+		RawJSONColumn: "_raw_log_",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "JSONExtractString(_raw_log_, 'filename')")
+	assert.Contains(t, totalSQL, "JSONExtractString(_raw_log_, 'filename')")
+	assert.NotContains(t, statsSQL, "JSONExtractString(_raw_log_, '_raw_log_.filename')")
+	assert.NotContains(t, totalSQL, "JSONExtractString(_raw_log_, '_raw_log_.filename')")
+}
