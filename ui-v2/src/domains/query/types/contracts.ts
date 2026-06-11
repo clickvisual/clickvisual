@@ -92,6 +92,7 @@ export interface QueryStorageAnalysisField {
 export interface QueryAnalysisFieldsResponse {
   baseFields: QueryStorageAnalysisField[];
   logFields: QueryStorageAnalysisField[];
+  supportsGlobalMatch?: boolean;
 }
 
 export interface QueryLogsField {

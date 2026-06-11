@@ -1970,6 +1970,10 @@ export default function QueryPage() {
     if (!conditionDraft) {
       return;
     }
+    if (conditionDraft.field === "全局匹配" && workspace.analysisFields.supportsGlobalMatch === false) {
+      setFeedbackMessage("当前日志表未配置日志内容字段，不能使用全局匹配");
+      return;
+    }
     if (conditionModalMode === "create") {
       workspace.setConditions([...workspace.conditions, conditionDraft]);
       workspace.setActiveConditionId(conditionDraft.id);
@@ -2023,6 +2027,8 @@ export default function QueryPage() {
     return filtered.slice(0, 40);
   }, [activeCondition?.field, conditionDraft?.field, conditionFieldOptions]);
   const isGlobalMatchDraft = conditionDraft?.field === "全局匹配";
+  const isGlobalMatchUnsupported =
+    isGlobalMatchDraft && workspace.analysisFields.supportsGlobalMatch === false;
 
   function handleConditionDraftFieldChange(field: string) {
     const matched = conditionFieldOptions.find((item) => item.field === field);
@@ -2915,6 +2921,8 @@ export default function QueryPage() {
                         <span className="cv-query-field-meta__badge">{activeFieldOption.sourceLabel}</span>
                         <span>{activeFieldOption.queryLabel}</span>
                       </>
+                    ) : isGlobalMatchUnsupported ? (
+                      <span>当前日志表未配置日志内容字段，不能使用全局匹配</span>
                     ) : (
                       <span>未匹配字段目录，默认按 JSON 路径查询</span>
                     )}
@@ -3009,7 +3017,12 @@ export default function QueryPage() {
                   <button type="button" className="cv-secondary-button" onClick={closeConditionModal}>
                     取消
                   </button>
-                  <button type="button" className="cv-action-button" onClick={saveConditionModal}>
+                  <button
+                    type="button"
+                    className="cv-action-button"
+                    onClick={saveConditionModal}
+                    disabled={isGlobalMatchUnsupported}
+                  >
                     确认
                   </button>
                 </div>

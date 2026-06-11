@@ -352,11 +352,18 @@ func buildRunContext(tid int) (querycompile.CompileContext, dbmodel.BaseTable, e
 	if tableInfo.Name == "" || tableInfo.Database == nil {
 		return querycompile.CompileContext{}, dbmodel.BaseTable{}, fmt.Errorf("table %d not found", tid)
 	}
+	rawLogColumn, rawLogUnavailable := rawLogColumnForTable(
+		tableInfo.CreateType,
+		tableInfo.RawLogField,
+		tableColumnRecorded(tableInfo.ID, tableInfo.RawLogField),
+		tableColumnRecorded(tableInfo.ID, "_raw_log_"),
+	)
 	return querycompile.CompileContext{
-		TableName:     fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name),
-		TimeField:     tableInfo.GetTimeField(),
-		TimeFieldType: tableInfo.TimeFieldType,
-		RawJSONColumn: rawLogColumnOrDefault(tableInfo.RawLogField),
+		TableName:                fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name),
+		TimeField:                tableInfo.GetTimeField(),
+		TimeFieldType:            tableInfo.TimeFieldType,
+		RawJSONColumn:            rawLogColumn,
+		RawJSONColumnUnavailable: rawLogUnavailable,
 	}, tableInfo, nil
 }
 

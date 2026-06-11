@@ -275,6 +275,38 @@ func TestCompileRawLogLogicalFieldUsesConfiguredRawColumn(t *testing.T) {
 	assert.NotContains(t, sql, "_raw_log_ LIKE")
 }
 
+func TestCompileRawLogLogicalFieldRequiresConfiguredRawColumn(t *testing.T) {
+	req := view.QueryRequestV2{
+		Tid: 1,
+		ST:  1710000000,
+		ET:  1710003600,
+		Conditions: []view.QueryConditionV2{
+			{
+				Field: view.QueryFieldRef{
+					FieldKey:       "_raw_log_",
+					DisplayName:    "全局匹配",
+					Source:         view.QueryFieldSourceColumn,
+					Path:           "_raw_log_",
+					ValueType:      view.QueryValueTypeString,
+					IsAccelerated:  true,
+					AcceleratedCol: "_raw_log_",
+				},
+				Operator: view.QueryOperatorContains,
+				Value:    "info",
+			},
+		},
+	}
+	_, _, err := Compile(req, CompileContext{
+		TableName:                "`metrics`.`samples`",
+		TimeField:                "ts",
+		TimeFieldType:            0,
+		RawJSONColumnUnavailable: true,
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "未配置日志内容字段")
+}
+
 func TestCompileNormalizesLogLevelEquality(t *testing.T) {
 	req := view.QueryRequestV2{
 		Tid: 1,

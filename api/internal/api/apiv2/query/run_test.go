@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	view "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
@@ -109,7 +110,24 @@ func TestRawLogFieldStatsFallbackRequestRewritesFieldAndFilters(t *testing.T) {
 	assert.False(t, next.Conditions[0].Field.IsAccelerated)
 }
 
-func TestRawLogColumnOrDefaultUsesStoredRawLogField(t *testing.T) {
-	assert.Equal(t, "body", rawLogColumnOrDefault(" body "))
-	assert.Equal(t, "_raw_log_", rawLogColumnOrDefault(""))
+func TestRawLogColumnForTableUsesStoredRawLogFieldOnlyForExistingTable(t *testing.T) {
+	rawLogColumn, unavailable := rawLogColumnForTable(constx.TableCreateTypeExist, " body ", true, true)
+	assert.Equal(t, "body", rawLogColumn)
+	assert.False(t, unavailable)
+
+	rawLogColumn, unavailable = rawLogColumnForTable(constx.TableCreateTypeExist, "", false, true)
+	assert.Equal(t, "_raw_log_", rawLogColumn)
+	assert.False(t, unavailable)
+
+	rawLogColumn, unavailable = rawLogColumnForTable(constx.TableCreateTypeExist, "content", false, true)
+	assert.Equal(t, "_raw_log_", rawLogColumn)
+	assert.False(t, unavailable)
+
+	rawLogColumn, unavailable = rawLogColumnForTable(constx.TableCreateTypeExist, "", false, false)
+	assert.Empty(t, rawLogColumn)
+	assert.True(t, unavailable)
+
+	rawLogColumn, unavailable = rawLogColumnForTable(constx.TableCreateTypeJSONAsString, "content", false, false)
+	assert.Equal(t, "_raw_log_", rawLogColumn)
+	assert.False(t, unavailable)
 }
