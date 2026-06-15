@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { TimeRangeProvider } from "../state/TimeRangeContext";
 import VersionSwitcher from "./VersionSwitcher";
@@ -12,7 +12,18 @@ const primaryNavigation = [
   { to: "/v2/permission/users", label: "权限中心", icon: "⌥" }
 ] as const;
 
+function isNavigationActive(pathname: string, to: string) {
+  if (to.startsWith("/v2/settings")) {
+    return pathname.startsWith("/v2/settings");
+  }
+  if (to.startsWith("/v2/permission")) {
+    return pathname.startsWith("/v2/permission");
+  }
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
+
 function ShellFrame({ children }: { children: ReactNode }) {
+  const location = useLocation();
   return (
     <div className="cv-shell">
       <header className="cv-shell__topbar" data-testid="app-shell-topbar">
@@ -32,8 +43,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) =>
-                  `cv-shell__nav-link${isActive ? " cv-shell__nav-link--active" : ""}`
+                className={() =>
+                  `cv-shell__nav-link${isNavigationActive(location.pathname, item.to) ? " cv-shell__nav-link--active" : ""}`
                 }
               >
                 <span className="cv-shell__nav-icon" aria-hidden="true">

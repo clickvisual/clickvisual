@@ -12,6 +12,7 @@ import PermissionUsersPage from "../domains/permission/pages/PermissionUsersPage
 import ReportResultPage from "../domains/report/pages/ReportResultPage";
 import ReportSchedulePage from "../domains/report/pages/ReportSchedulePage";
 import SettingsDatasourcePage from "../domains/settings/pages/SettingsDatasourcePage";
+import SettingsQueryTokensPage from "../domains/settings/pages/SettingsQueryTokensPage";
 import { getV2BasePath } from "../shared/layout/VersionSwitcher";
 
 export const routes = [
@@ -58,6 +59,10 @@ export const routes = [
       {
         path: "settings/datasource",
         element: <SettingsDatasourcePage />
+      },
+      {
+        path: "settings/query-tokens",
+        element: <SettingsQueryTokensPage />
       },
       {
         path: "permission/users",

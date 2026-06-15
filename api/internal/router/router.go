@@ -15,6 +15,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/user"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
+	queryv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/query"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
@@ -73,6 +74,10 @@ func GetServerRouter() *egin.Component {
 	{
 		admin.GET("/login/:oauth", core.Handle(user.Oauth)) // non-authentication api
 		admin.POST("/users/login", core.Handle(user.Login))
+	}
+	v2Open := g.Group("/api/v2")
+	{
+		v2Open.POST("/query/token/run", core.Handle(queryv2.TokenRun))
 	}
 
 	v1(g)

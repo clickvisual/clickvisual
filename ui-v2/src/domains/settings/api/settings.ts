@@ -80,6 +80,60 @@ export interface SettingsAIConfigTestResult {
   model: string;
 }
 
+export interface SettingsQueryToken {
+  id: number;
+  name: string;
+  token?: string;
+  tokenPrefix: string;
+  status: number;
+  expireAt: number;
+  lastUsedAt: number;
+  createdBy: number;
+  desc: string;
+  ctime: number;
+  utime: number;
+  tableIds: number[];
+}
+
+export interface SettingsQueryTokenCreatePayload {
+  name: string;
+  desc: string;
+  expireAt: number;
+  tableIds: number[];
+}
+
+export interface SettingsQueryTokenUpdatePayload {
+  name: string;
+  desc: string;
+  status: number;
+  expireAt: number;
+}
+
+export interface SettingsQueryTokenGrantPayload {
+  tableIds: number[];
+}
+
+export interface SettingsQueryTokenAudit {
+  id: number;
+  tokenId: number;
+  tokenName: string;
+  tid: number;
+  databaseName: string;
+  tableName: string;
+  queryJson: string;
+  st: number;
+  et: number;
+  page: number;
+  pageSize: number;
+  resultCount: number;
+  costMs: number;
+  status: string;
+  errorMessage: string;
+  clientIp: string;
+  userAgent: string;
+  ctime: number;
+}
+
 export async function syncSystemSchema(): Promise<string> {
   return client.post<string>("/api/v2/base/system/schema-sync", {});
 }
@@ -172,4 +226,40 @@ export async function updateSettingsAIConfig(
 
 export async function testSettingsAIConfig(): Promise<SettingsAIConfigTestResult> {
   return client.post<SettingsAIConfigTestResult>("/api/v2/base/settings/ai/test", {});
+}
+
+export async function listSettingsQueryTokens(): Promise<SettingsQueryToken[]> {
+  return client.get<SettingsQueryToken[]>("/api/v2/query/tokens");
+}
+
+export async function createSettingsQueryToken(
+  payload: SettingsQueryTokenCreatePayload
+): Promise<SettingsQueryToken> {
+  return client.post<SettingsQueryToken>("/api/v2/query/tokens", payload);
+}
+
+export async function updateSettingsQueryToken(
+  tokenId: number,
+  payload: SettingsQueryTokenUpdatePayload
+): Promise<SettingsQueryToken> {
+  return client.patch<SettingsQueryToken>(`/api/v2/query/tokens/${tokenId}`, payload);
+}
+
+export async function updateSettingsQueryTokenGrants(
+  tokenId: number,
+  payload: SettingsQueryTokenGrantPayload
+): Promise<void> {
+  await client.put<void>(`/api/v2/query/tokens/${tokenId}/grants`, payload);
+}
+
+export async function listSettingsQueryTokenAudits(
+  tokenId: number,
+  params: { current?: number; pageSize?: number } = {}
+): Promise<SettingsQueryTokenAudit[]> {
+  const search = new URLSearchParams();
+  search.set("current", String(params.current ?? 1));
+  search.set("pageSize", String(params.pageSize ?? 20));
+  return client.get<SettingsQueryTokenAudit[]>(
+    `/api/v2/query/tokens/${tokenId}/audits?${search.toString()}`
+  );
 }

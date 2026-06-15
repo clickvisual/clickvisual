@@ -866,6 +866,17 @@ export function useQueryWorkspace(
     await refreshSavedFilterProfiles();
   }
 
+  function clearQueryHistory() {
+    const effectiveTableId = selectedTableId ?? selectedTableEntry?.id ?? null;
+    if (!effectiveTableId) {
+      return;
+    }
+    const historyStore = readQueryHistory();
+    delete historyStore[String(effectiveTableId)];
+    writeQueryHistory(historyStore);
+    setQueryHistory([]);
+  }
+
   return {
     instances,
     databases,
@@ -963,6 +974,7 @@ export function useQueryWorkspace(
       setQueryText(buildVisualQuery(nextConditions));
     },
     applySuggestion: (value: string) => setQueryText(value),
+    clearQueryHistory,
     saveCurrentQuery,
     deleteSavedFilterProfile,
     refreshSavedFilterProfiles,
