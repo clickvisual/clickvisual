@@ -35,6 +35,7 @@ ClickVisual is a lightweight and open-source visual platform for log query, anal
 
 ### Use Case Scenarios
 - Log query
+- [Log Query Token](./03funcintro/query-token.md)
 - Log alarm
 - Configuration delivery
 - Quick integration

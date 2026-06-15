@@ -104,6 +104,9 @@ const (
 	TableNameReportAcceleration = "cv_report_acceleration"
 	TableNameQueryFilterProfile = "cv_query_filter_profile"
 	TableNameAISetting          = "cv_ai_setting"
+	TableNameQueryToken         = "cv_query_token"
+	TableNameQueryTokenGrant    = "cv_query_token_grant"
+	TableNameQueryTokenAudit    = "cv_query_token_audit"
 )
 
 type BaseModel struct {

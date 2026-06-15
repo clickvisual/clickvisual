@@ -167,12 +167,32 @@ function buildDefaultTimeRange() {
 }
 
 function buildInitialTimeRangeFromSearchParams(searchParams: URLSearchParams) {
-  const start = Number(searchParams.get("start") || "");
-  const end = Number(searchParams.get("end") || "");
+  const start = Number(searchParams.get("start") || searchParams.get("st") || "");
+  const end = Number(searchParams.get("end") || searchParams.get("et") || "");
   if (!Number.isFinite(start) || !Number.isFinite(end) || start <= 0 || end <= start) {
     return buildDefaultTimeRange();
   }
   return [new Date(start * 1000), new Date(end * 1000)] as [Date, Date];
+}
+
+function writeTimeRangeToURL(range: QueryDateRange) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const url = new URL(window.location.href);
+  if (range) {
+    const { st, et } = toSecondRange(range);
+    url.searchParams.set("start", String(st));
+    url.searchParams.set("end", String(et));
+  } else {
+    url.searchParams.delete("start");
+    url.searchParams.delete("end");
+  }
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (next !== current) {
+    window.history.replaceState(window.history.state, "", next);
+  }
 }
 
 function readPositiveIntSearchParam(searchParams: URLSearchParams, key: string) {
@@ -1209,6 +1229,7 @@ export default function QueryPage() {
   const [saveQueryModalOpen, setSaveQueryModalOpen] = useState(false);
   const [saveQueryName, setSaveQueryName] = useState("");
   const [savedQueryMenuOpen, setSavedQueryMenuOpen] = useState(false);
+  const [queryHistoryMenuOpen, setQueryHistoryMenuOpen] = useState(false);
   const [linkQueryAnchor, setLinkQueryAnchor] = useState<LinkQueryAnchor | null>(null);
   const [linkQueryWindowMinutes, setLinkQueryWindowMinutes] = useState(5);
   const [linkQuerySelectedTableIds, setLinkQuerySelectedTableIds] = useState<number[]>([]);
@@ -1299,11 +1320,18 @@ export default function QueryPage() {
   }, [workspace.logs]);
 
   useEffect(() => {
+    writeTimeRangeToURL(timeRange);
+  }, [timeRange]);
+
+  useEffect(() => {
     if (initialQueryStartedRef.current || tableAutoQueryRequest || !workspace.selectedTableId) {
       return;
     }
     initialQueryStartedRef.current = true;
-    const hasURLRange = Boolean(initialSearchParams.get("start") && initialSearchParams.get("end"));
+    const hasURLRange = Boolean(
+      (initialSearchParams.get("start") && initialSearchParams.get("end")) ||
+        (initialSearchParams.get("st") && initialSearchParams.get("et"))
+    );
     const range = hasURLRange && timeRange ? timeRange : buildRecentMinutesTimeRange(15);
     setTimeRange(range);
     void workspace.runQuery(initialPage ?? 1, toSecondRange(range));
@@ -2069,6 +2097,18 @@ export default function QueryPage() {
     }
   })();
 
+  function applyQueryHistoryItem(query: string) {
+    workspace.applySuggestion(query);
+    setQueryHistoryMenuOpen(false);
+    setFeedbackMessage("已填入最近查询");
+  }
+
+  function clearQueryHistory() {
+    workspace.clearQueryHistory();
+    setQueryHistoryMenuOpen(false);
+    setFeedbackMessage("已清空当前日志表的最近查询");
+  }
+
   return (
     <section className="cv-section-stack cv-query-page">
       <header className="cv-page-toolbar">
@@ -2272,7 +2312,52 @@ export default function QueryPage() {
                   <button
                     type="button"
                     className="cv-secondary-button"
-                    onClick={() => setSavedQueryMenuOpen((current) => !current)}
+                    onClick={() => {
+                      setSavedQueryMenuOpen(false);
+                      setQueryHistoryMenuOpen((current) => !current);
+                    }}
+                    aria-expanded={queryHistoryMenuOpen}
+                    aria-haspopup="menu"
+                  >
+                    最近查询
+                    {workspace.queryHistory.length > 0 ? ` ${workspace.queryHistory.length}` : ""}
+                  </button>
+                  {queryHistoryMenuOpen ? (
+                    <div className="cv-query-saved__menu" role="menu" aria-label="最近查询">
+                      <div className="cv-query-saved__menu-header">
+                        <strong>最近查询</strong>
+                        <span>{workspace.queryHistory.length} 条</span>
+                      </div>
+                      {workspace.queryHistory.length > 0 ? (
+                        <>
+                          <div className="cv-query-saved__list">
+                            {workspace.queryHistory.map((query, index) => (
+                              <article key={`${query}-${index}`} className="cv-query-saved__item cv-query-saved__item--single">
+                                <button type="button" role="menuitem" onClick={() => applyQueryHistoryItem(query)}>
+                                  <strong title={query}>{query}</strong>
+                                  <span>点击填入查询语句</span>
+                                </button>
+                              </article>
+                            ))}
+                          </div>
+                          <button type="button" className="cv-query-saved__create" onClick={clearQueryHistory}>
+                            清空最近查询
+                          </button>
+                        </>
+                      ) : (
+                        <div className="cv-query-saved__empty">执行查询后会自动记录最近 10 条</div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="cv-query-saved">
+                  <button
+                    type="button"
+                    className="cv-secondary-button"
+                    onClick={() => {
+                      setQueryHistoryMenuOpen(false);
+                      setSavedQueryMenuOpen((current) => !current);
+                    }}
                     aria-expanded={savedQueryMenuOpen}
                     aria-haspopup="menu"
                   >
@@ -2442,6 +2527,8 @@ export default function QueryPage() {
                       }
                       onClick={() => {
                         if (hasCount) {
+                          const nextRange = [new Date(item.from * 1000), new Date(item.to * 1000)] as [Date, Date];
+                          setTimeRange(nextRange);
                           void workspace.runQuery(1, { st: item.from, et: item.to });
                         }
                       }}

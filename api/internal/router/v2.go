@@ -110,6 +110,11 @@ func v2(r *gin.RouterGroup) {
 		r.POST("/query/compile", core.Handle(queryv2.Compile))
 		r.POST("/query/run", core.Handle(queryv2.Run))
 		r.POST("/query/field-stats", core.Handle(queryv2.FieldStats))
+		r.GET("/query/tokens", core.Handle(queryv2.TokenList))
+		r.POST("/query/tokens", core.Handle(queryv2.TokenCreate))
+		r.PATCH("/query/tokens/:token-id", core.Handle(queryv2.TokenUpdate))
+		r.PUT("/query/tokens/:token-id/grants", core.Handle(queryv2.TokenGrantUpdate))
+		r.GET("/query/tokens/:token-id/audits", core.Handle(queryv2.TokenAuditList))
 	}
 	// The log module - storage
 	{
