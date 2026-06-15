@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 import ModuleRuntimeGate, {
   useModuleRuntimeState
 } from "../../../shared/components/ModuleRuntimeState";
@@ -58,6 +59,19 @@ type ChannelModalState = {
 
 type DatasourceFormState = SettingsDatasourcePayload;
 type ChannelFormState = SettingsAlarmChannelPayload;
+
+function SettingsSubnav() {
+  return (
+    <nav className="cv-settings-subnav" aria-label="配置中心导航">
+      <NavLink to="/v2/settings/datasource" className={({ isActive }) => `cv-settings-subnav__item${isActive ? " cv-settings-subnav__item--active" : ""}`}>
+        数据源配置
+      </NavLink>
+      <NavLink to="/v2/settings/query-tokens" className={({ isActive }) => `cv-settings-subnav__item${isActive ? " cv-settings-subnav__item--active" : ""}`}>
+        查询 Token
+      </NavLink>
+    </nav>
+  );
+}
 type AIFormState = SettingsAIConfigPayload;
 
 function datasourceKindLabel(value: string) {
@@ -473,6 +487,7 @@ export default function SettingsDatasourcePage() {
             <span className="cv-breadcrumb__current">配置中心</span>
           </div>
           <h1 className="cv-page-title cv-sr-only">配置中心</h1>
+          <SettingsSubnav />
         </div>
         <div className="cv-header-actions">
           <button type="button" className="cv-action-button" onClick={openDatasourceCreate}>

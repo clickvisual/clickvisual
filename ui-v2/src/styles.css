@@ -1133,6 +1133,10 @@ textarea {
   background: #fff7ed;
 }
 
+.cv-query-saved__item--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .cv-query-saved__item > button:first-child {
   display: grid;
   gap: 3px;
@@ -4632,6 +4636,36 @@ textarea {
   box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.14);
 }
 
+.cv-settings-subnav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  min-height: 28px;
+  padding: 3px;
+  border: 1px solid var(--cv-border);
+  border-radius: 9px;
+  background: var(--cv-surface-muted);
+}
+
+.cv-settings-subnav__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 9px;
+  border-radius: 7px;
+  color: var(--cv-text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cv-settings-subnav__item--active {
+  color: var(--cv-primary-strong);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(234, 88, 12, 0.18);
+}
+
 .cv-settings-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 390px;
@@ -4802,6 +4836,155 @@ textarea {
 
 .cv-settings-empty {
   align-content: start;
+}
+
+.cv-query-token-page {
+  min-height: 0;
+}
+
+.cv-query-token-panel {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cv-query-token-table th,
+.cv-query-token-table td {
+  vertical-align: top;
+}
+
+.cv-query-token-prefix {
+  display: inline-flex;
+  max-width: 120px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  color: #fff;
+  background: #1e1915;
+}
+
+.cv-query-token-once {
+  align-items: center;
+}
+
+.cv-query-token-once code {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.cv-query-token-modal {
+  width: min(560px, calc(100vw - 24px));
+}
+
+.cv-query-token-modal--wide {
+  width: min(920px, calc(100vw - 24px));
+}
+
+.cv-query-token-table-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  max-height: 330px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--cv-border);
+  border-radius: 10px;
+  background: var(--cv-surface-muted);
+}
+
+.cv-query-token-table-option {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  gap: 7px;
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.cv-query-token-table-option input {
+  margin-top: 2px;
+}
+
+.cv-query-token-table-option span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cv-query-token-table-option strong,
+.cv-query-token-table-option small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cv-query-token-table-option small {
+  color: var(--cv-text-soft);
+}
+
+.cv-query-token-expire-toggle {
+  display: inline-flex;
+  width: fit-content;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--cv-border);
+  border-radius: 9px;
+  background: var(--cv-surface-muted);
+}
+
+.cv-query-token-expire-toggle__item {
+  min-height: 24px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 10px;
+  color: var(--cv-text-soft);
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cv-query-token-expire-toggle__item--active {
+  color: var(--cv-primary-strong);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(234, 88, 12, 0.18);
+}
+
+.cv-query-token-audit-wrap {
+  max-height: 440px;
+  overflow: auto;
+}
+
+.cv-query-token-query-json {
+  display: block;
+  max-width: 320px;
+  max-height: 52px;
+  overflow: hidden;
+  padding: 5px 7px;
+  border-radius: 7px;
+  white-space: normal;
+  color: #fff;
+  background: #1e1915;
+}
+
+.cv-settings-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 80;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: var(--cv-primary-strong);
+  background: #fff7ed;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), inset 0 0 0 1px rgba(234, 88, 12, 0.2);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .cv-permission-page {

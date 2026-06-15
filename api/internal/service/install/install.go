@@ -45,6 +45,9 @@ var models = []interface{}{
 	db.ReportAcceleration{},
 	db.QueryFilterProfile{},
 	db.AISetting{},
+	db.QueryToken{},
+	db.QueryTokenGrant{},
+	db.QueryTokenAudit{},
 
 	db.User{},
 	db.Event{},

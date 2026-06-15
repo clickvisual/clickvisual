@@ -33,6 +33,7 @@ ClickVisual 是一个轻量级的开源日志查询、分析、报警的可视�
 ### 场景支持
 
 * 日志查询
+* [日志查询 Token](./03funcintro/query-token.md)
 * 日志报警
 * 配置下发
 * 数据分析
