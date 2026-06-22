@@ -72,3 +72,4 @@ docs/superpowers/
 .air.toml
 openspec/*
 tmp/*
+.pensieve/
