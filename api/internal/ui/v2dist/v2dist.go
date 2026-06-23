@@ -1,7 +1,6 @@
 package v2dist
 
 import (
-	"bytes"
 	"embed"
 	"encoding/json"
 	"io/fs"
@@ -87,10 +86,10 @@ func readFile(filePath string) ([]byte, error) {
 }
 
 func rewriteIndexAssetPaths(data []byte, requestPath string) []byte {
-	assetBase := []byte(`"` + getV2AssetBasePath(requestPath) + `assets/`)
-	rewritten := bytes.ReplaceAll(data, []byte(`"./assets/`), assetBase)
-	rewritten = bytes.ReplaceAll(rewritten, []byte(`'./assets/`), append([]byte{'\''}, assetBase[1:]...))
-	return injectRuntimeConfig(rewritten)
+	assetBase := getV2AssetBasePath(requestPath) + "assets/"
+	rewritten := strings.ReplaceAll(string(data), `"./assets/`, `"`+assetBase)
+	rewritten = strings.ReplaceAll(rewritten, `'./assets/`, `'`+assetBase)
+	return []byte(rewritten)
 }
 
 func getV2AssetBasePath(requestPath string) string {
