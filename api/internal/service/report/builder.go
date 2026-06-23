@@ -400,9 +400,9 @@ func reportTimeRangeLabel(value string) string {
 
 func quoteTable(database, table string) string {
 	if strings.TrimSpace(database) == "" {
-		return fmt.Sprintf("`%s`", table)
+		return quoteIdentifier(table)
 	}
-	return fmt.Sprintf("`%s`.`%s`", database, table)
+	return fmt.Sprintf("%s.%s", quoteIdentifier(database), quoteIdentifier(table))
 }
 
 func escapeSQLString(value string) string {

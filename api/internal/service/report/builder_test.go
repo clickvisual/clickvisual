@@ -94,6 +94,7 @@ func TestBuildReportQuery(t *testing.T) {
 
 func TestQuoteTableWithoutDatabase(t *testing.T) {
 	assert.Equal(t, "`cv_report_agg_8`", quoteTable("", "cv_report_agg_8"))
+	assert.Equal(t, "`cv``report`.`agg``8`", quoteTable("cv`report", "agg`8"))
 }
 
 func TestReportComparisonWindowForOneDayUsesCalendarDay(t *testing.T) {
