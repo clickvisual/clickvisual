@@ -17,9 +17,6 @@ type seedData struct {
 	executions map[int][]view.RespReportExecutionRecord
 	deliveries map[int]view.RespReportSendSummary
 	channels   []view.RespReportChannel
-	sender     previewSender
-	now        func() time.Time
-	nextExecID int
 }
 
 type Service struct {
