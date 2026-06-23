@@ -597,8 +597,7 @@ func (s *Service) applyReportAccelerationPlan(plan reportAccelerationPlan, curre
 			}
 		}
 	}
-	sqlTexts := make([]string, 0, len(plan.CreateTableSQLs)+len(plan.CreateMaterializedViewSQLs))
-	sqlTexts = append(sqlTexts, plan.CreateTableSQLs...)
+	sqlTexts := append([]string{}, plan.CreateTableSQLs...)
 	sqlTexts = append(sqlTexts, plan.CreateMaterializedViewSQLs...)
 	for _, sqlText := range sqlTexts {
 		if err = operator.Exec(sqlText); err != nil {

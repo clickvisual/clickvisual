@@ -13,6 +13,7 @@ func TestGetV2AssetBasePath(t *testing.T) {
 	}{
 		{name: "root v2 route", requestPath: "/v2/reports/1", want: "/v2/"},
 		{name: "subpath v2 route", requestPath: "/clickvisual/v2/reports/1", want: "/clickvisual/v2/"},
+		{name: "unsafe subpath fallback", requestPath: `/clickvisual"><script>/v2/reports/1`, want: "/v2/"},
 		{name: "fallback", requestPath: "/query", want: "/v2/"},
 	}
 

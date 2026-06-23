@@ -2,6 +2,7 @@ package v2dist
 
 import (
 	"embed"
+	"html"
 	"io/fs"
 	"mime"
 	"net/http"
@@ -84,7 +85,7 @@ func readFile(filePath string) ([]byte, error) {
 }
 
 func rewriteIndexAssetPaths(data []byte, requestPath string) []byte {
-	assetBase := getV2AssetBasePath(requestPath) + "assets/"
+	assetBase := html.EscapeString(getV2AssetBasePath(requestPath) + "assets/")
 	rewritten := strings.ReplaceAll(string(data), `"./assets/`, `"`+assetBase)
 	rewritten = strings.ReplaceAll(rewritten, `'./assets/`, `'`+assetBase)
 	return []byte(rewritten)
@@ -96,5 +97,27 @@ func getV2AssetBasePath(requestPath string) string {
 	if v2Index < 0 {
 		return "/v2/"
 	}
-	return cleaned[:v2Index] + "/v2/"
+	basePath := cleaned[:v2Index] + "/v2/"
+	if !isSafeV2AssetBasePath(basePath) {
+		return "/v2/"
+	}
+	return basePath
+}
+
+func isSafeV2AssetBasePath(basePath string) bool {
+	if !strings.HasPrefix(basePath, "/") || !strings.HasSuffix(basePath, "/v2/") {
+		return false
+	}
+	for _, ch := range basePath {
+		if ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' {
+			continue
+		}
+		switch ch {
+		case '/', '-', '_', '.', '~':
+			continue
+		default:
+			return false
+		}
+	}
+	return true
 }

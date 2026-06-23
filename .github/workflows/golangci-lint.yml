@@ -23,4 +23,3 @@ jobs:
         with:
           version: v1.60.1  # 使用最新版
           args: --timeout=10m --print-issued-lines=true --print-linter-name=true --uniq-by-line=true
-          skip-build-cache: true  # 避免缓存问题
