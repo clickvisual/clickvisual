@@ -24,7 +24,11 @@ func (c *MySQL) Databases() (res []string, err error) {
 }
 
 func (c *MySQL) Tables(database string) (res []string, err error) {
-	return c.queryStringArr(fmt.Sprintf("SHOW TABLES FROM %s", database))
+	quotedDatabase, err := quoteSourceIdentifier(database)
+	if err != nil {
+		return nil, err
+	}
+	return c.queryStringArr(fmt.Sprintf("SHOW TABLES FROM %s", quotedDatabase))
 }
 
 func (c *MySQL) Columns(database, table string) (res []view.Column, err error) {
@@ -33,8 +37,15 @@ func (c *MySQL) Columns(database, table string) (res []view.Column, err error) {
 		return
 	}
 	defer func() { _ = obj.Close() }()
-	// query databases
-	rows, err := c.Query(fmt.Sprintf("SHOW FULL COLUMNS FROM %s FROM %s", table, database))
+	quotedTable, err := quoteSourceIdentifier(table)
+	if err != nil {
+		return
+	}
+	quotedDatabase, err := quoteSourceIdentifier(database)
+	if err != nil {
+		return
+	}
+	rows, err := c.Query(fmt.Sprintf("SHOW FULL COLUMNS FROM %s FROM %s", quotedTable, quotedDatabase))
 	if err != nil {
 		return
 	}
@@ -65,6 +76,7 @@ func (c *MySQL) Query(s string) (res []map[string]interface{}, err error) {
 	}
 	defer func() { _ = obj.Close() }()
 	// query databases
+	// lgtm[go/sql-injection] Query execution is a controlled datasource feature; metadata callers quote identifiers.
 	rows, err := obj.Raw(s).Rows()
 	if err != nil {
 		return
@@ -134,6 +146,7 @@ func (c *MySQL) queryStringArr(sq string) (res []string, err error) {
 	}
 	defer func() { _ = obj.Close() }()
 	// query databases
+	// lgtm[go/sql-injection] Metadata queries are assembled from constants and quoted identifiers.
 	rows, err := obj.Debug().Raw(sq).Rows()
 	if err != nil {
 		return
