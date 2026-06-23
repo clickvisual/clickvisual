@@ -199,17 +199,6 @@ func normalizeAIDraftJSON(raw []byte) ([]byte, error) {
 	return json.Marshal(payload)
 }
 
-func normalizeObjectArray(value json.RawMessage) ([]byte, error) {
-	if len(value) == 0 || string(value) == "null" {
-		return []byte("[]"), nil
-	}
-	trimmed := strings.TrimSpace(string(value))
-	if strings.HasPrefix(trimmed, "[") {
-		return value, nil
-	}
-	return []byte("[" + trimmed + "]"), nil
-}
-
 func normalizeSummary(value json.RawMessage) ([]byte, error) {
 	if len(value) == 0 || string(value) == "null" {
 		return []byte(`""`), nil

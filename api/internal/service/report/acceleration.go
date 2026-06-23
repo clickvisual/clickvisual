@@ -552,7 +552,7 @@ func (s *Service) RunAccelerationCheck(reportID int) (view.RespReportAcceleratio
 		return view.RespReportAccelerationBackfillResult{}, err
 	}
 	if found {
-		status := acceleration.Status
+		var status string
 		if check.Passed {
 			status = dbmodel.ReportAccelerationStatusReady
 		} else {
@@ -917,11 +917,6 @@ func (s *Service) upsertReportAccelerationFailure(reportID int, plan reportAccel
 		message = err.Error()
 	}
 	return s.upsertReportAccelerationPlan(reportID, plan, dbmodel.ReportAccelerationStatusError, message)
-}
-
-func (s *Service) accelerationReady(reportID int) bool {
-	acceleration, found, err := s.getReportAccelerationByReportIDFromDB(reportID)
-	return err == nil && found && acceleration.Status == dbmodel.ReportAccelerationStatusReady
 }
 
 func ensureReportAccelerationSchema() error {
