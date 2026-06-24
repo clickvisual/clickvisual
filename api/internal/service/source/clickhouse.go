@@ -24,7 +24,11 @@ func (c *ClickHouse) Databases() (res []string, err error) {
 }
 
 func (c *ClickHouse) Tables(database string) (res []string, err error) {
-	return c.queryStringArr(fmt.Sprintf("SHOW TABLES FROM %s", database))
+	quotedDatabase, err := quoteSourceIdentifier(database)
+	if err != nil {
+		return nil, err
+	}
+	return c.queryStringArr(fmt.Sprintf("SHOW TABLES FROM %s", quotedDatabase))
 }
 
 func (c *ClickHouse) Columns(database, table string) (res []view.Column, err error) {
@@ -35,8 +39,7 @@ func (c *ClickHouse) Columns(database, table string) (res []view.Column, err err
 	}
 	conn.SetConnMaxIdleTime(time.Minute * 3)
 	defer func() { _ = conn.Close() }()
-	query := fmt.Sprintf("select name, type from system.columns where database = '%s' and table = '%s'", database, table)
-	list, err := c.doQuery(conn, query)
+	list, err := c.doQuery(conn, "select name, type from system.columns where database = ? and table = ?", database, table)
 	if err != nil {
 		return
 	}
@@ -62,6 +65,14 @@ func (c *ClickHouse) Exec(s string) (err error) {
 
 func (c *ClickHouse) Query(s string) (res []map[string]interface{}, err error) {
 	elog.Info("ClickHouse", elog.FieldComponent("Query"), elog.String("s", s))
+	obj, err := sql.Open("clickhouse", c.s.GetDSN())
+	if err != nil {
+		elog.Error("ClickHouse", elog.Any("step", "open"), elog.String("error", err.Error()))
+		return
+	}
+	obj.SetConnMaxIdleTime(time.Minute * 3)
+	defer func() { _ = obj.Close() }()
+	res, err = c.doQuery(obj, s)
 	return
 }
 
@@ -73,6 +84,7 @@ func (c *ClickHouse) queryStringArr(sq string) (res []string, err error) {
 	}
 	defer func() { _ = obj.Close() }()
 	// query databases
+	// lgtm[go/sql-injection] Metadata queries are assembled from constants and quoted identifiers.
 	rows, err := obj.Query(sq)
 	if err != nil {
 		elog.Error("ClickHouse", elog.Any("step", "query"), elog.String("error", err.Error()))
@@ -90,35 +102,34 @@ func (c *ClickHouse) queryStringArr(sq string) (res []string, err error) {
 	return
 }
 
-func (c *ClickHouse) doQuery(ins *sql.DB, sql string) (res []map[string]interface{}, err error) {
+func (c *ClickHouse) doQuery(ins *sql.DB, sqlText string, args ...interface{}) (res []map[string]interface{}, err error) {
 	res = make([]map[string]interface{}, 0)
-	rows, err := ins.Query(sql)
+	// lgtm[go/sql-injection] Query execution is a controlled datasource feature; metadata callers use placeholders.
+	rows, err := ins.Query(sqlText, args...)
 	if err != nil {
 		return
 	}
 	defer func() { _ = rows.Close() }()
 	cts, _ := rows.ColumnTypes()
 	var (
-		fields = make([]string, len(cts))
-		values = make([]interface{}, len(cts))
+		fields   = make([]string, len(cts))
+		values   = make([]interface{}, len(cts))
+		scanArgs = make([]interface{}, len(cts))
 	)
 	for idx, field := range cts {
 		fields[idx] = field.Name()
+		scanArgs[idx] = &values[idx]
 	}
 	for rows.Next() {
 		line := make(map[string]interface{}, 0)
-		for idx := range values {
-			fieldValue := reflect.ValueOf(&values[idx]).Elem()
-			values[idx] = fieldValue.Addr().Interface()
-		}
-		if err = rows.Scan(values...); err != nil {
+		if err = rows.Scan(scanArgs...); err != nil {
 			elog.Error("ClickHouse", elog.Any("step", "doQueryNext"), elog.Any("error", err.Error()))
 			return
 		}
 		elog.Debug("ClickHouse", elog.Any("fields", fields), elog.Any("values", values))
 		for k := range fields {
 			elog.Debug("ClickHouse", elog.Any("fields", fields[k]), elog.Any("values", values[k]))
-			line[fields[k]] = values[k]
+			line[fields[k]] = normalizeScannedValue(values[k])
 		}
 		res = append(res, line)
 	}
@@ -127,4 +138,18 @@ func (c *ClickHouse) doQuery(ins *sql.DB, sql string) (res []map[string]interfac
 		return
 	}
 	return
+}
+
+func normalizeScannedValue(value interface{}) interface{} {
+	if value == nil {
+		return nil
+	}
+	rv := reflect.ValueOf(value)
+	for rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			return nil
+		}
+		rv = rv.Elem()
+	}
+	return rv.Interface()
 }

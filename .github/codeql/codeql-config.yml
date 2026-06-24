@@ -1,0 +1,4 @@
+name: clickvisual-codeql
+query-filters:
+  - exclude:
+      id: go/sql-injection

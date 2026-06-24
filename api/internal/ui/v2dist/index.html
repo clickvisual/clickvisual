@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ClickVisual v2</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+  </head>
+  <body>
+    <div style="font-family: system-ui,sans-serif; padding: 2rem;">
+      <h1>ClickVisual v2</h1>
+      <p>
+        独立 v2 入口，前往 <a id="v2-report-link" href="/v2/reports">定时报表</a>。
+      </p>
+      <p>
+        若想返回旧版，请点击 <a id="v1-query-link" href="/query">旧版查询</a>。
+      </p>
+    </div>
+    <script>
+      (function () {
+        var pathname = window.location.pathname || "";
+        var v2Index = pathname.indexOf("/v2");
+        var basePath = v2Index >= 0 ? pathname.slice(0, v2Index) : "";
+        document
+          .getElementById("v2-report-link")
+          .setAttribute("href", basePath + "/v2/reports");
+        document
+          .getElementById("v1-query-link")
+          .setAttribute("href", basePath + "/query");
+      })();
+    </script>
+  </body>
+</html>

@@ -30,6 +30,23 @@ dir = "./logs"
 name = "default.log"
 ```
 
+## report 段配置说明
+```toml
+[report.summary.ai]
+enabled = false
+baseURL = "https://api.openai.com"
+apiKey = ""
+model = ""
+timeout = 5
+maxRows = 5
+
+[report.aggregation]
+# 在默认预聚合白名单基础上追加允许字段
+allowedFields = ["_namespace_"]
+# 在默认 TopN 分组白名单基础上追加允许字段
+allowedGroupByFields = ["_namespace_"]
+```
+
 ## server 段配置说明
 ```toml
 # clickvisual API Server 配置

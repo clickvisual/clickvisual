@@ -39,6 +39,12 @@ var models = []interface{}{
 	db.Alarm{},
 	db.AlarmCondition{},
 	db.AlarmChannel{},
+	db.Report{},
+	db.ReportSchedule{},
+	db.ReportExecution{},
+	db.ReportAcceleration{},
+	db.QueryFilterProfile{},
+	db.AISetting{},
 
 	db.User{},
 	db.Event{},

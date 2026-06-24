@@ -97,6 +97,13 @@ const (
 	TableNameBigDataWorkflow    = "cv_bd_workflow"
 	TableNameBigDataDepend      = "cv_bd_depend"
 	TableNameBigDataCrontab     = "cv_bd_crontab"
+
+	TableNameReport             = "cv_report"
+	TableNameReportSchedule     = "cv_report_schedule"
+	TableNameReportExecution    = "cv_report_execution"
+	TableNameReportAcceleration = "cv_report_acceleration"
+	TableNameQueryFilterProfile = "cv_query_filter_profile"
+	TableNameAISetting          = "cv_ai_setting"
 )
 
 type BaseModel struct {

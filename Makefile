@@ -6,7 +6,7 @@ SCRIPT_PATH:=$(APP_PATH)/scripts
 COMPILE_OUT:=$(APP_PATH)/bin/$(APP_NAME)
 HUB_USER:=clickvisual
 
-build: build.ui build.dist build.api
+build: build.ui build.ui-v2 build.dist build.api
 
 docs:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ego gen api $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
@@ -28,6 +28,11 @@ build.dist:
 build.ui:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	@cd $(APP_PATH)/ui && yarn install --frozen-lockfile && yarn run build
+	@echo -e "\n"
+
+build.ui-v2:
+	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+	@cd $(APP_PATH)/ui-v2 && npm install && npm run build
 	@echo -e "\n"
 
 docker:docker.build docker.push

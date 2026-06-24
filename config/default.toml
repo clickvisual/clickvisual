@@ -27,7 +27,21 @@ port = 19011
 [logger]
 # log level, available level: "debug", "info", "warn", "error", "panic", "fatal"
 level = "info"
+writer = "stderr"
 name = "clickvisual.log"
+
+[report.summary.ai]
+enabled = false
+baseURL = "https://api.openai.com"
+apiKey = ""
+model = ""
+timeout = 5
+maxRows = 5
+
+[report.aggregation]
+# Extend the default pre-aggregation whitelist without modifying code.
+allowedFields = []
+allowedGroupByFields = []
 
 # if isMultiCopy is true
 [redis]

@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	_ "github.com/ClickHouse/clickhouse-go/v2"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
 func TestMain(m *testing.M) {
@@ -87,5 +89,23 @@ func Test_clickHouseLink(t *testing.T) {
 				return
 			}
 		})
+	}
+}
+
+func TestFilterAnalysisFieldsByBaseKeysSkipsExistingBaseIndex(t *testing.T) {
+	got := filterAnalysisFieldsByBaseKeys([]view.IndexItem{
+		{Field: "lv", Typ: 0},
+		{Field: "msg", Typ: 0},
+		{RootName: "body", Field: "cost", Typ: 2},
+	}, map[string]struct{}{
+		"lv":        {},
+		"body.cost": {},
+	})
+
+	if len(got) != 1 {
+		t.Fatalf("got %d fields, want 1: %#v", len(got), got)
+	}
+	if got[0].Field != "msg" {
+		t.Fatalf("got field %q, want msg", got[0].Field)
 	}
 }

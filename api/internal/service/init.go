@@ -13,6 +13,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/configure"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
+	"github.com/clickvisual/clickvisual/api/internal/service/report"
 	"github.com/clickvisual/clickvisual/api/internal/service/shorturl"
 	"github.com/clickvisual/clickvisual/api/internal/service/user"
 )
@@ -52,6 +53,10 @@ func Init() error {
 
 	Node = NewNode()
 
+	if err := report.StartScheduler(); err != nil {
+		return err
+	}
+
 	// Storage service start
 	Storage = NewSrvStorage()
 	// Support for multiple copies mode
@@ -68,6 +73,7 @@ func Init() error {
 }
 
 func Close() error {
+	report.StopScheduler()
 	// Storage service stop
 	if econf.GetBool("app.isMultiCopy") {
 		ppt.Close()
