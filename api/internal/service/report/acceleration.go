@@ -543,7 +543,7 @@ func (s *Service) RunAccelerationCheck(reportID int) (view.RespReportAcceleratio
 	if err != nil {
 		return view.RespReportAccelerationBackfillResult{}, err
 	}
-	acceleration, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
+	_, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
 	if err != nil {
 		return view.RespReportAccelerationBackfillResult{}, err
 	}
@@ -562,7 +562,7 @@ func (s *Service) RunAccelerationCheck(reportID int) (view.RespReportAcceleratio
 			return view.RespReportAccelerationBackfillResult{}, err
 		}
 	}
-	acceleration, found, err = s.getReportAccelerationByReportIDFromDB(report.ID)
+	acceleration, found, err := s.getReportAccelerationByReportIDFromDB(report.ID)
 	if err != nil {
 		return view.RespReportAccelerationBackfillResult{}, err
 	}
