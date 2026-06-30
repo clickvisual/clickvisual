@@ -36,6 +36,9 @@ func NewInstanceManager() *instanceManager {
 	m := &instanceManager{
 		dss: sync.Map{},
 	}
+	if invoker.Db == nil {
+		return m
+	}
 	datasourceList, _ := db.InstanceList(egorm.Conds{})
 	for _, ds := range datasourceList {
 		switch ds.Datasource {
