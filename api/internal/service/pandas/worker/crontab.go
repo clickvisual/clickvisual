@@ -23,9 +23,12 @@ import (
 const crontabUid = -1
 
 var (
-	CrontabRules *crontabRules
-	ppt          *preempt.Preempt
-	crontabFlag  bool
+	CrontabRules   *crontabRules
+	ppt            *preempt.Preempt
+	crontabFlag    bool
+	workerMu       sync.Mutex
+	workerStarted  bool
+	workerDBBacked bool
 )
 
 type crontabRules struct {
@@ -34,9 +37,22 @@ type crontabRules struct {
 
 // Init Gets the tasks that need to be performed
 func Init() error {
-	crontabFlag = true
-	CrontabRules = &crontabRules{
-		crones: sync.Map{},
+	workerMu.Lock()
+	defer workerMu.Unlock()
+	if workerStarted && (workerDBBacked || invoker.Db == nil) {
+		return nil
+	}
+	crontabFlag = invoker.Db != nil
+	if CrontabRules == nil {
+		CrontabRules = &crontabRules{
+			crones: sync.Map{},
+		}
+	}
+	if invoker.Db == nil {
+		workerStarted = true
+		workerDBBacked = false
+		elog.Warn("metadata database is not ready, skip pandas worker loops")
+		return nil
 	}
 	xgo.Go(clear)
 	// Support for multiple copies mode
@@ -44,15 +60,29 @@ func Init() error {
 		sf := func() { looper() }
 		ef := func() { crontabFlag = false }
 		ppt = preempt.NewPreempt(context.Background(), invoker.Redis, "clickvisual:worker", sf, ef)
+		workerStarted = true
+		workerDBBacked = true
 		return nil
 	}
 	xgo.Go(looper)
+	workerStarted = true
+	workerDBBacked = true
 	return nil
 }
 
 func Close() error {
+	workerMu.Lock()
+	defer workerMu.Unlock()
 	if econf.GetBool("app.isMultiCopy") {
-		ppt.Close()
+		if ppt != nil {
+			ppt.Close()
+		}
+	}
+	if CrontabRules == nil || invoker.Db == nil {
+		workerStarted = false
+		workerDBBacked = false
+		crontabFlag = false
+		return nil
 	}
 	CrontabRules.crones.Range(func(k, v interface{}) bool {
 		nodeId := k.(int)
@@ -61,6 +91,9 @@ func Close() error {
 		c.Stop()
 		return true
 	})
+	workerStarted = false
+	workerDBBacked = false
+	crontabFlag = false
 	return nil
 }
 

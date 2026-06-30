@@ -32,6 +32,7 @@ var (
 // Invoker SetUp permission handler
 func Invoker() {
 	rulePath := econf.GetString("casbin.rule.path")
+	gormadapter.TurnOffAutoMigrate(invoker.Db)
 	a, err := gormadapter.NewAdapterByDBUseTableName(invoker.Db, "", db2.TableNamePmsCasbinRule)
 	if err != nil {
 		elog.Panic("Casbin gorm-adapter panic", zap.Error(err))
