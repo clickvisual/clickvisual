@@ -36,6 +36,7 @@ func init() {
 }
 
 func CmdFunc(cmd *cobra.Command, args []string) {
+	service.SetDBBackedWorkerStarter(worker.Init)
 	app := ego.New(
 		ego.WithBeforeStopClean(
 			worker.Close,

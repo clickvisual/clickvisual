@@ -52,6 +52,8 @@ password = "**"
 
 [mysql]
 debug = true
+# metadata database attach retry interval when MySQL or schema is not ready during startup.
+attachRetryInterval = "5s"
 # database DSN
 dsn = "root:shimo@tcp(127.0.0.1:13306)/clickvisual?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
 # log level

@@ -85,6 +85,9 @@ func NewAlarm() *alert {
 	a := &alert{
 		reloadChan: make(chan int64, reloadTimes),
 	}
+	if invoker.Db == nil {
+		return a
+	}
 	go func() {
 		for r := range a.reloadChan {
 			elog.Info("AllPrometheusReload", elog.Int("times", len(a.reloadChan)), elog.Int64("r", r), elog.Int64("now", time.Now().Unix()))
@@ -621,6 +624,9 @@ func (i *alert) IsAllClosed(iid int) (err error) {
 }
 
 func AllPrometheusReload() {
+	if invoker.Db == nil {
+		return
+	}
 	instances, err := db2.InstanceList(egorm.Conds{})
 	if err != nil {
 		elog.Error("AllPrometheusReload", elog.String("step", "InstanceList"), elog.String("error", err.Error()))

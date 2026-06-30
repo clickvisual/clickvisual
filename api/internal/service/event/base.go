@@ -43,6 +43,9 @@ func (a *event) ConsumeEvent() {
 }
 
 func (a *event) insert(event db2.Event) error {
+	if invoker.Db == nil {
+		return nil
+	}
 	if err := invoker.Db.Create(&event).Error; err != nil {
 		return err
 	}
@@ -55,6 +58,9 @@ func (a *event) GetAllEnums() db2.RespAllEnums {
 		OperationEnums: db2.OperationMap,
 	}
 	resp.UserEnums = make(map[int]string)
+	if invoker.Db == nil {
+		return resp
+	}
 	usersBase := make([]db2.UserIdName, 0)
 	invoker.Db.Table(db2.TableNameUser).Select("id, username").Find(&usersBase)
 	for _, userBase := range usersBase {
