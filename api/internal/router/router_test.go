@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotomicro/ego/core/econf"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/ui/v2dist"
@@ -143,4 +144,78 @@ func TestNoRouteServesV2StaticFile(t *testing.T) {
 	if !strings.Contains(resp.Body.String(), "clickvisual-v2-static-ok") {
 		t.Fatalf("expected probe content, got %q", resp.Body.String())
 	}
+}
+
+func TestV2RoutesDefaultToFullEdition(t *testing.T) {
+	econf.Reset()
+	t.Cleanup(econf.Reset)
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+
+	v2(r.Group(""))
+
+	routes := routeSet(r)
+	for _, item := range []routeKey{
+		{method: http.MethodPost, path: "/api/v2/query/run"},
+		{method: http.MethodPost, path: "/api/v2/query/ingestion/publish"},
+		{method: http.MethodPost, path: "/api/v2/reports"},
+		{method: http.MethodGet, path: "/api/v2/alert/settings"},
+		{method: http.MethodGet, path: "/api/v2/pandas/workers"},
+		{method: http.MethodGet, path: "/api/v2/base/users"},
+	} {
+		if !routes[item] {
+			t.Fatalf("expected full route %s %s", item.method, item.path)
+		}
+	}
+}
+
+func TestV2RoutesPrivateLiteEdition(t *testing.T) {
+	econf.Reset()
+	t.Cleanup(econf.Reset)
+	econf.Set("app.v2Edition", "private-lite")
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+
+	v2(r.Group(""))
+
+	routes := routeSet(r)
+	for _, item := range []routeKey{
+		{method: http.MethodGet, path: "/api/v2/base/instances"},
+		{method: http.MethodGet, path: "/api/v2/base/settings/instances"},
+		{method: http.MethodGet, path: "/api/v2/query/filters"},
+		{method: http.MethodGet, path: "/api/v2/query/instances/:instance-id/databases/:database/tables"},
+		{method: http.MethodPost, path: "/api/v2/query/compile"},
+		{method: http.MethodPost, path: "/api/v2/query/run"},
+		{method: http.MethodPost, path: "/api/v2/query/field-stats"},
+		{method: http.MethodGet, path: "/api/v2/query/tokens"},
+	} {
+		if !routes[item] {
+			t.Fatalf("expected private-lite route %s %s", item.method, item.path)
+		}
+	}
+	for _, item := range []routeKey{
+		{method: http.MethodPost, path: "/api/v2/query/ingestion/publish"},
+		{method: http.MethodPost, path: "/api/v2/storage"},
+		{method: http.MethodPost, path: "/api/v2/reports"},
+		{method: http.MethodGet, path: "/api/v2/alert/settings"},
+		{method: http.MethodGet, path: "/api/v2/pandas/workers"},
+		{method: http.MethodGet, path: "/api/v2/base/users"},
+	} {
+		if routes[item] {
+			t.Fatalf("did not expect private-lite route %s %s", item.method, item.path)
+		}
+	}
+}
+
+type routeKey struct {
+	method string
+	path   string
+}
+
+func routeSet(r *gin.Engine) map[routeKey]bool {
+	res := make(map[routeKey]bool)
+	for _, route := range r.Routes() {
+		res[routeKey{method: route.Method, path: route.Path}] = true
+	}
+	return res
 }

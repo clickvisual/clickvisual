@@ -16,6 +16,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/report"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 )
 
@@ -28,6 +29,14 @@ import (
 // The system management module - sysop
 func v2(r *gin.RouterGroup) {
 	r = r.Group("/api/v2", middlewares.AuthChecker())
+	if config.IsPrivateLiteMode() {
+		v2PrivateLite(r)
+		return
+	}
+	v2Full(r)
+}
+
+func v2Full(r *gin.RouterGroup) {
 	// swagger docs
 	{
 		r.GET("/swagger/*any", goredoc.GinHandler(&goredoc.Setting{
@@ -163,5 +172,31 @@ func v2(r *gin.RouterGroup) {
 		r.GET("/reports/instances/:instance-id/databases/:database/tables/:table/columns", core.Handle(report.ReportTableColumns))
 		r.POST("/reports/configs", core.Handle(report.ConfigUpsert))
 		r.GET("/reports/configs/:node-id", core.Handle(report.ConfigGet))
+	}
+}
+
+func v2PrivateLite(r *gin.RouterGroup) {
+	// Minimal base reads required by the v2 query workbench.
+	{
+		r.GET("/base/instances", core.Handle(base.InstanceList))
+		r.GET("/base/settings/instances", core.Handle(base.SettingsInstanceList))
+		r.GET("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceInfo))
+	}
+	// Log query APIs. Log table creation stays outside HTTP in private-lite mode and is driven by `clickvisual ego`.
+	{
+		r.GET("/query/filters", core.Handle(queryv2.List))
+		r.GET("/query/filters/:filter-id", core.Handle(queryv2.Get))
+		r.POST("/query/filters", core.Handle(queryv2.Create))
+		r.PUT("/query/filters/:filter-id", core.Handle(queryv2.Update))
+		r.DELETE("/query/filters/:filter-id", core.Handle(queryv2.Delete))
+		r.GET("/query/instances/:instance-id/databases/:database/tables", core.Handle(queryv2.SourceTables))
+		r.POST("/query/compile", core.Handle(queryv2.Compile))
+		r.POST("/query/run", core.Handle(queryv2.Run))
+		r.POST("/query/field-stats", core.Handle(queryv2.FieldStats))
+		r.GET("/query/tokens", core.Handle(queryv2.TokenList))
+		r.POST("/query/tokens", core.Handle(queryv2.TokenCreate))
+		r.PATCH("/query/tokens/:token-id", core.Handle(queryv2.TokenUpdate))
+		r.PUT("/query/tokens/:token-id/grants", core.Handle(queryv2.TokenGrantUpdate))
+		r.GET("/query/tokens/:token-id/audits", core.Handle(queryv2.TokenAuditList))
 	}
 }

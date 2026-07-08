@@ -700,6 +700,9 @@ func EnforceOneInMany(rules ...[]interface{}) (bool, error) {
 }
 
 func EnforcerLoadPolicy() {
+	if enforcer == nil {
+		return
+	}
 	_ = enforcer.LoadPolicy()
 	elog.Debug("Casbin LoadPolicy")
 	if watcher != nil {

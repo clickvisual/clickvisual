@@ -16,6 +16,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	appconfig "github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/alertcomponent"
@@ -84,6 +85,9 @@ type alert struct {
 func NewAlarm() *alert {
 	a := &alert{
 		reloadChan: make(chan int64, reloadTimes),
+	}
+	if appconfig.IsPrivateLiteMode() {
+		return a
 	}
 	if invoker.Db == nil {
 		return a

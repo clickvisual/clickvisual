@@ -61,7 +61,7 @@ describe("v2 version switcher", () => {
     expect(
       screen.getByRole("heading", { name: "定时报表" })
     ).toBeInTheDocument();
-    await screen.findByRole("heading", { name: "任务导航" });
+    await screen.findByRole("list", { name: "报表任务列表" });
     expect(window.localStorage.getItem(VERSION_STORAGE_KEY)).toBe("v2");
   });
 
@@ -87,7 +87,7 @@ describe("v2 version switcher", () => {
 
     render(<RouterProvider router={memoryRouter} />);
 
-    await screen.findByRole("heading", { name: "任务导航" });
+    await screen.findByRole("list", { name: "报表任务列表" });
 
     const link = screen.getByRole("link", { name: "返回上次使用的 v1" });
 
@@ -109,7 +109,7 @@ describe("v2 version switcher", () => {
 
     render(<RouterProvider router={memoryRouter} />);
 
-    await screen.findByRole("heading", { name: "任务导航" });
+    await screen.findByRole("list", { name: "报表任务列表" });
 
     const link = screen.getByRole("link", { name: "返回上次使用的 v1" });
 

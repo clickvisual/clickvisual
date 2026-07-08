@@ -10,13 +10,13 @@ import (
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/server/egin"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
 	_ "github.com/ClickHouse/clickhouse-go/v2"
 	_ "github.com/databendcloud/databend-go"
 
+	appconfig "github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/session"
 	"github.com/clickvisual/clickvisual/api/internal/ui"
 )
@@ -91,25 +91,19 @@ func defaultOpenMetadataDB() (db *egorm.Component, err error) {
 			db = nil
 		}
 	}()
-	dsn := econf.GetString("mysql.dsn")
-	if dsn == "" {
-		return nil, fmt.Errorf("mysql.dsn is empty")
-	}
-	raw, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: logger.Discard})
+	raw, err := appconfig.OpenMetadataDB(&gorm.Config{Logger: logger.Discard})
 	if err != nil {
 		return nil, err
 	}
-	if econf.GetBool("mysql.debug") {
+	if appconfig.MetadataDebug() {
 		raw = raw.Debug()
+	}
+	if err := appconfig.ConfigureMetadataSQLDB(raw); err != nil {
+		return nil, err
 	}
 	sqlDB, err := raw.DB()
 	if err != nil {
 		return nil, err
-	}
-	sqlDB.SetMaxIdleConns(econf.GetInt("mysql.maxIdleConns"))
-	sqlDB.SetMaxOpenConns(econf.GetInt("mysql.maxOpenConns"))
-	if lifetime := econf.GetDuration("mysql.connMaxLifetime"); lifetime > 0 {
-		sqlDB.SetConnMaxLifetime(lifetime)
 	}
 	if err = sqlDB.Ping(); err != nil {
 		_ = sqlDB.Close()

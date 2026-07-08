@@ -10,6 +10,7 @@ import (
 	_ "github.com/clickvisual/clickvisual/api/cmd/command"
 	_ "github.com/clickvisual/clickvisual/api/cmd/ego"
 	_ "github.com/clickvisual/clickvisual/api/cmd/init"
+	_ "github.com/clickvisual/clickvisual/api/cmd/query"
 	_ "github.com/clickvisual/clickvisual/api/cmd/server"
 	_ "github.com/clickvisual/clickvisual/api/cmd/upload"
 )

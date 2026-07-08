@@ -126,7 +126,16 @@ func (t OAuthToken) Value() (driver.Value, error) {
 }
 
 func (t *OAuthToken) Scan(input interface{}) error {
-	return json.Unmarshal(input.([]byte), t)
+	switch v := input.(type) {
+	case nil:
+		return nil
+	case []byte:
+		return json.Unmarshal(v, t)
+	case string:
+		return json.Unmarshal([]byte(v), t)
+	default:
+		return errors.Errorf("unsupported oauth token type %T", input)
+	}
 }
 
 type ReqUserUpdate struct {

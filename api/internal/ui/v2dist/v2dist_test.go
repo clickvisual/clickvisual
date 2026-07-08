@@ -3,6 +3,8 @@ package v2dist
 import (
 	"strings"
 	"testing"
+
+	"github.com/gotomicro/ego/core/econf"
 )
 
 func TestGetV2AssetBasePath(t *testing.T) {
@@ -39,5 +41,21 @@ func TestRewriteIndexAssetPaths(t *testing.T) {
 	}
 	if strings.Contains(rewritten, `./assets/`) {
 		t.Fatalf("expected no relative asset paths to remain, got %q", rewritten)
+	}
+}
+
+func TestRewriteIndexInjectsRuntimeEdition(t *testing.T) {
+	econf.Reset()
+	t.Cleanup(econf.Reset)
+	econf.Set("app.v2Edition", "private-lite")
+	html := []byte(`<html><head></head><body><script type="module" src="./assets/index.js"></script></body></html>`)
+
+	rewritten := string(rewriteIndexAssetPaths(html, "/v2/query"))
+
+	if !strings.Contains(rewritten, `window.__CLICKVISUAL_V2_CONFIG__={"edition":"private-lite"}`) {
+		t.Fatalf("expected runtime edition injection, got %q", rewritten)
+	}
+	if !strings.Contains(rewritten, `</script></head>`) {
+		t.Fatalf("expected runtime script inside head, got %q", rewritten)
 	}
 }
