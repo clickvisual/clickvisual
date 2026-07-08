@@ -95,9 +95,23 @@ func Login(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	if invoker.Db == nil {
+		if err = invoker.TryAttachMetadataDB(); err != nil {
+			c.JSONE(1, "metadata database is not ready", err.Error())
+			return
+		}
+	}
 	conds := egorm.Conds{}
 	conds["username"] = param.Username
-	user, _ := db.UserInfoX(conds)
+	user, err := db.UserInfoX(conds)
+	if err != nil {
+		c.JSONE(1, "metadata database is not ready", err.Error())
+		return
+	}
+	if user.ID == 0 || user.Password == "" {
+		c.JSONE(1, "account or password error", "")
+		return
+	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(utils.MD5Encode32(param.Password)))
