@@ -36,17 +36,21 @@ func init() {
 }
 
 func CmdFunc(cmd *cobra.Command, args []string) {
-	service.SetDBBackedWorkerStarter(worker.Init)
-	app := ego.New(
-		ego.WithBeforeStopClean(
-			worker.Close,
-			service.Close,
-		)).
-		Invoker(
-			invoker.Init,
-			service.Init,
-			worker.Init,
-		)
+	app := ego.New(ego.WithBeforeStopClean(service.Close)).
+		Invoker(invoker.Init, service.Init)
+	if !config.IsPrivateLiteMode() {
+		service.SetDBBackedWorkerStarter(worker.Init)
+		app = ego.New(
+			ego.WithBeforeStopClean(
+				worker.Close,
+				service.Close,
+			)).
+			Invoker(
+				invoker.Init,
+				service.Init,
+				worker.Init,
+			)
+	}
 
 	// 日志巡检定时任务
 	app = inspect_log_cron.InspectLogCron(app)

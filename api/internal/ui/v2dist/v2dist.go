@@ -3,6 +3,7 @@ package v2dist
 import (
 	"bytes"
 	"embed"
+	"encoding/json"
 	"io/fs"
 	"mime"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	appconfig "github.com/clickvisual/clickvisual/api/internal/pkg/config"
 )
 
 //go:embed dist
@@ -87,7 +89,8 @@ func readFile(filePath string) ([]byte, error) {
 func rewriteIndexAssetPaths(data []byte, requestPath string) []byte {
 	assetBase := []byte(`"` + getV2AssetBasePath(requestPath) + `assets/`)
 	rewritten := bytes.ReplaceAll(data, []byte(`"./assets/`), assetBase)
-	return bytes.ReplaceAll(rewritten, []byte(`'./assets/`), append([]byte{'\''}, assetBase[1:]...))
+	rewritten = bytes.ReplaceAll(rewritten, []byte(`'./assets/`), append([]byte{'\''}, assetBase[1:]...))
+	return injectRuntimeConfig(rewritten)
 }
 
 func getV2AssetBasePath(requestPath string) string {
@@ -97,4 +100,19 @@ func getV2AssetBasePath(requestPath string) string {
 		return "/v2/"
 	}
 	return cleaned[:v2Index] + "/v2/"
+}
+
+func injectRuntimeConfig(data []byte) []byte {
+	payload, err := json.Marshal(map[string]string{"edition": appconfig.Edition()})
+	if err != nil {
+		return data
+	}
+	script := []byte(`<script>window.__CLICKVISUAL_V2_CONFIG__=` + string(payload) + `;</script>`)
+	if bytes.Contains(data, script) {
+		return data
+	}
+	if bytes.Contains(data, []byte("</head>")) {
+		return bytes.Replace(data, []byte("</head>"), append(script, []byte("</head>")...), 1)
+	}
+	return append(script, data...)
 }

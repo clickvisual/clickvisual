@@ -13,9 +13,19 @@ function buildApiUrl(path: string) {
 
 function getLoginHref(payload?: string) {
   if (payload) {
+    try {
+      const url = new URL(payload, window.location.origin);
+      if (url.pathname.endsWith("/user/login")) {
+        return `${getV2BasePath()}/v2/login`;
+      }
+    } catch {
+      if (payload.endsWith("/user/login")) {
+        return `${getV2BasePath()}/v2/login`;
+      }
+    }
     return payload;
   }
-  return `${getV2BasePath()}/user/login`;
+  return `${getV2BasePath()}/v2/login`;
 }
 
 function redirectToLogin(payload?: string) {

@@ -47,7 +47,7 @@ describe("http client", () => {
     );
 
     await expect(client.get("/api/v2/reports/list")).rejects.toThrow("需要重新登录");
-    expect(assign).toHaveBeenCalledWith("/console/user/login");
+    expect(assign).toHaveBeenCalledWith("/console/v2/login");
   });
 
   it("falls back to the default login route when redirect payload is empty", async () => {
@@ -75,6 +75,6 @@ describe("http client", () => {
     );
 
     await expect(client.get("/api/v2/reports/list")).rejects.toThrow("需要重新登录");
-    expect(assign).toHaveBeenCalledWith("/console/user/login");
+    expect(assign).toHaveBeenCalledWith("/console/v2/login");
   });
 });
