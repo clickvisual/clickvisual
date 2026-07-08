@@ -16,8 +16,11 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/router"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/install"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/worker"
 )
+
+var ensureMetadataSchema = install.EnsureMetadataSchema
 
 var CmdRun = &cobra.Command{
 	Use:   "server",
@@ -36,6 +39,10 @@ func init() {
 }
 
 func CmdFunc(cmd *cobra.Command, args []string) {
+	if err := ensureSQLiteMetadataSchema(); err != nil {
+		elog.Panic("初始化 sqlite metadata schema 失败: " + err.Error())
+	}
+
 	app := ego.New(ego.WithBeforeStopClean(service.Close)).
 		Invoker(invoker.Init, service.Init)
 	if !config.IsPrivateLiteMode() {
@@ -73,4 +80,12 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 	if err != nil {
 		elog.Panic("start up error: " + err.Error())
 	}
+}
+
+func ensureSQLiteMetadataSchema() error {
+	if config.MetadataDriver() != config.MetadataDriverSQLite {
+		return nil
+	}
+	elog.Info("sqlite metadata detected, ensure metadata schema before server start")
+	return ensureMetadataSchema()
 }
