@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
@@ -61,6 +62,9 @@ func UserUpdate(db *gorm.DB, paramId int, ups map[string]interface{}) (err error
 }
 
 func UserInfo(paramId int) (resp User, err error) {
+	if invoker.Db == nil {
+		return resp, fmt.Errorf("metadata database is not attached")
+	}
 	var sql = "`id`= ?"
 	var binds = []interface{}{paramId}
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
@@ -72,6 +76,9 @@ func UserInfo(paramId int) (resp User, err error) {
 
 // UserInfoX get single item by condition
 func UserInfoX(conds map[string]interface{}) (resp User, err error) {
+	if invoker.Db == nil {
+		return resp, fmt.Errorf("metadata database is not attached")
+	}
 	sql, binds := egorm.BuildQuery(conds)
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).First(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
 		elog.Error("UserInfoX infoX error", zap.Error(err))
@@ -91,6 +98,9 @@ func UserDelete(db *gorm.DB, id int) (err error) {
 
 // UserList return item list by condition
 func UserList(conds egorm.Conds) (resp []*User, err error) {
+	if invoker.Db == nil {
+		return resp, fmt.Errorf("metadata database is not attached")
+	}
 	sql, binds := egorm.BuildQuery(conds)
 	// Fetch record with Rancher Info....
 	if err = invoker.Db.Table(TableNameUser).Where(sql, binds...).Find(&resp).Error; err != nil && err != gorm.ErrRecordNotFound {
