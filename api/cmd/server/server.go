@@ -39,10 +39,6 @@ func init() {
 }
 
 func CmdFunc(cmd *cobra.Command, args []string) {
-	if err := ensureSQLiteMetadataSchema(); err != nil {
-		elog.Panic("初始化 sqlite metadata schema 失败: " + err.Error())
-	}
-
 	app := ego.New(ego.WithBeforeStopClean(service.Close)).
 		Invoker(invoker.Init, service.Init)
 	if !config.IsPrivateLiteMode() {

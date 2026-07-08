@@ -21,7 +21,7 @@ import type {
 } from "../types/contracts";
 import ContextMenu from "../../../shared/components/ContextMenu";
 import { isPrivateLiteEdition } from "../../../shared/config/runtime";
-import { buildShareRouteHref, buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
+import { buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
 
 type QueryDateRange = [Date, Date] | null;
 type QueryConditionModalMode = "create" | "edit";
@@ -1206,7 +1206,7 @@ function TraceTimeline({ groups }: { groups: TraceGroup[] }) {
   );
 }
 
-export default function QueryPage({ shareMode = false }: { shareMode?: boolean }) {
+export default function QueryPage() {
   const privateLite = isPrivateLiteEdition();
   const initialSearchParams = useMemo(
     () => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search),
@@ -2795,7 +2795,22 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                                                 title={`查看 ${key} = ${formatLogDetailValue(value)} 的分布`}
                                                 onClick={(event) => {
                                                   event.stopPropagation();
+                                                  if (isLogTimeField(key)) {
+                                                    addConditionFromLogDetail(key, value);
+                                                    return;
+                                                  }
                                                   void openFieldStatsModal(key, value, !isPresentLogValue(row.original[key]));
+                                                }}
+                                              >
+                                                添加
+                                              </button>
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__link-button"
+                                                title={`添加条件：${key} = ${formatLogDetailValue(value)}`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  addConditionFromLogDetail(key, value);
                                                 }}
                                               >
                                                 添加
@@ -2849,6 +2864,18 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                                                 {nestedValue}
                                               </button>
                                               {canStartAIAnalysisFromField(nestedKey, nestedValue) ? (
+                                                <button
+                                                  type="button"
+                                                  className="cv-query-detail__link-button"
+                                                  aria-label={`从 JSON 添加条件 ${nestedKey} = ${nestedValue}`}
+                                                  title={`添加条件：${nestedKey} = ${nestedValue}`}
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    addConditionFromLogDetail(nestedKey, nestedValue);
+                                                  }}
+                                                >
+                                                  添加
+                                                </button>
                                                 <button
                                                   type="button"
                                                   className="cv-query-detail__link-button"

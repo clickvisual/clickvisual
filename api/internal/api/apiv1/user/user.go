@@ -106,16 +106,11 @@ func Login(c *core.Context) {
 	conds["username"] = param.Username
 	user, err := db.UserInfoX(conds)
 	if err != nil {
-		c.JSONE(1, "metadata database is not ready", err.Error())
-		return
-	}
-	if user.ID == 0 || user.Password == "" {
-		c.JSONE(1, "account or password error", "")
-		return
-	}
-	if err = passwordMatches(user.Password, param.Password, param.PasswordEncoded); err != nil {
-		c.JSONE(1, "account or password error", "")
-		return
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(utils.MD5Encode32(param.Password)))
+		if err != nil {
+			c.JSONE(1, "account or password error", "")
+			return
+		}
 	}
 	session := sessions.Default(c.Context)
 	session.Set("user", user)

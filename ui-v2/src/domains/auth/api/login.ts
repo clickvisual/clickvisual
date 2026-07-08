@@ -1,5 +1,4 @@
 import { getV2BasePath } from "../../../shared/layout/VersionSwitcher";
-import { md5 } from "../../../shared/crypto/md5";
 
 type LoginResponse = {
   code: number;
@@ -10,8 +9,7 @@ type LoginResponse = {
 export async function loginWithPassword(username: string, password: string) {
   const body = new URLSearchParams();
   body.set("username", username);
-  body.set("password", md5(password));
-  body.set("passwordEncoded", "md5");
+  body.set("password", password);
 
   const response = await fetch(`${getV2BasePath()}/api/admin/users/login`, {
     method: "POST",

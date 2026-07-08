@@ -18,70 +18,102 @@ import SettingsQueryTokensPage from "../domains/settings/pages/SettingsQueryToke
 import { isPrivateLiteEdition } from "../shared/config/runtime";
 import { getV2BasePath } from "../shared/layout/VersionSwitcher";
 
-export const routes = [
-  {
-    path: "/v2",
-    element: <App />,
-    children: [
-      {
-        index: true,
-        element: <QueryPage />
-      },
-      {
-        path: "reports",
-        element: <ReportSchedulePage />
-      },
-      {
-        path: "reports/:reportId",
-        element: <ReportSchedulePage />
-      },
-      {
-        path: "reports/:reportId/display",
-        element: <ReportResultPage />
-      },
-      {
-        path: "overview",
-        element: <OverviewPage />
-      },
-      {
-        path: "query",
-        element: <QueryPage />
-      },
-      {
-        path: "query/link",
-        element: <QueryLinkPage />
-      },
-      {
-        path: "query/ingestion",
-        element: <IngestionWorkbenchPage />
-      },
-      {
-        path: "alerts/rules",
-        element: <AlertRulesPage />
-      },
-      {
-        path: "settings/datasource",
-        element: <SettingsDatasourcePage />
-      },
-      {
-        path: "permission/users",
-        element: <PermissionUsersPage />
-      },
-      {
-        path: "permission/roles",
-        element: <PermissionRolesPage />
-      },
-      {
-        path: "permission/resources",
-        element: <PermissionResourcesPage />
-      },
-      {
-        path: "permission/root",
-        element: <PermissionRootPage />
-      }
-    ]
-  }
-];
+export function createV2Routes(privateLite = isPrivateLiteEdition()) {
+  const children = privateLite
+    ? [
+        {
+          index: true,
+          element: <QueryPage />
+        },
+        {
+          path: "query",
+          element: <QueryPage />
+        },
+        {
+          path: "query/link",
+          element: <QueryLinkPage />
+        }
+      ]
+    : [
+        {
+          index: true,
+          element: <QueryPage />
+        },
+        {
+          path: "reports",
+          element: <ReportSchedulePage />
+        },
+        {
+          path: "reports/:reportId",
+          element: <ReportSchedulePage />
+        },
+        {
+          path: "reports/:reportId/display",
+          element: <ReportResultPage />
+        },
+        {
+          path: "overview",
+          element: <OverviewPage />
+        },
+        {
+          path: "query",
+          element: <QueryPage />
+        },
+        {
+          path: "query/link",
+          element: <QueryLinkPage />
+        },
+        {
+          path: "query/ingestion",
+          element: <IngestionWorkbenchPage />
+        },
+        {
+          path: "analysis",
+          element: <AnalysisWorkbenchPage />
+        },
+        {
+          path: "alerts/rules",
+          element: <AlertRulesPage />
+        },
+        {
+          path: "settings/datasource",
+          element: <SettingsDatasourcePage />
+        },
+        {
+          path: "settings/query-tokens",
+          element: <SettingsQueryTokensPage />
+        },
+        {
+          path: "permission/users",
+          element: <PermissionUsersPage />
+        },
+        {
+          path: "permission/roles",
+          element: <PermissionRolesPage />
+        },
+        {
+          path: "permission/resources",
+          element: <PermissionResourcesPage />
+        },
+        {
+          path: "permission/root",
+          element: <PermissionRootPage />
+        }
+      ];
+  return [
+    {
+      path: "/v2/login",
+      element: <LoginPage />
+    },
+    {
+      path: "/v2",
+      element: <App />,
+      children
+    }
+  ];
+}
+
+export const routes = createV2Routes();
 
 export const router = createBrowserRouter(routes, {
   basename: getV2BasePath()

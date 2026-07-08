@@ -1,6 +1,8 @@
 package install
 
 import (
+	"fmt"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -73,7 +75,6 @@ var privateLiteModels = []interface{}{
 	db.BaseIndex{},
 	db.BaseHiddenField{},
 	db.BaseView{},
-	db.BaseShortURL{},
 
 	db.QueryFilterProfile{},
 	db.QueryToken{},
@@ -92,9 +93,17 @@ func installModels() []interface{} {
 }
 
 func Install() (err error) {
-	if err = EnsureMetadataSchema(); err != nil {
+	d, err := openInstallDB()
+	if err != nil {
 		return
 	}
+	d.Migrator()
+	err = migrateModels(d)
+	if err != nil {
+		return
+	}
+
+	seedRootUserAndPolicy(d)
 	pmsplugin.EnforcerLoadPolicy()
 	return
 }
@@ -114,9 +123,17 @@ func EnsureMetadataSchema() (err error) {
 
 func Migration() (err error) {
 	// table deps update
-	if err = EnsureMetadataSchema(); err != nil {
+	d, e := openInstallDB()
+	fmt.Println(`e--------------->`, e)
+	if e != nil {
+		return e
+	}
+	d.Migrator()
+	err = migrateModels(d)
+	if err != nil {
 		return
 	}
+	seedRootUserAndPolicy(d)
 	pmsplugin.EnforcerLoadPolicy()
 	return
 }
