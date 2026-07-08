@@ -72,5 +72,10 @@ describe("v2 private-lite edition", () => {
       );
       expect(assign).toHaveBeenCalledWith("/v2/query");
     });
+    const [, requestInit] = vi.mocked(fetch).mock.calls[0];
+    const body = requestInit?.body as URLSearchParams;
+    expect(body.get("password")).toBe("c37de4f875d7f764d27cd57dccfa0e56");
+    expect(body.get("passwordEncoded")).toBe("md5");
+    expect(body.get("password")).not.toBe("clickvisual");
   });
 });

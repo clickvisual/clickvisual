@@ -82,8 +82,9 @@ func List(c *core.Context) {
 }
 
 type login struct {
-	Username string `form:"username" binding:"required"`
-	Password string `form:"password" binding:"required"`
+	Username        string `form:"username" binding:"required"`
+	Password        string `form:"password" binding:"required"`
+	PasswordEncoded string `form:"passwordEncoded"`
 }
 
 // @Tags         USER
@@ -112,18 +113,25 @@ func Login(c *core.Context) {
 		c.JSONE(1, "account or password error", "")
 		return
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
-	if err != nil {
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(utils.MD5Encode32(param.Password)))
-		if err != nil {
-			c.JSONE(1, "account or password error", "")
-			return
-		}
+	if err = passwordMatches(user.Password, param.Password, param.PasswordEncoded); err != nil {
+		c.JSONE(1, "account or password error", "")
+		return
 	}
 	session := sessions.Default(c.Context)
 	session.Set("user", user)
 	_ = session.Save()
 	c.JSONOK("")
+}
+
+func passwordMatches(storedHash string, password string, encoded string) error {
+	if encoded == "md5" {
+		return bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password))
+	}
+	err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password))
+	if err == nil {
+		return nil
+	}
+	return bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(utils.MD5Encode32(password)))
 }
 
 // @Tags         USER
