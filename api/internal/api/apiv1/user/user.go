@@ -13,6 +13,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 )
@@ -99,8 +100,11 @@ func Login(c *core.Context) {
 	user, _ := db.UserInfoX(conds)
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
-		c.JSONE(1, "account or password error", "")
-		return
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(utils.MD5Encode32(param.Password)))
+		if err != nil {
+			c.JSONE(1, "account or password error", "")
+			return
+		}
 	}
 	session := sessions.Default(c.Context)
 	session.Set("user", user)

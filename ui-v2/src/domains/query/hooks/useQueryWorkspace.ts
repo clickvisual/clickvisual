@@ -486,11 +486,37 @@ export function useQueryWorkspace(
     return null;
   }
 
+  function findTreeTargetByDatabaseTable(data: QuerySourceInstance[], target?: QuerySourceTreeTarget): QuerySourceTreeTarget | null {
+    if (!target?.databaseName || !target.tableName) {
+      return null;
+    }
+    for (const instance of data) {
+      if (target.instanceId && instance.id !== target.instanceId) {
+        continue;
+      }
+      const database = (instance.databases ?? []).find((item) => item.name === target.databaseName);
+      const table = (database?.tables ?? []).find((item) => item.name === target.tableName);
+      if (database && table) {
+        return {
+          instanceId: instance.id,
+          databaseName: database.name,
+          tableName: table.name,
+          tableId: table.id
+        };
+      }
+    }
+    return null;
+  }
+
   async function refreshSourceTree(target?: QuerySourceTreeTarget) {
     setContextLoading(true);
     try {
       const data = await listQuerySourceInstances();
-      treeSelectionTargetRef.current = findTreeTargetByTableId(data, target?.tableId) ?? target ?? null;
+      treeSelectionTargetRef.current =
+        findTreeTargetByTableId(data, target?.tableId) ??
+        findTreeTargetByDatabaseTable(data, target) ??
+        target ??
+        null;
       setInstances(data);
       setSelectedInstanceId((current) => {
         const resolvedTarget = treeSelectionTargetRef.current;

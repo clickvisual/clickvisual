@@ -1,0 +1,65 @@
+[app]
+isMultiCopy = false
+v2Edition = "private-lite"
+secretKey = "secretKey"
+rootURL = "http://localhost:19083"
+baseURL = "/api/admin/login/"
+permissionFile = "./config/resource.yaml"
+serveFromSubPath = false
+encryptionKey = "00112233445566778899aabbccddeeff"
+
+[casbin.rule]
+path = "./config/rbac.conf"
+
+[server.http]
+host = "127.0.0.1"
+port = 19083
+embedPath = "dist"
+maxAge = 86400
+
+[server.governor]
+host = "127.0.0.1"
+port = 19093
+
+[logger]
+level = "info"
+writer = "stderr"
+name = "clickvisual-private-lite-sqlite.log"
+
+[report.summary.ai]
+enabled = false
+baseURL = "https://api.openai.com"
+apiKey = ""
+model = ""
+timeout = 5
+maxRows = 5
+
+[report.aggregation]
+allowedFields = []
+allowedGroupByFields = []
+
+[metadata]
+driver = "sqlite"
+dsn = "data/clickvisual-private-lite.db"
+debug = true
+
+[mysql]
+debug = false
+attachRetryInterval = "2s"
+dsn = ""
+level = "debug"
+maxIdleConns = 5
+maxOpenConns = 10
+connMaxLifetime = "300s"
+
+[auth]
+mode = "memstore"
+name = "clickvisual_session_sqlite"
+debug = true
+Keypairs = "secret"
+
+[auth.anonymous]
+enabled = false
+
+[clickhouse]
+dsn = "tcp://127.0.0.1:9000?debug=false"

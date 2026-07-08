@@ -11,6 +11,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/kube"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/preempt"
 	"github.com/clickvisual/clickvisual/api/internal/service/configure"
@@ -76,6 +77,11 @@ func Init() error {
 func defaultStartDBBackedServices() error {
 	if invoker.Db == nil {
 		return fmt.Errorf("metadata database is not attached")
+	}
+
+	if config.IsPrivateLiteMode() {
+		permission.InitManager()
+		return nil
 	}
 
 	kube.InitClusterManager()

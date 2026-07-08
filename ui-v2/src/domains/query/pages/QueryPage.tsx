@@ -20,6 +20,7 @@ import type {
   QuerySourceTreeTarget
 } from "../types/contracts";
 import ContextMenu from "../../../shared/components/ContextMenu";
+import { isPrivateLiteEdition } from "../../../shared/config/runtime";
 import { buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
 
 type QueryDateRange = [Date, Date] | null;
@@ -116,6 +117,7 @@ type LogDetailNestedEntry = {
 
 const DEFAULT_RESULT_COLUMN_KEYS = ["__time", "__level", "__message"] as const;
 const RESULT_COLUMN_STORAGE_PREFIX = "clickvisual-v2-query-result-columns";
+const OPEN_LOG_TABS_STORAGE_PREFIX = "clickvisual-v2-query-open-tabs";
 const QUICK_TIME_RANGES: QuickTimeRange[] = [
   { label: "Last 15 minutes", minutes: 15 },
   { label: "Last 30 minutes", minutes: 30 },
@@ -188,6 +190,36 @@ function writeTimeRangeToURL(range: QueryDateRange) {
     url.searchParams.delete("start");
     url.searchParams.delete("end");
   }
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (next !== current) {
+    window.history.replaceState(window.history.state, "", next);
+  }
+}
+
+function writeSelectedTableToURL({
+  database,
+  table
+}: {
+  instanceId: number | null;
+  database: string;
+  table: string;
+  tableId: number | null;
+}) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const url = new URL(window.location.href);
+  if (database && table) {
+    url.searchParams.set("database", database);
+    url.searchParams.set("table", table);
+  } else {
+    url.searchParams.delete("database");
+    url.searchParams.delete("table");
+  }
+  url.searchParams.delete("instanceId");
+  url.searchParams.delete("tableId");
+  url.searchParams.delete("tid");
   const next = `${url.pathname}${url.search}${url.hash}`;
   const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   if (next !== current) {
@@ -990,11 +1022,53 @@ function writeResultColumnKeys(storageKey: string, columnKeys: string[]) {
   window.localStorage.setItem(storageKey, JSON.stringify(columnKeys));
 }
 
+function readOpenLogTabs(storageKey: string): Array<Pick<OpenLogTab, "databaseName" | "tableName">> {
+  if (typeof window === "undefined") {
+    return [];
+  }
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    const seen = new Set<string>();
+    return parsed
+      .map((item) => {
+        if (!item || typeof item !== "object") {
+          return null;
+        }
+        const row = item as Record<string, unknown>;
+        const databaseName = String(row.databaseName ?? "").trim();
+        const tableName = String(row.tableName ?? "").trim();
+        const key = `${databaseName}.${tableName}`;
+        if (!databaseName || !tableName || seen.has(key)) {
+          return null;
+        }
+        seen.add(key);
+        return { databaseName, tableName };
+      })
+      .filter((item): item is Pick<OpenLogTab, "databaseName" | "tableName"> => Boolean(item));
+  } catch {
+    return [];
+  }
+}
+
+function writeOpenLogTabs(storageKey: string, tabs: OpenLogTab[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(
+    storageKey,
+    JSON.stringify(tabs.map((tab) => ({ databaseName: tab.databaseName, tableName: tab.tableName })))
+  );
+}
+
 function createConditionDraft(): QueryFilterCondition {
   return {
     id: `cond_modal_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-    field: "",
-    operator: "=",
+    field: "全局匹配",
+    operator: "like",
     value: "",
     valueType: "string"
   };
@@ -1180,6 +1254,7 @@ function TraceTimeline({ groups }: { groups: TraceGroup[] }) {
 }
 
 export default function QueryPage() {
+  const privateLite = isPrivateLiteEdition();
   const initialSearchParams = useMemo(
     () => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search),
     []
@@ -1197,11 +1272,11 @@ export default function QueryPage() {
         tableId
       };
     }
-    if (!Number.isFinite(instanceId) || instanceId <= 0 || !databaseName || !tableName) {
+    if (!databaseName || !tableName) {
       return undefined;
     }
     return {
-      instanceId,
+      instanceId: Number.isFinite(instanceId) && instanceId > 0 ? instanceId : undefined,
       databaseName,
       tableName
     };
@@ -1218,7 +1293,6 @@ export default function QueryPage() {
   });
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
-  const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
   const [resultColumnSelectorOpen, setResultColumnSelectorOpen] = useState(false);
   const [resultColumnKeys, setResultColumnKeys] = useState<string[]>([...DEFAULT_RESULT_COLUMN_KEYS]);
   const [expandedLogIndex, setExpandedLogIndex] = useState<number | null>(null);
@@ -1226,6 +1300,7 @@ export default function QueryPage() {
   const [conditionModalOpen, setConditionModalOpen] = useState(false);
   const [conditionModalMode, setConditionModalMode] = useState<QueryConditionModalMode>("create");
   const [conditionDraft, setConditionDraft] = useState<QueryFilterCondition | null>(null);
+  const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
   const [saveQueryModalOpen, setSaveQueryModalOpen] = useState(false);
   const [saveQueryName, setSaveQueryName] = useState("");
   const [savedQueryMenuOpen, setSavedQueryMenuOpen] = useState(false);
@@ -1284,6 +1359,8 @@ export default function QueryPage() {
   >(null);
   const initialQueryStartedRef = useRef(false);
   const conditionRestoreTargetRef = useRef<number | null>(null);
+  const openLogTabsRestoredRef = useRef(false);
+  const openLogTabsHydratingRef = useRef(false);
 
   const chartMax = useMemo(
     () => workspace.charts.reduce((max, item) => Math.max(max, item.count), 0) || 1,
@@ -1313,6 +1390,9 @@ export default function QueryPage() {
     const tableIds = new Set(linkQueryTableOptions.map((item) => item.id));
     return openLogTabs.filter((item) => tableIds.has(item.id));
   }, [linkQueryTableOptions, openLogTabs]);
+  const openLogTabsStorageKey = useMemo(() => {
+    return `${OPEN_LOG_TABS_STORAGE_PREFIX}:${getCurrentBrowserUserKey()}`;
+  }, []);
 
   useEffect(() => {
     setExpandedLogIndex(null);
@@ -1322,6 +1402,20 @@ export default function QueryPage() {
   useEffect(() => {
     writeTimeRangeToURL(timeRange);
   }, [timeRange]);
+
+  useEffect(() => {
+    writeSelectedTableToURL({
+      instanceId: workspace.selectedInstanceId,
+      database: workspace.selectedDatabase,
+      table: workspace.selectedTable,
+      tableId: workspace.selectedTableId
+    });
+  }, [
+    workspace.selectedDatabase,
+    workspace.selectedInstanceId,
+    workspace.selectedTable,
+    workspace.selectedTableId
+  ]);
 
   useEffect(() => {
     if (initialQueryStartedRef.current || tableAutoQueryRequest || !workspace.selectedTableId) {
@@ -1342,9 +1436,48 @@ export default function QueryPage() {
   }, [workspace.selectedInstanceId]);
 
   useEffect(() => {
-    setOpenLogTabs([]);
     setConditionsByLogTab({});
   }, [workspace.selectedInstanceId]);
+
+  useEffect(() => {
+    if (openLogTabsRestoredRef.current || linkQueryTableOptions.length === 0) {
+      return;
+    }
+    openLogTabsRestoredRef.current = true;
+    const restoredTabs = readOpenLogTabs(openLogTabsStorageKey)
+      .map((savedTab) => {
+        const table = linkQueryTableOptions.find(
+          (item) => item.databaseName === savedTab.databaseName && item.tableName === savedTab.tableName
+        );
+        return table ? { id: table.id, databaseName: table.databaseName, tableName: table.tableName } : null;
+      })
+      .filter((item): item is OpenLogTab => Boolean(item));
+    if (restoredTabs.length === 0) {
+      return;
+    }
+    openLogTabsHydratingRef.current = true;
+    setOpenLogTabs((current) => {
+      const seen = new Set<number>();
+      return [...restoredTabs, ...current].filter((tab) => {
+        if (seen.has(tab.id)) {
+          return false;
+        }
+        seen.add(tab.id);
+        return true;
+      });
+    });
+  }, [linkQueryTableOptions, openLogTabsStorageKey]);
+
+  useEffect(() => {
+    if (!openLogTabsRestoredRef.current) {
+      return;
+    }
+    if (openLogTabsHydratingRef.current) {
+      openLogTabsHydratingRef.current = false;
+      return;
+    }
+    writeOpenLogTabs(openLogTabsStorageKey, validOpenLogTabs);
+  }, [openLogTabsStorageKey, validOpenLogTabs]);
 
   useEffect(() => {
     if (!workspace.selectedTableId) {
@@ -2061,13 +2194,6 @@ export default function QueryPage() {
     return conditionFieldOptions.find((item) => item.field === field) ?? null;
   }, [activeCondition?.field, conditionDraft?.field, conditionFieldOptions]);
 
-  const visibleFieldOptions = useMemo(() => {
-    const keyword = String(conditionDraft ? conditionDraft.field : activeCondition?.field || "").trim().toLowerCase();
-    const filtered = keyword
-      ? conditionFieldOptions.filter((item) => item.field.toLowerCase().includes(keyword))
-      : conditionFieldOptions;
-    return filtered.slice(0, 40);
-  }, [activeCondition?.field, conditionDraft?.field, conditionFieldOptions]);
   const isGlobalMatchDraft = conditionDraft?.field === "全局匹配";
   const isGlobalMatchUnsupported =
     isGlobalMatchDraft && workspace.analysisFields.supportsGlobalMatch === false;
@@ -2079,6 +2205,9 @@ export default function QueryPage() {
         ? {
             ...current,
             field,
+            ...(current.field === "全局匹配" && field !== "全局匹配" && current.operator === "like"
+              ? { operator: "=" as const }
+              : {}),
             ...(matched ? { valueType: matched.valueType } : {}),
             ...(field === "全局匹配" ? { operator: "like" as const, valueType: "string" as const } : {})
           }
@@ -2131,7 +2260,14 @@ export default function QueryPage() {
             <div>
               <h2 className="cv-panel-title">数据源</h2>
             </div>
-            {workspace.contextLoading ? <span className="cv-query-panel__status">加载中...</span> : null}
+            <div className="cv-inline-actions">
+              {workspace.contextLoading ? <span className="cv-query-panel__status">加载中...</span> : null}
+              {privateLite ? null : (
+                <a className="cv-secondary-button" href={buildV2RouteHref("query/ingestion")}>
+                  创建日志库
+                </a>
+              )}
+            </div>
           </div>
           <div className="cv-query-sidebar__body">
             <section role="tree" aria-label="实例、数据库与日志表" className="cv-query-tree">
@@ -2712,10 +2848,25 @@ export default function QueryPage() {
                                                 title={`查看 ${key} = ${formatLogDetailValue(value)} 的分布`}
                                                 onClick={(event) => {
                                                   event.stopPropagation();
+                                                  if (isLogTimeField(key)) {
+                                                    addConditionFromLogDetail(key, value);
+                                                    return;
+                                                  }
                                                   void openFieldStatsModal(key, value, !isPresentLogValue(row.original[key]));
                                                 }}
                                               >
                                                 {formatLogDetailValue(value)}
+                                              </button>
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__link-button"
+                                                title={`添加条件：${key} = ${formatLogDetailValue(value)}`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  addConditionFromLogDetail(key, value);
+                                                }}
+                                              >
+                                                添加
                                               </button>
                                               {canStartAIAnalysisFromField(key, value) ? (
                                                 <button
@@ -2767,6 +2918,18 @@ export default function QueryPage() {
                                                   }}
                                                 >
                                                   {nestedValue}
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  className="cv-query-detail__link-button"
+                                                  aria-label={`从 JSON 添加条件 ${nestedKey} = ${nestedValue}`}
+                                                  title={`添加条件：${nestedKey} = ${nestedValue}`}
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    addConditionFromLogDetail(nestedKey, nestedValue);
+                                                  }}
+                                                >
+                                                  添加
                                                 </button>
                                                 {canStartAIAnalysisFromField(nestedKey, nestedValue) ? (
                                                   <button
@@ -2971,33 +3134,59 @@ export default function QueryPage() {
               <div className="cv-query-builder-form cv-query-builder-form--modal">
                 <label
                   className="cv-query-builder-form__field cv-query-builder-form__field--field-picker"
-                  htmlFor="query-condition-field"
+                  htmlFor="query-condition-field-trigger"
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                      setFieldPickerOpen(false);
+                    }
+                  }}
                 >
                   字段
-                  <input
-                    id="query-condition-field"
-                    value={conditionDraft.field}
-                    onFocus={() => setFieldPickerOpen(true)}
-                    onBlur={() => window.setTimeout(() => setFieldPickerOpen(false), 120)}
-                    onChange={(event) => {
-                      handleConditionDraftFieldChange(event.target.value);
-                      setFieldPickerOpen(true);
-                    }}
-                    placeholder="请输入字段名"
-                  />
-                  {fieldPickerOpen && visibleFieldOptions.length > 0 ? (
+                  <button
+                    id="query-condition-field-trigger"
+                    type="button"
+                    aria-label="字段"
+                    aria-expanded={fieldPickerOpen}
+                    aria-haspopup="listbox"
+                    className="cv-query-field-select__trigger"
+                    role="combobox"
+                    onClick={() => setFieldPickerOpen((current) => !current)}
+                  >
+                    <span>{conditionDraft.field || "未选字段"}</span>
+                    <span aria-hidden="true" className="cv-query-field-select__chevron">⌄</span>
+                  </button>
+                  {fieldPickerOpen ? (
                     <div className="cv-query-field-picker" role="listbox" aria-label="字段候选">
-                      {visibleFieldOptions.map((item) => (
+                      {conditionDraft.field &&
+                      !conditionFieldOptions.some((item) => item.field === conditionDraft.field) ? (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected="true"
+                          className="cv-query-field-picker__option cv-query-field-picker__option--active"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => setFieldPickerOpen(false)}
+                        >
+                          <span className="cv-query-field-picker__name">{conditionDraft.field}</span>
+                          <span className="cv-query-field-picker__meta">
+                            <span>自定义字段</span>
+                            <span>JSON 路径查询</span>
+                          </span>
+                        </button>
+                      ) : null}
+                      {conditionFieldOptions.map((item) => (
                         <button
                           key={`field-${item.source}-${item.field}`}
                           type="button"
+                          role="option"
+                          aria-selected={item.field === conditionDraft.field}
                           className={
                             item.field === conditionDraft.field
                               ? "cv-query-field-picker__option cv-query-field-picker__option--active"
                               : "cv-query-field-picker__option"
                           }
-                          onMouseDown={(event) => {
-                            event.preventDefault();
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
                             handleConditionDraftFieldChange(item.field);
                             setFieldPickerOpen(false);
                           }}
@@ -3009,11 +3198,6 @@ export default function QueryPage() {
                           </span>
                         </button>
                       ))}
-                    </div>
-                  ) : null}
-                  {fieldPickerOpen && visibleFieldOptions.length === 0 ? (
-                    <div className="cv-query-field-picker cv-query-field-picker--empty">
-                      未匹配字段目录
                     </div>
                   ) : null}
                   <div className="cv-query-field-meta">
@@ -3030,62 +3214,58 @@ export default function QueryPage() {
                   </div>
                 </label>
 
-                {!isGlobalMatchDraft ? (
-                  <label className="cv-query-builder-form__field" htmlFor="query-condition-operator">
-                    运算符
-                    <select
-                      id="query-condition-operator"
-                      value={conditionDraft.operator}
-                      onChange={(event) =>
-                        setConditionDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                operator: event.target.value as (typeof queryOperatorOptions)[number]["value"]
-                              }
-                            : current
-                        )
-                      }
-                    >
-                      {queryOperatorOptions.map((item) => (
-                        <option key={`operator-${item.value}`} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
+                <label className="cv-query-builder-form__field" htmlFor="query-condition-operator">
+                  运算符
+                  <select
+                    id="query-condition-operator"
+                    value={conditionDraft.operator}
+                    onChange={(event) =>
+                      setConditionDraft((current) =>
+                        current
+                          ? {
+                              ...current,
+                              operator: event.target.value as (typeof queryOperatorOptions)[number]["value"]
+                            }
+                          : current
+                      )
+                    }
+                  >
+                    {queryOperatorOptions.map((item) => (
+                      <option key={`operator-${item.value}`} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-                {!isGlobalMatchDraft ? (
-                  <label className="cv-query-builder-form__field" htmlFor="query-condition-value-type">
-                    值类型
-                    <select
-                      id="query-condition-value-type"
-                      value={conditionDraft.valueType}
-                      onChange={(event) =>
-                        setConditionDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                valueType: event.target.value as (typeof queryValueTypeOptions)[number]["value"],
-                                operator:
-                                  event.target.value !== "string" &&
-                                  (current.operator === "like" || current.operator === "not like")
-                                    ? "="
-                                    : current.operator
-                              }
-                            : current
-                        )
-                      }
-                    >
-                      {queryValueTypeOptions.map((item) => (
-                        <option key={`value-type-${item.value}`} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
+                <label className="cv-query-builder-form__field" htmlFor="query-condition-value-type">
+                  值类型
+                  <select
+                    id="query-condition-value-type"
+                    value={conditionDraft.valueType}
+                    onChange={(event) =>
+                      setConditionDraft((current) =>
+                        current
+                          ? {
+                              ...current,
+                              valueType: event.target.value as (typeof queryValueTypeOptions)[number]["value"],
+                              operator:
+                                event.target.value !== "string" &&
+                                (current.operator === "like" || current.operator === "not like")
+                                  ? "="
+                                  : current.operator
+                            }
+                          : current
+                      )
+                    }
+                  >
+                    {queryValueTypeOptions.map((item) => (
+                      <option key={`value-type-${item.value}`} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
                 <label className="cv-query-builder-form__field" htmlFor="query-condition-value">
                   条件值

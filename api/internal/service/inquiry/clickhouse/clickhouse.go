@@ -486,9 +486,9 @@ func (c *ClickHouseX) CreateDatabase(name, cluster string) error {
 		if cluster == "" {
 			return errors.New("cluster is required")
 		}
-		sql = fmt.Sprintf("CREATE DATABASE `%s` ON CLUSTER '%s'", name, cluster)
+		sql = fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` ON CLUSTER '%s'", name, cluster)
 	} else {
-		sql = fmt.Sprintf("CREATE DATABASE `%s`", name)
+		sql = fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", name)
 	}
 	_, err = c.db.Exec(sql)
 	if err != nil {

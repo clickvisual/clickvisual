@@ -7,6 +7,11 @@ import QueryLinkPage from "../src/domains/query/pages/QueryLinkPage";
 import QueryPage from "../src/domains/query/pages/QueryPage";
 
 describe("query page", () => {
+  function selectConditionField(field: string) {
+    fireEvent.click(screen.getByRole("combobox", { name: "字段" }));
+    fireEvent.click(screen.getByRole("option", { name: new RegExp(`^${field}(\\s| ·|$)`) }));
+  }
+
   beforeEach(() => {
     window.localStorage.clear();
     window.history.replaceState({}, "", "/v2/query");
@@ -60,7 +65,7 @@ describe("query page", () => {
     expect(() => readyWorkspace!.buildQueryText()).toThrow("字段 status 需要数字值");
   });
 
-  it("hides operator and value type controls for global match", async () => {
+  it("defaults the add condition dialog to global match while keeping all controls selectable", async () => {
     render(
       <TimeRangeProvider>
         <QueryPage />
@@ -69,11 +74,28 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "全局匹配" } });
 
-    expect(screen.queryByRole("combobox", { name: "运算符" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("combobox", { name: "值类型" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "字段" })).toHaveTextContent("全局匹配");
+    expect(screen.getByRole("combobox", { name: "运算符" })).toHaveValue("like");
+    expect(screen.getByRole("combobox", { name: "值类型" })).toHaveValue("string");
     expect(screen.getByLabelText("条件值")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("combobox", { name: "字段" }));
+    expect(screen.getByRole("option", { name: /^全局匹配/ })).toBeInTheDocument();
+  });
+
+  it("shows a quick log library creation entry from the datasource panel", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await screen.findByRole("tree", { name: "实例、数据库与日志表" });
+
+    expect(screen.getByRole("link", { name: "创建日志库" })).toHaveAttribute(
+      "href",
+      "/v2/query/ingestion"
+    );
   });
 
   it("opens the add condition modal when clicking blank space in the condition area", async () => {
@@ -98,15 +120,15 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "全局匹配" } });
+    selectConditionField("全局匹配");
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "213" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
 
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
 
     expect(await screen.findByRole("dialog", { name: "新增条件" })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("请输入字段名")).toHaveValue("");
-    expect(screen.getByText("未匹配字段目录，默认按 JSON 路径查询")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "字段" })).toHaveTextContent("全局匹配");
+    expect(screen.queryByText("未匹配字段目录，默认按 JSON 路径查询")).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "运算符" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "值类型" })).toBeInTheDocument();
   });
@@ -120,7 +142,7 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "全局匹配" } });
+    selectConditionField("全局匹配");
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "timeout" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
 
@@ -138,7 +160,7 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "service" } });
+    selectConditionField("service");
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "gateway" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
 
@@ -498,7 +520,7 @@ describe("query page", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
     expect(await screen.findByRole("dialog", { name: "新增条件" })).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "service" } });
+    selectConditionField("service");
     expect(screen.getAllByText("物理列").length).toBeGreaterThan(0);
     expect(screen.getAllByText("列查询").length).toBeGreaterThan(0);
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "gateway" } });
@@ -507,18 +529,17 @@ describe("query page", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "service / = / gateway" }));
     expect(await screen.findByRole("dialog", { name: "编辑条件" })).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "message" } });
+    selectConditionField("message");
     expect(screen.getAllByText("解析字段").length).toBeGreaterThan(0);
     expect(screen.getAllByText("JSON 路径查询").length).toBeGreaterThan(0);
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "status" } });
-    fireEvent.change(screen.getByRole("combobox", { name: "值类型" }), { target: { value: "number" } });
-    fireEvent.change(screen.getByRole("textbox", { name: "条件值" }), { target: { value: "0" } });
+    selectConditionField("level");
+    fireEvent.change(screen.getByRole("textbox", { name: "条件值" }), { target: { value: "ERROR" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
-    expect(screen.getByRole("button", { name: "status / = / 0" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "level / = / ERROR" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "status / = / 0" }));
+    fireEvent.click(screen.getByRole("button", { name: "level / = / ERROR" }));
     fireEvent.click(screen.getByRole("button", { name: "删除条件" }));
-    expect(screen.queryByRole("button", { name: "status / = / 0" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "level / = / ERROR" })).not.toBeInTheDocument();
   });
 
   it("supports action buttons and renders query results without view switch buttons", async () => {
@@ -532,7 +553,7 @@ describe("query page", () => {
     expect(await screen.findByRole("tablist", { name: "日志表工作区标签" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /logs/ })).toHaveAttribute("aria-selected", "true");
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "service" } });
+    selectConditionField("service");
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "gateway" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
     expect(screen.getByRole("button", { name: "service / = / gateway" })).toBeInTheDocument();
