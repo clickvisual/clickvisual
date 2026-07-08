@@ -1,8 +1,6 @@
 package install
 
 import (
-	"fmt"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -93,34 +91,31 @@ func installModels() []interface{} {
 }
 
 func Install() (err error) {
+	if err = EnsureMetadataSchema(); err != nil {
+		return
+	}
+	pmsplugin.EnforcerLoadPolicy()
+	return
+}
+
+func EnsureMetadataSchema() (err error) {
 	d, err := openInstallDB()
 	if err != nil {
 		return
 	}
 	d.Migrator()
-	err = migrateModels(d)
-	if err != nil {
+	if err = migrateModels(d); err != nil {
 		return
 	}
-
 	seedRootUserAndPolicy(d)
-	pmsplugin.EnforcerLoadPolicy()
-	return
+	return nil
 }
 
 func Migration() (err error) {
 	// table deps update
-	d, e := openInstallDB()
-	fmt.Println(`e--------------->`, e)
-	if e != nil {
-		return e
-	}
-	d.Migrator()
-	err = migrateModels(d)
-	if err != nil {
+	if err = EnsureMetadataSchema(); err != nil {
 		return
 	}
-	seedRootUserAndPolicy(d)
 	pmsplugin.EnforcerLoadPolicy()
 	return
 }
