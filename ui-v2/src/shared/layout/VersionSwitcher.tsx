@@ -35,6 +35,24 @@ export function getConfiguredPublicPath() {
   );
 }
 
+export function getPublicPathLoginRedirectHref(
+  pathname?: string,
+  configuredPublicPath = getConfiguredPublicPath()
+) {
+  const normalizedConfiguredPublicPath = normalizePublicPath(configuredPublicPath);
+  if (!normalizedConfiguredPublicPath || typeof window === "undefined") {
+    return "";
+  }
+  const currentPath = pathname || window.location.pathname;
+  const isInsidePublicPath =
+    currentPath === normalizedConfiguredPublicPath ||
+    currentPath.startsWith(`${normalizedConfiguredPublicPath}/`);
+  if (isInsidePublicPath) {
+    return "";
+  }
+  return `${normalizedConfiguredPublicPath}/v2/login`;
+}
+
 export function getV2BasePath(pathname?: string, configuredPublicPath = getConfiguredPublicPath()) {
   const normalizedConfiguredPublicPath = normalizePublicPath(configuredPublicPath);
   if (normalizedConfiguredPublicPath) {

@@ -2149,13 +2149,18 @@ export default function QueryPage() {
       setFeedbackMessage("当前日志表未配置日志内容字段，不能使用全局匹配");
       return;
     }
+    const nextConditions =
+      conditionModalMode === "create"
+        ? [...workspace.conditions, conditionDraft]
+        : workspace.conditions.map((item) => (item.id === conditionDraft.id ? conditionDraft : item));
+    workspace.setConditions(nextConditions);
     if (conditionModalMode === "create") {
-      workspace.setConditions([...workspace.conditions, conditionDraft]);
       workspace.setActiveConditionId(conditionDraft.id);
     } else {
-      workspace.updateCondition(conditionDraft.id, conditionDraft);
+      workspace.setActiveConditionId(conditionDraft.id);
     }
     closeConditionModal();
+    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions);
   }
 
   function deleteConditionFromModal() {
