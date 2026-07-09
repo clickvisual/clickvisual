@@ -1,21 +1,3 @@
-# UI v1 (ant-design-pro / Umi)
-FROM reg.smvm.cn/appbase/node:16-alpine3.18 as js-builder
-
-ENV NODE_OPTIONS=--max_old_space_size=8000
-WORKDIR /clickvisual
-COPY ui/package.json ui/yarn.lock ./
-
-RUN yarn -v
-
-ENV PUBLIC_PATH=/clickvisual/
-
-RUN yarn install --frozen-lockfile --network-timeout 100000
-ENV NODE_ENV production
-COPY ui .
-RUN yarn build
-
-
-
 # UI v2 (Vite — Node 18+; plain Node image, no Puppeteer stack)
 FROM reg.smvm.cn/appbase/node:22-alpine as js-builder-v2
 WORKDIR /clickvisual
@@ -44,9 +26,8 @@ WORKDIR /clickvisual
 COPY go.mod go.sum ./
 RUN go mod download -x
 COPY . .
-COPY --from=js-builder /clickvisual/dist ./api/internal/ui/dist
 COPY --from=js-builder-v2 /clickvisual/api/internal/ui/v2dist/dist ./api/internal/ui/v2dist/dist
-RUN ls -rlt ./api/internal/ui/dist && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH make build.api
+RUN ls -rlt ./api/internal/ui/v2dist/dist && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH make build.api
 
 
 # Fianl running stage
@@ -62,5 +43,6 @@ EXPOSE 9001
 EXPOSE 9003
 # RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk --update add --no-cache tzdata
+RUN mkdir -p data logs && chmod 0777 data logs
 
 CMD ["sh", "-c", "./bin/clickvisual server"]
