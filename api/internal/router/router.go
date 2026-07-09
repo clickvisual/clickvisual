@@ -45,7 +45,7 @@ func GetServerRouter() *egin.Component {
 			maxAge = 31536000
 		}
 		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
-		if shouldRedirectLegacyQueryEntry(path, c.Request.URL.RawQuery) {
+		if shouldRedirectDefaultV2Entry(path, c.Request.URL.RawQuery) {
 			c.Redirect(http.StatusFound, buildDefaultV2QueryRedirectURL(appSubUrl, c.Request.URL.RawQuery))
 			return
 		}
@@ -101,9 +101,12 @@ func isV2Asset(path string) bool {
 	return strings.HasPrefix(path, "/v2/")
 }
 
-func shouldRedirectLegacyQueryEntry(pathValue string, rawQuery string) bool {
-	if pathValue != "/query" && pathValue != "/query/" {
+func shouldRedirectDefaultV2Entry(pathValue string, rawQuery string) bool {
+	if pathValue != "/" && pathValue != "/query" && pathValue != "/query/" {
 		return false
+	}
+	if pathValue == "/" {
+		return true
 	}
 	values, err := url.ParseQuery(rawQuery)
 	if err == nil && values.Get("ui") == "v1" {

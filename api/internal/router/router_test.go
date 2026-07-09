@@ -35,13 +35,14 @@ func TestIsV2Asset(t *testing.T) {
 	}
 }
 
-func TestShouldRedirectLegacyQueryEntry(t *testing.T) {
+func TestShouldRedirectDefaultV2Entry(t *testing.T) {
 	cases := []struct {
 		name     string
 		path     string
 		rawQuery string
 		want     bool
 	}{
+		{name: "root", path: "/", want: true},
 		{name: "legacy query", path: "/query", want: true},
 		{name: "legacy query slash", path: "/query/", want: true},
 		{name: "legacy query explicit v1", path: "/query", rawQuery: "ui=v1", want: false},
@@ -51,8 +52,8 @@ func TestShouldRedirectLegacyQueryEntry(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := shouldRedirectLegacyQueryEntry(tc.path, tc.rawQuery); got != tc.want {
-				t.Fatalf("shouldRedirectLegacyQueryEntry(%q, %q) = %v, want %v", tc.path, tc.rawQuery, got, tc.want)
+			if got := shouldRedirectDefaultV2Entry(tc.path, tc.rawQuery); got != tc.want {
+				t.Fatalf("shouldRedirectDefaultV2Entry(%q, %q) = %v, want %v", tc.path, tc.rawQuery, got, tc.want)
 			}
 		})
 	}

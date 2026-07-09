@@ -8,6 +8,7 @@ import {
   getV2Href,
   getV2BasePath,
   getPreferredUiVersion,
+  getPublicPathLoginRedirectHref,
   normalizePublicPath,
   setPreferredUiVersion
 } from "../src/shared/layout/VersionSwitcher";
@@ -46,6 +47,20 @@ describe("v2 version switcher", () => {
     expect(getV1Href("/v2/query", "/mdp/clickvisual/")).toBe("/mdp/clickvisual/query?ui=v1");
     expect(buildV2RouteHref("query/link", params, "/v2/query", "/mdp/clickvisual/")).toBe(
       "/mdp/clickvisual/v2/query/link?field=level&value=30"
+    );
+  });
+
+  it("redirects into the configured public path before rendering", () => {
+    expect(getPublicPathLoginRedirectHref("/v2", "/clickvisual/")).toBe(
+      "/clickvisual/v2/login"
+    );
+    expect(getPublicPathLoginRedirectHref("/v2/query", "/clickvisual/")).toBe(
+      "/clickvisual/v2/login"
+    );
+    expect(getPublicPathLoginRedirectHref("/clickvisual/v2", "/clickvisual/")).toBe("");
+    expect(getPublicPathLoginRedirectHref("/clickvisual/v2/login", "/clickvisual/")).toBe("");
+    expect(getPublicPathLoginRedirectHref("/clickvisual-other/v2", "/clickvisual/")).toBe(
+      "/clickvisual/v2/login"
     );
   });
 
