@@ -1,3 +1,7 @@
 logs
+data
 ui/node_modules
+ui-v2/node_modules
 bin
+.k-state
+base.test
