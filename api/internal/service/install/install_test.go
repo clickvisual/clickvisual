@@ -71,6 +71,7 @@ func TestInstallModelsPrivateLiteUsesMinimalMetadataTables(t *testing.T) {
 		dbmodel.BaseIndex{},
 		dbmodel.BaseHiddenField{},
 		dbmodel.BaseView{},
+		dbmodel.BaseShortURL{},
 		dbmodel.QueryFilterProfile{},
 		dbmodel.QueryToken{},
 		dbmodel.QueryTokenGrant{},
