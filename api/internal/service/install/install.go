@@ -73,6 +73,7 @@ var privateLiteModels = []interface{}{
 	db.BaseIndex{},
 	db.BaseHiddenField{},
 	db.BaseView{},
+	db.BaseShortURL{},
 
 	db.QueryFilterProfile{},
 	db.QueryToken{},

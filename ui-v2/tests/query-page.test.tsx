@@ -98,6 +98,24 @@ describe("query page", () => {
     );
   });
 
+  it("keeps the full query controls available on the share page", async () => {
+    window.history.replaceState({}, "", "/share?database=default&table=logs");
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage shareMode />
+      </TimeRangeProvider>
+    );
+
+    expect(await screen.findByRole("region", { name: "查询输入" })).toBeInTheDocument();
+    expect(screen.queryByRole("tree", { name: "实例、数据库与日志表" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "新增条件" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^最近查询/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^收藏查询/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "分享" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "执行查询" })).toBeInTheDocument();
+  });
+
   it("opens the add condition modal when clicking blank space in the condition area", async () => {
     render(
       <TimeRangeProvider>
