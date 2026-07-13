@@ -3,6 +3,7 @@ import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { routes } from "../src/app/router";
 import {
+  buildShareRouteHref,
   buildV2RouteHref,
   getV1Href,
   getV2Href,
@@ -28,10 +29,14 @@ describe("v2 version switcher", () => {
 
   it("builds links with the detected v2 base path", () => {
     expect(getV2BasePath("/console/v2/reports")).toBe("/console");
+    expect(getV2BasePath("/console/share")).toBe("/console");
     expect(getV1Href("/console/v2/reports")).toBe("/console/query?ui=v1");
     expect(getV1Href("/v2/reports")).toBe("/query?ui=v1");
     expect(getV2Href("/console/query")).toBe("/console/v2/query");
     expect(getV2Href("/query")).toBe("/v2/query");
+    expect(buildShareRouteHref(undefined, "/console/v2/query")).toBe("/console/share");
+    expect(buildShareRouteHref(undefined, "/console/share")).toBe("/console/share");
+    expect(buildShareRouteHref(new URLSearchParams("tid=1"), "/v2/query")).toBe("/share?tid=1");
     const params = new URLSearchParams({ field: "tid", value: "abc" });
     expect(buildV2RouteHref("query/link", params, "/console/v2/query")).toBe(
       "/console/v2/query/link?field=tid&value=abc"
@@ -45,6 +50,9 @@ describe("v2 version switcher", () => {
     expect(normalizePublicPath("https://mdp.shimodev.com/clickvisual/")).toBe("/clickvisual");
     expect(getV2BasePath("/v2/query", "/mdp/clickvisual/")).toBe("/mdp/clickvisual");
     expect(getV1Href("/v2/query", "/mdp/clickvisual/")).toBe("/mdp/clickvisual/query?ui=v1");
+    expect(buildShareRouteHref(params, "/v2/query", "/mdp/clickvisual/")).toBe(
+      "/mdp/clickvisual/share?field=level&value=30"
+    );
     expect(buildV2RouteHref("query/link", params, "/v2/query", "/mdp/clickvisual/")).toBe(
       "/mdp/clickvisual/v2/query/link?field=level&value=30"
     );

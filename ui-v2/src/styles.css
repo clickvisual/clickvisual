@@ -560,6 +560,10 @@ textarea {
   align-items: start;
 }
 
+.cv-query-page--share .cv-query-shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .cv-query-main,
 .cv-query-workspace {
   display: grid;
@@ -580,6 +584,29 @@ textarea {
 .cv-query-context__empty {
   font-size: 12px;
   color: var(--cv-text-soft);
+}
+
+.cv-query-share-summary__grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.35fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.cv-query-share-summary__grid span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--cv-border);
+  border-radius: 8px;
+  background: var(--cv-surface-muted);
+  color: var(--cv-text);
+  font-size: 12px;
+}
+
+.cv-query-share-summary__grid strong {
+  color: var(--cv-text-soft);
+  font-size: 11px;
 }
 
 .cv-query-tree {
