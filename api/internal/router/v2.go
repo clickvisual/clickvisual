@@ -181,6 +181,7 @@ func v2PrivateLite(r *gin.RouterGroup) {
 		r.GET("/base/instances", core.Handle(base.InstanceList))
 		r.GET("/base/settings/instances", core.Handle(base.SettingsInstanceList))
 		r.GET("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceInfo))
+		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))
 	}
 	// Log query APIs. Log table creation stays outside HTTP in private-lite mode and is driven by `clickvisual ego`.
 	{

@@ -22,6 +22,8 @@ func TestIsV2Asset(t *testing.T) {
 		{name: "v2 root", path: "/v2", want: true},
 		{name: "v2 root slash", path: "/v2/", want: true},
 		{name: "v2 nested route", path: "/v2/reports", want: true},
+		{name: "share root", path: "/share", want: true},
+		{name: "share root slash", path: "/share/", want: true},
 		{name: "v1 route", path: "/query", want: false},
 		{name: "api route", path: "/api/v2/base/users", want: false},
 	}
@@ -183,6 +185,7 @@ func TestV2RoutesPrivateLiteEdition(t *testing.T) {
 	for _, item := range []routeKey{
 		{method: http.MethodGet, path: "/api/v2/base/instances"},
 		{method: http.MethodGet, path: "/api/v2/base/settings/instances"},
+		{method: http.MethodPost, path: "/api/v2/base/shorturls"},
 		{method: http.MethodGet, path: "/api/v2/query/filters"},
 		{method: http.MethodGet, path: "/api/v2/query/instances/:instance-id/databases/:database/tables"},
 		{method: http.MethodPost, path: "/api/v2/query/compile"},

@@ -21,7 +21,7 @@ import type {
 } from "../types/contracts";
 import ContextMenu from "../../../shared/components/ContextMenu";
 import { isPrivateLiteEdition } from "../../../shared/config/runtime";
-import { buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
+import { buildShareRouteHref, buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
 
 type QueryDateRange = [Date, Date] | null;
 type QueryConditionModalMode = "create" | "edit";
@@ -1253,7 +1253,7 @@ function TraceTimeline({ groups }: { groups: TraceGroup[] }) {
   );
 }
 
-export default function QueryPage() {
+export default function QueryPage({ shareMode = false }: { shareMode?: boolean }) {
   const privateLite = isPrivateLiteEdition();
   const initialSearchParams = useMemo(
     () => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search),
@@ -1633,7 +1633,7 @@ export default function QueryPage() {
     try {
       setShareLoading(true);
       const shareUrl = new URL(window.location.href);
-      shareUrl.pathname = shareUrl.pathname.endsWith("/query") ? shareUrl.pathname : "/v2/query";
+      shareUrl.pathname = buildShareRouteHref(undefined, window.location.pathname);
       shareUrl.hash = "";
       if (queryPreview && queryPreview !== "无条件" && !queryPreview.includes("不合法")) {
         shareUrl.searchParams.set("query", queryPreview);
@@ -1646,9 +1646,11 @@ export default function QueryPage() {
       if (endTime) {
         shareUrl.searchParams.set("endTime", endTime);
       }
-      if (workspace.selectedInstanceId) {
-        shareUrl.searchParams.set("instanceId", String(workspace.selectedInstanceId));
+      if (workspace.selectedTableId) {
+        shareUrl.searchParams.set("tid", String(workspace.selectedTableId));
       }
+      shareUrl.searchParams.delete("instanceId");
+      shareUrl.searchParams.delete("tableId");
       if (workspace.selectedDatabase) {
         shareUrl.searchParams.set("database", workspace.selectedDatabase);
       }
@@ -2244,15 +2246,15 @@ export default function QueryPage() {
   }
 
   return (
-    <section className="cv-section-stack cv-query-page">
+    <section className={shareMode ? "cv-section-stack cv-query-page cv-query-page--share" : "cv-section-stack cv-query-page"}>
       <header className="cv-page-toolbar">
         <div className="cv-page-toolbar__main">
           <div className="cv-breadcrumb" aria-label="页面路径">
             <span>查询</span>
             <span aria-hidden="true">/</span>
-            <span className="cv-breadcrumb__current">日志查询</span>
+            <span className="cv-breadcrumb__current">{shareMode ? "分享结果" : "日志查询"}</span>
           </div>
-          <h1 className="cv-page-title cv-sr-only">日志查询</h1>
+          <h1 className="cv-page-title cv-sr-only">{shareMode ? "分享结果" : "日志查询"}</h1>
         </div>
         <div className="cv-query-toolbar-chips">
           <TimeRangeDropdown value={timeRange} onChange={setTimeRange} />
@@ -2260,6 +2262,7 @@ export default function QueryPage() {
       </header>
 
       <div className="cv-query-shell">
+        {shareMode ? null : (
         <aside aria-label="查询上下文" className="cv-panel cv-query-panel cv-query-sidebar">
           <div className="cv-panel-header">
             <div>
@@ -2403,9 +2406,10 @@ export default function QueryPage() {
             </section>
           </div>
         </aside>
+        )}
 
         <div className="cv-query-main">
-          {validOpenLogTabs.length > 0 ? (
+          {!shareMode && validOpenLogTabs.length > 0 ? (
             <div className="cv-query-log-tabs" role="tablist" aria-label="日志表工作区标签">
               {validOpenLogTabs.map((tab) => {
                 const active = tab.id === workspace.selectedTableId;
@@ -2440,6 +2444,7 @@ export default function QueryPage() {
               })}
             </div>
           ) : null}
+          {!shareMode ? (
           <section aria-label="查询输入" className="cv-panel cv-query-panel">
             <div className="cv-panel-header">
               <div>
@@ -2638,6 +2643,32 @@ export default function QueryPage() {
               </div>
             ) : null}
           </section>
+          ) : (
+            <section aria-label="分享查询" className="cv-panel cv-query-panel cv-query-share-summary">
+              <div className="cv-panel-header">
+                <div>
+                  <h2 className="cv-panel-title">分享查询</h2>
+                </div>
+                {workspace.loading ? <span className="cv-query-panel__status">查询中...</span> : null}
+              </div>
+              <div className="cv-query-share-summary__grid">
+                <span>
+                  <strong>日志表</strong>
+                  {workspace.selectedDatabase && workspace.selectedTable
+                    ? `${workspace.selectedDatabase}.${workspace.selectedTable}`
+                    : "未选择"}
+                </span>
+                <span>
+                  <strong>查询范围</strong>
+                  {startTime && endTime ? `${startTime} - ${endTime}` : "未设置"}
+                </span>
+              </div>
+              <div className="cv-query-builder__preview">
+                <strong>查询预览</strong>
+                <code>{queryPreview}</code>
+              </div>
+            </section>
+          )}
 
           <div className="cv-query-workspace">
             <section aria-label="直方图" className="cv-panel cv-query-panel">

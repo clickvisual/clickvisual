@@ -61,10 +61,14 @@ export function getV2BasePath(pathname?: string, configuredPublicPath = getConfi
   const currentPath =
     pathname || (typeof window !== "undefined" ? window.location.pathname : "");
   const v2Index = currentPath.indexOf("/v2");
-  if (v2Index < 0) {
-    return "";
+  if (v2Index >= 0) {
+    return currentPath.slice(0, v2Index);
   }
-  return currentPath.slice(0, v2Index);
+  const shareIndex = currentPath.indexOf("/share");
+  if (shareIndex >= 0) {
+    return currentPath.slice(0, shareIndex);
+  }
+  return "";
 }
 
 export function getV1Href(pathname?: string, configuredPublicPath?: string) {
@@ -86,6 +90,15 @@ export function buildV2RouteHref(
   const normalizedRoutePath = routePath.replace(/^\/+/, "");
   const query = searchParams?.toString();
   return `${getV2BasePath(pathname, configuredPublicPath)}/v2/${normalizedRoutePath}${query ? `?${query}` : ""}`;
+}
+
+export function buildShareRouteHref(
+  searchParams?: URLSearchParams,
+  pathname?: string,
+  configuredPublicPath?: string
+) {
+  const query = searchParams?.toString();
+  return `${getV2BasePath(pathname, configuredPublicPath)}/share${query ? `?${query}` : ""}`;
 }
 
 export default function VersionSwitcher() {

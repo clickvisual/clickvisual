@@ -95,10 +95,10 @@ func GetAgentRouter() *egin.Component {
 }
 
 func isV2Asset(path string) bool {
-	if path == "/v2" {
+	if path == "/v2" || path == "/share" {
 		return true
 	}
-	return strings.HasPrefix(path, "/v2/")
+	return strings.HasPrefix(path, "/v2/") || strings.HasPrefix(path, "/share/")
 }
 
 func shouldRedirectDefaultV2Entry(pathValue string, rawQuery string) bool {
