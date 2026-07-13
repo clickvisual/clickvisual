@@ -7,7 +7,7 @@ COPY ui/package.json ui/yarn.lock ./
 
 RUN yarn -v
 
-ENV PUBLIC_PATH=/mdp/clickvisual/
+ENV PUBLIC_PATH=/clickvisual/
 
 RUN yarn install --frozen-lockfile --network-timeout 100000
 ENV NODE_ENV production
@@ -19,6 +19,9 @@ RUN yarn build
 # UI v2 (Vite — Node 18+; plain Node image, no Puppeteer stack)
 FROM reg.smvm.cn/appbase/node:22-bookworm-slim as js-builder-v2
 WORKDIR /clickvisual
+
+ENV PUBLIC_PATH=/mdp/clickvisual/
+
 COPY ui-v2/package.json ui-v2/package-lock.json ./ui-v2/
 RUN cd ui-v2 && npm ci
 
@@ -59,5 +62,4 @@ EXPOSE 9003
 # RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk --update add --no-cache tzdata
 
-CMD ["sh", "-c", "./${APP} server"]
 CMD ["sh", "-c", "./bin/clickvisual server"]
