@@ -97,6 +97,10 @@ func getV2AssetBasePath(requestPath string) string {
 	cleaned := path.Clean("/" + requestPath)
 	v2Index := strings.Index(cleaned, "/v2")
 	if v2Index < 0 {
+		shareIndex := strings.Index(cleaned, "/share")
+		if shareIndex >= 0 {
+			return cleaned[:shareIndex] + "/v2/"
+		}
 		return "/v2/"
 	}
 	return cleaned[:v2Index] + "/v2/"

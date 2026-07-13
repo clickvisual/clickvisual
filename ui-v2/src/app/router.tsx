@@ -102,6 +102,10 @@ export function createV2Routes(privateLite = isPrivateLiteEdition()) {
       ];
   return [
     {
+      path: "/share",
+      element: <QueryPage shareMode />
+    },
+    {
       path: "/v2/login",
       element: <LoginPage />
     },
