@@ -21,7 +21,7 @@ import type {
 } from "../types/contracts";
 import ContextMenu from "../../../shared/components/ContextMenu";
 import { isPrivateLiteEdition } from "../../../shared/config/runtime";
-import { buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
+import { buildShareRouteHref, buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
 
 type QueryDateRange = [Date, Date] | null;
 type QueryConditionModalMode = "create" | "edit";
@@ -1206,7 +1206,7 @@ function TraceTimeline({ groups }: { groups: TraceGroup[] }) {
   );
 }
 
-export default function QueryPage() {
+export default function QueryPage({ shareMode = false }: { shareMode?: boolean }) {
   const privateLite = isPrivateLiteEdition();
   const initialSearchParams = useMemo(
     () => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search),
@@ -2382,6 +2382,7 @@ export default function QueryPage() {
               })}
             </div>
           ) : null}
+          {!shareMode ? (
           <section aria-label="查询输入" className="cv-panel cv-query-panel">
             <div className="cv-panel-header">
               <div>
@@ -2580,6 +2581,32 @@ export default function QueryPage() {
               </div>
             ) : null}
           </section>
+          ) : (
+            <section aria-label="分享查询" className="cv-panel cv-query-panel cv-query-share-summary">
+              <div className="cv-panel-header">
+                <div>
+                  <h2 className="cv-panel-title">分享查询</h2>
+                </div>
+                {workspace.loading ? <span className="cv-query-panel__status">查询中...</span> : null}
+              </div>
+              <div className="cv-query-share-summary__grid">
+                <span>
+                  <strong>日志表</strong>
+                  {workspace.selectedDatabase && workspace.selectedTable
+                    ? `${workspace.selectedDatabase}.${workspace.selectedTable}`
+                    : "未选择"}
+                </span>
+                <span>
+                  <strong>查询范围</strong>
+                  {startTime && endTime ? `${startTime} - ${endTime}` : "未设置"}
+                </span>
+              </div>
+              <div className="cv-query-builder__preview">
+                <strong>查询预览</strong>
+                <code>{queryPreview}</code>
+              </div>
+            </section>
+          )}
 
           <div className="cv-query-workspace">
             <section aria-label="直方图" className="cv-panel cv-query-panel">
