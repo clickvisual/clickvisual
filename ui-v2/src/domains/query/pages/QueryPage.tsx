@@ -1909,9 +1909,17 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       value,
       actionText:
         fieldRef.source === "tag_path" || (fieldRef.source === "column" && fieldRef.isAccelerated)
-          ? `${fieldRef.fieldKey} = ${truncate(value, 120)}`
-          : `全局匹配：${truncate(value, 120)}`
+          ? `${fieldRef.fieldKey} = ${value}`
+          : `全局匹配：${value}`
     });
+  }
+
+  async function copyFieldStatsConfirmText() {
+    if (!fieldStatsConfirmState) {
+      return;
+    }
+    const copied = await copyTextToClipboard(fieldStatsConfirmState.actionText);
+    setFeedbackMessage(copied ? "已复制完整条件" : "复制失败，请手动选择条件内容");
   }
 
   function confirmAddConditionFromFieldStatsValue() {
@@ -3105,7 +3113,16 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               </button>
             </div>
             <div className="cv-query-field-stats-confirm__body">
-              <span>将加入</span>
+              <div className="cv-query-field-stats-confirm__body-header">
+                <span>将加入</span>
+                <button
+                  type="button"
+                  className="cv-query-field-stats-confirm__copy"
+                  onClick={() => void copyFieldStatsConfirmText()}
+                >
+                  复制全部
+                </button>
+              </div>
               <code title={fieldStatsConfirmState.actionText}>{fieldStatsConfirmState.actionText}</code>
             </div>
             <div className="cv-query-modal__footer">
