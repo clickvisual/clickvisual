@@ -38,7 +38,29 @@ OFFSET
 			want1: true,
 		},
 		{
-			name: "test-2",
+			name: "uppercase AS alias",
+			args: args{
+				sql: `SELECT
+  count(*) AS total,name,tags,ts
+FROM
+  metrics.samples`,
+			},
+			want:  []string{"total", "name", "tags", "ts"},
+			want1: true,
+		},
+		{
+			name: "uppercase AS inside expression is not an alias",
+			args: args{
+				sql: `SELECT
+  CAST(ts AS String),name
+FROM
+  metrics.samples`,
+			},
+			want:  []string{"CAST(ts AS String)", "name"},
+			want1: true,
+		},
+		{
+			name: "test-3",
 			args: args{
 				sql: `SELECT
   val as key,name,tags,ts
