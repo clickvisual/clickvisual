@@ -1,5 +1,7 @@
 logs
 data
+devops
+.agents
 ui/node_modules
 ui-v2/node_modules
 bin

@@ -26,6 +26,7 @@ proxt.ts
 /configs
 /api/bin
 /api/logs
+/devops/
 
 /data/k8s/fluent-bit/
 /data/all-in-one/kafka/data/
