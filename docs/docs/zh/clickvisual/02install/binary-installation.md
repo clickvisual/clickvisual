@@ -29,7 +29,7 @@ wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/cli
 latest=$(curl -sL https://api.github.com/repos/clickvisual/clickvisual/releases/latest | grep  ".tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
 
 # Mac arm64系统
-wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/clickvisual-${latest}-mac-arm64.tar.gz" -O clickvisual-${latest}.tar.gz
+wget "https://github.com/clickvisual/clickvisual/releases/download/${latest}/clickvisual-${latest}-darwin-arm64.tar.gz" -O clickvisual-${latest}.tar.gz
 ```
 
 ## Linux ARM64 架构
