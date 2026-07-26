@@ -59,7 +59,7 @@ OFFSET
 			want1: true,
 		},
 		{
-			name: "test-2",
+			name: "test-3",
 			args: args{
 				sql: `SELECT
   val as key,
@@ -80,6 +80,26 @@ OFFSET
   0`,
 			},
 			want:  []string{"key", "name", "tags", "ts"},
+			want1: true,
+		},
+		{
+			name: "test-function-alias-with-commas",
+			args: args{
+				sql: `SELECT
+  count(*) AS c,
+  replaceRegexpAll(request_uri, '([0-9]){3,}', '{0}') AS url
+FROM
+  access_logs
+WHERE
+  timestamp >= toDateTime(1687072299)
+  AND timestamp < toDateTime(1687158699)
+  AND (status = 500)
+GROUP BY
+  url
+ORDER BY
+  c DESC`,
+			},
+			want:  []string{"c", "url"},
 			want1: true,
 		},
 	}
