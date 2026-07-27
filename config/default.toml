@@ -1,5 +1,7 @@
 [app]
 isMultiCopy = false  # multi-copy mode: Redis must be configured, otherwise the service cannot start
+# v2 edition: full keeps all v2 modules; private-lite keeps only log query related v2 modules.
+v2Edition = "full" # full | private-lite
 secretKey = "secretKey"
 rootURL = "http://localhost:19001"
 baseURL = "/api/admin/login/"
@@ -43,6 +45,12 @@ maxRows = 5
 allowedFields = []
 allowedGroupByFields = []
 
+# metadata database. Defaults to [mysql] when driver/dsn is not configured.
+[metadata]
+driver = "mysql" # mysql sqlite
+dsn = ""
+debug = true
+
 # if isMultiCopy is true
 [redis]
 debug = true
@@ -52,6 +60,8 @@ password = "**"
 
 [mysql]
 debug = true
+# metadata database attach retry interval when MySQL or schema is not ready during startup.
+attachRetryInterval = "5s"
 # database DSN
 dsn = "root:shimo@tcp(127.0.0.1:13306)/clickvisual?charset=utf8mb4&collation=utf8mb4_general_ci&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
 # log level

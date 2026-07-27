@@ -7,21 +7,21 @@ import { render, screen } from "@testing-library/react";
 describe("v2 report route", () => {
   it("renders the report page with mock contract snapshots", async () => {
     const memoryRouter = createMemoryRouter(routes, {
-      initialEntries: ["/v2/reports"]
+      initialEntries: ["/v2/reports/1001"]
     });
     render(<RouterProvider router={memoryRouter} />);
     expect(
       screen.getByRole("heading", { name: "定时报表" })
     ).toBeInTheDocument();
     expect(
-      await screen.findByRole("heading", { name: "报表任务（Mock）" })
+      await screen.findByRole("heading", { name: "报表列表" })
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "报表配置" })).toBeInTheDocument();
-    expect(screen.getByText("日报-核心指标概览")).toBeInTheDocument();
-    expect(screen.getByText(/输出格式：/)).toBeInTheDocument();
-    expect(screen.getByText(/注册状态：/)).toBeInTheDocument();
-    expect(screen.getByText(/下次执行时间：/)).toBeInTheDocument();
-    expect(screen.getByText(/运维钉钉群（ops-dingtalk）/)).toBeInTheDocument();
-    expect(screen.getByText(/推送成功率：/)).toBeInTheDocument();
+    expect(screen.getAllByText("日报-核心指标概览").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "查看报表配置 日报-核心指标概览" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "编辑报表调度 日报-核心指标概览" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "执行报表预览 日报-核心指标概览" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "编辑报表" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "报表配置" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "调度配置" })).not.toBeInTheDocument();
   });
 });

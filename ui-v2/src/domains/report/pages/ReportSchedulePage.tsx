@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   createReport,
   deleteReport,
@@ -111,9 +111,18 @@ function getAccelerationStatusLabel(acceleration?: ReportAccelerationStatus | nu
   }
 }
 
+function getReportTaskStatusLabel(status: ReportListItem["status"]) {
+  return status === "enabled" ? "启用" : "停用";
+}
+
 type FeedbackDialogState = {
   title: string;
   message: string;
+};
+
+type PendingReportAction = {
+  reportId: number;
+  action: "config" | "schedule" | "preview";
 };
 
 export default function ReportSchedulePage() {
@@ -152,7 +161,9 @@ export default function ReportSchedulePage() {
     "idle" | "pending" | "success" | "error"
   >("idle");
   const [editMessage, setEditMessage] = useState<string | null>(null);
+  const [configOpen, setConfigOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [sourceInstances, setSourceInstances] = useState<ReportSourceInstance[]>([]);
   const [sourceDatabases, setSourceDatabases] = useState<ReportSourceDatabase[]>([]);
   const [sourceTables, setSourceTables] = useState<ReportSourceTable[]>([]);
@@ -164,6 +175,7 @@ export default function ReportSchedulePage() {
     "idle" | "pending" | "success" | "error"
   >("idle");
   const [previewMessage, setPreviewMessage] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [backfillStatus, setBackfillStatus] = useState<
     "idle" | "pending" | "success" | "error"
   >("idle");
@@ -175,6 +187,7 @@ export default function ReportSchedulePage() {
   const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
   const [confirmDeleteReportId, setConfirmDeleteReportId] = useState<number | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<number | null>(routeReportId);
+  const [pendingReportAction, setPendingReportAction] = useState<PendingReportAction | null>(null);
   const [selectedExecution, setSelectedExecution] = useState<ReportExecutionRecord | null>(null);
   const [feedbackDialog, setFeedbackDialog] = useState<FeedbackDialogState | null>(null);
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
@@ -223,8 +236,11 @@ export default function ReportSchedulePage() {
       setCreateMessage(null);
       setEditStatus("idle");
       setEditMessage(null);
+      setConfigOpen(false);
+      setPendingReportAction(null);
       setPreviewStatus("idle");
       setPreviewMessage(null);
+      setPreviewOpen(false);
       setBackfillStatus("idle");
       setBackfillMessage(null);
       setLastBackfillCheck(null);
@@ -232,6 +248,7 @@ export default function ReportSchedulePage() {
       setDeleteMessage(null);
       setConfirmDeleteReportId(null);
       setConfirmEditOpen(false);
+      setScheduleOpen(false);
 
       try {
         const data = await getReportWorkspace(selectedReportId ?? undefined);
@@ -263,6 +280,8 @@ export default function ReportSchedulePage() {
 
   const reportList = workspace?.list ?? [];
   const activeReportId = workspace?.activeReportId ?? selectedReportId;
+  const enabledReportCount = reportList.filter((item) => item.status === "enabled").length;
+  const pausedReportCount = reportList.length - enabledReportCount;
   const editor = workspace?.editor ?? null;
   const schedule = workspace?.schedule ?? null;
   const preview = workspace?.preview ?? null;
@@ -305,6 +324,22 @@ export default function ReportSchedulePage() {
     }
   }, [activeReportId, navigate, reportIdParam, reportRouteBase]);
 
+  useEffect(() => {
+    if (!pendingReportAction || activeReportId !== pendingReportAction.reportId || !editor) {
+      return;
+    }
+    if (pendingReportAction.action === "config") {
+      setConfigOpen(true);
+    } else if (pendingReportAction.action === "schedule" && schedule) {
+      setScheduleOpen(true);
+    } else if (pendingReportAction.action === "preview" && preview) {
+      setPreviewOpen(true);
+    } else {
+      return;
+    }
+    setPendingReportAction(null);
+  }, [activeReportId, editor, pendingReportAction, preview, schedule]);
+
   async function handleSaveSchedule(nextSchedule: ReportScheduleConfig) {
     setSaveStatus("pending");
     setSaveMessage(null);
@@ -336,6 +371,7 @@ export default function ReportSchedulePage() {
       }
       setSaveStatus("success");
       setSaveMessage("保存成功");
+      setScheduleOpen(false);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "报表调度保存失败";
@@ -593,18 +629,49 @@ export default function ReportSchedulePage() {
     setConfirmEditOpen(true);
   }
 
+  function handleOpenReportAction(reportId: number, action: PendingReportAction["action"]) {
+    if (activeReportId === reportId && editor) {
+      if (action === "config") {
+        setConfigOpen(true);
+      } else if (action === "schedule" && schedule) {
+        setScheduleOpen(true);
+      } else if (action === "preview" && preview) {
+        setPreviewOpen(true);
+      }
+      return;
+    }
+    setConfigOpen(false);
+    setScheduleOpen(false);
+    setPreviewOpen(false);
+    setPendingReportAction({ reportId, action });
+    setSelectedReportId(reportId);
+  }
+
   async function handleConfirmOpenEditReport() {
     setConfirmEditOpen(false);
     await openEditReportForm();
   }
 
   async function handleEditReport(payload: ReportCreatePayload) {
+    if (!editor) {
+      return;
+    }
+
     setEditStatus("pending");
     setEditMessage(null);
     setFeedbackDialog(null);
 
     try {
-      const updated = await createReport(payload);
+      const updated = await createReport({
+        ...payload,
+        desc: editor.desc,
+        status: reportList.find((item) => item.id === payload.reportId)?.status ?? "enabled",
+        queryMode: editor.queryMode,
+        queryText: editor.queryText,
+        templateKey: editor.templateKey,
+        outputFormat: editor.outputFormat,
+        dutyUid: schedule?.dutyUid ?? 0
+      });
       setEditOpen(false);
       setSelectedReportId(updated.reportId);
       await loadWorkspace(updated.reportId);
@@ -638,6 +705,7 @@ export default function ReportSchedulePage() {
       await deleteReport(reportId);
       setConfirmDeleteReportId(null);
       setCreateOpen(false);
+      setConfigOpen(false);
       setEditOpen(false);
       setSelectedReportId(nextActiveReportId);
       await loadWorkspace(nextActiveReportId ?? undefined);
@@ -677,12 +745,15 @@ export default function ReportSchedulePage() {
         </div>
       </header>
 
-      <section className="cv-panel cv-report-hero">
-        <div className="cv-panel-header">
-          <div className="cv-breadcrumb">
-            <span>自动化推送</span>
-            <span aria-hidden="true">/</span>
-            <span className="cv-breadcrumb__current">{activeReportDisplay}</span>
+      <section className="cv-panel cv-report-hero" hidden>
+        <div className="cv-report-hero__identity">
+          <div>
+            <div className="cv-breadcrumb">
+              <span>自动化推送</span>
+              <span aria-hidden="true">/</span>
+              <span className="cv-breadcrumb__current">{activeReportDisplay}</span>
+            </div>
+            <strong className="cv-report-hero__title">{activeReportDisplay}</strong>
           </div>
           <div className="cv-report-hero__chips">
             <span className="cv-chip">Report Push</span>
@@ -691,18 +762,20 @@ export default function ReportSchedulePage() {
         </div>
         <div className="cv-report-hero__stats">
           <div className="cv-report-stat">
-            <div className="cv-report-stat__label">活跃报表任务</div>
+            <div className="cv-report-stat__label">任务数</div>
             <div className="cv-report-stat__value">{reportList.length}</div>
           </div>
           <div className="cv-report-stat">
-            <div className="cv-report-stat__label">推送成功率</div>
+            <div className="cv-report-stat__label">成功率</div>
             <div className="cv-report-stat__value">{successRate}</div>
           </div>
           <div className="cv-report-stat">
-            <div className="cv-report-stat__label">当前任务</div>
-            <div className="cv-report-stat__value">
-              {activeReportDisplay}
-            </div>
+            <div className="cv-report-stat__label">渠道数</div>
+            <div className="cv-report-stat__value">{schedule?.channelIds.length ?? 0}</div>
+          </div>
+          <div className="cv-report-stat">
+            <div className="cv-report-stat__label">执行记录</div>
+            <div className="cv-report-stat__value">{executions.length}</div>
           </div>
         </div>
       </section>
@@ -740,143 +813,217 @@ export default function ReportSchedulePage() {
         </div>
       ) : null}
       {createOpen ? (
-        <ReportCreateForm
-          instances={sourceInstances}
-          databases={sourceDatabases}
-          tables={sourceTables}
-          columns={sourceColumns}
-          isLoadingDatabases={loadingSourceDatabases}
-          isLoadingTables={loadingSourceTables}
-          isLoadingColumns={loadingSourceColumns}
-          isSubmitting={createStatus === "pending"}
-          onInstanceChange={handleInstanceChange}
-          onDatabaseChange={handleDatabaseChange}
-          onLoadColumns={handleLoadColumns}
-          onSubmit={handleCreateReport}
-        />
+        <div className="cv-report-modal-backdrop" role="presentation">
+          <div
+            className="cv-report-modal cv-report-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-create-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="report-create-dialog-title" className="cv-panel-title">
+                  创建报表
+                </h2>
+                <p className="cv-panel-description">选择日志表、统计字段和落地配置后创建。</p>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                disabled={createStatus === "pending"}
+                onClick={() => setCreateOpen(false)}
+              >
+                关闭
+              </button>
+            </div>
+            <ReportCreateForm
+              instances={sourceInstances}
+              databases={sourceDatabases}
+              tables={sourceTables}
+              columns={sourceColumns}
+              isLoadingDatabases={loadingSourceDatabases}
+              isLoadingTables={loadingSourceTables}
+              isLoadingColumns={loadingSourceColumns}
+              isSubmitting={createStatus === "pending"}
+              onInstanceChange={handleInstanceChange}
+              onDatabaseChange={handleDatabaseChange}
+              onLoadColumns={handleLoadColumns}
+              onSubmit={handleCreateReport}
+            />
+          </div>
+        </div>
       ) : null}
       {!loading && reportList.length > 0 ? (
-        <div className="cv-report-grid cv-report-grid--compact">
+        <div className="cv-report-grid cv-report-grid--list-only">
           <div className="cv-section-stack">
-            <section className="cv-panel">
+            <section className="cv-panel cv-report-nav-panel">
               <div className="cv-panel-header">
                 <div>
-                  <h2 className="cv-panel-title">报表任务</h2>
+                  <h2 className="cv-panel-title">报表列表</h2>
+                  <p className="cv-panel-description">
+                    当前选中：{activeReportId ? activeReportDisplay : "未选择"} · {enabledReportCount} 启用 / {pausedReportCount} 停用
+                  </p>
                 </div>
-                <span className="cv-chip">{activeReportId ? activeReportDisplay : "No Active"}</span>
+                <div className="cv-header-actions">
+                  <span className="cv-chip">{reportList.length} 个任务</span>
+                  <button
+                    type="button"
+                    className="cv-secondary-button"
+                    disabled={!activeReportId}
+                    onClick={() => {
+                      if (activeReportId) {
+                        navigate(`${reportRouteBase}/reports/${activeReportId}/display`);
+                      }
+                    }}
+                  >
+                    查看展示页
+                  </button>
+                  <button
+                    type="button"
+                    className="cv-secondary-button"
+                    onClick={handleOpenEditReport}
+                    disabled={!editor?.builder || editStatus === "pending"}
+                  >
+                    {editStatus === "pending" ? "保存中..." : "编辑报表"}
+                  </button>
+                </div>
               </div>
-              <div className="cv-table-wrap cv-table-wrap--compact">
-                <table className="cv-table">
-                  <thead>
-                    <tr>
-                      <th>报表</th>
-                      <th>状态</th>
-                      <th>更新时间</th>
-                      <th>动作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportList.map((item) => (
-                      <Fragment key={item.id}>
-                        <tr key={item.id}>
-                          <td>
-                            <strong>{item.name}</strong>
-                            <span className="cv-muted">{item.desc}</span>
-                          </td>
-                          <td>
-                            <span className={item.status === "enabled" ? "cv-badge" : "cv-pill"}>
-                              {item.status === "enabled" ? "启用" : "停用"}
+              <div className="cv-report-nav">
+                <div className="cv-report-nav__table-head" aria-hidden="true">
+                  <span>报表任务</span>
+                  <span>状态</span>
+                  <span>ID</span>
+                  <span>更新时间</span>
+                  <span>操作</span>
+                </div>
+                <div className="cv-report-nav__list" role="list" aria-label="报表任务列表">
+                  {reportList.map((item) => (
+                    <div key={item.id} className="cv-report-nav__node" role="listitem">
+                      <div className="cv-report-nav__node-main">
+                        <button
+                          type="button"
+                          className={`cv-report-nav__item${
+                            activeReportId === item.id ? " cv-report-nav__item--active" : ""
+                          }`}
+                          aria-pressed={activeReportId === item.id}
+                          aria-label={`切换到报表 ${item.name}`}
+                          onClick={() => setSelectedReportId(item.id)}
+                        >
+                          <span className="cv-report-nav__item-rail" aria-hidden="true" />
+                          <span className="cv-report-nav__item-content">
+                            <span className="cv-report-nav__item-title">
+                              <strong>{item.name}</strong>
+                              {item.desc ? (
+                                <span className="cv-report-nav__item-desc">{item.desc}</span>
+                              ) : null}
                             </span>
-                          </td>
-                          <td>{item.updatedAt}</td>
-                          <td>
-                            <div className="cv-header-actions">
-                              <button
-                                type="button"
-                                className="cv-link-button"
-                                aria-pressed={activeReportId === item.id}
-                                aria-label={`切换到报表 ${item.name}`}
-                                onClick={() => setSelectedReportId(item.id)}
-                              >
-                                切换任务
-                              </button>
-                              <button
-                                type="button"
-                                className="cv-secondary-button"
-                                aria-label={`删除报表 ${item.name}`}
-                                disabled={deleteStatus === "pending"}
-                                onClick={() =>
-                                  setConfirmDeleteReportId((current) =>
-                                    current === item.id ? null : item.id
-                                  )
-                                }
-                              >
-                                删除
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                        {confirmDeleteReportId === item.id ? (
-                          <tr key={`${item.id}-confirm`}>
-                            <td colSpan={4}>
-                              <div className="cv-status-card cv-status-card--compact">
-                                <strong>{`确认删除报表「${item.name}」？`}</strong>
-                                <span className="cv-muted">
-                                  删除后会一起清理该报表的调度配置和执行历史，且无法恢复。
-                                </span>
-                                <div className="cv-header-actions">
-                                  <button
-                                    type="button"
-                                    className="cv-action-button"
-                                    aria-label={`确认删除 报表 ${item.name}`}
-                                    disabled={deleteStatus === "pending"}
-                                    onClick={() => void handleDeleteReport(item.id)}
-                                  >
-                                    {deleteStatus === "pending" ? "删除中..." : "确认删除"}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="cv-secondary-button"
-                                    disabled={deleteStatus === "pending"}
-                                    onClick={() => setConfirmDeleteReportId(null)}
-                                  >
-                                    取消
-                                  </button>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : null}
-                      </Fragment>
-                    ))}
-                  </tbody>
-                </table>
+                            <span
+                              className={
+                                item.status === "enabled"
+                                  ? "cv-badge cv-report-nav__item-status"
+                                  : "cv-pill cv-report-nav__item-status"
+                              }
+                            >
+                              {getReportTaskStatusLabel(item.status)}
+                            </span>
+                            <span className="cv-report-nav__item-meta">#{item.id}</span>
+                            <span className="cv-report-nav__item-meta">{item.updatedAt || "未记录"}</span>
+                          </span>
+                        </button>
+                        <div className="cv-report-nav__actions">
+                          <button
+                            type="button"
+                            className="cv-secondary-button cv-report-nav__view"
+                            aria-label={`查看报表配置 ${item.name}`}
+                            disabled={pendingReportAction?.reportId === item.id}
+                            onClick={() => handleOpenReportAction(item.id, "config")}
+                          >
+                            {pendingReportAction?.reportId === item.id &&
+                            pendingReportAction.action === "config"
+                              ? "加载..."
+                              : "查看"}
+                          </button>
+                          <button
+                            type="button"
+                            className="cv-secondary-button cv-report-nav__schedule"
+                            aria-label={`编辑报表调度 ${item.name}`}
+                            disabled={
+                              saveStatus === "pending" ||
+                              pendingReportAction?.reportId === item.id
+                            }
+                            onClick={() => handleOpenReportAction(item.id, "schedule")}
+                          >
+                            {pendingReportAction?.reportId === item.id &&
+                            pendingReportAction.action === "schedule"
+                              ? "加载..."
+                              : "调度"}
+                          </button>
+                          <button
+                            type="button"
+                            className="cv-secondary-button cv-report-nav__preview"
+                            aria-label={`执行报表预览 ${item.name}`}
+                            disabled={
+                              previewStatus === "pending" ||
+                              pendingReportAction?.reportId === item.id
+                            }
+                            onClick={() => handleOpenReportAction(item.id, "preview")}
+                          >
+                            {pendingReportAction?.reportId === item.id &&
+                            pendingReportAction.action === "preview"
+                              ? "加载..."
+                              : "预览"}
+                          </button>
+                          <button
+                            type="button"
+                            className="cv-secondary-button cv-report-nav__delete"
+                            aria-label={`删除报表 ${item.name}`}
+                            disabled={deleteStatus === "pending"}
+                            onClick={() =>
+                              setConfirmDeleteReportId((current) =>
+                                current === item.id ? null : item.id
+                              )
+                            }
+                          >
+                            删除
+                          </button>
+                        </div>
+                      </div>
+                      {confirmDeleteReportId === item.id ? (
+                        <div className="cv-status-card cv-status-card--compact cv-report-nav__confirm">
+                          <strong>{`确认删除报表「${item.name}」？`}</strong>
+                          <span className="cv-muted">
+                            删除后会一起清理该报表的调度配置和执行历史，且无法恢复。
+                          </span>
+                          <div className="cv-header-actions">
+                            <button
+                              type="button"
+                              className="cv-action-button"
+                              aria-label={`确认删除 报表 ${item.name}`}
+                              disabled={deleteStatus === "pending"}
+                              onClick={() => void handleDeleteReport(item.id)}
+                            >
+                              {deleteStatus === "pending" ? "删除中..." : "确认删除"}
+                            </button>
+                            <button
+                              type="button"
+                              className="cv-secondary-button"
+                              disabled={deleteStatus === "pending"}
+                              onClick={() => setConfirmDeleteReportId(null)}
+                            >
+                              取消
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
+          </div>
 
-            {editOpen && editor?.builder ? (
-              <ReportCreateForm
-                mode="edit"
-                initialValue={{
-                  reportId: editor.reportId,
-                  name: editor.name,
-                  builder: editor.builder
-                }}
-                instances={sourceInstances}
-                databases={sourceDatabases}
-                tables={sourceTables}
-                columns={sourceColumns}
-                isLoadingDatabases={loadingSourceDatabases}
-                isLoadingTables={loadingSourceTables}
-                isLoadingColumns={loadingSourceColumns}
-                isSubmitting={editStatus === "pending"}
-                onInstanceChange={handleInstanceChange}
-                onDatabaseChange={handleDatabaseChange}
-                onLoadColumns={handleLoadColumns}
-                onSubmit={handleEditReport}
-              />
-            ) : null}
-
+          <div className="cv-section-stack cv-report-main-stack" hidden>
             <section className="cv-panel cv-panel-soft">
               <div className="cv-panel-header">
                 <div>
@@ -887,6 +1034,14 @@ export default function ReportSchedulePage() {
                   </div>
                 </div>
                 <div className="cv-header-actions">
+                  {activeReportId ? (
+                    <Link
+                      className="cv-secondary-button"
+                      to={`${reportRouteBase}/reports/${activeReportId}/display`}
+                    >
+                      查看展示页
+                    </Link>
+                  ) : null}
                   <button
                     type="button"
                     className="cv-secondary-button"
@@ -898,79 +1053,75 @@ export default function ReportSchedulePage() {
                 </div>
               </div>
               {editor ? (
-                <div className="cv-form-grid">
-                  <div className="cv-form-two-up">
-                    <div className="cv-form-row">
-                      <span className="cv-label">报表名称</span>
-                      <div className="cv-input">{editor.name}</div>
-                    </div>
-                    <div className="cv-form-row">
-                      <span className="cv-label">模板</span>
-                      <div className="cv-input">{editor.templateKey}</div>
-                    </div>
+                <div className="cv-report-detail-list cv-report-detail-list--dense">
+                  <div className="cv-report-detail-row">
+                    <span className="cv-report-detail-row__label">报表名称</span>
+                    <strong className="cv-report-detail-row__value">{editor.name}</strong>
                   </div>
-                  <div className="cv-form-two-up">
-                    <div className="cv-form-row">
-                      <span className="cv-label">查询模式</span>
-                      <div className="cv-input">{editor.queryMode.toUpperCase()}</div>
-                    </div>
-                    <div className="cv-form-row">
-                      <span className="cv-label">输出格式</span>
-                      <div className="cv-input">{editor.outputFormat}</div>
-                    </div>
+                  <div className="cv-report-detail-row">
+                    <span className="cv-report-detail-row__label">模板</span>
+                    <span className="cv-report-detail-row__value">{editor.templateKey}</span>
                   </div>
-                  <div className="cv-form-row">
-                    <span className="cv-label">查询语句</span>
-                    <pre className="cv-code cv-report-code">
+                  <div className="cv-report-detail-row">
+                    <span className="cv-report-detail-row__label">查询模式</span>
+                    <span className="cv-report-detail-row__value">{editor.queryMode.toUpperCase()}</span>
+                  </div>
+                  <div className="cv-report-detail-row">
+                    <span className="cv-report-detail-row__label">输出格式</span>
+                    <span className="cv-report-detail-row__value">{editor.outputFormat}</span>
+                  </div>
+                  <div className="cv-report-detail-row">
+                    <span className="cv-report-detail-row__label">配置说明</span>
+                    <span className="cv-report-detail-row__value">{editor.desc}</span>
+                  </div>
+                  <div className="cv-report-detail-row cv-report-detail-row--code">
+                    <span className="cv-report-detail-row__label">查询语句</span>
+                    <pre className="cv-code cv-report-code cv-report-detail-row__code">
                       {formattedQueryText || editor.queryText}
                     </pre>
                   </div>
-                  <div className="cv-form-row">
-                    <span className="cv-label">配置说明</span>
-                    <div className="cv-input">{editor.desc}</div>
-                  </div>
                   {acceleration ? (
-                    <div className="cv-form-row">
-                      <span className="cv-label">聚合状态</span>
-                      <div className="cv-section-stack cv-section-stack--tight">
-                        <div className="cv-kv">
-                          <div className="cv-kv-row">
-                            <span className="cv-kv-key">状态</span>
-                            <span className="cv-kv-value">
-                              {getAccelerationStatusLabel(acceleration)}
-                            </span>
+                    <div className="cv-report-detail-row cv-report-detail-row--code">
+                      <span className="cv-report-detail-row__label">聚合状态</span>
+                      <div className="cv-report-detail-row__value cv-section-stack cv-section-stack--tight">
+                        <div className="cv-report-inline-summary">
+                          <div className="cv-report-inline-summary__item">
+                            <span className="cv-report-inline-summary__label">状态</span>
+                            <strong>{getAccelerationStatusLabel(acceleration)}</strong>
                           </div>
-                          <div className="cv-kv-row">
-                            <span className="cv-kv-key">目标表</span>
-                            <span className="cv-kv-value">{acceleration.targetTable || "未生成"}</span>
+                          <div className="cv-report-inline-summary__item">
+                            <span className="cv-report-inline-summary__label">目标表</span>
+                            <strong>{acceleration.targetTable || "未生成"}</strong>
                           </div>
-                          <div className="cv-kv-row">
-                            <span className="cv-kv-key">物化视图</span>
-                            <span className="cv-kv-value">{acceleration.mvName || "未生成"}</span>
+                          <div className="cv-report-inline-summary__item">
+                            <span className="cv-report-inline-summary__label">物化视图</span>
+                            <strong>{acceleration.mvName || "未生成"}</strong>
                           </div>
-                          <div className="cv-kv-row">
-                            <span className="cv-kv-key">回填窗口</span>
-                            <span className="cv-kv-value">
+                          <div className="cv-report-inline-summary__item">
+                            <span className="cv-report-inline-summary__label">回填窗口</span>
+                            <strong>
                               {acceleration.backfillStartAt && acceleration.backfillEndAt
                                 ? `${formatDateTime(acceleration.backfillStartAt)} ~ ${formatDateTime(acceleration.backfillEndAt)}`
                                 : "未记录"}
-                            </span>
+                            </strong>
                           </div>
-                          {acceleration.errorMessage ? (
-                            <div className="cv-kv-row">
-                              <span className="cv-kv-key">错误信息</span>
-                              <span className="cv-kv-value">{acceleration.errorMessage}</span>
-                            </div>
-                          ) : null}
                         </div>
-                        <button
-                          type="button"
-                          className="cv-secondary-button"
-                          onClick={handleRunAccelerationBackfill}
-                          disabled={!workspace || backfillStatus === "pending"}
-                        >
-                          {backfillStatus === "pending" ? "自检中..." : "手动自检"}
-                        </button>
+                        {acceleration.errorMessage ? (
+                          <div className="cv-status-card cv-status-card--compact">
+                            <strong>错误信息</strong>
+                            <span className="cv-muted">{acceleration.errorMessage}</span>
+                          </div>
+                        ) : null}
+                        <div className="cv-header-actions">
+                          <button
+                            type="button"
+                            className="cv-secondary-button"
+                            onClick={handleRunAccelerationBackfill}
+                            disabled={!workspace || backfillStatus === "pending"}
+                          >
+                            {backfillStatus === "pending" ? "自检中..." : "手动自检"}
+                          </button>
+                        </div>
                         <ReportPushStatusCard
                           actionLabel="手动自检"
                           status={backfillStatus}
@@ -1031,57 +1182,61 @@ export default function ReportSchedulePage() {
                   <div>
                     <h2 className="cv-panel-title">调度配置</h2>
                   </div>
+                  <div className="cv-header-actions">
+                    <button
+                      type="button"
+                      className="cv-secondary-button"
+                      onClick={() => setScheduleOpen(true)}
+                      disabled={saveStatus === "pending"}
+                    >
+                      编辑调度
+                    </button>
+                  </div>
                 </div>
                 <div className="cv-section-stack">
-                  <div className="cv-report-inline-summary">
-                    <div className="cv-report-inline-summary__item">
-                      <span className="cv-report-inline-summary__label">Cron</span>
-                      <strong>{schedule.cron || "未设置"}</strong>
+                  <div className="cv-report-detail-list">
+                    <div className="cv-report-detail-row">
+                      <span className="cv-report-detail-row__label">Cron</span>
+                      <strong className="cv-report-detail-row__value">{schedule.cron || "未设置"}</strong>
                     </div>
-                    <div className="cv-report-inline-summary__item">
-                      <span className="cv-report-inline-summary__label">渠道</span>
-                      <strong>{schedule.channelIds.length}</strong>
+                    <div className="cv-report-detail-row">
+                      <span className="cv-report-detail-row__label">渠道数量</span>
+                      <span className="cv-report-detail-row__value">{schedule.channelIds.length}</span>
                     </div>
+                    {runtime ? (
+                      <>
+                        <div className="cv-report-detail-row">
+                          <span className="cv-report-detail-row__label">注册状态</span>
+                          <span className="cv-report-detail-row__value">{getSchedulerRegistrationLabel(runtime)}</span>
+                        </div>
+                        <div className="cv-report-detail-row">
+                          <span className="cv-report-detail-row__label">下次执行时间</span>
+                          <span className="cv-report-detail-row__value">{formatDateTime(runtime.nextRunAt)}</span>
+                        </div>
+                        <div className="cv-report-detail-row">
+                          <span className="cv-report-detail-row__label">最近一次定时执行</span>
+                          <span className="cv-report-detail-row__value">{getLatestScheduledStatusLabel(runtime)}</span>
+                        </div>
+                        <div className="cv-report-detail-row">
+                          <span className="cv-report-detail-row__label">最近一次定时执行时间</span>
+                          <span className="cv-report-detail-row__value">
+                            {formatDateTime(
+                              runtime.lastScheduledExecution?.endedAt ||
+                                runtime.lastScheduledExecution?.startedAt
+                            )}
+                          </span>
+                        </div>
+                        <div className="cv-report-detail-row">
+                          <span className="cv-report-detail-row__label">最近一次触发方式 / 执行人</span>
+                          <span className="cv-report-detail-row__value">
+                            {runtime.lastScheduledExecution
+                              ? `${runtime.lastScheduledExecution.trigger} / ${runtime.lastScheduledExecution.operatorName}`
+                              : "未记录"}
+                          </span>
+                        </div>
+                      </>
+                    ) : null}
                   </div>
-                  {runtime ? (
-                    <div className="cv-kv">
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">注册状态</span>
-                        <span className="cv-kv-value">{getSchedulerRegistrationLabel(runtime)}</span>
-                      </div>
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">下次执行时间</span>
-                        <span className="cv-kv-value">{formatDateTime(runtime.nextRunAt)}</span>
-                      </div>
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">最近一次定时执行</span>
-                        <span className="cv-kv-value">{getLatestScheduledStatusLabel(runtime)}</span>
-                      </div>
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">最近一次定时执行时间</span>
-                        <span className="cv-kv-value">
-                          {formatDateTime(
-                            runtime.lastScheduledExecution?.endedAt ||
-                              runtime.lastScheduledExecution?.startedAt
-                          )}
-                        </span>
-                      </div>
-                      <div className="cv-kv-row">
-                        <span className="cv-kv-key">最近一次触发方式 / 执行人</span>
-                        <span className="cv-kv-value">
-                          {runtime.lastScheduledExecution
-                            ? `${runtime.lastScheduledExecution.trigger} / ${runtime.lastScheduledExecution.operatorName}`
-                            : "未记录"}
-                        </span>
-                      </div>
-                    </div>
-                  ) : null}
-                  <ReportScheduleForm
-                    initialValue={schedule}
-                    channels={workspace.channels}
-                    isSubmitting={saveStatus === "pending"}
-                    onSubmit={handleSaveSchedule}
-                  />
                   <ReportPushStatusCard
                     actionLabel="保存调度"
                     status={saveStatus}
@@ -1092,9 +1247,8 @@ export default function ReportSchedulePage() {
                 </div>
               </section>
             ) : null}
-          </div>
 
-          <div className="cv-section-stack">
+          <div className="cv-section-stack cv-report-secondary-stack">
             {selectedChannels.length > 0 ? (
               <section className="cv-panel">
                 <div className="cv-panel-header">
@@ -1211,6 +1365,243 @@ export default function ReportSchedulePage() {
                 </div>
               </section>
             ) : null}
+          </div>
+          </div>
+        </div>
+      ) : null}
+
+      {configOpen && editor ? (
+        <div className="cv-report-modal-backdrop" role="presentation">
+          <div
+            className="cv-report-modal cv-report-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-config-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="report-config-dialog-title" className="cv-panel-title">
+                  报表配置
+                </h2>
+                <p className="cv-panel-description">{activeReportDisplay}</p>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                onClick={() => setConfigOpen(false)}
+              >
+                关闭
+              </button>
+            </div>
+            <div className="cv-report-detail-list cv-report-detail-list--dense">
+              <div className="cv-report-detail-row">
+                <span className="cv-report-detail-row__label">报表名称</span>
+                <strong className="cv-report-detail-row__value">{editor.name}</strong>
+              </div>
+              <div className="cv-report-detail-row">
+                <span className="cv-report-detail-row__label">模板</span>
+                <span className="cv-report-detail-row__value">{editor.templateKey}</span>
+              </div>
+              <div className="cv-report-detail-row">
+                <span className="cv-report-detail-row__label">查询模式</span>
+                <span className="cv-report-detail-row__value">{editor.queryMode.toUpperCase()}</span>
+              </div>
+              <div className="cv-report-detail-row">
+                <span className="cv-report-detail-row__label">输出格式</span>
+                <span className="cv-report-detail-row__value">{editor.outputFormat}</span>
+              </div>
+              <div className="cv-report-detail-row">
+                <span className="cv-report-detail-row__label">配置说明</span>
+                <span className="cv-report-detail-row__value">{editor.desc || "未填写"}</span>
+              </div>
+              <div className="cv-report-detail-row">
+                <span className="cv-report-detail-row__label">聚合状态</span>
+                <span className="cv-report-detail-row__value">
+                  {getAccelerationStatusLabel(acceleration)}
+                </span>
+              </div>
+              <div className="cv-report-detail-row cv-report-detail-row--code">
+                <span className="cv-report-detail-row__label">查询语句</span>
+                <pre className="cv-code cv-report-code cv-report-detail-row__code">
+                  {formattedQueryText || editor.queryText || "未记录"}
+                </pre>
+              </div>
+              {acceleration?.targetTable || acceleration?.mvName ? (
+                <div className="cv-report-detail-row cv-report-detail-row--code">
+                  <span className="cv-report-detail-row__label">聚合对象</span>
+                  <div className="cv-report-detail-row__value cv-report-inline-summary">
+                    <div className="cv-report-inline-summary__item">
+                      <span className="cv-report-inline-summary__label">目标表</span>
+                      <strong>{acceleration.targetTable || "未生成"}</strong>
+                    </div>
+                    <div className="cv-report-inline-summary__item">
+                      <span className="cv-report-inline-summary__label">物化视图</span>
+                      <strong>{acceleration.mvName || "未生成"}</strong>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editOpen && editor?.builder ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+        >
+          <div
+            className="cv-report-modal cv-report-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-edit-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="report-edit-dialog-title" className="cv-panel-title">
+                  编辑报表配置
+                </h2>
+                <p className="cv-panel-description">修改查询来源、字段和默认条件后保存。</p>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                disabled={editStatus === "pending"}
+                onClick={() => setEditOpen(false)}
+              >
+                关闭
+              </button>
+            </div>
+            <ReportCreateForm
+              mode="edit"
+              initialValue={{
+                reportId: editor.reportId,
+                name: editor.name,
+                builder: editor.builder
+              }}
+              instances={sourceInstances}
+              databases={sourceDatabases}
+              tables={sourceTables}
+              columns={sourceColumns}
+              isLoadingDatabases={loadingSourceDatabases}
+              isLoadingTables={loadingSourceTables}
+              isLoadingColumns={loadingSourceColumns}
+              isSubmitting={editStatus === "pending"}
+              onInstanceChange={handleInstanceChange}
+              onDatabaseChange={handleDatabaseChange}
+              onLoadColumns={handleLoadColumns}
+              onSubmit={handleEditReport}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {scheduleOpen && schedule && workspace ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => {
+            if (saveStatus !== "pending") {
+              setScheduleOpen(false);
+            }
+          }}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-schedule-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="report-schedule-dialog-title" className="cv-panel-title">
+                  编辑调度
+                </h2>
+                <p className="cv-panel-description">调整 Cron 计划和投递渠道。</p>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                disabled={saveStatus === "pending"}
+                onClick={() => setScheduleOpen(false)}
+              >
+                关闭
+              </button>
+            </div>
+            <ReportScheduleForm
+              initialValue={schedule}
+              channels={workspace.channels}
+              isSubmitting={saveStatus === "pending"}
+              onSubmit={handleSaveSchedule}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {previewOpen && preview ? (
+        <div
+          className="cv-report-modal-backdrop"
+          role="presentation"
+          onClick={() => {
+            if (previewStatus !== "pending") {
+              setPreviewOpen(false);
+            }
+          }}
+        >
+          <div
+            className="cv-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-preview-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 id="report-preview-dialog-title" className="cv-panel-title">
+                  执行预览
+                </h2>
+                <p className="cv-panel-description">{activeReportDisplay}</p>
+              </div>
+              <button
+                type="button"
+                className="cv-secondary-button"
+                disabled={previewStatus === "pending"}
+                onClick={() => setPreviewOpen(false)}
+              >
+                关闭
+              </button>
+            </div>
+            <div className="cv-section-stack cv-section-stack--tight">
+              <div className="cv-input">{preview.message || "暂无预览信息"}</div>
+              <div className="cv-kv">
+                <div className="cv-kv-row">
+                  <span className="cv-kv-key">下次执行</span>
+                  <span className="cv-kv-value">{formatDateTime(preview.nextRunAt)}</span>
+                </div>
+                <div className="cv-kv-row">
+                  <span className="cv-kv-key">最近一次执行</span>
+                  <span className="cv-kv-value">{formatDateTime(preview.lastRunAt)}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="cv-action-button"
+                onClick={handleRunPreview}
+                disabled={previewStatus === "pending"}
+              >
+                {previewStatus === "pending" ? "预览执行中..." : "执行预览"}
+              </button>
+              <ReportPushStatusCard
+                actionLabel="预览执行"
+                status={previewStatus}
+                message={previewMessage ?? undefined}
+                idleMessage="尚未执行预览"
+              />
+            </div>
           </div>
         </div>
       ) : null}

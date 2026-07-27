@@ -83,6 +83,7 @@ type reportAccelerationTopology struct {
 	SourceLocalTable string
 	TargetLocalTable string
 	SourceTimeType   int
+	SourceColumns    []view.Column
 }
 
 type reportAccelerationCheckResult struct {
@@ -100,6 +101,9 @@ func buildReportAccelerationPlan(reportID int, builder view.ReqReportBuilder, to
 	builder = sanitizeReportBuilder(builder)
 	if strings.TrimSpace(builder.Database) == "" || strings.TrimSpace(builder.Table) == "" || strings.TrimSpace(builder.TimeField) == "" {
 		return reportAccelerationPlan{}, fmt.Errorf("database、table、timeField 不能为空")
+	}
+	if err := validateAggregationSourceFields(builder, topology); err != nil {
+		return reportAccelerationPlan{}, err
 	}
 	filterSQL, err := buildAccelerationFilterSQL(builder)
 	if err != nil {
@@ -212,6 +216,85 @@ func buildAccelerationFingerprint(builder view.ReqReportBuilder) (string, error)
 	}
 	sum := sha1.Sum(raw)
 	return hex.EncodeToString(sum[:]), nil
+}
+
+func validateAggregationSourceFields(builder view.ReqReportBuilder, topology reportAccelerationTopology) error {
+	if len(topology.SourceColumns) == 0 {
+		return nil
+	}
+	available := make(map[string]struct{}, len(topology.SourceColumns))
+	for _, column := range topology.SourceColumns {
+		field := normalizeFieldName(column.Field)
+		if field != "" {
+			available[field] = struct{}{}
+		}
+	}
+	sourceTable := builder.Table
+	if topology.UseCluster && strings.TrimSpace(topology.SourceLocalTable) != "" {
+		sourceTable = topology.SourceLocalTable
+	}
+	for _, field := range collectAggregationBuilderFields(builder) {
+		if _, ok := available[field]; !ok {
+			return fmt.Errorf("字段 %s 不存在于源表 %s.%s", field, builder.Database, sourceTable)
+		}
+	}
+	return nil
+}
+
+func collectAggregationBuilderFields(builder view.ReqReportBuilder) []string {
+	fields := make([]string, 0)
+	addField := func(field string) {
+		field = normalizeFieldName(field)
+		if field != "" {
+			fields = append(fields, field)
+		}
+	}
+	addField(builder.TimeField)
+	for _, block := range normalizeReportBlocks(builder) {
+		fields = append(fields, collectAggregationWhereFields(block.Where)...)
+		for _, metric := range block.Metrics {
+			key := strings.TrimSpace(strings.ToLower(metric.Key))
+			switch key {
+			case "topn":
+				addField(metric.GroupBy)
+			case "custom":
+				addField(aggregationMetricField(strings.TrimSpace(strings.ToLower(metric.Expression))))
+			}
+		}
+	}
+	seen := make(map[string]struct{}, len(fields))
+	unique := make([]string, 0, len(fields))
+	for _, field := range fields {
+		if _, ok := seen[field]; ok {
+			continue
+		}
+		seen[field] = struct{}{}
+		unique = append(unique, field)
+	}
+	return unique
+}
+
+func collectAggregationWhereFields(raw string) []string {
+	fields := make([]string, 0)
+	for _, segment := range splitWhereByAnd(strings.TrimSpace(raw)) {
+		expr := stripWrappingParentheses(strings.TrimSpace(segment))
+		if expr == "" || expr == "1=1" || expr == "1 = 1" {
+			continue
+		}
+		if matches := reportAggregationEqPattern.FindStringSubmatch(expr); len(matches) > 0 {
+			fields = append(fields, normalizeFieldName(matches[1]))
+			continue
+		}
+		if matches := reportAggregationLikePattern.FindStringSubmatch(expr); len(matches) > 0 {
+			fields = append(fields, normalizeFieldName(matches[1]))
+			continue
+		}
+		if matches := reportAggregationInPattern.FindStringSubmatch(expr); len(matches) > 0 {
+			fields = append(fields, normalizeFieldName(matches[1]))
+			continue
+		}
+	}
+	return fields
 }
 
 func quoteIdentifier(value string) string {
@@ -948,14 +1031,14 @@ func accelerationPreviewMessage(acceleration dbmodel.ReportAcceleration, found b
 	case dbmodel.ReportAccelerationStatusReady:
 		return ""
 	case dbmodel.ReportAccelerationStatusProvisioning, dbmodel.ReportAccelerationStatusBackfilling, dbmodel.ReportAccelerationStatusRebuilding:
-		return fmt.Sprintf("报表加速处理中，当前状态：%s。请稍后再执行预览。", acceleration.Status)
+		return fmt.Sprintf("报表加速处理中，当前状态：%s；预览执行会临时直查源表。", acceleration.Status)
 	case dbmodel.ReportAccelerationStatusError:
 		if strings.TrimSpace(acceleration.ErrorMessage) != "" {
-			return fmt.Sprintf("报表加速失败：%s", acceleration.ErrorMessage)
+			return fmt.Sprintf("报表加速失败，预览执行会临时直查源表：%s", acceleration.ErrorMessage)
 		}
-		return "报表加速失败，请检查加速配置。"
+		return "报表加速失败，预览执行会临时直查源表。"
 	default:
-		return fmt.Sprintf("报表加速未就绪，当前状态：%s。", acceleration.Status)
+		return fmt.Sprintf("报表加速未就绪，当前状态：%s；预览执行会临时直查源表。", acceleration.Status)
 	}
 }
 
@@ -987,6 +1070,7 @@ func (s *Service) resolveReportAccelerationTopology(builder view.ReqReportBuilde
 	if err != nil {
 		return reportAccelerationTopology{}, err
 	}
+	topology.SourceColumns = columns
 	topology.SourceTimeType = inferAccelerationTimeFieldType(columns, builder.TimeField)
 	if !useCluster {
 		topology.TargetLocalTable = ""

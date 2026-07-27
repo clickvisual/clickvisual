@@ -321,6 +321,13 @@ func (s *Service) UpsertSchedule(req view.ReqReportSchedule) (view.RespReportSch
 	if len(req.ChannelIDs) == 0 {
 		return view.RespReportSchedule{}, fmt.Errorf("channelIds 不能为空")
 	}
+	cronSpec := normalizeReportScheduleCron(req.Cron)
+	status := reportScheduleStatusByTyp(req.Typ)
+	if status == "enabled" {
+		if err := validateReportScheduleCron(cronSpec); err != nil {
+			return view.RespReportSchedule{}, err
+		}
+	}
 	item, found := s.reportItem(req.NodeID)
 	if !found {
 		return view.RespReportSchedule{}, fmt.Errorf("report not found: %d", req.NodeID)
@@ -330,7 +337,7 @@ func (s *Service) UpsertSchedule(req view.ReqReportSchedule) (view.RespReportSch
 		NodeID:        req.NodeID,
 		Desc:          item.Desc,
 		DutyUID:       item.DutyUID,
-		Cron:          req.Cron,
+		Cron:          cronSpec,
 		Typ:           req.Typ,
 		ChannelIDs:    append([]int(nil), req.ChannelIDs...),
 		IsRetry:       req.IsRetry,

@@ -15,6 +15,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 )
@@ -27,7 +28,11 @@ func AuthChecker() gin.HandlerFunc {
 		case !isNotAnonymousUser(c):
 		default:
 			appURL, _, _ := kauth.ParseAppAndSubURL(econf.GetString("app.rootURL"))
-			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + "user/login"})
+			loginPath := "user/login"
+			if config.IsPrivateLiteMode() {
+				loginPath = "v2/login"
+			}
+			c.JSON(http.StatusOK, core.Res{Code: 302, Data: appURL + loginPath})
 			c.Abort()
 			return
 		}

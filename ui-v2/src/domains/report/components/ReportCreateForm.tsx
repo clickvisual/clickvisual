@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { checkReportWhere } from "../api/report";
 import { formatSqlForDisplay } from "../utils/formatSql";
 import type {
   ReportBlockInput,
@@ -9,7 +10,8 @@ import type {
   ReportSourceColumn,
   ReportSourceDatabase,
   ReportSourceInstance,
-  ReportSourceTable
+  ReportSourceTable,
+  ReportWhereCheckResult
 } from "../types/contracts";
 
 type Props = {
@@ -31,6 +33,12 @@ type Props = {
   onDatabaseChange: (instanceId: number, database: string) => Promise<void>;
   onLoadColumns: (instanceId: number, database: string, table: string) => Promise<void>;
   onSubmit: (payload: ReportCreatePayload) => Promise<void>;
+};
+
+type WhereCheckState = {
+  status: "idle" | "pending" | "success" | "error";
+  message?: string;
+  result?: ReportWhereCheckResult;
 };
 
 function buildCountOnlyMetrics(): ReportMetricInput[] {
@@ -94,13 +102,45 @@ function createEmptyMetric(): ReportMetricInput {
   };
 }
 
-function buildDefaultBlock(index = 0): ReportBlockInput {
+function buildDefaultWhere(columns: ReportSourceColumn[]): string {
+  const fields = new Set(
+    columns
+      .map((column) => column.field?.trim())
+      .filter((field): field is string => Boolean(field))
+  );
+  if (fields.has("lv")) {
+    return "lv = 'error'";
+  }
+  if (fields.has("level")) {
+    return "level = 'error'";
+  }
+  return "";
+}
+
+function isGeneratedDefaultWhere(where: string): boolean {
+  const normalized = where.trim().toLowerCase().replace(/\s+/g, "");
+  return normalized === "level='error'" || normalized === "lv='error'";
+}
+
+function buildDefaultBlock(index = 0, where = "level = 'error'"): ReportBlockInput {
   return {
     key: index === 0 ? "default" : `block_${index + 1}`,
     label: index === 0 ? "默认条件块" : `条件块 ${index + 1}`,
-    where: index === 0 ? "level = 'error'" : "",
+    where: index === 0 ? where : "",
     metrics: buildCountOnlyMetrics()
   };
+}
+
+function normalizeWhereLiteralQuotes(where: string): string {
+  return where.replace(
+    /(^|\s+and\s+|\()\s*([A-Za-z0-9_.`]+)\s*(=|!=)\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?=\)|$|\s+and\s+)/gi,
+    (match, prefix: string, field: string, operator: string, value: string) => {
+      if (/^(null|true|false)$/i.test(value)) {
+        return match;
+      }
+      return `${prefix}${field} ${operator} '${value}'`;
+    }
+  );
 }
 
 function normalizeBlocks(builder?: ReportBuilderInput | null): ReportBlockInput[] {
@@ -108,7 +148,7 @@ function normalizeBlocks(builder?: ReportBuilderInput | null): ReportBlockInput[
     return builder.blocks.map((block, index) => ({
       key: block.key || (index === 0 ? "default" : `block_${index + 1}`),
       label: block.label || (index === 0 ? "默认条件块" : `条件块 ${index + 1}`),
-      where: block.where || "",
+      where: normalizeWhereLiteralQuotes(block.where || ""),
       metrics: block.metrics?.length ? block.metrics : buildCountOnlyMetrics()
     }));
   }
@@ -117,7 +157,7 @@ function normalizeBlocks(builder?: ReportBuilderInput | null): ReportBlockInput[
       {
         key: "default",
         label: "默认条件块",
-        where: builder.where || "level = 'error'",
+        where: normalizeWhereLiteralQuotes(builder.where || "level = 'error'"),
         metrics: builder.metrics?.length ? builder.metrics : buildCountOnlyMetrics()
       }
     ];
@@ -216,6 +256,28 @@ function sortedGroupByOptions(columns: ReportSourceColumn[], currentValue: strin
   return fields;
 }
 
+function preferredTimeField(columns: ReportSourceColumn[]): string {
+  const preferred = [
+    "event_time",
+    "hour_ts",
+    "_time_second_",
+    "_time_nanosecond_",
+    "timestamp",
+    "time",
+    "ts"
+  ];
+  for (const field of preferred) {
+    if (columns.some((column) => column.field === field)) {
+      return field;
+    }
+  }
+  return columns[0]?.field ?? "";
+}
+
+function blockStateKey(block: ReportBlockInput, index: number) {
+  return block.key || `block_${index + 1}`;
+}
+
 export default function ReportCreateForm({
   instances,
   databases,
@@ -253,8 +315,9 @@ export default function ReportCreateForm({
     initialValue?.builder.timeRange ?? "1h"
   );
   const [blocks, setBlocks] = useState<ReportBlockInput[]>(() =>
-    normalizeBlocks(initialValue?.builder)
+    initialValue?.builder ? normalizeBlocks(initialValue.builder) : [buildDefaultBlock(0, buildDefaultWhere(safeColumns))]
   );
+  const [whereCheckByBlock, setWhereCheckByBlock] = useState<Record<string, WhereCheckState>>({});
   const [metricGuideOpenBlockKey, setMetricGuideOpenBlockKey] = useState<string | null>(null);
   const onInstanceChangeRef = useRef(onInstanceChange);
   const onLoadColumnsRef = useRef(onLoadColumns);
@@ -287,6 +350,7 @@ export default function ReportCreateForm({
     setTimeField(initialValue.builder.timeField);
     setTimeRange(initialValue.builder.timeRange);
     setBlocks(normalizeBlocks(initialValue.builder));
+    setWhereCheckByBlock({});
     setMetricGuideOpenBlockKey(null);
   }, [
     initialValue?.reportId,
@@ -360,13 +424,23 @@ export default function ReportCreateForm({
 
   useEffect(() => {
     if (!timeField && safeColumns.length > 0) {
-      const autoField =
-        safeColumns.find((column) =>
-          ["event_time", "timestamp", "time"].includes(column.field)
-        )?.field ?? safeColumns[0]?.field ?? "";
-      setTimeField(autoField);
+      setTimeField(preferredTimeField(safeColumns));
     }
   }, [safeColumns, timeField]);
+
+  useEffect(() => {
+    if (initialValue || safeColumns.length === 0) {
+      return;
+    }
+    const nextWhere = buildDefaultWhere(safeColumns);
+    setBlocks((current) =>
+      current.map((block, index) =>
+        index === 0 && isGeneratedDefaultWhere(block.where)
+          ? { ...block, where: nextWhere }
+          : block
+      )
+    );
+  }, [initialValue, safeColumns]);
 
   const preview = buildPreview(database, table, timeField, timeRange, blocks);
   const formattedPreview = formatSqlForDisplay(preview);
@@ -393,6 +467,61 @@ export default function ReportCreateForm({
     !table ||
     !timeField ||
     hasInvalidMetrics;
+
+  async function handleCheckWhere(block: ReportBlockInput, index: number) {
+    const key = blockStateKey(block, index);
+    if (!instanceId || !database || !table || !timeField) {
+      setWhereCheckByBlock((current) => ({
+        ...current,
+        [key]: {
+          status: "error",
+          message: "请先选择实例、数据库、数据表和时间字段。"
+        }
+      }));
+      return;
+    }
+    setWhereCheckByBlock((current) => ({
+      ...current,
+      [key]: { status: "pending", message: "正在试跑最近 15 分钟数据..." }
+    }));
+    try {
+      const result = await checkReportWhere({
+        builder: {
+          instanceId,
+          cluster,
+          database,
+          table,
+          timeField,
+          timeRange,
+          where: block.where,
+          metrics: block.metrics.map(normalizeMetric),
+          blocks: blocks.map((item) => ({
+            ...item,
+            label: item.label.trim(),
+            metrics: item.metrics.map(normalizeMetric)
+          }))
+        },
+        where: block.where,
+        windowSeconds: 15 * 60
+      });
+      setWhereCheckByBlock((current) => ({
+        ...current,
+        [key]: {
+          status: result.passed ? "success" : "error",
+          message: result.message,
+          result
+        }
+      }));
+    } catch (error) {
+      setWhereCheckByBlock((current) => ({
+        ...current,
+        [key]: {
+          status: "error",
+          message: error instanceof Error ? error.message : "WHERE 条件试跑失败"
+        }
+      }));
+    }
+  }
 
   return (
     <section className="cv-panel cv-panel-soft">
@@ -618,7 +747,7 @@ export default function ReportCreateForm({
               className="cv-action-button"
               disabled={blocks.length >= 5}
               onClick={() =>
-                setBlocks((current) => [...current, buildDefaultBlock(current.length)])
+                setBlocks((current) => [...current, buildDefaultBlock(current.length, buildDefaultWhere(safeColumns))])
               }
             >
               新增条件块
@@ -629,7 +758,7 @@ export default function ReportCreateForm({
               disabled={blocks.length === 0 || blocks.length >= 5}
               onClick={() =>
                 setBlocks((current) => {
-                  const source = current[current.length - 1] ?? buildDefaultBlock();
+                  const source = current[current.length - 1] ?? buildDefaultBlock(0, buildDefaultWhere(safeColumns));
                   return [
                     ...current,
                     {
@@ -712,16 +841,85 @@ export default function ReportCreateForm({
                   aria-label="WHERE 条件"
                   className="cv-input"
                   value={block.where}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setBlocks((current) =>
                       current.map((item, itemIndex) =>
                         itemIndex === index ? { ...item, where: event.target.value } : item
                       )
-                    )
-                  }
+                    );
+                    setWhereCheckByBlock((current) => {
+                      const next = { ...current };
+                      delete next[blockStateKey(block, index)];
+                      return next;
+                    });
+                  }}
                   rows={3}
                 />
               </label>
+
+              <div className="cv-report-where-check">
+                <button
+                  type="button"
+                  className="cv-secondary-button"
+                  disabled={
+                    whereCheckByBlock[blockStateKey(block, index)]?.status === "pending" ||
+                    !instanceId ||
+                    !database ||
+                    !table ||
+                    !timeField
+                  }
+                  onClick={() => void handleCheckWhere(block, index)}
+                >
+                  {whereCheckByBlock[blockStateKey(block, index)]?.status === "pending"
+                    ? "试跑中..."
+                    : "试跑 15m"}
+                </button>
+                <span className="cv-muted">
+                  执行最近 15 分钟 count，用于验证 WHERE 语法和字段是否可用。
+                </span>
+              </div>
+
+              {whereCheckByBlock[blockStateKey(block, index)] ? (
+                <div
+                  className={`cv-status-card cv-status-card--compact ${
+                    whereCheckByBlock[blockStateKey(block, index)].status === "success"
+                      ? "cv-report-where-check__result--success"
+                      : whereCheckByBlock[blockStateKey(block, index)].status === "error"
+                        ? "cv-report-where-check__result--error"
+                        : ""
+                  }`}
+                  role={
+                    whereCheckByBlock[blockStateKey(block, index)].status === "error"
+                      ? "alert"
+                      : "status"
+                  }
+                >
+                  <strong>
+                    {whereCheckByBlock[blockStateKey(block, index)].status === "pending"
+                      ? "WHERE 条件试跑中"
+                      : whereCheckByBlock[blockStateKey(block, index)].status === "success"
+                        ? "WHERE 条件试跑通过"
+                        : "WHERE 条件试跑失败"}
+                  </strong>
+                  <span className="cv-muted">
+                    {whereCheckByBlock[blockStateKey(block, index)].message}
+                  </span>
+                  {whereCheckByBlock[blockStateKey(block, index)].result ? (
+                    <>
+                      <span className="cv-muted">
+                        窗口：
+                        {whereCheckByBlock[blockStateKey(block, index)].result?.windowStart} ~{" "}
+                        {whereCheckByBlock[blockStateKey(block, index)].result?.windowEnd}
+                      </span>
+                      <pre className="cv-code cv-report-where-check__sql">
+                        {formatSqlForDisplay(
+                          whereCheckByBlock[blockStateKey(block, index)].result?.query ?? ""
+                        )}
+                      </pre>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
 
               {isHighCostWhereCondition(block.where) ? (
                 <div className="cv-status-card cv-status-card--compact" role="note">

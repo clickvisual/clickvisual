@@ -1,18 +1,34 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { TimeRangeProvider } from "../state/TimeRangeContext";
+import { isPrivateLiteEdition } from "../config/runtime";
 import VersionSwitcher from "./VersionSwitcher";
 
 const primaryNavigation = [
   { to: "/v2/overview", label: "总览大盘", icon: "◫" },
   { to: "/v2/query", label: "日志查询", icon: "⌘" },
-  { to: "/v2/reports", label: "定时报表", icon: "◌" },
+  { to: "/v2/analysis", label: "数据开发", icon: "▦" },
+  { to: "/v2/reports", label: "数据报表", icon: "◌" },
   { to: "/v2/alerts/rules", label: "告警中心", icon: "!" },
   { to: "/v2/settings/datasource", label: "配置中心", icon: "⋯" },
   { to: "/v2/permission/users", label: "权限中心", icon: "⌥" }
 ] as const;
 
+const privateLiteNavigation = primaryNavigation.filter((item) => item.to === "/v2/query");
+
+function isNavigationActive(pathname: string, to: string) {
+  if (to.startsWith("/v2/settings")) {
+    return pathname.startsWith("/v2/settings");
+  }
+  if (to.startsWith("/v2/permission")) {
+    return pathname.startsWith("/v2/permission");
+  }
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
+
 function ShellFrame({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const navigation = isPrivateLiteEdition() ? privateLiteNavigation : primaryNavigation;
   return (
     <div className="cv-shell">
       <header className="cv-shell__topbar" data-testid="app-shell-topbar">
@@ -28,12 +44,12 @@ function ShellFrame({ children }: { children: ReactNode }) {
           </div>
 
           <nav aria-label="v2 主导航" className="cv-shell__nav" data-testid="app-shell-nav">
-            {primaryNavigation.map((item) => (
+            {navigation.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) =>
-                  `cv-shell__nav-link${isActive ? " cv-shell__nav-link--active" : ""}`
+                className={() =>
+                  `cv-shell__nav-link${isNavigationActive(location.pathname, item.to) ? " cv-shell__nav-link--active" : ""}`
                 }
               >
                 <span className="cv-shell__nav-icon" aria-hidden="true">

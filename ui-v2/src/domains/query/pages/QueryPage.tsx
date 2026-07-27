@@ -5,17 +5,23 @@ import QueryEditDatabaseModal from "../components/QueryEditDatabaseModal";
 import {
   createQueryShareShortUrl,
   deleteQueryDatabase,
-  deleteQueryTable
+  deleteQueryTable,
+  getQueryFieldStats
 } from "../api/query";
-import { useQueryWorkspace } from "../hooks/useQueryWorkspace";
+import { buildQueryFieldRef, buildStructuredConditions, useQueryWorkspace } from "../hooks/useQueryWorkspace";
 import type {
+  QueryFieldStatsResponse,
+  QueryFieldRef,
   QueryFilterCondition,
+  QueryFilterValueType,
   QuerySourceDatabase,
   QuerySourceInstance,
   QuerySourceTable,
   QuerySourceTreeTarget
 } from "../types/contracts";
 import ContextMenu from "../../../shared/components/ContextMenu";
+import { isPrivateLiteEdition } from "../../../shared/config/runtime";
+import { buildShareRouteHref, buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
 
 type QueryDateRange = [Date, Date] | null;
 type QueryConditionModalMode = "create" | "edit";
@@ -103,9 +109,15 @@ type QuickTimeRange = {
   label: string;
   minutes: number;
 };
+type LogDetailNestedEntry = {
+  key: string;
+  value: string;
+  fieldRef?: QueryFieldRef;
+};
 
 const DEFAULT_RESULT_COLUMN_KEYS = ["__time", "__level", "__message"] as const;
 const RESULT_COLUMN_STORAGE_PREFIX = "clickvisual-v2-query-result-columns";
+const OPEN_LOG_TABS_STORAGE_PREFIX = "clickvisual-v2-query-open-tabs";
 const QUICK_TIME_RANGES: QuickTimeRange[] = [
   { label: "Last 15 minutes", minutes: 15 },
   { label: "Last 30 minutes", minutes: 30 },
@@ -123,6 +135,13 @@ const QUICK_TIME_RANGES: QuickTimeRange[] = [
 
 function formatCount(value: number) {
   return new Intl.NumberFormat("zh-CN").format(value);
+}
+
+function formatPercentage(value: number) {
+  if (!Number.isFinite(value)) {
+    return "0%";
+  }
+  return `${value.toFixed(value >= 10 ? 1 : 2)}%`;
 }
 
 function roundUpChartAxisMax(value: number) {
@@ -147,6 +166,70 @@ function buildDefaultTimeRange() {
   end.setSeconds(0, 0);
   const start = new Date(end.getTime() - 60 * 60 * 1000);
   return [start, end] as [Date, Date];
+}
+
+function buildInitialTimeRangeFromSearchParams(searchParams: URLSearchParams) {
+  const start = Number(searchParams.get("start") || searchParams.get("st") || "");
+  const end = Number(searchParams.get("end") || searchParams.get("et") || "");
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start <= 0 || end <= start) {
+    return buildDefaultTimeRange();
+  }
+  return [new Date(start * 1000), new Date(end * 1000)] as [Date, Date];
+}
+
+function writeTimeRangeToURL(range: QueryDateRange) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const url = new URL(window.location.href);
+  if (range) {
+    const { st, et } = toSecondRange(range);
+    url.searchParams.set("start", String(st));
+    url.searchParams.set("end", String(et));
+  } else {
+    url.searchParams.delete("start");
+    url.searchParams.delete("end");
+  }
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (next !== current) {
+    window.history.replaceState(window.history.state, "", next);
+  }
+}
+
+function writeSelectedTableToURL({
+  database,
+  table
+}: {
+  instanceId: number | null;
+  database: string;
+  table: string;
+  tableId: number | null;
+}) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const url = new URL(window.location.href);
+  if (database && table) {
+    url.searchParams.set("database", database);
+    url.searchParams.set("table", table);
+  } else {
+    url.searchParams.delete("database");
+    url.searchParams.delete("table");
+  }
+  url.searchParams.delete("instanceId");
+  url.searchParams.delete("tableId");
+  url.searchParams.delete("tid");
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (next !== current) {
+    window.history.replaceState(window.history.state, "", next);
+  }
+}
+
+function readPositiveIntSearchParam(searchParams: URLSearchParams, key: string) {
+  const value = Number(searchParams.get(key) || "");
+  return Number.isInteger(value) && value > 0 ? value : undefined;
 }
 
 function buildRecentMinutesTimeRange(minutes: number) {
@@ -352,6 +435,25 @@ function parseJsonObject(value: unknown): Record<string, unknown> | null {
     return null;
   }
   return null;
+}
+
+function parseJsonArray(value: unknown): unknown[] | null {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (typeof value !== "string") {
+    return null;
+  }
+  const text = value.trim();
+  if (!text.startsWith("[")) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function parseDurationToMs(value: unknown) {
@@ -677,6 +779,12 @@ function sanitizeLogJsonValue(value: unknown): unknown {
     if (parsedJson) {
       return sanitizeLogJsonObject(parsedJson);
     }
+    const parsedJsonArray = parseJsonArray(value);
+    if (parsedJsonArray) {
+      return parsedJsonArray
+        .map((item) => sanitizeLogJsonValue(item))
+        .filter((item) => item !== undefined);
+    }
     return stripAnsi(value);
   }
   return value;
@@ -710,6 +818,10 @@ function canCreateConditionFromDetailValue(field: string, value: unknown) {
   return String(value).trim().length > 0 && String(value).trim().length <= 256;
 }
 
+function canOpenFieldStats(field: string, value: unknown) {
+  return Boolean(field) && !/^_?raw/i.test(field) && !(value && typeof value === "object");
+}
+
 function canStartAIAnalysisFromField(field: string, value: unknown) {
   return canCreateConditionFromDetailValue(field, value);
 }
@@ -728,24 +840,74 @@ function createDetailConditionValue(value: unknown) {
   };
 }
 
-function scalarJsonEntries(value: unknown) {
-  const parsed = parseJsonObject(value);
-  if (!parsed) {
-    return [] as Array<[string, string]>;
+function createTypedDetailConditionValue(value: unknown, valueType: QueryFilterValueType) {
+  const sample = createDetailConditionValue(value);
+  if (valueType === "number") {
+    const numeric = typeof sample.value === "number" ? sample.value : Number(sample.value);
+    return Number.isFinite(numeric) ? { value: numeric, valueType } : null;
   }
-  return Object.entries(parsed)
-    .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
-    .map(([key, item]) => [key, formatLogDetailValue(item)] as [string, string])
-    .filter(([, item]) => item.trim().length > 0 && item.trim().length <= 256);
+  if (valueType === "datetime") {
+    return { value: String(sample.value), valueType };
+  }
+  return { value: String(sample.value), valueType };
 }
 
-function canUseOuterFieldForNestedJsonValue(row: NormalizedLogRow, field: string, value: string) {
-  const mergedValue = row.parsed[field];
-  return (
-    ((Object.prototype.hasOwnProperty.call(row.original, field) && isPresentLogValue(row.original[field])) ||
-      (Object.prototype.hasOwnProperty.call(row.parsed, field) && isPresentLogValue(mergedValue))) &&
-    canCreateConditionFromDetailValue(field, value)
-  );
+function isRawLogDetailParent(parentKey: string) {
+  const normalized = parentKey.trim().toLowerCase();
+  return normalized === "_raw_log_" || normalized === "_raw_log" || normalized === "raw_log";
+}
+
+function scalarJsonEntries(parentKey: string, value: unknown) {
+  const parsed = parseJsonObject(value);
+  if (parsed) {
+    return Object.entries(parsed)
+      .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
+      .map(([key, item]) => {
+        const fieldKey = isRawLogDetailParent(parentKey) ? key : `${parentKey}.${key}`;
+        return {
+          key,
+          value: formatLogDetailValue(item),
+          fieldRef: {
+            fieldKey,
+            displayName: key,
+            source: "json_path",
+            path: fieldKey,
+            valueType: createDetailConditionValue(item).valueType,
+            isAccelerated: false
+          }
+        } as LogDetailNestedEntry;
+      })
+      .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
+  }
+  const parsedArray = parseJsonArray(value);
+  if (!parsedArray) {
+    return [] as LogDetailNestedEntry[];
+  }
+  return parsedArray
+    .map((item, index) => {
+      const text = formatLogDetailValue(item).trim();
+      const separatorIndex = text.indexOf("=");
+      if (separatorIndex > 0) {
+        const key = text.slice(0, separatorIndex).trim();
+        const itemValue = text.slice(separatorIndex + 1).trim();
+        if (key && itemValue) {
+          return {
+            key,
+            value: itemValue,
+            fieldRef: {
+              fieldKey: `${parentKey}.${key}`,
+              displayName: key,
+              source: "tag_path",
+              path: `${parentKey}.${key}`,
+              valueType: "string",
+              isAccelerated: false
+            }
+          } as LogDetailNestedEntry;
+        }
+      }
+      return { key: `#${index + 1}`, value: text } as LogDetailNestedEntry;
+    })
+    .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
 }
 
 function isLogTimeField(field: string) {
@@ -860,11 +1022,53 @@ function writeResultColumnKeys(storageKey: string, columnKeys: string[]) {
   window.localStorage.setItem(storageKey, JSON.stringify(columnKeys));
 }
 
+function readOpenLogTabs(storageKey: string): Array<Pick<OpenLogTab, "databaseName" | "tableName">> {
+  if (typeof window === "undefined") {
+    return [];
+  }
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    const seen = new Set<string>();
+    return parsed
+      .map((item) => {
+        if (!item || typeof item !== "object") {
+          return null;
+        }
+        const row = item as Record<string, unknown>;
+        const databaseName = String(row.databaseName ?? "").trim();
+        const tableName = String(row.tableName ?? "").trim();
+        const key = `${databaseName}.${tableName}`;
+        if (!databaseName || !tableName || seen.has(key)) {
+          return null;
+        }
+        seen.add(key);
+        return { databaseName, tableName };
+      })
+      .filter((item): item is Pick<OpenLogTab, "databaseName" | "tableName"> => Boolean(item));
+  } catch {
+    return [];
+  }
+}
+
+function writeOpenLogTabs(storageKey: string, tabs: OpenLogTab[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(
+    storageKey,
+    JSON.stringify(tabs.map((tab) => ({ databaseName: tab.databaseName, tableName: tab.tableName })))
+  );
+}
+
 function createConditionDraft(): QueryFilterCondition {
   return {
     id: `cond_modal_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-    field: "",
-    operator: "=",
+    field: "全局匹配",
+    operator: "like",
     value: "",
     valueType: "string"
   };
@@ -1049,15 +1253,46 @@ function TraceTimeline({ groups }: { groups: TraceGroup[] }) {
   );
 }
 
-export default function QueryPage() {
-  const defaultRange = useMemo(() => buildDefaultTimeRange(), []);
+export default function QueryPage({ shareMode = false }: { shareMode?: boolean }) {
+  const privateLite = isPrivateLiteEdition();
+  const initialSearchParams = useMemo(
+    () => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search),
+    []
+  );
+  const initialTreeTarget = useMemo<QuerySourceTreeTarget | undefined>(() => {
+    const instanceId = Number(initialSearchParams.get("instanceId") || "");
+    const databaseName = initialSearchParams.get("database") || "";
+    const tableName = initialSearchParams.get("table") || "";
+    const tableId = Number(initialSearchParams.get("tableId") || initialSearchParams.get("tid") || "");
+    if (Number.isInteger(tableId) && tableId > 0) {
+      return {
+        instanceId: Number.isFinite(instanceId) && instanceId > 0 ? instanceId : undefined,
+        databaseName: databaseName || undefined,
+        tableName: tableName || undefined,
+        tableId
+      };
+    }
+    if (!databaseName || !tableName) {
+      return undefined;
+    }
+    return {
+      instanceId: Number.isFinite(instanceId) && instanceId > 0 ? instanceId : undefined,
+      databaseName,
+      tableName
+    };
+  }, [initialSearchParams]);
+  const defaultRange = useMemo(() => buildInitialTimeRangeFromSearchParams(initialSearchParams), [initialSearchParams]);
+  const initialPage = useMemo(() => readPositiveIntSearchParam(initialSearchParams, "page"), [initialSearchParams]);
+  const initialPageSize = useMemo(() => readPositiveIntSearchParam(initialSearchParams, "size"), [initialSearchParams]);
   const [timeRange, setTimeRange] = useState<QueryDateRange>(defaultRange);
   const startTime = timeRange ? formatDateTimeLocalValue(timeRange[0]) : "";
   const endTime = timeRange ? formatDateTimeLocalValue(timeRange[1]) : "";
-  const workspace = useQueryWorkspace(startTime, endTime);
+  const workspace = useQueryWorkspace(startTime, endTime, initialTreeTarget, {
+    initialPage,
+    initialPageSize
+  });
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
-  const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
   const [resultColumnSelectorOpen, setResultColumnSelectorOpen] = useState(false);
   const [resultColumnKeys, setResultColumnKeys] = useState<string[]>([...DEFAULT_RESULT_COLUMN_KEYS]);
   const [expandedLogIndex, setExpandedLogIndex] = useState<number | null>(null);
@@ -1065,15 +1300,29 @@ export default function QueryPage() {
   const [conditionModalOpen, setConditionModalOpen] = useState(false);
   const [conditionModalMode, setConditionModalMode] = useState<QueryConditionModalMode>("create");
   const [conditionDraft, setConditionDraft] = useState<QueryFilterCondition | null>(null);
+  const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
   const [saveQueryModalOpen, setSaveQueryModalOpen] = useState(false);
   const [saveQueryName, setSaveQueryName] = useState("");
   const [savedQueryMenuOpen, setSavedQueryMenuOpen] = useState(false);
+  const [queryHistoryMenuOpen, setQueryHistoryMenuOpen] = useState(false);
   const [linkQueryAnchor, setLinkQueryAnchor] = useState<LinkQueryAnchor | null>(null);
   const [linkQueryWindowMinutes, setLinkQueryWindowMinutes] = useState(5);
   const [linkQuerySelectedTableIds, setLinkQuerySelectedTableIds] = useState<number[]>([]);
   const [tableAutoQueryRequest, setTableAutoQueryRequest] = useState<TableAutoQueryRequest | null>(null);
   const [openLogTabs, setOpenLogTabs] = useState<OpenLogTab[]>([]);
   const [conditionsByLogTab, setConditionsByLogTab] = useState<Record<number, QueryFilterCondition[]>>({});
+  const [fieldStatsState, setFieldStatsState] = useState<{
+    field: string;
+    fieldRef: QueryFieldRef;
+    loading: boolean;
+    data: QueryFieldStatsResponse | null;
+    error: string;
+  } | null>(null);
+  const [fieldStatsConfirmState, setFieldStatsConfirmState] = useState<{
+    fieldRef: QueryFieldRef;
+    value: string;
+    actionText: string;
+  } | null>(null);
   const [createDatabaseInstance, setCreateDatabaseInstance] = useState<QuerySourceInstance | null>(null);
   const [accessLogLibraryState, setAccessLogLibraryState] = useState<{
     instance: QuerySourceInstance | null;
@@ -1110,6 +1359,8 @@ export default function QueryPage() {
   >(null);
   const initialQueryStartedRef = useRef(false);
   const conditionRestoreTargetRef = useRef<number | null>(null);
+  const openLogTabsRestoredRef = useRef(false);
+  const openLogTabsHydratingRef = useRef(false);
 
   const chartMax = useMemo(
     () => workspace.charts.reduce((max, item) => Math.max(max, item.count), 0) || 1,
@@ -1139,6 +1390,9 @@ export default function QueryPage() {
     const tableIds = new Set(linkQueryTableOptions.map((item) => item.id));
     return openLogTabs.filter((item) => tableIds.has(item.id));
   }, [linkQueryTableOptions, openLogTabs]);
+  const openLogTabsStorageKey = useMemo(() => {
+    return `${OPEN_LOG_TABS_STORAGE_PREFIX}:${getCurrentBrowserUserKey()}`;
+  }, []);
 
   useEffect(() => {
     setExpandedLogIndex(null);
@@ -1146,23 +1400,84 @@ export default function QueryPage() {
   }, [workspace.logs]);
 
   useEffect(() => {
+    writeTimeRangeToURL(timeRange);
+  }, [timeRange]);
+
+  useEffect(() => {
+    writeSelectedTableToURL({
+      instanceId: workspace.selectedInstanceId,
+      database: workspace.selectedDatabase,
+      table: workspace.selectedTable,
+      tableId: workspace.selectedTableId
+    });
+  }, [
+    workspace.selectedDatabase,
+    workspace.selectedInstanceId,
+    workspace.selectedTable,
+    workspace.selectedTableId
+  ]);
+
+  useEffect(() => {
     if (initialQueryStartedRef.current || tableAutoQueryRequest || !workspace.selectedTableId) {
       return;
     }
     initialQueryStartedRef.current = true;
-    const range = buildRecentMinutesTimeRange(15);
+    const hasURLRange = Boolean(
+      (initialSearchParams.get("start") && initialSearchParams.get("end")) ||
+        (initialSearchParams.get("st") && initialSearchParams.get("et"))
+    );
+    const range = hasURLRange && timeRange ? timeRange : buildRecentMinutesTimeRange(15);
     setTimeRange(range);
-    void workspace.runQuery(1, toSecondRange(range));
-  }, [tableAutoQueryRequest, workspace.selectedTableId]);
+    void workspace.runQuery(initialPage ?? 1, toSecondRange(range));
+  }, [initialPage, initialSearchParams, tableAutoQueryRequest, timeRange, workspace.selectedTableId]);
 
   useEffect(() => {
     setLinkQueryAnchor(null);
   }, [workspace.selectedInstanceId]);
 
   useEffect(() => {
-    setOpenLogTabs([]);
     setConditionsByLogTab({});
   }, [workspace.selectedInstanceId]);
+
+  useEffect(() => {
+    if (openLogTabsRestoredRef.current || linkQueryTableOptions.length === 0) {
+      return;
+    }
+    openLogTabsRestoredRef.current = true;
+    const restoredTabs = readOpenLogTabs(openLogTabsStorageKey)
+      .map((savedTab) => {
+        const table = linkQueryTableOptions.find(
+          (item) => item.databaseName === savedTab.databaseName && item.tableName === savedTab.tableName
+        );
+        return table ? { id: table.id, databaseName: table.databaseName, tableName: table.tableName } : null;
+      })
+      .filter((item): item is OpenLogTab => Boolean(item));
+    if (restoredTabs.length === 0) {
+      return;
+    }
+    openLogTabsHydratingRef.current = true;
+    setOpenLogTabs((current) => {
+      const seen = new Set<number>();
+      return [...restoredTabs, ...current].filter((tab) => {
+        if (seen.has(tab.id)) {
+          return false;
+        }
+        seen.add(tab.id);
+        return true;
+      });
+    });
+  }, [linkQueryTableOptions, openLogTabsStorageKey]);
+
+  useEffect(() => {
+    if (!openLogTabsRestoredRef.current) {
+      return;
+    }
+    if (openLogTabsHydratingRef.current) {
+      openLogTabsHydratingRef.current = false;
+      return;
+    }
+    writeOpenLogTabs(openLogTabsStorageKey, validOpenLogTabs);
+  }, [openLogTabsStorageKey, validOpenLogTabs]);
 
   useEffect(() => {
     if (!workspace.selectedTableId) {
@@ -1318,7 +1633,7 @@ export default function QueryPage() {
     try {
       setShareLoading(true);
       const shareUrl = new URL(window.location.href);
-      shareUrl.pathname = shareUrl.pathname.endsWith("/query") ? shareUrl.pathname : "/v2/query";
+      shareUrl.pathname = buildShareRouteHref(undefined, window.location.pathname);
       shareUrl.hash = "";
       if (queryPreview && queryPreview !== "无条件" && !queryPreview.includes("不合法")) {
         shareUrl.searchParams.set("query", queryPreview);
@@ -1331,9 +1646,11 @@ export default function QueryPage() {
       if (endTime) {
         shareUrl.searchParams.set("endTime", endTime);
       }
-      if (workspace.selectedInstanceId) {
-        shareUrl.searchParams.set("instanceId", String(workspace.selectedInstanceId));
+      if (workspace.selectedTableId) {
+        shareUrl.searchParams.set("tid", String(workspace.selectedTableId));
       }
+      shareUrl.searchParams.delete("instanceId");
+      shareUrl.searchParams.delete("tableId");
       if (workspace.selectedDatabase) {
         shareUrl.searchParams.set("database", workspace.selectedDatabase);
       }
@@ -1366,6 +1683,91 @@ export default function QueryPage() {
 
   function resetResultColumns() {
     updateResultColumnKeys([...DEFAULT_RESULT_COLUMN_KEYS]);
+  }
+
+  function closeFieldStatsModal() {
+    setFieldStatsState(null);
+  }
+
+  function buildRawLogFieldStatsRef(field: string, sampleValue: unknown) {
+    const sample = createDetailConditionValue(sampleValue);
+    const path = field.replace(/^_?raw_log_?\./i, "");
+    return {
+      fieldKey: path,
+      displayName: path,
+      source: "json_path" as const,
+      path,
+      valueType: sample.valueType === "number" ? "number" as const : "string" as const,
+      isAccelerated: false
+    };
+  }
+
+  function buildDetailFieldRef(field: string, value: unknown) {
+    const sample = createDetailConditionValue(value);
+    return buildQueryFieldRef(
+      {
+        id: "detail_field",
+        field,
+        operator: "=",
+        value: sample.value,
+        valueType: sample.valueType
+      },
+      workspace.analysisFields
+    );
+  }
+
+  async function openFieldStatsModal(
+    field: string,
+    sampleValue: unknown,
+    preferRawLog = false,
+    explicitFieldRef?: QueryFieldRef
+  ) {
+    if (!workspace.selectedTableId || !timeRange) {
+      setFeedbackMessage("请先选择日志表和时间范围");
+      return;
+    }
+    if (!field || /^_?raw/i.test(field)) {
+      setFeedbackMessage("原始日志字段不适合做值分布统计");
+      return;
+    }
+    const sample = createDetailConditionValue(sampleValue);
+    const catalogFieldRef =
+      explicitFieldRef ??
+      buildQueryFieldRef(
+        {
+          id: "field_stats",
+          field,
+          operator: "=",
+          value: sample.value,
+          valueType: sample.valueType
+        },
+        workspace.analysisFields
+      );
+    const fieldRef =
+      explicitFieldRef ??
+      (preferRawLog && !(catalogFieldRef.source === "column" && catalogFieldRef.isAccelerated)
+        ? buildRawLogFieldStatsRef(field, sampleValue)
+        : catalogFieldRef);
+    const range = toSecondRange(timeRange);
+    setFieldStatsState({ field, fieldRef, loading: true, data: null, error: "" });
+    try {
+      const data = await getQueryFieldStats({
+        tid: workspace.selectedTableId,
+        st: range.st,
+        et: range.et,
+        page: 1,
+        pageSize: workspace.pageSize,
+        conditions: buildStructuredConditions(workspace.conditions, workspace.analysisFields),
+        sorts: [],
+        displayFields: [],
+        field: fieldRef,
+        limit: 10
+      });
+      setFieldStatsState({ field, fieldRef, loading: false, data, error: "" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "字段统计失败";
+      setFieldStatsState({ field, fieldRef, loading: false, data: null, error: message });
+    }
   }
 
   function toggleExpandedLog(index: number) {
@@ -1401,7 +1803,8 @@ export default function QueryPage() {
     if (!canCreateConditionFromDetailValue(field, value)) {
       return;
     }
-    if (isLogTimeField(field)) {
+    const fieldRef = buildDetailFieldRef(field, value);
+    if (fieldRef.valueType === "datetime" && isLogTimeField(fieldRef.fieldKey)) {
       const timeConditions = createDetailTimeRangeConditions(field, value);
       if (timeConditions.length > 0) {
         const existingRange = timeConditions.every((nextCondition) =>
@@ -1431,7 +1834,14 @@ export default function QueryPage() {
         return;
       }
     }
-    const conditionValue = createDetailConditionValue(value);
+    const conditionValue = createTypedDetailConditionValue(
+      value,
+      fieldRef.valueType === "number" || fieldRef.valueType === "datetime" ? fieldRef.valueType : "string"
+    );
+    if (!conditionValue) {
+      setFeedbackMessage(`${field} 的值无法按数字条件加入查询`);
+      return;
+    }
     const existingCondition = workspace.conditions.find(
       (condition) =>
         condition.field === field &&
@@ -1481,12 +1891,44 @@ export default function QueryPage() {
     setFeedbackMessage(`已添加全局匹配 ${text}`);
   }
 
-  function addConditionFromNestedJsonValue(row: NormalizedLogRow, field: string, value: string) {
-    if (canUseOuterFieldForNestedJsonValue(row, field, value)) {
-      addConditionFromLogDetail(field, value);
+  function addConditionFromFieldStatsValue(fieldRef: QueryFieldRef, value: string) {
+    if (fieldRef.source === "tag_path") {
+      addConditionFromLogDetail(fieldRef.fieldKey, value);
       return;
     }
-    addGlobalMatchFromLogDetailValue(value);
+    if (fieldRef.source !== "column" || !fieldRef.isAccelerated) {
+      addGlobalMatchFromLogDetailValue(value);
+      return;
+    }
+    addConditionFromLogDetail(fieldRef.fieldKey, value);
+  }
+
+  function requestAddConditionFromFieldStatsValue(fieldRef: QueryFieldRef, value: string) {
+    setFieldStatsConfirmState({
+      fieldRef,
+      value,
+      actionText:
+        fieldRef.source === "tag_path" || (fieldRef.source === "column" && fieldRef.isAccelerated)
+          ? `${fieldRef.fieldKey} = ${value}`
+          : `全局匹配：${value}`
+    });
+  }
+
+  async function copyFieldStatsConfirmText() {
+    if (!fieldStatsConfirmState) {
+      return;
+    }
+    const copied = await copyTextToClipboard(fieldStatsConfirmState.actionText);
+    setFeedbackMessage(copied ? "已复制完整条件" : "复制失败，请手动选择条件内容");
+  }
+
+  function confirmAddConditionFromFieldStatsValue() {
+    if (!fieldStatsConfirmState) {
+      return;
+    }
+    addConditionFromFieldStatsValue(fieldStatsConfirmState.fieldRef, fieldStatsConfirmState.value);
+    setFieldStatsConfirmState(null);
+    closeFieldStatsModal();
   }
 
   function openLinkQueryModal(row: NormalizedLogRow, field: string, value: unknown) {
@@ -1535,7 +1977,7 @@ export default function QueryPage() {
         .map((item) => `${item.id}:${encodeURIComponent(item.databaseName)}.${encodeURIComponent(item.tableName)}`)
         .join(",")
     );
-    window.open(`/v2/query/link?${params.toString()}`, "_blank");
+    window.open(buildV2RouteHref("query/link", params), "_blank");
     setLinkQueryAnchor(null);
   }
 
@@ -1713,13 +2155,22 @@ export default function QueryPage() {
     if (!conditionDraft) {
       return;
     }
+    if (conditionDraft.field === "全局匹配" && workspace.analysisFields.supportsGlobalMatch === false) {
+      setFeedbackMessage("当前日志表未配置日志内容字段，不能使用全局匹配");
+      return;
+    }
+    const nextConditions =
+      conditionModalMode === "create"
+        ? [...workspace.conditions, conditionDraft]
+        : workspace.conditions.map((item) => (item.id === conditionDraft.id ? conditionDraft : item));
+    workspace.setConditions(nextConditions);
     if (conditionModalMode === "create") {
-      workspace.setConditions([...workspace.conditions, conditionDraft]);
       workspace.setActiveConditionId(conditionDraft.id);
     } else {
-      workspace.updateCondition(conditionDraft.id, conditionDraft);
+      workspace.setActiveConditionId(conditionDraft.id);
     }
     closeConditionModal();
+    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions);
   }
 
   function deleteConditionFromModal() {
@@ -1758,14 +2209,9 @@ export default function QueryPage() {
     return conditionFieldOptions.find((item) => item.field === field) ?? null;
   }, [activeCondition?.field, conditionDraft?.field, conditionFieldOptions]);
 
-  const visibleFieldOptions = useMemo(() => {
-    const keyword = String(conditionDraft ? conditionDraft.field : activeCondition?.field || "").trim().toLowerCase();
-    const filtered = keyword
-      ? conditionFieldOptions.filter((item) => item.field.toLowerCase().includes(keyword))
-      : conditionFieldOptions;
-    return filtered.slice(0, 40);
-  }, [activeCondition?.field, conditionDraft?.field, conditionFieldOptions]);
   const isGlobalMatchDraft = conditionDraft?.field === "全局匹配";
+  const isGlobalMatchUnsupported =
+    isGlobalMatchDraft && workspace.analysisFields.supportsGlobalMatch === false;
 
   function handleConditionDraftFieldChange(field: string) {
     const matched = conditionFieldOptions.find((item) => item.field === field);
@@ -1774,6 +2220,9 @@ export default function QueryPage() {
         ? {
             ...current,
             field,
+            ...(current.field === "全局匹配" && field !== "全局匹配" && current.operator === "like"
+              ? { operator: "=" as const }
+              : {}),
             ...(matched ? { valueType: matched.valueType } : {}),
             ...(field === "全局匹配" ? { operator: "like" as const, valueType: "string" as const } : {})
           }
@@ -1792,16 +2241,28 @@ export default function QueryPage() {
     }
   })();
 
+  function applyQueryHistoryItem(query: string) {
+    workspace.applySuggestion(query);
+    setQueryHistoryMenuOpen(false);
+    setFeedbackMessage("已填入最近查询");
+  }
+
+  function clearQueryHistory() {
+    workspace.clearQueryHistory();
+    setQueryHistoryMenuOpen(false);
+    setFeedbackMessage("已清空当前日志表的最近查询");
+  }
+
   return (
-    <section className="cv-section-stack cv-query-page">
+    <section className={shareMode ? "cv-section-stack cv-query-page cv-query-page--share" : "cv-section-stack cv-query-page"}>
       <header className="cv-page-toolbar">
         <div className="cv-page-toolbar__main">
           <div className="cv-breadcrumb" aria-label="页面路径">
             <span>查询</span>
             <span aria-hidden="true">/</span>
-            <span className="cv-breadcrumb__current">日志查询</span>
+            <span className="cv-breadcrumb__current">{shareMode ? "分享结果" : "日志查询"}</span>
           </div>
-          <h1 className="cv-page-title cv-sr-only">日志查询</h1>
+          <h1 className="cv-page-title cv-sr-only">{shareMode ? "分享结果" : "日志查询"}</h1>
         </div>
         <div className="cv-query-toolbar-chips">
           <TimeRangeDropdown value={timeRange} onChange={setTimeRange} />
@@ -1809,12 +2270,20 @@ export default function QueryPage() {
       </header>
 
       <div className="cv-query-shell">
+        {shareMode ? null : (
         <aside aria-label="查询上下文" className="cv-panel cv-query-panel cv-query-sidebar">
           <div className="cv-panel-header">
             <div>
               <h2 className="cv-panel-title">数据源</h2>
             </div>
-            {workspace.contextLoading ? <span className="cv-query-panel__status">加载中...</span> : null}
+            <div className="cv-inline-actions">
+              {workspace.contextLoading ? <span className="cv-query-panel__status">加载中...</span> : null}
+              {privateLite ? null : (
+                <a className="cv-secondary-button" href={buildV2RouteHref("query/ingestion")}>
+                  创建日志库
+                </a>
+              )}
+            </div>
           </div>
           <div className="cv-query-sidebar__body">
             <section role="tree" aria-label="实例、数据库与日志表" className="cv-query-tree">
@@ -1945,9 +2414,10 @@ export default function QueryPage() {
             </section>
           </div>
         </aside>
+        )}
 
         <div className="cv-query-main">
-          {validOpenLogTabs.length > 0 ? (
+          {!shareMode && validOpenLogTabs.length > 0 ? (
             <div className="cv-query-log-tabs" role="tablist" aria-label="日志表工作区标签">
               {validOpenLogTabs.map((tab) => {
                 const active = tab.id === workspace.selectedTableId;
@@ -1995,7 +2465,52 @@ export default function QueryPage() {
                   <button
                     type="button"
                     className="cv-secondary-button"
-                    onClick={() => setSavedQueryMenuOpen((current) => !current)}
+                    onClick={() => {
+                      setSavedQueryMenuOpen(false);
+                      setQueryHistoryMenuOpen((current) => !current);
+                    }}
+                    aria-expanded={queryHistoryMenuOpen}
+                    aria-haspopup="menu"
+                  >
+                    最近查询
+                    {workspace.queryHistory.length > 0 ? ` ${workspace.queryHistory.length}` : ""}
+                  </button>
+                  {queryHistoryMenuOpen ? (
+                    <div className="cv-query-saved__menu" role="menu" aria-label="最近查询">
+                      <div className="cv-query-saved__menu-header">
+                        <strong>最近查询</strong>
+                        <span>{workspace.queryHistory.length} 条</span>
+                      </div>
+                      {workspace.queryHistory.length > 0 ? (
+                        <>
+                          <div className="cv-query-saved__list">
+                            {workspace.queryHistory.map((query, index) => (
+                              <article key={`${query}-${index}`} className="cv-query-saved__item cv-query-saved__item--single">
+                                <button type="button" role="menuitem" onClick={() => applyQueryHistoryItem(query)}>
+                                  <strong title={query}>{query}</strong>
+                                  <span>点击填入查询语句</span>
+                                </button>
+                              </article>
+                            ))}
+                          </div>
+                          <button type="button" className="cv-query-saved__create" onClick={clearQueryHistory}>
+                            清空最近查询
+                          </button>
+                        </>
+                      ) : (
+                        <div className="cv-query-saved__empty">执行查询后会自动记录最近 10 条</div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="cv-query-saved">
+                  <button
+                    type="button"
+                    className="cv-secondary-button"
+                    onClick={() => {
+                      setQueryHistoryMenuOpen(false);
+                      setSavedQueryMenuOpen((current) => !current);
+                    }}
                     aria-expanded={savedQueryMenuOpen}
                     aria-haspopup="menu"
                   >
@@ -2165,6 +2680,8 @@ export default function QueryPage() {
                       }
                       onClick={() => {
                         if (hasCount) {
+                          const nextRange = [new Date(item.from * 1000), new Date(item.to * 1000)] as [Date, Date];
+                          setTimeRange(nextRange);
                           void workspace.runQuery(1, { st: item.from, et: item.to });
                         }
                       }}
@@ -2319,23 +2836,54 @@ export default function QueryPage() {
                               ) : (
                                 <div className="cv-query-detail__body">
                                   {Object.entries(row.parsed).map(([key, value]) => {
-                                    const nestedEntries = scalarJsonEntries(value);
+                                    const nestedEntries = scalarJsonEntries(key, value);
                                     return (
                                       <Fragment key={key}>
                                         <div className="cv-query-detail__row">
-                                          <strong title={key}>{key}</strong>
+                                          <strong title={key}>
+                                            {canOpenFieldStats(key, value) ? (
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__key-button"
+                                                title={`查看 ${key} 的值分布`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  void openFieldStatsModal(key, value, !isPresentLogValue(row.original[key]));
+                                                }}
+                                              >
+                                                {key}
+                                              </button>
+                                            ) : (
+                                              key
+                                            )}
+                                          </strong>
                                           {canCreateConditionFromDetailValue(key, value) ? (
                                             <span className="cv-query-detail__value-actions">
                                               <button
                                                 type="button"
                                                 className="cv-query-detail__value-button"
+                                                title={`查看 ${key} = ${formatLogDetailValue(value)} 的分布`}
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  if (isLogTimeField(key)) {
+                                                    addConditionFromLogDetail(key, value);
+                                                    return;
+                                                  }
+                                                  void openFieldStatsModal(key, value, !isPresentLogValue(row.original[key]));
+                                                }}
+                                              >
+                                                {formatLogDetailValue(value)}
+                                              </button>
+                                              <button
+                                                type="button"
+                                                className="cv-query-detail__link-button"
                                                 title={`添加条件：${key} = ${formatLogDetailValue(value)}`}
                                                 onClick={(event) => {
                                                   event.stopPropagation();
                                                   addConditionFromLogDetail(key, value);
                                                 }}
                                               >
-                                                {formatLogDetailValue(value)}
+                                                添加
                                               </button>
                                               {canStartAIAnalysisFromField(key, value) ? (
                                                 <button
@@ -2352,49 +2900,71 @@ export default function QueryPage() {
                                               ) : null}
                                             </span>
                                           ) : (
-                                            <span title={formatLogDetailValue(value)}>{formatLogDetailValue(value)}</span>
+                                            <span className="cv-query-detail__value-text" title={formatLogDetailValue(value)}>
+                                              {formatLogDetailValue(value)}
+                                            </span>
                                           )}
                                         </div>
-                                        {nestedEntries.map(([nestedKey, nestedValue]) => (
-                                          <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
-                                            <strong title={`${key}.${nestedKey}`}>{nestedKey}</strong>
-                                            <span className="cv-query-detail__value-actions">
-                                              <button
-                                                type="button"
-                                                className="cv-query-detail__value-button"
-                                                title={
-                                                  canUseOuterFieldForNestedJsonValue(row, nestedKey, nestedValue)
-                                                    ? `添加条件：${nestedKey} = ${nestedValue}`
-                                                    : `添加全局匹配：${nestedValue}`
-                                                }
-                                                aria-label={
-                                                  canUseOuterFieldForNestedJsonValue(row, nestedKey, nestedValue)
-                                                    ? `从 JSON 添加条件 ${nestedKey} = ${nestedValue}`
-                                                    : `从 JSON 添加全局匹配 ${nestedValue}`
-                                                }
-                                                onClick={(event) => {
-                                                  event.stopPropagation();
-                                                  addConditionFromNestedJsonValue(row, nestedKey, nestedValue);
-                                                }}
-                                              >
-                                                {nestedValue}
-                                              </button>
-                                              {canStartAIAnalysisFromField(nestedKey, nestedValue) ? (
+                                        {nestedEntries.map((nestedEntry) => {
+                                          const nestedKey = nestedEntry.key;
+                                          const nestedValue = nestedEntry.value;
+                                          return (
+                                            <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
+                                              <strong title={`${key}.${nestedKey}`}>
+                                                <button
+                                                  type="button"
+                                                  className="cv-query-detail__key-button"
+                                                  title={`查看 ${nestedKey} 的值分布`}
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    void openFieldStatsModal(nestedKey, nestedValue, true, nestedEntry.fieldRef);
+                                                  }}
+                                                >
+                                                  {nestedKey}
+                                                </button>
+                                              </strong>
+                                              <span className="cv-query-detail__value-actions">
+                                                <button
+                                                  type="button"
+                                                  className="cv-query-detail__value-button"
+                                                  title={`查看 ${nestedKey} = ${nestedValue} 的分布`}
+                                                  aria-label={`查看 JSON 字段 ${nestedKey} 的值分布`}
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    void openFieldStatsModal(nestedKey, nestedValue, true, nestedEntry.fieldRef);
+                                                  }}
+                                                >
+                                                  {nestedValue}
+                                                </button>
                                                 <button
                                                   type="button"
                                                   className="cv-query-detail__link-button"
-                                                  title={`用 ${nestedKey} 进行 AI 分析`}
+                                                  aria-label={`从 JSON 添加条件 ${nestedKey} = ${nestedValue}`}
+                                                  title={`添加条件：${nestedKey} = ${nestedValue}`}
                                                   onClick={(event) => {
                                                     event.stopPropagation();
-                                                    openLinkQueryModal(row, nestedKey, nestedValue);
+                                                    addConditionFromLogDetail(nestedKey, nestedValue);
                                                   }}
                                                 >
-                                                  AI 分析
+                                                  添加
                                                 </button>
-                                              ) : null}
-                                            </span>
-                                          </div>
-                                        ))}
+                                                {canStartAIAnalysisFromField(nestedKey, nestedValue) ? (
+                                                  <button
+                                                    type="button"
+                                                    className="cv-query-detail__link-button"
+                                                    title={`用 ${nestedKey} 进行 AI 分析`}
+                                                    onClick={(event) => {
+                                                      event.stopPropagation();
+                                                      openLinkQueryModal(row, nestedKey, nestedValue);
+                                                    }}
+                                                  >
+                                                    AI 分析
+                                                  </button>
+                                                ) : null}
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
                                       </Fragment>
                                     );
                                   })}
@@ -2457,6 +3027,116 @@ export default function QueryPage() {
         onClose={closeInstanceContextMenu}
       />
 
+      {fieldStatsState ? (
+        <div className="cv-report-modal-backdrop" role="presentation" onClick={closeFieldStatsModal}>
+          <section
+            className="cv-report-modal cv-query-modal cv-query-field-stats-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${fieldStatsState.field} 字段值分布`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-panel-header">
+              <div>
+                <h2 className="cv-panel-title">{fieldStatsState.field}</h2>
+                <p className="cv-panel-description">
+                  当前时间范围和筛选条件下的字段值占比
+                  {fieldStatsState.data ? ` · 非空 ${formatCount(fieldStatsState.data.total)} 条` : ""}
+                  {fieldStatsState.fieldRef.source !== "column" || !fieldStatsState.fieldRef.isAccelerated
+                    ? " · 来源日志内容字段"
+                    : " · 来源外层字段"}
+                  {" · 点击值加入搜索条件"}
+                </p>
+              </div>
+              <button type="button" className="cv-secondary-button" onClick={closeFieldStatsModal}>
+                关闭
+              </button>
+            </div>
+            <div className="cv-query-field-stats">
+              {fieldStatsState.loading ? <div className="cv-query-empty-text">统计中...</div> : null}
+              {fieldStatsState.error ? (
+                <div className="cv-query-alert" role="alert">{fieldStatsState.error}</div>
+              ) : null}
+              {!fieldStatsState.loading && !fieldStatsState.error && fieldStatsState.data?.items.length === 0 ? (
+                <div className="cv-query-empty-text">当前条件下没有非空字段值</div>
+              ) : null}
+              {fieldStatsState.data?.items.map((item) => (
+                <button
+                  key={`${item.value}-${item.count}`}
+                  type="button"
+                  className="cv-query-field-stats__item"
+                  title={
+                    fieldStatsState.fieldRef.source === "column" && fieldStatsState.fieldRef.isAccelerated
+                      ? `添加条件：${fieldStatsState.field} = ${item.value}`
+                      : `添加全局匹配：${item.value}`
+                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    requestAddConditionFromFieldStatsValue(fieldStatsState.fieldRef, item.value);
+                  }}
+                >
+                  <span className="cv-query-field-stats__value">{item.value}</span>
+                  <span className="cv-query-field-stats__bar" aria-hidden="true">
+                    <span style={{ width: `${Math.max(item.percentage, 1)}%` }} />
+                  </span>
+                  <span className="cv-query-field-stats__meta">
+                    <strong>{formatPercentage(item.percentage)}</strong>
+                    <span>{formatCount(item.count)}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {fieldStatsConfirmState ? (
+        <div
+          className="cv-report-modal-backdrop cv-query-confirm-backdrop"
+          role="presentation"
+          onClick={() => setFieldStatsConfirmState(null)}
+        >
+          <section
+            className="cv-report-modal cv-query-field-stats-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-label="确认加入搜索条件"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="cv-query-field-stats-confirm__header">
+              <div>
+                <h2 className="cv-panel-title">加入搜索条件</h2>
+                <p className="cv-panel-description">确认后会追加到当前查询条件中。</p>
+              </div>
+              <button type="button" className="cv-secondary-button" onClick={() => setFieldStatsConfirmState(null)}>
+                关闭
+              </button>
+            </div>
+            <div className="cv-query-field-stats-confirm__body">
+              <div className="cv-query-field-stats-confirm__body-header">
+                <span>将加入</span>
+                <button
+                  type="button"
+                  className="cv-query-field-stats-confirm__copy"
+                  onClick={() => void copyFieldStatsConfirmText()}
+                >
+                  复制全部
+                </button>
+              </div>
+              <code title={fieldStatsConfirmState.actionText}>{fieldStatsConfirmState.actionText}</code>
+            </div>
+            <div className="cv-query-modal__footer">
+              <button type="button" className="cv-secondary-button" onClick={() => setFieldStatsConfirmState(null)}>
+                取消
+              </button>
+              <button type="button" className="cv-action-button" onClick={confirmAddConditionFromFieldStatsValue}>
+                加入查询
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
       {conditionModalOpen && conditionDraft ? (
         <div className="cv-report-modal-backdrop" role="presentation" onClick={closeConditionModal}>
           <section
@@ -2480,33 +3160,59 @@ export default function QueryPage() {
               <div className="cv-query-builder-form cv-query-builder-form--modal">
                 <label
                   className="cv-query-builder-form__field cv-query-builder-form__field--field-picker"
-                  htmlFor="query-condition-field"
+                  htmlFor="query-condition-field-trigger"
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                      setFieldPickerOpen(false);
+                    }
+                  }}
                 >
                   字段
-                  <input
-                    id="query-condition-field"
-                    value={conditionDraft.field}
-                    onFocus={() => setFieldPickerOpen(true)}
-                    onBlur={() => window.setTimeout(() => setFieldPickerOpen(false), 120)}
-                    onChange={(event) => {
-                      handleConditionDraftFieldChange(event.target.value);
-                      setFieldPickerOpen(true);
-                    }}
-                    placeholder="请输入字段名"
-                  />
-                  {fieldPickerOpen && visibleFieldOptions.length > 0 ? (
+                  <button
+                    id="query-condition-field-trigger"
+                    type="button"
+                    aria-label="字段"
+                    aria-expanded={fieldPickerOpen}
+                    aria-haspopup="listbox"
+                    className="cv-query-field-select__trigger"
+                    role="combobox"
+                    onClick={() => setFieldPickerOpen((current) => !current)}
+                  >
+                    <span>{conditionDraft.field || "未选字段"}</span>
+                    <span aria-hidden="true" className="cv-query-field-select__chevron">⌄</span>
+                  </button>
+                  {fieldPickerOpen ? (
                     <div className="cv-query-field-picker" role="listbox" aria-label="字段候选">
-                      {visibleFieldOptions.map((item) => (
+                      {conditionDraft.field &&
+                      !conditionFieldOptions.some((item) => item.field === conditionDraft.field) ? (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected="true"
+                          className="cv-query-field-picker__option cv-query-field-picker__option--active"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => setFieldPickerOpen(false)}
+                        >
+                          <span className="cv-query-field-picker__name">{conditionDraft.field}</span>
+                          <span className="cv-query-field-picker__meta">
+                            <span>自定义字段</span>
+                            <span>JSON 路径查询</span>
+                          </span>
+                        </button>
+                      ) : null}
+                      {conditionFieldOptions.map((item) => (
                         <button
                           key={`field-${item.source}-${item.field}`}
                           type="button"
+                          role="option"
+                          aria-selected={item.field === conditionDraft.field}
                           className={
                             item.field === conditionDraft.field
                               ? "cv-query-field-picker__option cv-query-field-picker__option--active"
                               : "cv-query-field-picker__option"
                           }
-                          onMouseDown={(event) => {
-                            event.preventDefault();
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
                             handleConditionDraftFieldChange(item.field);
                             setFieldPickerOpen(false);
                           }}
@@ -2520,79 +3226,72 @@ export default function QueryPage() {
                       ))}
                     </div>
                   ) : null}
-                  {fieldPickerOpen && visibleFieldOptions.length === 0 ? (
-                    <div className="cv-query-field-picker cv-query-field-picker--empty">
-                      未匹配字段目录
-                    </div>
-                  ) : null}
                   <div className="cv-query-field-meta">
                     {activeFieldOption ? (
                       <>
                         <span className="cv-query-field-meta__badge">{activeFieldOption.sourceLabel}</span>
                         <span>{activeFieldOption.queryLabel}</span>
                       </>
+                    ) : isGlobalMatchUnsupported ? (
+                      <span>当前日志表未配置日志内容字段，不能使用全局匹配</span>
                     ) : (
                       <span>未匹配字段目录，默认按 JSON 路径查询</span>
                     )}
                   </div>
                 </label>
 
-                {!isGlobalMatchDraft ? (
-                  <label className="cv-query-builder-form__field" htmlFor="query-condition-operator">
-                    运算符
-                    <select
-                      id="query-condition-operator"
-                      value={conditionDraft.operator}
-                      onChange={(event) =>
-                        setConditionDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                operator: event.target.value as (typeof queryOperatorOptions)[number]["value"]
-                              }
-                            : current
-                        )
-                      }
-                    >
-                      {queryOperatorOptions.map((item) => (
-                        <option key={`operator-${item.value}`} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
+                <label className="cv-query-builder-form__field" htmlFor="query-condition-operator">
+                  运算符
+                  <select
+                    id="query-condition-operator"
+                    value={conditionDraft.operator}
+                    onChange={(event) =>
+                      setConditionDraft((current) =>
+                        current
+                          ? {
+                              ...current,
+                              operator: event.target.value as (typeof queryOperatorOptions)[number]["value"]
+                            }
+                          : current
+                      )
+                    }
+                  >
+                    {queryOperatorOptions.map((item) => (
+                      <option key={`operator-${item.value}`} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-                {!isGlobalMatchDraft ? (
-                  <label className="cv-query-builder-form__field" htmlFor="query-condition-value-type">
-                    值类型
-                    <select
-                      id="query-condition-value-type"
-                      value={conditionDraft.valueType}
-                      onChange={(event) =>
-                        setConditionDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                valueType: event.target.value as (typeof queryValueTypeOptions)[number]["value"],
-                                operator:
-                                  event.target.value !== "string" &&
-                                  (current.operator === "like" || current.operator === "not like")
-                                    ? "="
-                                    : current.operator
-                              }
-                            : current
-                        )
-                      }
-                    >
-                      {queryValueTypeOptions.map((item) => (
-                        <option key={`value-type-${item.value}`} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
+                <label className="cv-query-builder-form__field" htmlFor="query-condition-value-type">
+                  值类型
+                  <select
+                    id="query-condition-value-type"
+                    value={conditionDraft.valueType}
+                    onChange={(event) =>
+                      setConditionDraft((current) =>
+                        current
+                          ? {
+                              ...current,
+                              valueType: event.target.value as (typeof queryValueTypeOptions)[number]["value"],
+                              operator:
+                                event.target.value !== "string" &&
+                                (current.operator === "like" || current.operator === "not like")
+                                  ? "="
+                                  : current.operator
+                            }
+                          : current
+                      )
+                    }
+                  >
+                    {queryValueTypeOptions.map((item) => (
+                      <option key={`value-type-${item.value}`} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
                 <label className="cv-query-builder-form__field" htmlFor="query-condition-value">
                   条件值
@@ -2625,7 +3324,12 @@ export default function QueryPage() {
                   <button type="button" className="cv-secondary-button" onClick={closeConditionModal}>
                     取消
                   </button>
-                  <button type="button" className="cv-action-button" onClick={saveConditionModal}>
+                  <button
+                    type="button"
+                    className="cv-action-button"
+                    onClick={saveConditionModal}
+                    disabled={isGlobalMatchUnsupported}
+                  >
                     确认
                   </button>
                 </div>

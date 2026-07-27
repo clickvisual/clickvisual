@@ -170,7 +170,22 @@ function readInitialQueryConditions() {
   if (typeof window === "undefined") {
     return [] as QueryFilterCondition[];
   }
-  const query = new URLSearchParams(window.location.search).get("query") ?? "";
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get("query") ?? "";
+  if (!query.trim()) {
+    const keyword = params.get("kw")?.trim();
+    if (keyword) {
+      return [
+        {
+          id: "cond_url_kw",
+          field: GLOBAL_MATCH_FIELD,
+          operator: "like",
+          value: keyword,
+          valueType: "string"
+        }
+      ] as QueryFilterCondition[];
+    }
+  }
   return query
     .split(/\s+AND\s+/i)
     .map((item, index) => createConditionFromQueryToken(item, index))
@@ -242,6 +257,25 @@ function storageFieldTyp(field: QueryStorageAnalysisField): QueryFilterValueType
   return field.typ === 1 || field.typ === 2 ? "number" : "string";
 }
 
+function findStorageField(
+  fields: QueryStorageAnalysisField[],
+  fieldKey: string
+) {
+  return fields.find((item) => storageFieldName(item) === fieldKey || item.field === fieldKey);
+}
+
+function findParentStorageField(
+  fields: QueryStorageAnalysisField[],
+  fieldKey: string
+) {
+  const separatorIndex = fieldKey.indexOf(".");
+  if (separatorIndex <= 0) {
+    return null;
+  }
+  const parentKey = fieldKey.slice(0, separatorIndex);
+  return findStorageField(fields, parentKey) ?? null;
+}
+
 function fieldValueType(condition: QueryFilterCondition) {
   if (condition.valueType === "datetime") {
     return "datetime";
@@ -262,7 +296,7 @@ function conditionOperator(condition: QueryFilterCondition) {
   return condition.operator;
 }
 
-function buildQueryFieldRef(
+export function buildQueryFieldRef(
   condition: QueryFilterCondition,
   analysisFields: QueryAnalysisFieldsResponse
 ): QueryFieldRef {
@@ -289,7 +323,7 @@ function buildQueryFieldRef(
       acceleratedCol: fieldKey
     };
   }
-  const baseField = analysisFields.baseFields.find((item) => storageFieldName(item) === fieldKey || item.field === fieldKey);
+  const baseField = findStorageField(analysisFields.baseFields, fieldKey);
   if (baseField) {
     const name = storageFieldName(baseField);
     return {
@@ -297,24 +331,35 @@ function buildQueryFieldRef(
       displayName: baseField.alias || name,
       source: "column",
       path: name,
-      valueType: fieldValueType(condition),
+      valueType: storageFieldTyp(baseField),
       isAccelerated: true,
       acceleratedCol: name
     };
   }
-  const logField = analysisFields.logFields.find((item) => storageFieldName(item) === fieldKey || item.field === fieldKey);
+  const parentBaseField = findParentStorageField(analysisFields.baseFields, fieldKey);
+  if (parentBaseField) {
+    return {
+      fieldKey,
+      displayName: fieldKey,
+      source: "tag_path",
+      path: fieldKey,
+      valueType: fieldValueType(condition),
+      isAccelerated: false
+    };
+  }
+  const logField = findStorageField(analysisFields.logFields, fieldKey);
   const name = logField ? storageFieldName(logField) : fieldKey;
   return {
     fieldKey: name,
     displayName: logField?.alias || name,
     source: "json_path",
     path: name,
-    valueType: fieldValueType(condition),
+    valueType: logField ? storageFieldTyp(logField) : fieldValueType(condition),
     isAccelerated: false
   };
 }
 
-function buildStructuredConditions(
+export function buildStructuredConditions(
   conditions: QueryFilterCondition[],
   analysisFields: QueryAnalysisFieldsResponse
 ): QueryConditionV2[] {
@@ -332,7 +377,30 @@ function buildStructuredConditions(
     }));
 }
 
-export function useQueryWorkspace(startTime: string, endTime: string) {
+function hasUnsupportedGlobalMatchCondition(
+  conditions: QueryFilterCondition[],
+  analysisFields: QueryAnalysisFieldsResponse
+) {
+  return (
+    analysisFields.supportsGlobalMatch === false &&
+    conditions.some(
+      (condition) =>
+        !condition.disabled &&
+        String(condition.field || "").trim() === GLOBAL_MATCH_FIELD &&
+        String(condition.value ?? "").trim()
+    )
+  );
+}
+
+export function useQueryWorkspace(
+  startTime: string,
+  endTime: string,
+  initialTreeTarget?: QuerySourceTreeTarget,
+  options?: {
+    initialPage?: number;
+    initialPageSize?: number;
+  }
+) {
   const initialConditions = useMemo(() => readInitialQueryConditions(), []);
   const [instances, setInstances] = useState<QuerySourceInstance[]>([]);
   const [databases, setDatabases] = useState<QuerySourceDatabase[]>([]);
@@ -347,13 +415,16 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
   const [activeConditionId, setActiveConditionId] = useState<string | null>(initialConditions[0]?.id ?? null);
   const [savedFilterProfiles, setSavedFilterProfiles] = useState<QueryFilterProfile[]>([]);
   const [savedFilterLoading, setSavedFilterLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useState(options?.initialPage && options.initialPage > 0 ? options.initialPage : 1);
+  const [pageSize] = useState(
+    options?.initialPageSize && options.initialPageSize > 0 ? options.initialPageSize : DEFAULT_PAGE_SIZE
+  );
   const [logs, setLogs] = useState<QueryLogsResponse | null>(null);
   const [charts, setCharts] = useState<QueryHistogramBucket[]>([]);
   const [analysisFields, setAnalysisFields] = useState<QueryAnalysisFieldsResponse>({
     baseFields: [],
-    logFields: []
+    logFields: [],
+    supportsGlobalMatch: true
   });
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
   const [autocompleteItems, setAutocompleteItems] = useState<string[]>([]);
@@ -395,14 +466,61 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
     return options[0] ?? "";
   }
 
+  function findTreeTargetByTableId(data: QuerySourceInstance[], tableId?: number | null): QuerySourceTreeTarget | null {
+    if (!tableId) {
+      return null;
+    }
+    for (const instance of data) {
+      for (const database of instance.databases ?? []) {
+        const table = (database.tables ?? []).find((item) => item.id === tableId);
+        if (table) {
+          return {
+            instanceId: instance.id,
+            databaseName: database.name,
+            tableName: table.name,
+            tableId
+          };
+        }
+      }
+    }
+    return null;
+  }
+
+  function findTreeTargetByDatabaseTable(data: QuerySourceInstance[], target?: QuerySourceTreeTarget): QuerySourceTreeTarget | null {
+    if (!target?.databaseName || !target.tableName) {
+      return null;
+    }
+    for (const instance of data) {
+      if (target.instanceId && instance.id !== target.instanceId) {
+        continue;
+      }
+      const database = (instance.databases ?? []).find((item) => item.name === target.databaseName);
+      const table = (database?.tables ?? []).find((item) => item.name === target.tableName);
+      if (database && table) {
+        return {
+          instanceId: instance.id,
+          databaseName: database.name,
+          tableName: table.name,
+          tableId: table.id
+        };
+      }
+    }
+    return null;
+  }
+
   async function refreshSourceTree(target?: QuerySourceTreeTarget) {
     setContextLoading(true);
     try {
       const data = await listQuerySourceInstances();
-      treeSelectionTargetRef.current = target ?? null;
+      treeSelectionTargetRef.current =
+        findTreeTargetByTableId(data, target?.tableId) ??
+        findTreeTargetByDatabaseTable(data, target) ??
+        target ??
+        null;
       setInstances(data);
       setSelectedInstanceId((current) => {
-        const preferredId = target?.instanceId ?? current;
+        const resolvedTarget = treeSelectionTargetRef.current;
+        const preferredId = resolvedTarget?.instanceId ?? target?.instanceId ?? current;
         if (preferredId && data.some((item) => item.id === preferredId)) {
           return preferredId;
         }
@@ -420,7 +538,7 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
     let active = true;
     void (async () => {
       if (active) {
-        await refreshSourceTree();
+        await refreshSourceTree(initialTreeTarget);
       }
     })();
     return () => {
@@ -443,8 +561,11 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
     clearQueryResults();
     const nextDatabases = selectedInstance.databases ?? [];
     const target = treeSelectionTargetRef.current;
+    const tableIdTargetDatabase = target?.tableId
+      ? nextDatabases.find((database) => (database.tables ?? []).some((table) => table.id === target.tableId))
+      : undefined;
     const nextDatabase = pickTreeName(
-      target?.instanceId === selectedInstance.id ? target.databaseName : undefined,
+      target?.instanceId === selectedInstance.id ? tableIdTargetDatabase?.name ?? target.databaseName : undefined,
       selectedDatabase,
       nextDatabases.map((item) => item.name)
     );
@@ -468,9 +589,12 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
     }
     const nextTables = selectedDatabaseEntry.tables ?? [];
     const target = treeSelectionTargetRef.current;
+    const tableIdTargetTable = target?.tableId
+      ? nextTables.find((table) => table.id === target.tableId)
+      : undefined;
     const nextTable = pickTreeName(
       target?.instanceId === selectedInstanceId && target.databaseName === selectedDatabaseEntry.name
-        ? target.tableName
+        ? tableIdTargetTable?.name ?? target.tableName
         : undefined,
       selectedTable,
       nextTables.map((item) => item.name)
@@ -492,7 +616,8 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
       target &&
       target.instanceId === selectedInstanceId &&
       target.databaseName === selectedDatabase &&
-      (!target.tableName || target.tableName === selectedTableEntry.name)
+      (!target.tableName || target.tableName === selectedTableEntry.name) &&
+      (!target.tableId || target.tableId === selectedTableEntry.id)
     ) {
       treeSelectionTargetRef.current = null;
     }
@@ -503,7 +628,7 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
 
   useEffect(() => {
     if (!selectedTableId) {
-      setAnalysisFields({ baseFields: [], logFields: [] });
+      setAnalysisFields({ baseFields: [], logFields: [], supportsGlobalMatch: true });
       return;
     }
     let active = true;
@@ -515,7 +640,7 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
       })
       .catch(() => {
         if (active) {
-          setAnalysisFields({ baseFields: [], logFields: [] });
+          setAnalysisFields({ baseFields: [], logFields: [], supportsGlobalMatch: true });
         }
       });
     return () => {
@@ -609,6 +734,10 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
       return;
     }
     const effectiveConditions = overrideConditions ?? conditions;
+    if (hasUnsupportedGlobalMatchCondition(effectiveConditions, analysisFields)) {
+      setErrorMessage("当前日志表未配置日志内容字段，不能使用全局匹配");
+      return;
+    }
     let generatedQuery = "";
     try {
       generatedQuery = buildVisualQuery(effectiveConditions);
@@ -690,15 +819,21 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
   }
 
   const suggestionFieldOptions = useMemo(
-    () =>
-      [
-        {
-          field: GLOBAL_MATCH_FIELD,
-          source: "column" as const,
-          sourceLabel: "全局匹配",
-          queryLabel: "_raw_log_ LIKE",
-          valueType: "string" as const
-        },
+    () => {
+      const globalMatchOptions =
+        analysisFields.supportsGlobalMatch === false
+          ? []
+          : [
+              {
+                field: GLOBAL_MATCH_FIELD,
+                source: "column" as const,
+                sourceLabel: "全局匹配",
+                queryLabel: "日志内容 LIKE",
+                valueType: "string" as const
+              }
+            ];
+      return [
+        ...globalMatchOptions,
         ...analysisFields.baseFields.map((item) => ({
           field: storageFieldName(item),
           source: "column" as const,
@@ -713,7 +848,8 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
           queryLabel: "JSON 路径查询",
           valueType: storageFieldTyp(item)
         }))
-      ].filter((item) => item.field),
+      ].filter((item) => item.field);
+    },
     [analysisFields]
   );
   const suggestionFields = useMemo(
@@ -754,6 +890,17 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
   async function deleteSavedFilterProfile(id: number) {
     await deleteQueryFilter(id);
     await refreshSavedFilterProfiles();
+  }
+
+  function clearQueryHistory() {
+    const effectiveTableId = selectedTableId ?? selectedTableEntry?.id ?? null;
+    if (!effectiveTableId) {
+      return;
+    }
+    const historyStore = readQueryHistory();
+    delete historyStore[String(effectiveTableId)];
+    writeQueryHistory(historyStore);
+    setQueryHistory([]);
   }
 
   return {
@@ -853,6 +1000,7 @@ export function useQueryWorkspace(startTime: string, endTime: string) {
       setQueryText(buildVisualQuery(nextConditions));
     },
     applySuggestion: (value: string) => setQueryText(value),
+    clearQueryHistory,
     saveCurrentQuery,
     deleteSavedFilterProfile,
     refreshSavedFilterProfiles,

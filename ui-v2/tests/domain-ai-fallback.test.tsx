@@ -19,7 +19,7 @@ function expectNoGenericFallbackState() {
 }
 
 describe("v2 domain ai actions and fallback readiness", () => {
-  it("keeps overview ai actions and rich sections instead of generic fallback states", async () => {
+  it("keeps overview rich sections without mock ai actions or generic fallback states", async () => {
     renderRoute("/v2/overview");
 
     const pageHeading = await screen.findByRole("heading", { name: "总览大盘" });
@@ -30,11 +30,14 @@ describe("v2 domain ai actions and fallback readiness", () => {
     }
 
     const scoped = within(pageSection);
-    expect(scoped.getByRole("heading", { name: "AI 建议区" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "一键生成告警规则" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "一键生成报表" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "优化 SQL / 索引" })).toBeInTheDocument();
-    expect(scoped.getByRole("heading", { name: "最近告警" })).toBeInTheDocument();
+    expect(scoped.queryByRole("heading", { name: "AI 建议区" })).not.toBeInTheDocument();
+    expect(scoped.queryByRole("button", { name: "一键生成告警规则" })).not.toBeInTheDocument();
+    expect(scoped.queryByRole("button", { name: "一键生成报表" })).not.toBeInTheDocument();
+    expect(scoped.queryByRole("button", { name: "优化 SQL / 索引" })).not.toBeInTheDocument();
+    expect(scoped.queryByRole("heading", { name: "当前值班动作" })).not.toBeInTheDocument();
+    expect(scoped.queryByRole("heading", { name: "值班状态" })).not.toBeInTheDocument();
+    expect(scoped.queryByRole("heading", { name: "最近告警" })).not.toBeInTheDocument();
+    expect(scoped.queryByRole("heading", { name: "跨模块入口" })).not.toBeInTheDocument();
     expect(scoped.getByRole("heading", { name: "最近报表" })).toBeInTheDocument();
     expectNoGenericFallbackState();
   });
@@ -50,15 +53,13 @@ describe("v2 domain ai actions and fallback readiness", () => {
     }
 
     const scoped = within(pageSection);
-    expect(scoped.getByRole("button", { name: "执行查询" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "保存查询" })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: /执行查询|查询中/ })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "收藏查询" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "新增条件" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "分享" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "原始日志" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "聚合统计" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "Trace 视图" })).toBeInTheDocument();
-    expect(scoped.getByRole("button", { name: "JSON 视图" })).toBeInTheDocument();
-    expect(scoped.getAllByRole("button", { name: /trace-/i }).length).toBeGreaterThanOrEqual(3);
+    expect(scoped.getByRole("button", { name: "日志表 logs" })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "日志表 app_logs" })).toBeInTheDocument();
+    expect(scoped.getByRole("button", { name: "列配置" })).toBeInTheDocument();
     expectNoGenericFallbackState();
   });
 

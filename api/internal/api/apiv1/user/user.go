@@ -13,6 +13,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
 	"github.com/clickvisual/clickvisual/api/internal/service/permission"
 )
@@ -81,8 +82,9 @@ func List(c *core.Context) {
 }
 
 type login struct {
-	Username string `form:"username" binding:"required"`
-	Password string `form:"password" binding:"required"`
+	Username        string `form:"username" binding:"required"`
+	Password        string `form:"password" binding:"required"`
+	PasswordEncoded string `form:"passwordEncoded"`
 }
 
 // @Tags         USER
@@ -94,11 +96,24 @@ func Login(c *core.Context) {
 		c.JSONE(1, err.Error(), nil)
 		return
 	}
+	if invoker.Db == nil {
+		if err = invoker.TryAttachMetadataDB(); err != nil {
+			c.JSONE(1, "metadata database is not ready", err.Error())
+			return
+		}
+	}
 	conds := egorm.Conds{}
 	conds["username"] = param.Username
-	user, _ := db.UserInfoX(conds)
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
+	user, err := db.UserInfoX(conds)
 	if err != nil {
+		c.JSONE(1, "metadata database is not ready", err.Error())
+		return
+	}
+	if user.ID == 0 || user.Password == "" {
+		c.JSONE(1, "account or password error", "")
+		return
+	}
+	if err = passwordMatches(user.Password, param.Password, param.PasswordEncoded); err != nil {
 		c.JSONE(1, "account or password error", "")
 		return
 	}
@@ -106,6 +121,17 @@ func Login(c *core.Context) {
 	session.Set("user", user)
 	_ = session.Save()
 	c.JSONOK("")
+}
+
+func passwordMatches(storedHash string, password string, encoded string) error {
+	if encoded == "md5" {
+		return bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password))
+	}
+	err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password))
+	if err == nil {
+		return nil
+	}
+	return bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(utils.MD5Encode32(password)))
 }
 
 // @Tags         USER

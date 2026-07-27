@@ -104,6 +104,9 @@ const (
 	TableNameReportAcceleration = "cv_report_acceleration"
 	TableNameQueryFilterProfile = "cv_query_filter_profile"
 	TableNameAISetting          = "cv_ai_setting"
+	TableNameQueryToken         = "cv_query_token"
+	TableNameQueryTokenGrant    = "cv_query_token_grant"
+	TableNameQueryTokenAudit    = "cv_query_token_audit"
 )
 
 type BaseModel struct {
@@ -142,7 +145,7 @@ func (t String2String) Value() (driver.Value, error) {
 }
 
 func (t *String2String) Scan(input interface{}) error {
-	return json.Unmarshal(input.([]byte), t)
+	return scanJSONValue(input, []byte("{}"), t)
 }
 
 type Strings []string
@@ -153,11 +156,7 @@ func (t Strings) Value() (driver.Value, error) {
 }
 
 func (t *Strings) Scan(input interface{}) error {
-	in := input.([]byte)
-	if len(in) == 0 {
-		in = []byte("[]")
-	}
-	return json.Unmarshal(in, t)
+	return scanJSONValue(input, []byte("[]"), t)
 }
 
 type Ints []int
@@ -168,13 +167,28 @@ func (t Ints) Value() (driver.Value, error) {
 }
 
 func (t *Ints) Scan(input interface{}) error {
-	if len(input.([]byte)) == 0 {
-		return json.Unmarshal([]byte("[]"), t)
+	return scanJSONValue(input, []byte("[]"), t)
+}
+
+func scanJSONValue(input interface{}, fallback []byte, target interface{}) error {
+	var data []byte
+	switch v := input.(type) {
+	case nil:
+		data = fallback
+	case []byte:
+		data = v
+	case string:
+		data = []byte(v)
+	default:
+		return fmt.Errorf("unsupported json scan type %T", input)
 	}
-	if err := json.Unmarshal(input.([]byte), t); err != nil {
-		return json.Unmarshal([]byte("[]"), t)
+	if len(data) == 0 {
+		data = fallback
 	}
-	return json.Unmarshal(input.([]byte), t)
+	if err := json.Unmarshal(data, target); err != nil {
+		return json.Unmarshal(fallback, target)
+	}
+	return nil
 }
 
 type (

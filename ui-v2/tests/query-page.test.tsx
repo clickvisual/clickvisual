@@ -7,6 +7,11 @@ import QueryLinkPage from "../src/domains/query/pages/QueryLinkPage";
 import QueryPage from "../src/domains/query/pages/QueryPage";
 
 describe("query page", () => {
+  function selectConditionField(field: string) {
+    fireEvent.click(screen.getByRole("combobox", { name: "字段" }));
+    fireEvent.click(screen.getByRole("option", { name: new RegExp(`^${field}(\\s| ·|$)`) }));
+  }
+
   beforeEach(() => {
     window.localStorage.clear();
     window.history.replaceState({}, "", "/v2/query");
@@ -60,7 +65,7 @@ describe("query page", () => {
     expect(() => readyWorkspace!.buildQueryText()).toThrow("字段 status 需要数字值");
   });
 
-  it("hides operator and value type controls for global match", async () => {
+  it("defaults the add condition dialog to global match while keeping all controls selectable", async () => {
     render(
       <TimeRangeProvider>
         <QueryPage />
@@ -69,11 +74,46 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "全局匹配" } });
 
-    expect(screen.queryByRole("combobox", { name: "运算符" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("combobox", { name: "值类型" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "字段" })).toHaveTextContent("全局匹配");
+    expect(screen.getByRole("combobox", { name: "运算符" })).toHaveValue("like");
+    expect(screen.getByRole("combobox", { name: "值类型" })).toHaveValue("string");
     expect(screen.getByLabelText("条件值")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("combobox", { name: "字段" }));
+    expect(screen.getByRole("option", { name: /^全局匹配/ })).toBeInTheDocument();
+  });
+
+  it("shows a quick log library creation entry from the datasource panel", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await screen.findByRole("tree", { name: "实例、数据库与日志表" });
+
+    expect(screen.getByRole("link", { name: "创建日志库" })).toHaveAttribute(
+      "href",
+      "/v2/query/ingestion"
+    );
+  });
+
+  it("keeps the full query controls available on the share page", async () => {
+    window.history.replaceState({}, "", "/share?database=default&table=logs");
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage shareMode />
+      </TimeRangeProvider>
+    );
+
+    expect(await screen.findByRole("region", { name: "查询输入" })).toBeInTheDocument();
+    expect(screen.queryByRole("tree", { name: "实例、数据库与日志表" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "新增条件" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^最近查询/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^收藏查询/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "分享" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "执行查询" })).toBeInTheDocument();
   });
 
   it("opens the add condition modal when clicking blank space in the condition area", async () => {
@@ -98,15 +138,15 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "全局匹配" } });
+    selectConditionField("全局匹配");
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "213" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
 
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
 
     expect(await screen.findByRole("dialog", { name: "新增条件" })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("请输入字段名")).toHaveValue("");
-    expect(screen.getByText("未匹配字段目录，默认按 JSON 路径查询")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "字段" })).toHaveTextContent("全局匹配");
+    expect(screen.queryByText("未匹配字段目录，默认按 JSON 路径查询")).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "运算符" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "值类型" })).toBeInTheDocument();
   });
@@ -120,7 +160,7 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "全局匹配" } });
+    selectConditionField("全局匹配");
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "timeout" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
 
@@ -138,7 +178,7 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "service" } });
+    selectConditionField("service");
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "gateway" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
 
@@ -181,6 +221,129 @@ describe("query page", () => {
 
     await screen.findByRole("tree", { name: "实例、数据库与日志表" });
     expect(screen.getByRole("button", { name: "service / = / gateway" })).toBeInTheDocument();
+  });
+
+  it("maps legacy v1 query URL parameters into the v2 query workspace", async () => {
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        const method = init?.method || "GET";
+        requests.push(`${method} ${url.pathname}${url.search} ${String(init?.body || "")}`);
+
+        if (method === "GET" && url.pathname.endsWith("/api/v2/base/instances")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: [
+                  {
+                    id: 1,
+                    instanceName: "生产 ClickHouse",
+                    desc: "主实例",
+                    databases: [
+                      {
+                        id: 11,
+                        iid: 1,
+                        databaseName: "default",
+                        desc: "",
+                        cluster: "",
+                        tables: [
+                          { id: 9527, did: 11, tableName: "logs", desc: "" },
+                          { id: 9528, did: 11, tableName: "app_logs", desc: "" }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              })
+          };
+        }
+
+        if (method === "GET" && url.pathname.endsWith("/api/v2/storage/9528/analysis-fields")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: { baseFields: ["_raw_log_"], logFields: [] }
+              })
+          };
+        }
+
+        if (method === "GET" && url.pathname.endsWith("/api/v2/query/filters")) {
+          return {
+            ok: true,
+            text: async () => JSON.stringify({ code: 0, msg: "succ", data: [] })
+          };
+        }
+
+        if (method === "POST" && url.pathname.endsWith("/api/v2/query/run")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 1,
+                  query: "_raw_log_ like '%aud%'",
+                  keys: [{ field: "_raw_log_", alias: "_raw_log_" }],
+                  logs: [{ _raw_log_: "aud matched" }]
+                }
+              })
+          };
+        }
+
+        if (method === "GET" && url.pathname.endsWith("/api/v1/tables/9528/charts")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: { histograms: [{ count: 1, from: 1780538785, to: 1780539685, progress: "100%" }] }
+              })
+          };
+        }
+
+        return {
+          ok: false,
+          text: async () => JSON.stringify({ code: 1, msg: `unhandled ${method} ${url.pathname}`, data: null })
+        };
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "/v2/query/?end=1780539685&index=2&kw=aud&logState=0&page=3&queryType=rawLog&size=10&start=1780538785&tab=relative&tid=9528"
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    expect(await screen.findByRole("tab", { name: /app_logs/ })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("button", { name: "全局匹配 / like / aud" })).toBeInTheDocument();
+    await screen.findByText("aud matched");
+
+    const runRequest = requests.find((item) => item.includes("POST /api/v2/query/run"));
+    expect(runRequest).toContain('"tid":9528');
+    expect(runRequest).toContain('"st":1780538785');
+    expect(runRequest).toContain('"et":1780539685');
+    expect(runRequest).toContain('"page":3');
+    expect(runRequest).toContain('"pageSize":10');
+    expect(runRequest).toContain('"fieldKey":"_raw_log_"');
+    expect(runRequest).toContain('"operator":"contains"');
+    expect(runRequest).toContain('"value":"aud"');
   });
 
   it("ignores stale autocomplete and stale runQuery responses", async () => {
@@ -375,7 +538,7 @@ describe("query page", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
     expect(await screen.findByRole("dialog", { name: "新增条件" })).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "service" } });
+    selectConditionField("service");
     expect(screen.getAllByText("物理列").length).toBeGreaterThan(0);
     expect(screen.getAllByText("列查询").length).toBeGreaterThan(0);
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "gateway" } });
@@ -384,18 +547,17 @@ describe("query page", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "service / = / gateway" }));
     expect(await screen.findByRole("dialog", { name: "编辑条件" })).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "message" } });
+    selectConditionField("message");
     expect(screen.getAllByText("解析字段").length).toBeGreaterThan(0);
     expect(screen.getAllByText("JSON 路径查询").length).toBeGreaterThan(0);
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "status" } });
-    fireEvent.change(screen.getByRole("combobox", { name: "值类型" }), { target: { value: "number" } });
-    fireEvent.change(screen.getByRole("textbox", { name: "条件值" }), { target: { value: "0" } });
+    selectConditionField("level");
+    fireEvent.change(screen.getByRole("textbox", { name: "条件值" }), { target: { value: "ERROR" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
-    expect(screen.getByRole("button", { name: "status / = / 0" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "level / = / ERROR" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "status / = / 0" }));
+    fireEvent.click(screen.getByRole("button", { name: "level / = / ERROR" }));
     fireEvent.click(screen.getByRole("button", { name: "删除条件" }));
-    expect(screen.queryByRole("button", { name: "status / = / 0" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "level / = / ERROR" })).not.toBeInTheDocument();
   });
 
   it("supports action buttons and renders query results without view switch buttons", async () => {
@@ -409,7 +571,7 @@ describe("query page", () => {
     expect(await screen.findByRole("tablist", { name: "日志表工作区标签" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /logs/ })).toHaveAttribute("aria-selected", "true");
     fireEvent.click(screen.getByRole("button", { name: "新增条件" }));
-    fireEvent.change(screen.getByPlaceholderText("请输入字段名"), { target: { value: "service" } });
+    selectConditionField("service");
     fireEvent.change(screen.getByLabelText("条件值"), { target: { value: "gateway" } });
     fireEvent.click(screen.getByRole("button", { name: "确认" }));
     expect(screen.getByRole("button", { name: "service / = / gateway" })).toBeInTheDocument();
@@ -917,6 +1079,7 @@ describe("query page", () => {
   it("runs a field anchored link query across selected log tables", async () => {
     const requests: string[] = [];
     const openSpy = vi.fn();
+    window.history.replaceState({}, "", "/clickvisual/v2/query");
     vi.stubGlobal("open", openSpy);
     vi.stubGlobal(
       "fetch",
@@ -1058,7 +1221,7 @@ describe("query page", () => {
     fireEvent.click(screen.getByLabelText("default.app_logs"));
     fireEvent.click(screen.getByRole("button", { name: "打开链路查询" }));
 
-    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("/v2/query/link?"), "_blank");
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("/clickvisual/v2/query/link?"), "_blank");
     const openedUrl = openSpy.mock.calls[0][0] as string;
     expect(openedUrl).toContain("field=msg");
     expect(openedUrl).toContain("value=GetTableRepo");

@@ -110,7 +110,7 @@ func (ch *Switcher) materializedView() (name string, sql string) {
 (
   SELECT
     _log,
-    JSONLength(JSONExtractString(%s, '%s')) as len
+    length(JSONExtractString(%s, '%s')) as len
   FROM %s 
 )
 WHERE len>0 and`, l, ch.rawLogField, streamName)

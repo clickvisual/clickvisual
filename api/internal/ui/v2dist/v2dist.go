@@ -1,7 +1,9 @@
 package v2dist
 
 import (
+	"bytes"
 	"embed"
+	"encoding/json"
 	"html"
 	"io/fs"
 	"mime"
@@ -10,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	appconfig "github.com/clickvisual/clickvisual/api/internal/pkg/config"
 )
 
 //go:embed dist
@@ -85,16 +88,25 @@ func readFile(filePath string) ([]byte, error) {
 }
 
 func rewriteIndexAssetPaths(data []byte, requestPath string) []byte {
-	assetBase := html.EscapeString(getV2AssetBasePath(requestPath) + "assets/")
-	rewritten := strings.ReplaceAll(string(data), `"./assets/`, `"`+assetBase)
-	rewritten = strings.ReplaceAll(rewritten, `'./assets/`, `'`+assetBase)
-	return []byte(rewritten)
+	assetBasePath := html.EscapeString(getV2AssetBasePath(requestPath) + "assets/")
+	assetBase := []byte(`"` + assetBasePath)
+	rewritten := bytes.ReplaceAll(data, []byte(`"./assets/`), assetBase)
+	rewritten = bytes.ReplaceAll(rewritten, []byte(`'./assets/`), append([]byte{'\''}, assetBase[1:]...))
+	return injectRuntimeConfig(rewritten)
 }
 
 func getV2AssetBasePath(requestPath string) string {
 	cleaned := path.Clean("/" + requestPath)
 	v2Index := strings.Index(cleaned, "/v2")
 	if v2Index < 0 {
+		shareIndex := strings.Index(cleaned, "/share")
+		if shareIndex >= 0 {
+			basePath := cleaned[:shareIndex] + "/v2/"
+			if !isSafeV2AssetBasePath(basePath) {
+				return "/v2/"
+			}
+			return basePath
+		}
 		return "/v2/"
 	}
 	basePath := cleaned[:v2Index] + "/v2/"
@@ -120,4 +132,19 @@ func isSafeV2AssetBasePath(basePath string) bool {
 		}
 	}
 	return true
+}
+
+func injectRuntimeConfig(data []byte) []byte {
+	payload, err := json.Marshal(map[string]string{"edition": appconfig.Edition()})
+	if err != nil {
+		return data
+	}
+	script := []byte(`<script>window.__CLICKVISUAL_V2_CONFIG__=` + string(payload) + `;</script>`)
+	if bytes.Contains(data, script) {
+		return data
+	}
+	if bytes.Contains(data, []byte("</head>")) {
+		return bytes.Replace(data, []byte("</head>"), append(script, []byte("</head>")...), 1)
+	}
+	return append(script, data...)
 }

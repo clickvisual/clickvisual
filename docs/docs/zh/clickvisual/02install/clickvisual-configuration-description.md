@@ -81,6 +81,31 @@ maxIdleConns = 5
 maxOpenConns = 50
 ```
 
+## metadata 段配置说明
+```toml
+[metadata]
+# metadata 数据库驱动，可选 mysql 或 sqlite。未配置时默认使用 [mysql]。
+driver = "mysql"
+# metadata 数据库 DSN。driver = "sqlite" 时填写 SQLite 文件路径。
+dsn = ""
+# 是否打印 metadata SQL 调试日志。
+debug = true
+```
+
+使用 SQLite metadata 时可以配置：
+
+```toml
+[metadata]
+driver = "sqlite"
+dsn = "data/clickvisual-private-lite.db"
+debug = true
+
+[mysql]
+dsn = ""
+```
+
+服务启动时会自动初始化 SQLite metadata schema，不需要提前手动创建 SQLite 表。SQLite 只保存 ClickVisual 管理数据，日志数据仍然存储在 ClickHouse。
+
 ## auth 段配置说明
 ```toml
 [auth]

@@ -25,6 +25,7 @@ export interface QuerySourceTreeTarget {
   instanceId?: number | null;
   databaseName?: string;
   tableName?: string;
+  tableId?: number | null;
 }
 
 export interface QueryManageInstance {
@@ -91,6 +92,7 @@ export interface QueryStorageAnalysisField {
 export interface QueryAnalysisFieldsResponse {
   baseFields: QueryStorageAnalysisField[];
   logFields: QueryStorageAnalysisField[];
+  supportsGlobalMatch?: boolean;
 }
 
 export interface QueryLogsField {
@@ -245,6 +247,24 @@ export interface QueryPlan {
 }
 
 export interface QueryRunResponse extends QueryLogsResponse {
+  sql: string;
+  plan: QueryPlan;
+}
+
+export interface QueryFieldStatsRequest extends QueryRequestV2 {
+  field: QueryFieldRef;
+  limit: number;
+}
+
+export interface QueryFieldStatsItem {
+  value: string;
+  count: number;
+  percentage: number;
+}
+
+export interface QueryFieldStatsResponse {
+  total: number;
+  items: QueryFieldStatsItem[];
   sql: string;
   plan: QueryPlan;
 }

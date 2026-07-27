@@ -14,9 +14,11 @@ import (
 	"github.com/clickvisual/clickvisual/api/cmd"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
+	appconfig "github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/install"
 )
 
 // InitConfig TOML 配置结构
@@ -40,6 +42,8 @@ var (
 	topicsIngressStdout string
 	topicsIngressStderr string
 	dryRun              bool
+
+	migrateMetadataSchema = install.Migration
 )
 
 var CmdInit = &cobra.Command{
@@ -67,6 +71,10 @@ func init() {
 }
 
 func CmdFunc(cmd *cobra.Command, args []string) {
+	if err := ensureMetadataSchemaForEgo(); err != nil {
+		elog.Panic("初始化 metadata schema 失败: " + err.Error())
+	}
+
 	// 初始化应用
 	ego.New().Invoker(
 		invoker.Init,
@@ -120,6 +128,14 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println("ClickVisual 初始化完成")
+}
+
+func ensureMetadataSchemaForEgo() error {
+	if !appconfig.IsPrivateLiteMode() {
+		return nil
+	}
+	elog.Info("private-lite 模式，先初始化最小 metadata schema")
+	return migrateMetadataSchema()
 }
 
 // loadInitConfig 加载初始化配置文件

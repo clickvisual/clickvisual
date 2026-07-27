@@ -2,9 +2,13 @@ package query
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/ego-component/egorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	dbmodel "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	view "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/querycompile"
@@ -59,10 +63,51 @@ func buildCompileContext(tid int) (querycompile.CompileContext, error) {
 	if tableInfo.Name == "" || tableInfo.Database == nil {
 		return querycompile.CompileContext{}, fmt.Errorf("table %d not found", tid)
 	}
+	rawLogColumn, rawLogUnavailable := rawLogColumnForTable(
+		tableInfo.CreateType,
+		tableInfo.RawLogField,
+		tableColumnRecorded(tableInfo.ID, tableInfo.RawLogField),
+		tableColumnRecorded(tableInfo.ID, "_raw_log_"),
+	)
 	return querycompile.CompileContext{
-		TableName:     fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name),
-		TimeField:     tableInfo.GetTimeField(),
-		TimeFieldType: tableInfo.TimeFieldType,
-		RawJSONColumn: "_raw_log_",
+		TableName:                fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name),
+		TimeField:                tableInfo.GetTimeField(),
+		TimeFieldType:            tableInfo.TimeFieldType,
+		RawJSONColumn:            rawLogColumn,
+		RawJSONColumnUnavailable: rawLogUnavailable,
 	}, nil
+}
+
+func rawLogColumnForTable(createType int, rawLogField string, rawLogFieldExists bool, defaultRawLogExists bool) (string, bool) {
+	rawLogField = strings.TrimSpace(rawLogField)
+	if createType == constx.TableCreateTypeExist && rawLogField != "" && rawLogFieldExists {
+		return rawLogField, false
+	}
+	if createType == constx.TableCreateTypeExist {
+		if defaultRawLogExists {
+			return "_raw_log_", false
+		}
+		return "", true
+	}
+	return "_raw_log_", false
+}
+
+func tableColumnRecorded(tid int, field string) bool {
+	field = strings.TrimSpace(field)
+	if tid <= 0 || field == "" || invoker.Db == nil {
+		return false
+	}
+	indexes, err := dbmodel.IndexList(egorm.Conds{"tid": tid})
+	if err != nil {
+		return false
+	}
+	for _, index := range indexes {
+		if index == nil {
+			continue
+		}
+		if index.GetFieldName() == field || strings.TrimSpace(index.Field) == field {
+			return true
+		}
+	}
+	return false
 }

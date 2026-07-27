@@ -15,24 +15,90 @@ export function setPreferredUiVersion(version: "v1" | "v2") {
   }
 }
 
-export function getV2BasePath(pathname?: string) {
+export function normalizePublicPath(value?: string) {
+  const rawValue = (value || "").trim();
+  if (!rawValue || rawValue === "/") {
+    return "";
+  }
+  let pathValue = rawValue;
+  try {
+    pathValue = new URL(rawValue).pathname;
+  } catch {
+    // PUBLIC_PATH is usually a path, not a full URL.
+  }
+  return `/${pathValue.replace(/^\/+|\/+$/g, "")}`;
+}
+
+export function getConfiguredPublicPath() {
+  return normalizePublicPath(
+    typeof __CLICKVISUAL_PUBLIC_PATH__ === "string" ? __CLICKVISUAL_PUBLIC_PATH__ : ""
+  );
+}
+
+export function getPublicPathLoginRedirectHref(
+  pathname?: string,
+  configuredPublicPath = getConfiguredPublicPath()
+) {
+  const normalizedConfiguredPublicPath = normalizePublicPath(configuredPublicPath);
+  if (!normalizedConfiguredPublicPath || typeof window === "undefined") {
+    return "";
+  }
+  const currentPath = pathname || window.location.pathname;
+  const isInsidePublicPath =
+    currentPath === normalizedConfiguredPublicPath ||
+    currentPath.startsWith(`${normalizedConfiguredPublicPath}/`);
+  if (isInsidePublicPath) {
+    return "";
+  }
+  return `${normalizedConfiguredPublicPath}/v2/login`;
+}
+
+export function getV2BasePath(pathname?: string, configuredPublicPath = getConfiguredPublicPath()) {
+  const normalizedConfiguredPublicPath = normalizePublicPath(configuredPublicPath);
+  if (normalizedConfiguredPublicPath) {
+    return normalizedConfiguredPublicPath;
+  }
   const currentPath =
     pathname || (typeof window !== "undefined" ? window.location.pathname : "");
   const v2Index = currentPath.indexOf("/v2");
-  if (v2Index < 0) {
-    return "";
+  if (v2Index >= 0) {
+    return currentPath.slice(0, v2Index);
   }
-  return currentPath.slice(0, v2Index);
+  const shareIndex = currentPath.indexOf("/share");
+  if (shareIndex >= 0) {
+    return currentPath.slice(0, shareIndex);
+  }
+  return "";
 }
 
-export function getV1Href(pathname?: string) {
-  const basePath = getV2BasePath(pathname);
-  return `${basePath}/query`;
+export function getV1Href(pathname?: string, configuredPublicPath?: string) {
+  const basePath = getV2BasePath(pathname, configuredPublicPath);
+  return `${basePath}/query?ui=v1`;
 }
 
-export function getV2Href(pathname?: string) {
-  const basePath = getV2BasePath(pathname) || pathname?.replace(/\/query\/?$/, "") || "";
-  return `${basePath}/v2/reports`;
+export function getV2Href(pathname?: string, configuredPublicPath?: string) {
+  const basePath = getV2BasePath(pathname, configuredPublicPath) || pathname?.replace(/\/query\/?$/, "") || "";
+  return `${basePath}/v2/query`;
+}
+
+export function buildV2RouteHref(
+  routePath: string,
+  searchParams?: URLSearchParams,
+  pathname?: string,
+  configuredPublicPath?: string
+) {
+  const normalizedRoutePath = routePath.replace(/^\/+/, "");
+  const query = searchParams?.toString();
+  return `${getV2BasePath(pathname, configuredPublicPath)}/v2/${normalizedRoutePath}${query ? `?${query}` : ""}`;
+}
+
+export function buildShareRouteHref(
+  searchParams?: URLSearchParams,
+  pathname?: string,
+  configuredPublicPath?: string
+) {
+  const query = searchParams?.toString();
+  return `${getV2BasePath(pathname, configuredPublicPath)}/share${query ? `?${query}` : ""}`;
 }
 
 export default function VersionSwitcher() {

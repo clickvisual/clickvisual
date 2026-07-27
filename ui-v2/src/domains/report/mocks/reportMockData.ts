@@ -5,6 +5,7 @@ import type {
   ReportExecutionRecord,
   ReportListItem,
   ReportPushChannel,
+  ReportResultData,
   ReportScheduleRuntime,
   ReportScheduleConfig,
   ReportSendResultSummary,
@@ -271,6 +272,100 @@ const seedReportAccelerationMockById: Record<number, ReportAccelerationStatus> =
   }
 };
 
+const seedReportResultMockById: Record<number, ReportResultData> = {
+  1001: {
+    reportId: 1001,
+    source: "aggregation",
+    database: "dev_log",
+    targetTable: "cv_report_agg_1001",
+    windowStart: "2026-03-30 00:00:00",
+    windowEnd: "2026-03-31 00:00:00",
+    bucketCount: 4,
+    series: [
+      {
+        seriesKey: "default\u0000总量\u00000\u0000",
+        blockKey: "default",
+        blockLabel: "默认条件块",
+        metricName: "总量",
+        metricKind: "count",
+        groupKind: 0,
+        groupValue: "",
+        total: 610,
+        points: [
+          {
+            bucketTime: "2026-03-30 08:00:00",
+            blockKey: "default",
+            blockLabel: "默认条件块",
+            metricName: "总量",
+            metricKind: "count",
+            groupKind: 0,
+            groupValue: "",
+            value: 120,
+            sumValue: 0,
+            countValue: 120,
+            uniqValue: 0
+          },
+          {
+            bucketTime: "2026-03-30 09:00:00",
+            blockKey: "default",
+            blockLabel: "默认条件块",
+            metricName: "总量",
+            metricKind: "count",
+            groupKind: 0,
+            groupValue: "",
+            value: 180,
+            sumValue: 0,
+            countValue: 180,
+            uniqValue: 0
+          },
+          {
+            bucketTime: "2026-03-30 10:00:00",
+            blockKey: "default",
+            blockLabel: "默认条件块",
+            metricName: "总量",
+            metricKind: "count",
+            groupKind: 0,
+            groupValue: "",
+            value: 145,
+            sumValue: 0,
+            countValue: 145,
+            uniqValue: 0
+          },
+          {
+            bucketTime: "2026-03-30 11:00:00",
+            blockKey: "default",
+            blockLabel: "默认条件块",
+            metricName: "总量",
+            metricKind: "count",
+            groupKind: 0,
+            groupValue: "",
+            value: 165,
+            sumValue: 0,
+            countValue: 165,
+            uniqValue: 0
+          }
+        ]
+      }
+    ],
+    rows: []
+  },
+  1002: {
+    reportId: 1002,
+    source: "aggregation",
+    database: "",
+    targetTable: "",
+    windowStart: "",
+    windowEnd: "",
+    bucketCount: 0,
+    series: [],
+    rows: []
+  }
+};
+
+seedReportResultMockById[1001].rows = seedReportResultMockById[1001].series.flatMap(
+  (item) => item.points
+);
+
 export const reportListMock = clone(seedReportListMock);
 export const reportScheduleMockById = clone(seedReportScheduleMockById);
 export const reportEditorDraftMockById = clone(seedReportEditorDraftMockById);
@@ -286,6 +381,7 @@ export const reportScheduleRuntimeMockById = clone(
   seedReportScheduleRuntimeMockById
 );
 export const reportAccelerationMockById = clone(seedReportAccelerationMockById);
+export const reportResultMockById = clone(seedReportResultMockById);
 
 export function resetReportMockStore() {
   reportListMock.splice(0, reportListMock.length, ...clone(seedReportListMock));
@@ -308,6 +404,7 @@ export function resetReportMockStore() {
   replaceRecord(reportSendSummaryMockById, seedReportSendSummaryMockById);
   replaceRecord(reportScheduleRuntimeMockById, seedReportScheduleRuntimeMockById);
   replaceRecord(reportAccelerationMockById, seedReportAccelerationMockById);
+  replaceRecord(reportResultMockById, seedReportResultMockById);
 }
 
 export function buildReportWorkspaceMock(reportId = 1001): ReportWorkspace {

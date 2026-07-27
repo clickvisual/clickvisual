@@ -19,12 +19,14 @@ var (
 
 var reportAggregationDefaultAllowedFields = map[string]struct{}{
 	"lv":                 {},
+	"level":              {},
 	"application":        {},
 	"env":                {},
 	"fileGuid":           {},
 	"method":             {},
 	"msg":                {},
 	"status":             {},
+	"trace_id":           {},
 	"_namespace_":        {},
 	"container.name":     {},
 	"host.name":          {},
@@ -38,6 +40,7 @@ var reportAggregationHighCostLikeFields = map[string]struct{}{
 
 var reportAggregationDefaultAllowedGroupByFields = map[string]struct{}{
 	"lv":                 {},
+	"level":              {},
 	"application":        {},
 	"env":                {},
 	"fileGuid":           {},
