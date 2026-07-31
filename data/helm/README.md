@@ -17,6 +17,8 @@ git clone https://github.com/clickvisual/clickvisual.git
 cd clickvisual && cp config/default.toml data/helm/clickvisual/default.toml
 ```
 
+The chart mounts this file at `configs/default.toml` and sets `EGO_CONFIG_PATH` to that path by default. Override `env.configPath` only when using a different mount path.
+
 - [**suggested**] use helm install to install clickvisual directly
 ```bash
 helm install clickvisual data/helm/clickvisual --set image.tag=latest --namespac default

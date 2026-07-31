@@ -32,7 +32,7 @@ service:
 
 # clickvisual env config, default if not set
 env:
- configPath: "config/default.toml"
+ configPath: "configs/default.toml"
  debug: "true"
  logWritter: "stderr"
 

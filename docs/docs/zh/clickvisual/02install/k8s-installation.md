@@ -377,10 +377,12 @@ cd clickvisual && cp config/default.toml data/helm/clickvisual/default.toml
 ```
 修改 data/helm/clickvisual/default.toml 中的 mysql、auth 以及其他段配置，将 mysql.dsn 、 auth.redisAddr、auth.redisPassword 替换为你自己的配置。
 
-修改 data/helm/clickvisual/templates/deployment.yaml 中 value 为 `configs/default.toml` 默认是 `config/default.toml` 即仓库中的默认配置
+Helm Chart 会把该文件挂载到 `configs/default.toml`，并默认使用这个路径。如需使用其他路径，请在 values 文件或命令行中覆盖 `env.configPath`：
 ```
-- name: EGO_CONFIG_PATH
-value: "configs/default.toml"
+helm install clickvisual data/helm/clickvisual \
+  --set image.tag=latest \
+  --set env.configPath=configs/default.toml \
+  --namespace default
 ```
 
 ### 3.2 安装
