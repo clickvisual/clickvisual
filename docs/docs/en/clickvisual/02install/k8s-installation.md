@@ -367,10 +367,12 @@ cd clickvisual && cp config/default.toml data/helm/clickvisual/default.toml
 ```
 Edit mysql、auth and other segment configurations in data/helm/clickvisual/default.toml,update mysql.dsn,auth.redisAddr,auth.redisPassword as you want.
 
-Update the value `configs/default.toml` in data/helm/clickvisual/templates/deployment.yaml if you need
+The Helm chart mounts this file at `configs/default.toml` and uses that path by default. To use another path, override `env.configPath` in your values file or on the command line:
 ```
-- name: EGO_CONFIG_PATH
-value: "configs/default.toml"
+helm install clickvisual data/helm/clickvisual \
+  --set image.tag=latest \
+  --set env.configPath=configs/default.toml \
+  --namespace default
 ```
 
 ### Install
