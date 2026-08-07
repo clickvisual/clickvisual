@@ -552,7 +552,7 @@ const DataLogsModel = () => {
     cancelTokenLogsRef.current?.();
     cancelTokenHighChartsRef.current?.();
     const currentPane = logPanesHelper.logPanes[id.toString()];
-    const histogramChecked = currentPane?.histogramChecked ?? true;
+    const histogramChecked = currentPane?.histogramChecked ?? false;
 
     const filterDisableIds =
       JSON.parse(
