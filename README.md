@@ -137,7 +137,7 @@ Thanks for these wonderful people:
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=clickvisual/clickvisual&type=Date)](https://star-history.com/#clickvisual/clickvisual&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=clickvisual/clickvisual&type=Date)](https://star-history.dera.page/#clickvisual/clickvisual&Date)
 
 ## Thank You
 - [腾源会/WeOpen](https://cloud.tencent.com/act/pro/weopen-home)
