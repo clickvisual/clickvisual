@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <remote_servers>
+        <clickvisual>
+            <shard>
+                <replica>
+                    <host>clickhouse</host>
+                    <port>9000</port>
+                    <user>root</user>
+                    <password>shimo</password>
+                </replica>
+            </shard>
+        </clickvisual>
+    </remote_servers>
+
+    <zookeeper>
+        <node index="1">
+            <host>zookeeper</host>
+            <port>2181</port>
+        </node>
+    </zookeeper>
+
+    <macros>
+        <shard>01</shard>
+        <replica>clickhouse</replica>
+    </macros>
+</clickhouse>
