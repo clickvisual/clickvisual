@@ -32,7 +32,7 @@ spec:
             - name: EGO_DEBUG
               value: "{{ if hasKey .Values.env "debug" }}{{ .Values.env.debug | default true | toString }}{{ else }}{{ default "true" }}{{ end }}"
             - name: EGO_CONFIG_PATH
-              value: {{ .Values.env.configPath | default "config/default.toml" }}
+              value: {{ .Values.env.configPath | default "configs/default.toml" }}
             - name: EGO_LOG_WRITER
               value: {{ .Values.env.logWritter | default "stderr" }}
           securityContext:
@@ -70,4 +70,3 @@ spec:
           sources:
             - configMap:
                 name: {{ .Chart.Name }}
-
