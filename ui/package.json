@@ -67,6 +67,7 @@
     "crypto-js": "^4.1.1",
     "d3": "^7.6.1",
     "dagre": "^0.8.5",
+    "exceljs": "^4.4.0",
     "jquery": "^3.6.0",
     "lodash": "^4.17.11",
     "moment": "^2.29.2",
@@ -87,7 +88,6 @@
     "styled-components": "^5.3.5",
     "terser-webpack-plugin": "^5.3.7",
     "umi-serve": "^1.9.11",
-    "xlsx": "^0.18.5",
     "yet-another-abortcontroller-polyfill": "^0.0.4"
   },
   "devDependencies": {
