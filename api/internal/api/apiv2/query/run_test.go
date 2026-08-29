@@ -1,12 +1,35 @@
 package query
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	view "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service/querycompile"
 )
+
+type cancelAfterFirstSQLOperator struct {
+	cancel context.CancelFunc
+	calls  []string
+}
+
+func (o *cancelAfterFirstSQLOperator) DoSQL(sql string) (view.RespComplete, error) {
+	o.calls = append(o.calls, sql)
+	return view.RespComplete{}, nil
+}
+
+func (o *cancelAfterFirstSQLOperator) DoSQLContext(_ context.Context, sql string) (view.RespComplete, error) {
+	o.calls = append(o.calls, sql)
+	if len(o.calls) == 1 {
+		o.cancel()
+		return view.RespComplete{Logs: []map[string]interface{}{{"count": uint64(1)}}}, nil
+	}
+	return view.RespComplete{Logs: []map[string]interface{}{{"field_value": "svc", "count": uint64(1)}}}, nil
+}
 
 func TestRawLogFallbackRequestRewritesBusinessColumns(t *testing.T) {
 	req := view.QueryRequestV2{
@@ -107,4 +130,57 @@ func TestRawLogFieldStatsFallbackRequestRewritesFieldAndFilters(t *testing.T) {
 	assert.Equal(t, view.QueryFieldSourceJSONPath, next.Conditions[0].Field.Source)
 	assert.Equal(t, "status", next.Conditions[0].Field.Path)
 	assert.False(t, next.Conditions[0].Field.IsAccelerated)
+}
+
+func TestRunFieldStatsStopsBeforeStatsQueryWhenContextIsCanceled(t *testing.T) {
+	reqCtx, cancel := context.WithCancel(context.Background())
+	op := &cancelAfterFirstSQLOperator{cancel: cancel}
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			ST: 1785254400,
+			ET: 1785340740,
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:       "container.name",
+			DisplayName:    "container.name",
+			Source:         view.QueryFieldSourceColumn,
+			Path:           "container.name",
+			ValueType:      view.QueryValueTypeString,
+			IsAccelerated:  true,
+			AcceleratedCol: "container.name",
+		},
+		Limit: 10,
+	}
+
+	_, err := runFieldStatsOnce(reqCtx, op, req, querycompile.CompileContext{
+		TableName: "`logger`.`app_stdout`",
+		TimeField: "_time_second_",
+	})
+
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, context.Canceled), "expected context.Canceled, got %v", err)
+	assert.Len(t, op.calls, 1)
+	assert.Contains(t, op.calls[0], "SELECT count() AS count")
+}
+
+func TestRawLogColumnForTableUsesStoredRawLogFieldOnlyForExistingTable(t *testing.T) {
+	rawLogColumn, unavailable := rawLogColumnForTable(constx.TableCreateTypeExist, " body ", true, true)
+	assert.Equal(t, "body", rawLogColumn)
+	assert.False(t, unavailable)
+
+	rawLogColumn, unavailable = rawLogColumnForTable(constx.TableCreateTypeExist, "", false, true)
+	assert.Equal(t, "_raw_log_", rawLogColumn)
+	assert.False(t, unavailable)
+
+	rawLogColumn, unavailable = rawLogColumnForTable(constx.TableCreateTypeExist, "content", false, true)
+	assert.Equal(t, "_raw_log_", rawLogColumn)
+	assert.False(t, unavailable)
+
+	rawLogColumn, unavailable = rawLogColumnForTable(constx.TableCreateTypeExist, "", false, false)
+	assert.Empty(t, rawLogColumn)
+	assert.True(t, unavailable)
+
+	rawLogColumn, unavailable = rawLogColumnForTable(constx.TableCreateTypeJSONAsString, "content", false, false)
+	assert.Equal(t, "_raw_log_", rawLogColumn)
+	assert.False(t, unavailable)
 }

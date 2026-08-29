@@ -186,6 +186,7 @@ func TestV2RoutesPrivateLiteEdition(t *testing.T) {
 		{method: http.MethodGet, path: "/api/v2/base/instances"},
 		{method: http.MethodGet, path: "/api/v2/base/settings/instances"},
 		{method: http.MethodPost, path: "/api/v2/base/shorturls"},
+		{method: http.MethodGet, path: "/api/v2/storage/:storage-id/analysis-fields"},
 		{method: http.MethodGet, path: "/api/v2/query/filters"},
 		{method: http.MethodGet, path: "/api/v2/query/instances/:instance-id/databases/:database/tables"},
 		{method: http.MethodPost, path: "/api/v2/query/compile"},

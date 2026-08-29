@@ -917,8 +917,12 @@ func (c *Databend) DeleteDatabase(name string, cluster string) (err error) {
 }
 
 func (c *Databend) DoSQL(sql string) (res view2.RespComplete, err error) {
+	return c.DoSQLContext(context.Background(), sql)
+}
+
+func (c *Databend) DoSQLContext(ctx context.Context, sql string) (res view2.RespComplete, err error) {
 	res.Logs = make([]map[string]interface{}, 0)
-	tmp, err := c.doQuery(sql)
+	tmp, err := c.doQueryContext(ctx, sql)
 	if err != nil {
 		return
 	}
@@ -927,8 +931,12 @@ func (c *Databend) DoSQL(sql string) (res view2.RespComplete, err error) {
 }
 
 func (c *Databend) doQuery(sql string) (res []map[string]interface{}, err error) {
+	return c.doQueryContext(context.Background(), sql)
+}
+
+func (c *Databend) doQueryContext(ctx context.Context, sql string) (res []map[string]interface{}, err error) {
 	res = make([]map[string]interface{}, 0)
-	rows, err := c.db.Query(sql)
+	rows, err := c.db.QueryContext(ctx, sql)
 	if err != nil {
 		return res, errors.Wrap(err, sql)
 	}

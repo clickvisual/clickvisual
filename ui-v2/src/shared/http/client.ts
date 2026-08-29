@@ -6,6 +6,10 @@ interface ApiEnvelope<T> {
   data: T;
 }
 
+export interface RequestOptions {
+  signal?: AbortSignal;
+}
+
 function buildApiUrl(path: string) {
   const basePath = getV2BasePath();
   return `${basePath}${path}`;
@@ -83,33 +87,38 @@ async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
 }
 
 export const client = {
-  get<T>(path: string) {
+  get<T>(path: string, options?: RequestOptions) {
     return requestJson<T>(path, {
-      method: "GET"
+      method: "GET",
+      signal: options?.signal
     });
   },
-  post<T>(path: string, payload: unknown) {
+  post<T>(path: string, payload: unknown, options?: RequestOptions) {
     return requestJson<T>(path, {
       method: "POST",
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: options?.signal
     });
   },
-  patch<T>(path: string, payload: unknown) {
+  patch<T>(path: string, payload: unknown, options?: RequestOptions) {
     return requestJson<T>(path, {
       method: "PATCH",
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: options?.signal
     });
   },
-  put<T>(path: string, payload: unknown) {
+  put<T>(path: string, payload: unknown, options?: RequestOptions) {
     return requestJson<T>(path, {
       method: "PUT",
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: options?.signal
     });
   },
-  delete<T>(path: string, payload?: unknown) {
+  delete<T>(path: string, payload?: unknown, options?: RequestOptions) {
     return requestJson<T>(path, {
       method: "DELETE",
-      body: payload === undefined ? undefined : JSON.stringify(payload)
+      body: payload === undefined ? undefined : JSON.stringify(payload),
+      signal: options?.signal
     });
   }
 };

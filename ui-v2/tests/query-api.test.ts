@@ -175,7 +175,8 @@ describe("query api", () => {
               msg: "succ",
               data: {
                 baseFields: ["service"],
-                logFields: ["message"]
+                logFields: ["message"],
+                supportsGlobalMatch: false
               }
             })
         };
@@ -202,6 +203,7 @@ describe("query api", () => {
 
     expect(fields.baseFields).toEqual([{ field: "service", orderField: "service" }]);
     expect(fields.logFields).toEqual([{ field: "message", orderField: "message" }]);
+    expect(fields.supportsGlobalMatch).toBe(false);
     expect(auto.logs).toEqual([{ suggestion: "service:gateway" }]);
   });
 

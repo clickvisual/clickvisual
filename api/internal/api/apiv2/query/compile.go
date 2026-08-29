@@ -11,6 +11,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	dbmodel "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	view "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/querycompile"
 )
 
@@ -63,11 +64,12 @@ func buildCompileContext(tid int) (querycompile.CompileContext, error) {
 	if tableInfo.Name == "" || tableInfo.Database == nil {
 		return querycompile.CompileContext{}, fmt.Errorf("table %d not found", tid)
 	}
+	rawLogFieldExists, defaultRawLogExists := rawLogColumnAvailability(tableInfo)
 	rawLogColumn, rawLogUnavailable := rawLogColumnForTable(
 		tableInfo.CreateType,
 		tableInfo.RawLogField,
-		tableColumnRecorded(tableInfo.ID, tableInfo.RawLogField),
-		tableColumnRecorded(tableInfo.ID, "_raw_log_"),
+		rawLogFieldExists,
+		defaultRawLogExists,
 	)
 	return querycompile.CompileContext{
 		TableName:                fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name),
@@ -90,6 +92,54 @@ func rawLogColumnForTable(createType int, rawLogField string, rawLogFieldExists 
 		return "", true
 	}
 	return "_raw_log_", false
+}
+
+func rawLogColumnAvailability(tableInfo dbmodel.BaseTable) (rawLogFieldExists bool, defaultRawLogExists bool) {
+	rawLogField := strings.TrimSpace(tableInfo.RawLogField)
+	rawLogFieldExists = rawLogField != "" && tableColumnRecorded(tableInfo.ID, rawLogField)
+	defaultRawLogExists = tableColumnRecorded(tableInfo.ID, "_raw_log_")
+	if tableInfo.CreateType != constx.TableCreateTypeExist {
+		return rawLogFieldExists, defaultRawLogExists
+	}
+	if rawLogField != "" && rawLogFieldExists {
+		return rawLogFieldExists, defaultRawLogExists
+	}
+	if rawLogField == "" && defaultRawLogExists {
+		return rawLogFieldExists, defaultRawLogExists
+	}
+	columns := tablePhysicalColumns(tableInfo)
+	if rawLogField != "" && columns[rawLogField] {
+		rawLogFieldExists = true
+	}
+	if columns["_raw_log_"] {
+		defaultRawLogExists = true
+	}
+	return rawLogFieldExists, defaultRawLogExists
+}
+
+func tablePhysicalColumns(tableInfo dbmodel.BaseTable) map[string]bool {
+	columns := make(map[string]bool)
+	if tableInfo.Database == nil || tableInfo.Database.Name == "" || tableInfo.Name == "" {
+		return columns
+	}
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		return columns
+	}
+	list, err := op.ListColumn(tableInfo.Database.Name, tableInfo.Name, false)
+	if err != nil {
+		return columns
+	}
+	for _, item := range list {
+		if item == nil {
+			continue
+		}
+		name := strings.TrimSpace(item.Name)
+		if name != "" {
+			columns[name] = true
+		}
+	}
+	return columns
 }
 
 func tableColumnRecorded(tid int, field string) bool {

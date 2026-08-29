@@ -5,6 +5,19 @@ import {
   reportResultMockById
 } from "../src/domains/report/mocks/reportMockData";
 
+class TestResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+const originalElementQuerySelector = Element.prototype.querySelector;
+const originalElementQuerySelectorAll = Element.prototype.querySelectorAll;
+
+function isUnsupportedBrowserPseudoSelector(error: unknown, selector: string) {
+  return error instanceof DOMException && selector.includes(":autofill");
+}
+
 beforeEach(() => {
   const queryFilterProfiles: Array<Record<string, unknown>> = [];
 
@@ -21,6 +34,37 @@ beforeEach(() => {
       dispatchEvent: vi.fn()
     }))
   });
+  Object.defineProperty(window, "ResizeObserver", {
+    configurable: true,
+    writable: true,
+    value: TestResizeObserver
+  });
+  vi.stubGlobal("ResizeObserver", TestResizeObserver);
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = vi.fn();
+  }
+  window.scroll = vi.fn();
+  window.scrollTo = vi.fn();
+  Element.prototype.querySelector = function querySelector(selector: string) {
+    try {
+      return originalElementQuerySelector.call(this, selector);
+    } catch (error) {
+      if (isUnsupportedBrowserPseudoSelector(error, selector)) {
+        return null;
+      }
+      throw error;
+    }
+  };
+  Element.prototype.querySelectorAll = function querySelectorAll(selector: string) {
+    try {
+      return originalElementQuerySelectorAll.call(this, selector);
+    } catch (error) {
+      if (isUnsupportedBrowserPseudoSelector(error, selector)) {
+        return document.createDocumentFragment().querySelectorAll("*");
+      }
+      throw error;
+    }
+  };
   Object.defineProperty(navigator, "clipboard", {
     configurable: true,
     value: {
@@ -481,6 +525,31 @@ beforeEach(() => {
                     request_id: "req-1001"
                   }
                 ]
+              }
+            })
+        };
+      }
+
+      if (method === "POST" && url.pathname.endsWith("/api/v2/query/field-stats")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: {
+                total: 10,
+                items: [
+                  { value: "ERROR", count: 6, percentage: 60 },
+                  { value: "INFO", count: 4, percentage: 40 }
+                ],
+                sql: "SELECT `level`, count() FROM `default`.`logs` GROUP BY `level`",
+                plan: {
+                  table: "`default`.`logs`",
+                  plannedConditions: [],
+                  warnings: [],
+                  orderBy: []
+                }
               }
             })
         };
