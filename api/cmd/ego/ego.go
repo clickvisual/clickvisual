@@ -2,7 +2,9 @@ package init
 
 import (
 	"fmt"
+	"net/url"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -60,6 +62,7 @@ func init() {
 	CmdInit.InheritedFlags()
 	CmdInit.Flags().StringVarP(&initConfigFile, "init-config", "i", "", "初始化配置文件路径")
 	CmdInit.Flags().StringVarP(&clickhouseDSN, "clickhouse-dsn", "d", "", "ClickHouse DSN 连接字符串")
+	CmdInit.Flags().StringVar(&cluster, "cluster", "", "ClickHouse cluster 名称")
 	CmdInit.Flags().StringVarP(&brokers, "brokers", "b", "", "Kafka brokers 地址")
 	CmdInit.Flags().StringVarP(&topicsApp, "topics-app", "", "", "应用日志 topic")
 	CmdInit.Flags().StringVarP(&topicsEgo, "topics-ego", "", "", "Ego 日志 topic")
@@ -87,10 +90,15 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 			elog.Panic("加载初始化配置失败: " + err.Error())
 		}
 	}
+	clickhouseDSN = normalizeClickHouseDSN(clickhouseDSN)
+	cluster = normalizeClusterName(cluster)
 
 	// 验证必需参数，设置默认值
 	if clickhouseDSN == "" {
 		elog.Panic("ClickHouse DSN 不能为空")
+	}
+	if err := validateClickHouseDSN(clickhouseDSN); err != nil {
+		elog.Panic(err.Error())
 	}
 	if brokers == "" {
 		brokers = "kafka-service.default:9092"
@@ -110,7 +118,8 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 
 	// 显示解析后的配置
 	elog.Info("配置解析完成:")
-	elog.Info("ClickHouse DSN: " + clickhouseDSN)
+	elog.Info("ClickHouse DSN: " + clickHouseDSNLogValue(clickhouseDSN))
+	elog.Info("ClickHouse Cluster: " + cluster)
 	elog.Info("Kafka Brokers: " + brokers)
 	elog.Info("Topics App: " + topicsApp)
 	elog.Info("Topics Ego: " + topicsEgo)
@@ -124,7 +133,7 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 
 	// 执行初始化步骤
 	if err := initializeClickVisual(); err != nil {
-		elog.Panic("初始化失败: " + err.Error())
+		elog.Panic("初始化失败: " + redactSensitiveValue(err.Error(), clickhouseDSN))
 	}
 
 	fmt.Println("ClickVisual 初始化完成")
@@ -194,9 +203,11 @@ func parseConfigContent(content string) error {
 		topicsIngressStderr = config.TopicsIngressStderr
 	}
 
-	if cluster == "" && config.Cluster != "" {
-		cluster = config.Cluster
+	cluster = normalizeClusterName(cluster)
+	if cluster == "" {
+		cluster = normalizeClusterName(config.Cluster)
 	}
+	clickhouseDSN = normalizeClickHouseDSN(clickhouseDSN)
 
 	return nil
 }
@@ -232,6 +243,9 @@ func initializeClickVisual() error {
 // createClickHouseInstance 创建 ClickHouse 实例
 func createClickHouseInstance() (*db.BaseInstance, error) {
 	elog.Info("创建 ClickHouse 实例...")
+	if err := validateClickHouseDSN(clickhouseDSN); err != nil {
+		return nil, err
+	}
 
 	// 检查 ClickHouse 实例是否存在
 	instance, err := db.InstanceInfoX(invoker.Db, map[string]interface{}{"name": "clickhouse-instance"})
@@ -255,7 +269,7 @@ func createClickHouseInstance() (*db.BaseInstance, error) {
 		return nil, err
 	}
 	if instance.ID == 0 {
-		elog.Error("创建 ClickHouse 实例失败", l.E(err), l.A("instance", instance))
+		elog.Error("创建 ClickHouse 实例失败", l.E(err))
 		return nil, fmt.Errorf("创建 ClickHouse 实例失败")
 	}
 	return &instance, nil
@@ -311,7 +325,7 @@ func createEgoStorageTemplate(databaseID int, instance *db.BaseInstance) error {
 		TopicsIngressStdout: topicsIngressStdout,
 		TopicsIngressStderr: topicsIngressStderr,
 	}
-	elog.Info("createEgoStorageTemplate", l.A("instance", instance), l.A("req", req))
+	elog.Info("createEgoStorageTemplate", l.A("req", req))
 	// 调用存储服务创建模板
 	database := db.BaseDatabase{}
 	database.ID = databaseID
@@ -323,5 +337,85 @@ func createEgoStorageTemplate(databaseID int, instance *db.BaseInstance) error {
 		return err
 	}
 
+	return nil
+}
+
+func normalizeClusterName(value string) string {
+	return strings.TrimSpace(value)
+}
+
+func clickHouseDSNLogValue(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "not configured"
+	}
+	return "configured"
+}
+
+func redactSensitiveValue(message, value string) string {
+	if strings.TrimSpace(value) == "" {
+		return message
+	}
+	trimmedValue := strings.TrimSpace(value)
+	sensitiveValues := []string{value, trimmedValue}
+	if parsed, err := url.Parse(trimmedValue); err == nil {
+		if parsed.User != nil {
+			sensitiveValues = append(sensitiveValues, parsed.User.String(), parsed.User.Username())
+			if password, ok := parsed.User.Password(); ok {
+				sensitiveValues = append(sensitiveValues, password)
+			}
+		}
+		for key, values := range parsed.Query() {
+			key = strings.ToLower(key)
+			if key == "username" || key == "password" {
+				sensitiveValues = append(sensitiveValues, values...)
+			}
+		}
+		for _, part := range strings.Split(parsed.RawQuery, "&") {
+			pieces := strings.SplitN(part, "=", 2)
+			if len(pieces) != 2 {
+				continue
+			}
+			key, err := url.QueryUnescape(pieces[0])
+			if err != nil {
+				continue
+			}
+			key = strings.ToLower(key)
+			if key == "username" || key == "password" {
+				sensitiveValues = append(sensitiveValues, pieces[1])
+			}
+		}
+	}
+	uniqueSensitiveValues := make(map[string]struct{}, len(sensitiveValues))
+	for _, sensitiveValue := range sensitiveValues {
+		if strings.TrimSpace(sensitiveValue) != "" {
+			uniqueSensitiveValues[sensitiveValue] = struct{}{}
+			uniqueSensitiveValues[url.QueryEscape(sensitiveValue)] = struct{}{}
+		}
+	}
+	sensitiveValues = sensitiveValues[:0]
+	for sensitiveValue := range uniqueSensitiveValues {
+		sensitiveValues = append(sensitiveValues, sensitiveValue)
+	}
+	sort.Slice(sensitiveValues, func(i, j int) bool {
+		return len(sensitiveValues[i]) > len(sensitiveValues[j])
+	})
+	for _, sensitiveValue := range sensitiveValues {
+		message = strings.ReplaceAll(message, sensitiveValue, "[REDACTED]")
+	}
+	return message
+}
+
+func normalizeClickHouseDSN(value string) string {
+	return strings.TrimSpace(value)
+}
+
+func validateClickHouseDSN(value string) error {
+	value = normalizeClickHouseDSN(value)
+	if value == "" {
+		return fmt.Errorf("ClickHouse DSN 格式无效")
+	}
+	if _, err := url.Parse(value); err != nil {
+		return fmt.Errorf("ClickHouse DSN 格式无效")
+	}
 	return nil
 }
