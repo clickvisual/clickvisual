@@ -7,9 +7,12 @@ import (
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/service"
 )
 
 func resetEgoCommandState(t *testing.T) {
@@ -123,6 +126,194 @@ func TestRedactSensitiveValueHandlesConvertedEncodedCredentials(t *testing.T) {
 	assert.NotContains(t, redacted, "%ZZ")
 	assert.NotContains(t, redacted, "s@cret")
 	assert.NotContains(t, redacted, "s%40cret")
+}
+
+func TestCreateLoggerDatabasePreservesClusterAndInstance(t *testing.T) {
+	resetEgoCommandState(t)
+	cluster = "  cluster-a  "
+	instance := &db.BaseInstance{BaseModel: db.BaseModel{ID: 7}}
+
+	oldDatabaseInfoX := databaseInfoX
+	oldDatabaseDelete := databaseDelete
+	oldCreateDatabase := createDatabase
+	t.Cleanup(func() {
+		databaseInfoX = oldDatabaseInfoX
+		databaseDelete = oldDatabaseDelete
+		createDatabase = oldCreateDatabase
+	})
+
+	databaseInfoX = func(_ *gorm.DB, _ map[string]interface{}) (db.BaseDatabase, error) {
+		return db.BaseDatabase{}, errors.New("record not found")
+	}
+	databaseDelete = func(_ *gorm.DB, _ int) error {
+		return nil
+	}
+	var captured db.BaseDatabase
+	createDatabase = func(req db.BaseDatabase) (db.BaseDatabase, error) {
+		captured = req
+		req.ID = 42
+		return req, nil
+	}
+
+	database, err := createLoggerDatabase(instance)
+	require.NoError(t, err)
+	assert.Equal(t, 7, captured.Iid)
+	assert.Equal(t, "cluster-a", captured.Cluster)
+	assert.Equal(t, 42, database.ID)
+	assert.Equal(t, 7, database.Iid)
+	assert.Equal(t, "logger", database.Name)
+	assert.Equal(t, "cluster-a", database.Cluster)
+	assert.Same(t, instance, database.Instance)
+}
+
+func TestCreateStorageByEgoTemplateReturnsErrorWhenServiceUninitialized(t *testing.T) {
+	oldStorage := service.Storage
+	oldCreateStorage := createStorageByEgoTemplate
+	t.Cleanup(func() {
+		service.Storage = oldStorage
+		createStorageByEgoTemplate = oldCreateStorage
+	})
+
+	service.Storage = nil
+	err := createStorageByEgoTemplate(1, db.BaseDatabase{}, view.ReqCreateStorageByTemplateEgo{})
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "storage service 未初始化")
+}
+
+func TestCreateLoggerDatabaseRejectsInvalidInstanceBeforeLookup(t *testing.T) {
+	oldDatabaseInfoX := databaseInfoX
+	t.Cleanup(func() { databaseInfoX = oldDatabaseInfoX })
+	lookupCalled := false
+	databaseInfoX = func(_ *gorm.DB, _ map[string]interface{}) (db.BaseDatabase, error) {
+		lookupCalled = true
+		return db.BaseDatabase{}, nil
+	}
+
+	for name, instance := range map[string]*db.BaseInstance{
+		"nil":  nil,
+		"zero": &db.BaseInstance{},
+	} {
+		t.Run(name, func(t *testing.T) {
+			lookupCalled = false
+			_, err := createLoggerDatabase(instance)
+			require.Error(t, err)
+			assert.False(t, lookupCalled)
+		})
+	}
+}
+
+func TestCreateLoggerDatabaseShortCircuitsDatabaseErrors(t *testing.T) {
+	t.Run("lookup error", func(t *testing.T) {
+		oldInfo, oldDelete, oldCreate := databaseInfoX, databaseDelete, createDatabase
+		t.Cleanup(func() {
+			databaseInfoX, databaseDelete, createDatabase = oldInfo, oldDelete, oldCreate
+		})
+		deleteCalled, createCalled := false, false
+		databaseInfoX = func(_ *gorm.DB, _ map[string]interface{}) (db.BaseDatabase, error) {
+			return db.BaseDatabase{}, errors.New("lookup failed")
+		}
+		databaseDelete = func(_ *gorm.DB, _ int) error { deleteCalled = true; return nil }
+		createDatabase = func(db.BaseDatabase) (db.BaseDatabase, error) {
+			createCalled = true
+			return db.BaseDatabase{}, nil
+		}
+		_, err := createLoggerDatabase(&db.BaseInstance{BaseModel: db.BaseModel{ID: 7}})
+		require.Error(t, err)
+		assert.False(t, deleteCalled)
+		assert.False(t, createCalled)
+	})
+
+	t.Run("delete error", func(t *testing.T) {
+		oldInfo, oldDelete, oldCreate := databaseInfoX, databaseDelete, createDatabase
+		t.Cleanup(func() {
+			databaseInfoX, databaseDelete, createDatabase = oldInfo, oldDelete, oldCreate
+		})
+		createCalled := false
+		databaseInfoX = func(_ *gorm.DB, _ map[string]interface{}) (db.BaseDatabase, error) {
+			return db.BaseDatabase{BaseModel: db.BaseModel{ID: 9}}, nil
+		}
+		databaseDelete = func(_ *gorm.DB, id int) error {
+			assert.Equal(t, 9, id)
+			return errors.New("delete failed")
+		}
+		createDatabase = func(db.BaseDatabase) (db.BaseDatabase, error) {
+			createCalled = true
+			return db.BaseDatabase{}, nil
+		}
+		_, err := createLoggerDatabase(&db.BaseInstance{BaseModel: db.BaseModel{ID: 7}})
+		require.Error(t, err)
+		assert.False(t, createCalled)
+	})
+
+	t.Run("create error", func(t *testing.T) {
+		oldInfo, oldDelete, oldCreate := databaseInfoX, databaseDelete, createDatabase
+		t.Cleanup(func() {
+			databaseInfoX, databaseDelete, createDatabase = oldInfo, oldDelete, oldCreate
+		})
+		deleteCalled := false
+		databaseInfoX = func(_ *gorm.DB, _ map[string]interface{}) (db.BaseDatabase, error) {
+			return db.BaseDatabase{}, errors.New("record not found")
+		}
+		databaseDelete = func(_ *gorm.DB, _ int) error { deleteCalled = true; return nil }
+		createDatabase = func(db.BaseDatabase) (db.BaseDatabase, error) {
+			return db.BaseDatabase{}, errors.New("create failed")
+		}
+		_, err := createLoggerDatabase(&db.BaseInstance{BaseModel: db.BaseModel{ID: 7}})
+		require.Error(t, err)
+		assert.False(t, deleteCalled)
+	})
+
+	t.Run("existing database is deleted before create", func(t *testing.T) {
+		oldInfo, oldDelete, oldCreate := databaseInfoX, databaseDelete, createDatabase
+		t.Cleanup(func() {
+			databaseInfoX, databaseDelete, createDatabase = oldInfo, oldDelete, oldCreate
+		})
+		calls := make([]string, 0, 2)
+		databaseInfoX = func(_ *gorm.DB, _ map[string]interface{}) (db.BaseDatabase, error) {
+			calls = append(calls, "lookup")
+			return db.BaseDatabase{BaseModel: db.BaseModel{ID: 9}}, nil
+		}
+		databaseDelete = func(_ *gorm.DB, id int) error {
+			calls = append(calls, "delete")
+			assert.Equal(t, 9, id)
+			return nil
+		}
+		createDatabase = func(req db.BaseDatabase) (db.BaseDatabase, error) {
+			calls = append(calls, "create")
+			req.ID = 42
+			return req, nil
+		}
+		database, err := createLoggerDatabase(&db.BaseInstance{BaseModel: db.BaseModel{ID: 7}})
+		require.NoError(t, err)
+		assert.Equal(t, []string{"lookup", "delete", "create"}, calls)
+		assert.Equal(t, 42, database.ID)
+	})
+}
+
+func TestCreateEgoStorageTemplatePassesDatabaseCluster(t *testing.T) {
+	resetEgoCommandState(t)
+	database := db.BaseDatabase{
+		BaseModel:    db.BaseModel{ID: 42},
+		Iid:          7,
+		Name:         "logger",
+		Uid:          1,
+		Cluster:      "cluster-a",
+		IsCreateByCV: 1,
+		Desc:         "ClickVisual 初始化创建的 logger 数据库",
+		Instance:     &db.BaseInstance{BaseModel: db.BaseModel{ID: 7}},
+	}
+
+	oldCreateStorage := createStorageByEgoTemplate
+	t.Cleanup(func() { createStorageByEgoTemplate = oldCreateStorage })
+	var captured db.BaseDatabase
+	createStorageByEgoTemplate = func(_ int, got db.BaseDatabase, _ view.ReqCreateStorageByTemplateEgo) error {
+		captured = got
+		return nil
+	}
+
+	require.NoError(t, createEgoStorageTemplate(database))
+	assert.Equal(t, database, captured)
+	assert.Same(t, database.Instance, captured.Instance)
 }
 
 func TestEnsureMetadataSchemaForEgoSkipsFullEdition(t *testing.T) {
@@ -266,11 +457,11 @@ func TestInitializeClickVisualStopsBeforeLoggerDatabaseWhenClusterValidationFail
 	validateClickHouseClusterForEgo = func(instanceID int, clusterName string) error {
 		return errors.New("cluster topology invalid")
 	}
-	createLoggerDatabaseForEgo = func(instanceID int) (int, error) {
+	createLoggerDatabaseForEgo = func(instance *db.BaseInstance) (db.BaseDatabase, error) {
 		loggerCalled = true
-		return 1, nil
+		return db.BaseDatabase{BaseModel: db.BaseModel{ID: 1}}, nil
 	}
-	createEgoStorageTemplateForEgo = func(databaseID int, instance *db.BaseInstance) error {
+	createEgoStorageTemplateForEgo = func(database db.BaseDatabase) error {
 		storageCalled = true
 		return nil
 	}

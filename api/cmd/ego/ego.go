@@ -54,10 +54,20 @@ var (
 		}
 		return op.ClusterInfo()
 	}
-	createClickHouseInstanceForEgo  = createClickHouseInstance
-	validateClickHouseClusterForEgo = validateClickHouseCluster
-	createLoggerDatabaseForEgo      = createLoggerDatabase
-	createEgoStorageTemplateForEgo  = createEgoStorageTemplate
+	createClickHouseInstanceForEgo    = createClickHouseInstance
+	validateClickHouseClusterForEgo   = validateClickHouseCluster
+	createLoggerDatabaseForEgo        = createLoggerDatabase
+	createEgoStorageTemplateForEgo    = createEgoStorageTemplate
+	databaseInfoX                     = db.DatabaseInfoX
+	databaseDelete                    = db.DatabaseDelete
+	createDatabase                    = service.DatabaseCreate
+	defaultCreateStorageByEgoTemplate = func(uid int, database db.BaseDatabase, req view.ReqCreateStorageByTemplateEgo) error {
+		if service.Storage == nil {
+			return fmt.Errorf("storage service 未初始化")
+		}
+		return service.Storage.CreateByEgoTemplate(uid, database, req)
+	}
+	createStorageByEgoTemplate = defaultCreateStorageByEgoTemplate
 )
 
 var CmdInit = &cobra.Command{
@@ -240,14 +250,14 @@ func initializeClickVisual() error {
 	}
 
 	// 2. 创建 logger 数据库
-	databaseID, err := createLoggerDatabaseForEgo(instance.ID)
+	database, err := createLoggerDatabaseForEgo(instance)
 	if err != nil {
 		return fmt.Errorf("创建 logger 数据库失败: %v", err)
 	}
-	elog.Info("logger 数据库创建成功", elog.Int("ID", databaseID))
+	elog.Info("logger 数据库创建成功", elog.Int("ID", database.ID))
 
 	// 3. 创建 ego 存储模板
-	err = createEgoStorageTemplateForEgo(databaseID, instance)
+	err = createEgoStorageTemplateForEgo(database)
 	if err != nil {
 		return fmt.Errorf("创建 ego 存储模板失败: %v", err)
 	}
@@ -292,63 +302,59 @@ func createClickHouseInstance() (*db.BaseInstance, error) {
 }
 
 // createLoggerDatabase 创建 logger 数据库
-func createLoggerDatabase(instanceID int) (int, error) {
+func createLoggerDatabase(instance *db.BaseInstance) (db.BaseDatabase, error) {
+	if instance == nil || instance.ID == 0 {
+		return db.BaseDatabase{}, fmt.Errorf("ClickHouse instance 未初始化")
+	}
 	elog.Info("创建 logger 数据库...")
 
 	// 检查 logger 数据库是否存在
-	database, err := db.DatabaseInfoX(invoker.Db, map[string]interface{}{"name": "logger"})
+	database, err := databaseInfoX(invoker.Db, map[string]interface{}{"name": "logger"})
 	if err != nil {
 		// 未找到记录不视为错误，继续创建
 		if !strings.Contains(strings.ToLower(err.Error()), "record not found") {
-			return 0, err
+			return db.BaseDatabase{}, err
 		}
 	}
 	if database.ID != 0 {
 		// delete database
-		err = db.DatabaseDelete(invoker.Db, database.ID)
+		err = databaseDelete(invoker.Db, database.ID)
 		if err != nil {
-			return 0, fmt.Errorf("删除 logger 数据库失败: %v", err)
+			return db.BaseDatabase{}, fmt.Errorf("删除 logger 数据库失败: %v", err)
 		}
 	}
 	req := db.BaseDatabase{
-		Iid:          instanceID,
+		Iid:          instance.ID,
 		Name:         "logger",
-		Cluster:      "",
+		Cluster:      normalizeClusterName(cluster),
 		Uid:          1, // 使用系统用户
 		IsCreateByCV: 1,
 		Desc:         "ClickVisual 初始化创建的 logger 数据库",
 	}
-	if cluster != "" {
-		req.Cluster = cluster
-	}
-	database, err = service.DatabaseCreate(req)
+	database, err = createDatabase(req)
 	if err != nil {
-		return 0, err
+		return db.BaseDatabase{}, err
 	}
+	database.Instance = instance
 
-	return database.ID, nil
+	return database, nil
 }
 
 // createEgoStorageTemplate 创建 ego 存储模板
-func createEgoStorageTemplate(databaseID int, instance *db.BaseInstance) error {
+func createEgoStorageTemplate(database db.BaseDatabase) error {
 	elog.Info("创建 ego 存储模板...")
 
 	req := view.ReqCreateStorageByTemplateEgo{
 		Brokers:             brokers,
-		DatabaseId:          databaseID,
+		DatabaseId:          database.ID,
 		TopicsApp:           topicsApp,
 		TopicsEgo:           topicsEgo,
 		TopicsIngressStdout: topicsIngressStdout,
 		TopicsIngressStderr: topicsIngressStderr,
 	}
-	elog.Info("createEgoStorageTemplate", l.A("req", req))
+	elog.Info("createEgoStorageTemplate", l.A("databaseID", database.ID), l.A("cluster", database.Cluster), l.A("req", req))
 	// 调用存储服务创建模板
-	database := db.BaseDatabase{}
-	database.ID = databaseID
-	database.Name = "logger"
-	database.Iid = instance.ID
-	database.Instance = instance
-	err := service.Storage.CreateByEgoTemplate(1, database, req)
+	err := createStorageByEgoTemplate(1, database, req)
 	if err != nil {
 		return err
 	}
