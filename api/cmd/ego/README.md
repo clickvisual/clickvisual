@@ -2,9 +2,11 @@
 
 ## 功能
 
-1. **创建 ClickHouse 实例** - 调用 `base.InstanceCreate` 接口创建 ClickHouse 实例
-2. **创建 logger 数据库** - 在创建的实例上调用 `base.DatabaseCreate` 创建名为 "logger" 的数据库
-3. **创建 ego 存储模板** - 在 logger 数据库上调用 `storage.CreateStorageByTemplate` 创建 ego 存储模板
+1. **创建 ClickHouse 实例记录** - 通过 service 层创建或复用名为 `clickhouse-instance` 的实例记录
+2. **创建 logger 数据库** - 通过 service 层在该实例上创建名为 `logger` 的数据库
+3. **创建 ego 存储模板** - 通过 service 层在 logger 数据库中创建 EGO 日志模板
+
+如果已存在 `clickhouse-instance` 实例记录，命令会复用该记录；复用时不会用本次 `clickhouse_dsn` 覆盖已保存的 DSN。
 
 ## 使用方法
 
@@ -12,7 +14,7 @@
 
 ```bash
 # 使用仓库中的运行配置和 ego 初始化配置
-./clickvisual ego \
+./bin/clickvisual ego \
   --config=./config/default.toml \
   --init-config=./config/init-config.example.toml
 ```
@@ -53,7 +55,7 @@ topics_ingress_stderr = "ingress-stderr-logs-ilogtail"
 使用 `--cluster` 传入时，非空 CLI 值优先于 TOML 中的 `cluster`：
 
 ```bash
-./clickvisual ego --config=./config/default.toml \
+./bin/clickvisual ego --config=./config/default.toml \
   --init-config=./config/init-config.example.toml \
   --cluster=shard2-repl1
 ```
@@ -85,3 +87,5 @@ topics_ingress_stderr = "ingress-stderr-logs-ilogtail"
 ```
 
 为避免泄露凭据，DSN 日志只显示 `configured` 或 `not configured`，不会回显 DSN 内容。使用 `--dry-run` 时只解析配置并输出摘要，不连接或校验 ClickHouse，也不执行 DDL。
+
+当前 ego 存储模板服务实际创建 app stdout 和 ingress stdout 两类表；`--topics-ego` 与 `--topics-ingress-stderr` 参数仍会被接受并保留默认值，但当前流程不会据此创建对应表。
