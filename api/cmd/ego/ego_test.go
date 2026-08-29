@@ -1,11 +1,15 @@
 package init
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/gotomicro/ego/core/econf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 )
 
 func resetEgoCommandState(t *testing.T) {
@@ -150,4 +154,130 @@ func TestEnsureMetadataSchemaForEgoMigratesPrivateLiteEdition(t *testing.T) {
 
 	require.NoError(t, ensureMetadataSchemaForEgo())
 	assert.True(t, called)
+}
+
+func TestValidateClickHouseClusterSkipsLoaderForEmptyCluster(t *testing.T) {
+	called := false
+	old := loadClickHouseClusterInfo
+	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
+		called = true
+		return nil, nil
+	}
+	t.Cleanup(func() { loadClickHouseClusterInfo = old })
+
+	require.NoError(t, validateClickHouseCluster(1, "  "))
+	assert.False(t, called)
+}
+
+func TestValidateClickHouseClusterAllowsMultipleShards(t *testing.T) {
+	old := loadClickHouseClusterInfo
+	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
+		return map[string]dto.ClusterInfo{"prod": {Name: "prod", MaxShardNum: 2, MaxReplicaNum: 1}}, nil
+	}
+	t.Cleanup(func() { loadClickHouseClusterInfo = old })
+
+	require.NoError(t, validateClickHouseCluster(1, " prod "))
+}
+
+func TestValidateClickHouseClusterAllowsMultipleReplicas(t *testing.T) {
+	old := loadClickHouseClusterInfo
+	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
+		return map[string]dto.ClusterInfo{"prod": {Name: "prod", MaxShardNum: 1, MaxReplicaNum: 2}}, nil
+	}
+	t.Cleanup(func() { loadClickHouseClusterInfo = old })
+
+	require.NoError(t, validateClickHouseCluster(1, "prod"))
+}
+
+func TestValidateClickHouseClusterRejectsUnknownClusterWithAvailableMultiNodeNames(t *testing.T) {
+	old := loadClickHouseClusterInfo
+	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
+		return map[string]dto.ClusterInfo{
+			"zeta":  {Name: "zeta", MaxShardNum: 1, MaxReplicaNum: 3},
+			"alpha": {Name: "alpha", MaxShardNum: 2, MaxReplicaNum: 1},
+			"solo":  {Name: "solo", MaxShardNum: 1, MaxReplicaNum: 1},
+		}, nil
+	}
+	t.Cleanup(func() { loadClickHouseClusterInfo = old })
+
+	err := validateClickHouseCluster(1, "missing")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `ClickHouse cluster "missing" 不存在`)
+	assert.Contains(t, err.Error(), "alpha, zeta")
+	assert.NotContains(t, err.Error(), "solo")
+}
+
+func TestValidateClickHouseClusterUnknownClusterReportsNoAvailableMultiNodeNames(t *testing.T) {
+	old := loadClickHouseClusterInfo
+	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
+		return map[string]dto.ClusterInfo{"solo": {Name: "solo", MaxShardNum: 1, MaxReplicaNum: 1}}, nil
+	}
+	t.Cleanup(func() { loadClickHouseClusterInfo = old })
+
+	err := validateClickHouseCluster(1, "missing")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `ClickHouse cluster "missing" 不存在`)
+	assert.Contains(t, err.Error(), "可用多节点 cluster: 无")
+}
+
+func TestValidateClickHouseClusterRejectsSingleNodeCluster(t *testing.T) {
+	old := loadClickHouseClusterInfo
+	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
+		return map[string]dto.ClusterInfo{"solo": {Name: "solo", MaxShardNum: 1, MaxReplicaNum: 1}}, nil
+	}
+	t.Cleanup(func() { loadClickHouseClusterInfo = old })
+
+	err := validateClickHouseCluster(1, "solo")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "1 shard × 1 replica")
+	assert.Contains(t, err.Error(), "移除 cluster 配置使用单机模式")
+}
+
+func TestValidateClickHouseClusterWrapsLoaderError(t *testing.T) {
+	old := loadClickHouseClusterInfo
+	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
+		return nil, errors.New("system.clusters unavailable")
+	}
+	t.Cleanup(func() { loadClickHouseClusterInfo = old })
+
+	err := validateClickHouseCluster(1, "prod")
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "查询 ClickHouse system.clusters 失败")
+	assert.ErrorContains(t, err, "system.clusters unavailable")
+}
+
+func TestInitializeClickVisualStopsBeforeLoggerDatabaseWhenClusterValidationFails(t *testing.T) {
+	oldCreateInstance := createClickHouseInstanceForEgo
+	oldValidateCluster := validateClickHouseClusterForEgo
+	oldCreateDatabase := createLoggerDatabaseForEgo
+	oldCreateStorage := createEgoStorageTemplateForEgo
+	t.Cleanup(func() {
+		createClickHouseInstanceForEgo = oldCreateInstance
+		validateClickHouseClusterForEgo = oldValidateCluster
+		createLoggerDatabaseForEgo = oldCreateDatabase
+		createEgoStorageTemplateForEgo = oldCreateStorage
+	})
+
+	loggerCalled := false
+	storageCalled := false
+	createClickHouseInstanceForEgo = func() (*db.BaseInstance, error) {
+		return &db.BaseInstance{BaseModel: db.BaseModel{ID: 7}}, nil
+	}
+	validateClickHouseClusterForEgo = func(instanceID int, clusterName string) error {
+		return errors.New("cluster topology invalid")
+	}
+	createLoggerDatabaseForEgo = func(instanceID int) (int, error) {
+		loggerCalled = true
+		return 1, nil
+	}
+	createEgoStorageTemplateForEgo = func(databaseID int, instance *db.BaseInstance) error {
+		storageCalled = true
+		return nil
+	}
+
+	err := initializeClickVisual()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "校验 ClickHouse cluster 失败")
+	assert.False(t, loggerCalled)
+	assert.False(t, storageCalled)
 }
