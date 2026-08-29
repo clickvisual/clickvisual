@@ -18,6 +18,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	appconfig "github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/install"
@@ -45,7 +46,18 @@ var (
 	topicsIngressStderr string
 	dryRun              bool
 
-	migrateMetadataSchema = install.Migration
+	migrateMetadataSchema     = install.Migration
+	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
+		op, err := service.InstanceManager.Load(instanceID)
+		if err != nil {
+			return nil, err
+		}
+		return op.ClusterInfo()
+	}
+	createClickHouseInstanceForEgo  = createClickHouseInstance
+	validateClickHouseClusterForEgo = validateClickHouseCluster
+	createLoggerDatabaseForEgo      = createLoggerDatabase
+	createEgoStorageTemplateForEgo  = createEgoStorageTemplate
 )
 
 var CmdInit = &cobra.Command{
@@ -217,21 +229,25 @@ func initializeClickVisual() error {
 	elog.Info("开始初始化 ClickVisual...")
 
 	// 1. 创建 ClickHouse 实例
-	instance, err := createClickHouseInstance()
+	instance, err := createClickHouseInstanceForEgo()
 	if err != nil {
 		return fmt.Errorf("创建 ClickHouse 实例失败: %v", err)
 	}
 	elog.Info("ClickHouse 实例创建成功", elog.Int("ID", instance.ID))
 
+	if err := validateClickHouseClusterForEgo(instance.ID, cluster); err != nil {
+		return fmt.Errorf("校验 ClickHouse cluster 失败: %w", err)
+	}
+
 	// 2. 创建 logger 数据库
-	databaseID, err := createLoggerDatabase(instance.ID)
+	databaseID, err := createLoggerDatabaseForEgo(instance.ID)
 	if err != nil {
 		return fmt.Errorf("创建 logger 数据库失败: %v", err)
 	}
 	elog.Info("logger 数据库创建成功", elog.Int("ID", databaseID))
 
 	// 3. 创建 ego 存储模板
-	err = createEgoStorageTemplate(databaseID, instance)
+	err = createEgoStorageTemplateForEgo(databaseID, instance)
 	if err != nil {
 		return fmt.Errorf("创建 ego 存储模板失败: %v", err)
 	}
@@ -342,6 +358,39 @@ func createEgoStorageTemplate(databaseID int, instance *db.BaseInstance) error {
 
 func normalizeClusterName(value string) string {
 	return strings.TrimSpace(value)
+}
+
+func validateClickHouseCluster(instanceID int, clusterName string) error {
+	clusterName = normalizeClusterName(clusterName)
+	if clusterName == "" {
+		return nil
+	}
+
+	clusters, err := loadClickHouseClusterInfo(instanceID)
+	if err != nil {
+		return fmt.Errorf("查询 ClickHouse system.clusters 失败: %w", err)
+	}
+
+	info, ok := clusters[clusterName]
+	if !ok {
+		available := make([]string, 0)
+		for name, candidate := range clusters {
+			if candidate.MaxShardNum > 1 || candidate.MaxReplicaNum > 1 {
+				available = append(available, name)
+			}
+		}
+		sort.Strings(available)
+		availableText := strings.Join(available, ", ")
+		if availableText == "" {
+			availableText = "无"
+		}
+		return fmt.Errorf("ClickHouse cluster %q 不存在，可用多节点 cluster: %s", clusterName, availableText)
+	}
+
+	if info.MaxShardNum <= 1 && info.MaxReplicaNum <= 1 {
+		return fmt.Errorf("ClickHouse cluster %q 为 1 shard × 1 replica，请移除 cluster 配置使用单机模式", clusterName)
+	}
+	return nil
 }
 
 func clickHouseDSNLogValue(value string) string {
