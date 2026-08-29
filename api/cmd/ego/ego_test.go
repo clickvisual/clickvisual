@@ -472,3 +472,92 @@ func TestInitializeClickVisualStopsBeforeLoggerDatabaseWhenClusterValidationFail
 	assert.False(t, loggerCalled)
 	assert.False(t, storageCalled)
 }
+
+func TestCmdFuncDryRunSkipsSideEffects(t *testing.T) {
+	resetEgoCommandState(t)
+	econf.Reset()
+	t.Cleanup(econf.Reset)
+	econf.Set("app.v2Edition", "private-lite")
+	clickhouseDSN = "tcp://clickhouse:9000"
+	cluster = "prod"
+	dryRun = true
+
+	var migrationCalled, serviceInitCalled, instanceCalled, clusterCalled, databaseCalled, storageCalled bool
+	oldMigrate := migrateMetadataSchema
+	oldInitServices := initializeEgoServicesForEgo
+	oldCreateInstance := createClickHouseInstanceForEgo
+	oldValidateCluster := validateClickHouseClusterForEgo
+	oldCreateDatabase := createLoggerDatabaseForEgo
+	oldCreateStorage := createEgoStorageTemplateForEgo
+	t.Cleanup(func() {
+		migrateMetadataSchema = oldMigrate
+		initializeEgoServicesForEgo = oldInitServices
+		createClickHouseInstanceForEgo = oldCreateInstance
+		validateClickHouseClusterForEgo = oldValidateCluster
+		createLoggerDatabaseForEgo = oldCreateDatabase
+		createEgoStorageTemplateForEgo = oldCreateStorage
+	})
+	migrateMetadataSchema = func() error { migrationCalled = true; return nil }
+	initializeEgoServicesForEgo = func() { serviceInitCalled = true }
+	createClickHouseInstanceForEgo = func() (*db.BaseInstance, error) {
+		instanceCalled = true
+		return &db.BaseInstance{BaseModel: db.BaseModel{ID: 1}}, nil
+	}
+	validateClickHouseClusterForEgo = func(int, string) error { clusterCalled = true; return nil }
+	createLoggerDatabaseForEgo = func(*db.BaseInstance) (db.BaseDatabase, error) {
+		databaseCalled = true
+		return db.BaseDatabase{}, nil
+	}
+	createEgoStorageTemplateForEgo = func(db.BaseDatabase) error { storageCalled = true; return nil }
+
+	CmdFunc(nil, nil)
+
+	assert.False(t, migrationCalled)
+	assert.False(t, serviceInitCalled)
+	assert.False(t, instanceCalled)
+	assert.False(t, clusterCalled)
+	assert.False(t, databaseCalled)
+	assert.False(t, storageCalled)
+}
+
+func TestCmdFuncNormalModeInitializesBeforeClickVisual(t *testing.T) {
+	resetEgoCommandState(t)
+	econf.Reset()
+	t.Cleanup(econf.Reset)
+	econf.Set("app.v2Edition", "private-lite")
+	clickhouseDSN = "tcp://clickhouse:9000"
+	cluster = "prod"
+	dryRun = false
+
+	var calls []string
+	oldMigrate := migrateMetadataSchema
+	oldInitServices := initializeEgoServicesForEgo
+	oldCreateInstance := createClickHouseInstanceForEgo
+	oldValidateCluster := validateClickHouseClusterForEgo
+	oldCreateDatabase := createLoggerDatabaseForEgo
+	oldCreateStorage := createEgoStorageTemplateForEgo
+	t.Cleanup(func() {
+		migrateMetadataSchema = oldMigrate
+		initializeEgoServicesForEgo = oldInitServices
+		createClickHouseInstanceForEgo = oldCreateInstance
+		validateClickHouseClusterForEgo = oldValidateCluster
+		createLoggerDatabaseForEgo = oldCreateDatabase
+		createEgoStorageTemplateForEgo = oldCreateStorage
+	})
+	migrateMetadataSchema = func() error { calls = append(calls, "migration"); return nil }
+	initializeEgoServicesForEgo = func() { calls = append(calls, "service") }
+	createClickHouseInstanceForEgo = func() (*db.BaseInstance, error) {
+		calls = append(calls, "instance")
+		return &db.BaseInstance{BaseModel: db.BaseModel{ID: 1}}, nil
+	}
+	validateClickHouseClusterForEgo = func(int, string) error { calls = append(calls, "cluster"); return nil }
+	createLoggerDatabaseForEgo = func(*db.BaseInstance) (db.BaseDatabase, error) {
+		calls = append(calls, "database")
+		return db.BaseDatabase{BaseModel: db.BaseModel{ID: 2}}, nil
+	}
+	createEgoStorageTemplateForEgo = func(db.BaseDatabase) error { calls = append(calls, "storage"); return nil }
+
+	CmdFunc(nil, nil)
+
+	assert.Equal(t, []string{"migration", "service", "instance", "cluster", "database", "storage"}, calls)
+}
