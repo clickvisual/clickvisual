@@ -141,7 +141,6 @@ func compileCondition(cond view.QueryConditionV2, ctx CompileContext) (expr stri
 	if err != nil {
 		return "", view.PlannedCondition{}, err
 	}
-	fieldExpr, cond = normalizeLogLevelCondition(fieldExpr, cond)
 	expr, err = compileOperator(fieldExpr, cond.Operator, cond.Value, cond.ValueTo, cond.Field.ValueType)
 	if err != nil {
 		return "", view.PlannedCondition{}, err
@@ -186,53 +185,6 @@ func compileRawLogEscapedQuoteFallback(expr string, cond view.QueryConditionV2, 
 		return fmt.Sprintf("(%s NOT LIKE '%%%s%%' AND %s NOT LIKE '%%%s%%')", expr, normalPattern, expr, jsonEscapedPattern)
 	}
 	return fmt.Sprintf("(%s LIKE '%%%s%%' OR %s LIKE '%%%s%%')", expr, normalPattern, expr, jsonEscapedPattern)
-}
-
-func normalizeLogLevelCondition(expr string, cond view.QueryConditionV2) (string, view.QueryConditionV2) {
-	if !isLogLevelField(cond.Field.FieldKey) && !isLogLevelField(cond.Field.Path) {
-		return expr, cond
-	}
-	if cond.Field.ValueType != view.QueryValueTypeString && cond.Field.ValueType != view.QueryValueTypeUnknown {
-		return expr, cond
-	}
-	switch cond.Operator {
-	case view.QueryOperatorEQ, view.QueryOperatorNEQ, view.QueryOperatorContains, view.QueryOperatorNotContains, view.QueryOperatorIn:
-	default:
-		return expr, cond
-	}
-	cond.Value = normalizeLogLevelValue(cond.Value)
-	cond.ValueTo = normalizeLogLevelValue(cond.ValueTo)
-	return fmt.Sprintf("lowerUTF8(replaceRegexpAll(%s, '\\x1b\\\\[[0-9;]*m', ''))", expr), cond
-}
-
-func isLogLevelField(field string) bool {
-	switch strings.ToLower(strings.TrimSpace(field)) {
-	case "lv", "level", "severity", "log_level":
-		return true
-	default:
-		return false
-	}
-}
-
-func normalizeLogLevelValue(value interface{}) interface{} {
-	switch typed := value.(type) {
-	case []interface{}:
-		items := make([]interface{}, 0, len(typed))
-		for _, item := range typed {
-			items = append(items, normalizeLogLevelValue(item))
-		}
-		return items
-	case []string:
-		items := make([]string, 0, len(typed))
-		for _, item := range typed {
-			items = append(items, strings.ToLower(strings.TrimSpace(item)))
-		}
-		return items
-	case string:
-		return strings.ToLower(strings.TrimSpace(typed))
-	default:
-		return value
-	}
 }
 
 func buildFieldExpression(field view.QueryFieldRef, ctx CompileContext) (expr string, execution string, highCost bool, err error) {

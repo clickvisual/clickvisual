@@ -151,10 +151,10 @@ func supportsGlobalMatchForTable(tableInfo db.BaseTable, fields []*db.BaseIndex)
 		return true
 	}
 	rawLogField := strings.TrimSpace(tableInfo.RawLogField)
-	if rawLogField != "" && analysisFieldExists(fields, rawLogField) {
+	if rawLogField != "" && (analysisFieldExists(fields, rawLogField) || physicalTableColumnExists(tableInfo, rawLogField)) {
 		return true
 	}
-	return analysisFieldExists(fields, "_raw_log_")
+	return analysisFieldExists(fields, "_raw_log_") || physicalTableColumnExists(tableInfo, "_raw_log_")
 }
 
 func analysisFieldExists(fields []*db.BaseIndex, field string) bool {
@@ -167,6 +167,30 @@ func analysisFieldExists(fields []*db.BaseIndex, field string) bool {
 			continue
 		}
 		if item.GetFieldName() == field || strings.TrimSpace(item.Field) == field {
+			return true
+		}
+	}
+	return false
+}
+
+func physicalTableColumnExists(tableInfo db.BaseTable, field string) bool {
+	field = strings.TrimSpace(field)
+	if field == "" || tableInfo.Database == nil || tableInfo.Database.Name == "" || tableInfo.Name == "" {
+		return false
+	}
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		return false
+	}
+	columns, err := op.ListColumn(tableInfo.Database.Name, tableInfo.Name, false)
+	if err != nil {
+		return false
+	}
+	for _, item := range columns {
+		if item == nil {
+			continue
+		}
+		if strings.TrimSpace(item.Name) == field {
 			return true
 		}
 	}

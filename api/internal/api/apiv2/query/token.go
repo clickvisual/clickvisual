@@ -150,9 +150,12 @@ func TokenRun(c *core.Context) {
 		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
 		return
 	}
-	result, err := runStructuredQueryWithFallback(op, req, ctx)
+	result, err := runStructuredQueryWithFallback(c.Request.Context(), op, req, ctx)
 	costMs := time.Since(startedAt).Milliseconds()
 	if err != nil {
+		if isRequestCanceled(err) {
+			return
+		}
 		recordTokenAudit(c, principal, tableInfo, req, 0, costMs, querytoken.AuditStatusFailed, err)
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return

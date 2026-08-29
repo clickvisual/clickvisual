@@ -28,11 +28,31 @@ import type {
   QuerySourceTable
 } from "../types/contracts";
 
-const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 50;
 const QUERY_HISTORY_STORAGE_KEY = "clickvisual-v2-query-history";
 const DEFAULT_CONDITION_OPERATOR = "=";
-const GLOBAL_MATCH_FIELD = "全局匹配";
+const GLOBAL_MATCH_FIELD = "All fields";
+const LEGACY_GLOBAL_MATCH_FIELD = "全局匹配";
 const GLOBAL_MATCH_COLUMN = "_raw_log_";
+
+type QueryRunRange = {
+  st: number;
+  et: number;
+};
+
+type QueryRunSnapshot = {
+  range: QueryRunRange;
+  conditions: QueryConditionV2[];
+};
+
+function isAbortRequestError(error: unknown) {
+  return (
+    (error instanceof Error && error.name === "AbortError") ||
+    (typeof DOMException !== "undefined" &&
+      error instanceof DOMException &&
+      error.name === "AbortError")
+  );
+}
 
 let conditionSeed = 1;
 
@@ -101,17 +121,17 @@ function createEmptyCondition(): QueryFilterCondition {
 function normalizeNumberValue(value: string | number, field: string) {
   if (typeof value === "number") {
     if (!Number.isFinite(value)) {
-      throw new Error(`字段 ${field || "unknown"} 需要数字值`);
+      throw new Error(`Field ${field || "unknown"} requires a number`);
     }
     return String(value);
   }
   const trimmed = value.trim();
   if (!trimmed) {
-    throw new Error(`字段 ${field || "unknown"} 需要数字值`);
+    throw new Error(`Field ${field || "unknown"} requires a number`);
   }
   const parsed = Number(trimmed);
   if (!Number.isFinite(parsed)) {
-    throw new Error(`字段 ${field || "unknown"} 需要数字值`);
+    throw new Error(`Field ${field || "unknown"} requires a number`);
   }
   return String(parsed);
 }
@@ -126,10 +146,17 @@ function normalizeDateTimeValue(value: string | number) {
 }
 
 function quoteQueryField(field: string) {
-  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(field)) {
-    return field;
-  }
   return `\`${field.replaceAll("`", "``")}\``;
+}
+
+function isGlobalMatchField(field: string) {
+  const normalized = String(field || "").trim();
+  return normalized === GLOBAL_MATCH_FIELD || normalized === LEGACY_GLOBAL_MATCH_FIELD;
+}
+
+function normalizeSuggestionFieldKey(field: string) {
+  const normalized = String(field || "").trim();
+  return isGlobalMatchField(normalized) ? GLOBAL_MATCH_FIELD.toLowerCase() : normalized;
 }
 
 function unquoteQueryValue(value: string) {
@@ -146,24 +173,36 @@ function createConditionFromQueryToken(token: string, index: number): QueryFilte
   if (!trimmed) {
     return null;
   }
-  const match = trimmed.match(/^(.+?)\s+(not\s+like|like|!=|=)\s+(.+)$/i);
+  const match = trimmed.match(/^(.+?)\s*(not\s+like|like|!=|=)\s*(.+)$/i);
   if (!match) {
     return null;
   }
   const rawField = match[1].trim().replace(/^`|`$/g, "");
   const rawOperator = match[2].toLowerCase() as QueryFilterCondition["operator"];
-  let value = unquoteQueryValue(match[3]);
-  const isGlobalLike = rawField === GLOBAL_MATCH_COLUMN && rawOperator === "like";
-  if (isGlobalLike && value.startsWith("%") && value.endsWith("%") && value.length >= 2) {
+  const rawValue = match[3].trim();
+  const rawValueQuote = rawValue[0];
+  const isExplicitStringValue =
+    (rawValueQuote === "'" || rawValueQuote === "\"") && rawValue.endsWith(rawValueQuote);
+  let value = unquoteQueryValue(rawValue);
+  const isGlobalMatch =
+    rawField === GLOBAL_MATCH_COLUMN && (rawOperator === "like" || rawOperator === "not like");
+  if (isGlobalMatch && value.startsWith("%") && value.endsWith("%") && value.length >= 2) {
     value = value.slice(1, -1);
   }
   return {
     id: `cond_url_${index}`,
-    field: isGlobalLike ? GLOBAL_MATCH_FIELD : rawField,
-    operator: isGlobalLike ? "like" : rawOperator,
+    field: isGlobalMatch ? GLOBAL_MATCH_FIELD : rawField,
+    operator: rawOperator,
     value,
-    valueType: /^-?\d+(\.\d+)?$/.test(value) && !isGlobalLike ? "number" : "string"
+    valueType: /^-?\d+(\.\d+)?$/.test(value) && !isExplicitStringValue && !isGlobalMatch ? "number" : "string"
   };
+}
+
+function parseQueryTextConditions(query: string) {
+  return query
+    .split(/\s+AND\s+/i)
+    .map((item, index) => createConditionFromQueryToken(item, index))
+    .filter((item): item is QueryFilterCondition => Boolean(item));
 }
 
 function readInitialQueryConditions() {
@@ -186,10 +225,7 @@ function readInitialQueryConditions() {
       ] as QueryFilterCondition[];
     }
   }
-  return query
-    .split(/\s+AND\s+/i)
-    .map((item, index) => createConditionFromQueryToken(item, index))
-    .filter((item): item is QueryFilterCondition => Boolean(item));
+  return parseQueryTextConditions(query);
 }
 
 function writeQueryToURL(query: string) {
@@ -211,7 +247,7 @@ function writeQueryToURL(query: string) {
 
 function validateOperatorValueType(operator: QueryFilterCondition["operator"], valueType: QueryFilterValueType) {
   if ((operator === "like" || operator === "not like") && valueType !== "string") {
-    throw new Error(`${operator} 只支持字符串字段`);
+    throw new Error(`${operator} only supports string fields`);
   }
 }
 
@@ -231,11 +267,12 @@ function buildVisualQuery(conditions: QueryFilterCondition[]) {
     .map((condition) => {
       const field = String(condition.field || "").trim();
       if (!field) {
-        throw new Error("筛选字段不能为空");
+        throw new Error("Field is required");
       }
-      if (field === GLOBAL_MATCH_FIELD) {
+      if (isGlobalMatchField(field)) {
         const raw = String(condition.value ?? "").replaceAll("'", "\\'");
-        return `${GLOBAL_MATCH_COLUMN} like '%${raw}%'`;
+        const operator = condition.operator === "not like" ? "not like" : "like";
+        return `${quoteQueryField(GLOBAL_MATCH_COLUMN)} ${operator} '%${raw}%'`;
       }
       validateOperatorValueType(condition.operator, condition.valueType);
       const normalizedValue =
@@ -247,6 +284,15 @@ function buildVisualQuery(conditions: QueryFilterCondition[]) {
       return `${quoteQueryField(field)} ${condition.operator} ${normalizedValue}`;
     })
     .join(" AND ");
+}
+
+function buildCombinedQuery(rawQuery: string, visualQuery: string) {
+  const raw = rawQuery.trim();
+  const visual = visualQuery.trim();
+  if (raw && visual) {
+    return `${raw} AND ${visual}`;
+  }
+  return raw || visual;
 }
 
 function storageFieldName(field: QueryStorageAnalysisField) {
@@ -284,8 +330,8 @@ function fieldValueType(condition: QueryFilterCondition) {
 }
 
 function conditionOperator(condition: QueryFilterCondition) {
-  if (String(condition.field || "").trim() === GLOBAL_MATCH_FIELD) {
-    return "contains";
+  if (isGlobalMatchField(condition.field)) {
+    return condition.operator === "not like" ? "not_contains" : "contains";
   }
   if (condition.operator === "like") {
     return "contains";
@@ -301,7 +347,7 @@ export function buildQueryFieldRef(
   analysisFields: QueryAnalysisFieldsResponse
 ): QueryFieldRef {
   const fieldKey = String(condition.field || "").trim();
-  if (fieldKey === GLOBAL_MATCH_FIELD) {
+  if (isGlobalMatchField(fieldKey)) {
     return {
       fieldKey: GLOBAL_MATCH_COLUMN,
       displayName: GLOBAL_MATCH_FIELD,
@@ -349,12 +395,23 @@ export function buildQueryFieldRef(
   }
   const logField = findStorageField(analysisFields.logFields, fieldKey);
   const name = logField ? storageFieldName(logField) : fieldKey;
+  if (logField) {
+    return {
+      fieldKey: name,
+      displayName: logField.alias || name,
+      source: "column",
+      path: name,
+      valueType: storageFieldTyp(logField),
+      isAccelerated: true,
+      acceleratedCol: name
+    };
+  }
   return {
     fieldKey: name,
-    displayName: logField?.alias || name,
+    displayName: name,
     source: "json_path",
     path: name,
-    valueType: logField ? storageFieldTyp(logField) : fieldValueType(condition),
+    valueType: fieldValueType(condition),
     isAccelerated: false
   };
 }
@@ -377,6 +434,17 @@ export function buildStructuredConditions(
     }));
 }
 
+export function buildEffectiveStructuredConditions(
+  queryText: string,
+  conditions: QueryFilterCondition[],
+  analysisFields: QueryAnalysisFieldsResponse
+): QueryConditionV2[] {
+  return [
+    ...buildStructuredConditions(parseQueryTextConditions(queryText), analysisFields),
+    ...buildStructuredConditions(conditions, analysisFields)
+  ];
+}
+
 function hasUnsupportedGlobalMatchCondition(
   conditions: QueryFilterCondition[],
   analysisFields: QueryAnalysisFieldsResponse
@@ -386,7 +454,7 @@ function hasUnsupportedGlobalMatchCondition(
     conditions.some(
       (condition) =>
         !condition.disabled &&
-        String(condition.field || "").trim() === GLOBAL_MATCH_FIELD &&
+        isGlobalMatchField(condition.field) &&
         String(condition.value ?? "").trim()
     )
   );
@@ -416,11 +484,12 @@ export function useQueryWorkspace(
   const [savedFilterProfiles, setSavedFilterProfiles] = useState<QueryFilterProfile[]>([]);
   const [savedFilterLoading, setSavedFilterLoading] = useState(false);
   const [page, setPage] = useState(options?.initialPage && options.initialPage > 0 ? options.initialPage : 1);
-  const [pageSize] = useState(
+  const [pageSize, setPageSize] = useState(
     options?.initialPageSize && options.initialPageSize > 0 ? options.initialPageSize : DEFAULT_PAGE_SIZE
   );
   const [logs, setLogs] = useState<QueryLogsResponse | null>(null);
   const [charts, setCharts] = useState<QueryHistogramBucket[]>([]);
+  const [lastRunSnapshot, setLastRunSnapshot] = useState<QueryRunSnapshot | null>(null);
   const [analysisFields, setAnalysisFields] = useState<QueryAnalysisFieldsResponse>({
     baseFields: [],
     logFields: [],
@@ -434,6 +503,7 @@ export function useQueryWorkspace(
   const [contextLoading, setContextLoading] = useState(false);
   const autocompleteRequestIdRef = useRef(0);
   const queryRunIdRef = useRef(0);
+  const queryAbortControllerRef = useRef<AbortController | null>(null);
   const treeSelectionTargetRef = useRef<QuerySourceTreeTarget | null>(null);
 
   const selectedInstance = useMemo(
@@ -451,9 +521,23 @@ export function useQueryWorkspace(
     [selectedDatabaseEntry, selectedTable]
   );
 
+  function abortActiveQueryRequest() {
+    queryAbortControllerRef.current?.abort();
+    queryAbortControllerRef.current = null;
+  }
+
+  function cancelQuery() {
+    queryRunIdRef.current += 1;
+    abortActiveQueryRequest();
+    setLoading(false);
+    setChartLoading(false);
+  }
+
   function clearQueryResults() {
+    cancelQuery();
     setLogs(null);
     setCharts([]);
+    setLastRunSnapshot(null);
   }
 
   function pickTreeName(preferred: string | undefined, fallback: string, options: string[]) {
@@ -528,7 +612,7 @@ export function useQueryWorkspace(
       });
       setErrorMessage("");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "实例列表加载失败");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to load sources");
     } finally {
       setContextLoading(false);
     }
@@ -543,6 +627,7 @@ export function useQueryWorkspace(
     })();
     return () => {
       active = false;
+      abortActiveQueryRequest();
     };
   }, []);
 
@@ -707,57 +792,73 @@ export function useQueryWorkspace(
   }, [queryText, selectedInstanceId]);
 
   useEffect(() => {
-    let nextQuery = queryText.trim();
-    if (!nextQuery) {
-      try {
-        nextQuery = buildVisualQuery(conditions);
-      } catch {
+    let generatedQuery = "";
+    try {
+      generatedQuery = buildVisualQuery(conditions);
+    } catch {
+      if (!queryText.trim()) {
         return;
       }
     }
+    const nextQuery = buildCombinedQuery(queryText, generatedQuery);
     writeQueryToURL(nextQuery);
   }, [conditions, queryText]);
 
   async function runQuery(
     nextPage = page,
     overrideRange?: { st: number; et: number },
-    overrideConditions?: QueryFilterCondition[]
+    overrideConditions?: QueryFilterCondition[],
+    overrideQueryText?: string,
+    overridePageSize?: number
   ) {
+    cancelQuery();
     const effectiveTableId = selectedTableId ?? selectedTableEntry?.id ?? null;
     if (!effectiveTableId) {
-      setErrorMessage("请先选择完整的实例、数据库和日志表");
+      setErrorMessage("Select an instance, database, and log table first");
       return;
     }
     const timeParams = overrideRange ?? createTimeParams(startTime, endTime);
     if (!timeParams) {
-      setErrorMessage("请选择有效的开始时间和结束时间");
+      setErrorMessage("Select a valid start and end time");
       return;
     }
     const effectiveConditions = overrideConditions ?? conditions;
+    const effectiveQueryText = overrideQueryText ?? queryText;
     if (hasUnsupportedGlobalMatchCondition(effectiveConditions, analysisFields)) {
-      setErrorMessage("当前日志表未配置日志内容字段，不能使用全局匹配");
+      setErrorMessage("Current log table has no log content field, cannot use All fields");
       return;
     }
     let generatedQuery = "";
     try {
       generatedQuery = buildVisualQuery(effectiveConditions);
     } catch (error) {
-      if (!queryText.trim()) {
-        setErrorMessage(error instanceof Error ? error.message : "筛选条件不合法");
+      if (!effectiveQueryText.trim()) {
+        setErrorMessage(error instanceof Error ? error.message : "Invalid conditions");
         return;
       }
     }
-    const requestQuery = overrideConditions ? generatedQuery || undefined : queryText.trim() || generatedQuery || undefined;
+    const requestQuery = buildCombinedQuery(effectiveQueryText, generatedQuery) || undefined;
     const structuredConditions = buildStructuredConditions(effectiveConditions, analysisFields);
-    const shouldUseStructuredRun =
-      (overrideConditions ? true : !queryText.trim()) && structuredConditions.length > 0;
+    const effectiveStructuredConditions = buildEffectiveStructuredConditions(
+      effectiveQueryText,
+      effectiveConditions,
+      analysisFields
+    );
+    const shouldUseStructuredRun = !effectiveQueryText.trim() && structuredConditions.length > 0;
+    const effectivePageSize =
+      overridePageSize && Number.isFinite(overridePageSize) && overridePageSize > 0
+        ? Math.round(overridePageSize)
+        : pageSize;
 
     const params = {
       ...timeParams,
       query: requestQuery,
       page: nextPage,
-      pageSize
+      pageSize: effectivePageSize
     };
+    const abortController = new AbortController();
+    queryAbortControllerRef.current = abortController;
+    const requestOptions = { signal: abortController.signal };
     const runId = queryRunIdRef.current + 1;
     queryRunIdRef.current = runId;
 
@@ -771,23 +872,40 @@ export function useQueryWorkspace(
           st: timeParams.st,
           et: timeParams.et,
           page: nextPage,
-          pageSize,
+          pageSize: effectivePageSize,
           conditions: structuredConditions,
           sorts: [],
           displayFields: []
-        })
-      : getQueryLogs(effectiveTableId, params);
+        },
+        requestOptions
+      )
+      : getQueryLogs(effectiveTableId, params, requestOptions);
 
     const [logsResult, chartsResult] = await Promise.allSettled([
       logsRequest,
-      getQueryCharts(effectiveTableId, params)
+      getQueryCharts(effectiveTableId, params, requestOptions)
     ]);
     if (queryRunIdRef.current !== runId) {
+      return;
+    }
+    if (queryAbortControllerRef.current === abortController) {
+      queryAbortControllerRef.current = null;
+    }
+
+    const logsAborted = logsResult.status === "rejected" && isAbortRequestError(logsResult.reason);
+    const chartsAborted = chartsResult.status === "rejected" && isAbortRequestError(chartsResult.reason);
+    if (abortController.signal.aborted || logsAborted || chartsAborted) {
+      setLoading(false);
+      setChartLoading(false);
       return;
     }
 
     if (logsResult.status === "fulfilled") {
       setLogs(logsResult.value);
+      setLastRunSnapshot({
+        range: timeParams,
+        conditions: effectiveStructuredConditions
+      });
       setPage(nextPage);
       if (nextPage === 1 && requestQuery) {
         const historyStore = readQueryHistory();
@@ -805,7 +923,7 @@ export function useQueryWorkspace(
       }
     } else {
       setLogs(null);
-      setErrorMessage(logsResult.reason instanceof Error ? logsResult.reason.message : "日志查询失败");
+      setErrorMessage(logsResult.reason instanceof Error ? logsResult.reason.message : "Query failed");
     }
 
     if (chartsResult.status === "fulfilled") {
@@ -827,28 +945,42 @@ export function useQueryWorkspace(
               {
                 field: GLOBAL_MATCH_FIELD,
                 source: "column" as const,
-                sourceLabel: "全局匹配",
-                queryLabel: "日志内容 LIKE",
+                sourceLabel: "All fields",
+                queryLabel: "Log content LIKE",
                 valueType: "string" as const
               }
             ];
-      return [
+      const options = [
         ...globalMatchOptions,
         ...analysisFields.baseFields.map((item) => ({
           field: storageFieldName(item),
           source: "column" as const,
-          sourceLabel: "物理列",
-          queryLabel: "列查询",
+          sourceLabel: "Column",
+          queryLabel: "Column query",
           valueType: storageFieldTyp(item)
         })),
         ...analysisFields.logFields.map((item) => ({
           field: storageFieldName(item),
-          source: "json_path" as const,
-          sourceLabel: "解析字段",
-          queryLabel: "JSON 路径查询",
+          source: "column" as const,
+          sourceLabel: "Parsed field",
+          queryLabel: "Indexed field",
           valueType: storageFieldTyp(item)
         }))
-      ].filter((item) => item.field);
+      ];
+      const seenFields = new Set<string>();
+      return options
+        .map((item) => ({ ...item, field: String(item.field || "").trim() }))
+        .filter((item) => {
+          if (!item.field) {
+            return false;
+          }
+          const key = normalizeSuggestionFieldKey(item.field);
+          if (seenFields.has(key)) {
+            return false;
+          }
+          seenFields.add(key);
+          return true;
+        });
     },
     [analysisFields]
   );
@@ -860,10 +992,10 @@ export function useQueryWorkspace(
   async function saveCurrentQuery(name: string, timeRange: { startTime: string; endTime: string }) {
     const normalizedName = name.trim();
     if (!normalizedName) {
-      throw new Error("请输入收藏名称");
+      throw new Error("Enter a saved query name");
     }
     if (!selectedInstanceId || !selectedInstance || !selectedDatabase || !selectedTable) {
-      throw new Error("请先选择完整的实例、数据库和日志表");
+      throw new Error("Select an instance, database, and log table first");
     }
     const enabledConditions = conditions.filter(
       (condition) =>
@@ -872,7 +1004,7 @@ export function useQueryWorkspace(
         String(condition.value ?? "").trim()
     );
     if (enabledConditions.length === 0) {
-      throw new Error("当前收藏只支持条件构建器，请先添加至少一个条件");
+      throw new Error("Saved queries currently require at least one condition");
     }
     const saved = await createQueryFilter({
       name: normalizedName,
@@ -922,6 +1054,7 @@ export function useQueryWorkspace(
     pageSize,
     logs,
     charts,
+    lastRunSnapshot,
     analysisFields,
     suggestionFieldOptions,
     suggestionFields,
@@ -964,6 +1097,7 @@ export function useQueryWorkspace(
     },
     setQueryText,
     setConditions,
+    setPageSize,
     setActiveConditionId,
     addCondition: () => {
       const next = createEmptyCondition();
@@ -992,19 +1126,24 @@ export function useQueryWorkspace(
         return next;
       });
     },
-    buildQueryText: () => buildVisualQuery(conditions),
+    buildQueryText: () => buildCombinedQuery(queryText, buildVisualQuery(conditions)),
     applyFilterProfile: (profile: QueryFilterProfile) => {
       const nextConditions = Array.isArray(profile.conditions) ? profile.conditions : [];
       setConditions(nextConditions);
       setActiveConditionId(nextConditions[0]?.id ?? null);
-      setQueryText(buildVisualQuery(nextConditions));
+      setQueryText("");
     },
-    applySuggestion: (value: string) => setQueryText(value),
+    applySuggestion: (value: string) => {
+      setQueryText(value);
+      setConditions([]);
+      setActiveConditionId(null);
+    },
     clearQueryHistory,
     saveCurrentQuery,
     deleteSavedFilterProfile,
     refreshSavedFilterProfiles,
     runQuery,
+    cancelQuery,
     setPage,
     refreshSourceTree
   };

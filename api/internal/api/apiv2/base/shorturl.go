@@ -32,7 +32,7 @@ func ShortURLRedirect(c *core.Context) {
 		elog.Error("update call cnt error", elog.FieldErr(err))
 		return
 	}
-	c.Redirect(301, shortUrl.OriginUrl)
+	c.Redirect(301, shorturl.NormalizeRedirectURL(shortUrl.OriginUrl))
 }
 
 // ShortURLCreate  godoc

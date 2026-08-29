@@ -698,8 +698,12 @@ func (c *ClickHouseX) DeleteDatabase(name string, cluster string) (err error) {
 }
 
 func (c *ClickHouseX) DoSQL(sql string) (res view.RespComplete, err error) {
+	return c.DoSQLContext(context.Background(), sql)
+}
+
+func (c *ClickHouseX) DoSQLContext(ctx context.Context, sql string) (res view.RespComplete, err error) {
 	res.Logs = make([]map[string]interface{}, 0)
-	tmp, err := c.doQueryWithRetry(sql, true)
+	tmp, err := c.doQueryWithRetryContext(ctx, sql, true)
 	if err != nil {
 		return
 	}
@@ -2154,28 +2158,36 @@ func (c *ClickHouseX) groupBySQL(param view.ReqQuery) (sql string) {
 }
 
 func (c *ClickHouseX) doQueryWithRetry(sql string, isShowNull bool) (res []map[string]interface{}, err error) {
-	res, err = c.doQuery(sql, isShowNull)
+	return c.doQueryWithRetryContext(context.Background(), sql, isShowNull)
+}
+
+func (c *ClickHouseX) doQueryWithRetryContext(ctx context.Context, sql string, isShowNull bool) (res []map[string]interface{}, err error) {
+	res, err = c.doQueryContext(ctx, sql, isShowNull)
 	if err != nil {
 		elog.Error("doQueryFailed", elog.Any("step", "doQuery"), elog.Any("sql", sql), l.E(err))
-		// if strings.Contains(err.Error(), "password is incorrect") {
-		elog.Error("doQueryWithRetry", elog.Any("step", "doQuery"), elog.Any("sql", sql), l.E(err))
 		// 重试十次
 		maxRetries := 10
 		for i := 0; i < maxRetries; i++ {
-			res, err = c.doQuery(sql, isShowNull)
+			if ctx.Err() != nil {
+				return res, err
+			}
+			res, err = c.doQueryContext(ctx, sql, isShowNull)
 			if err == nil || !strings.Contains(err.Error(), "password is incorrect") {
 				return res, err
 			}
 			elog.Error("doQueryWithRetry", elog.Any("step", "retry"), elog.Any("attempt", i+1), elog.Any("sql", sql), l.E(err))
-			// }
 		}
 	}
 	return res, err
 }
 
 func (c *ClickHouseX) doQuery(sql string, isShowNull bool) (res []map[string]interface{}, err error) {
+	return c.doQueryContext(context.Background(), sql, isShowNull)
+}
+
+func (c *ClickHouseX) doQueryContext(ctx context.Context, sql string, isShowNull bool) (res []map[string]interface{}, err error) {
 	res = make([]map[string]interface{}, 0)
-	rows, err := c.db.Query(sql)
+	rows, err := c.db.QueryContext(ctx, sql)
 	if err != nil {
 		return res, errors.Wrap(err, sql)
 	}

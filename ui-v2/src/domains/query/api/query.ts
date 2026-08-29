@@ -1,4 +1,4 @@
-import { client } from "../../../shared/http/client";
+import { client, type RequestOptions } from "../../../shared/http/client";
 import type {
   AIDraftResponse,
   AILinkAnalyzeInput,
@@ -226,19 +226,22 @@ export async function resolveQueryTableId(payload: QueryTableIdPayload): Promise
 
 export async function getQueryLogs(
   tableId: number,
-  params: QueryLogsParams
+  params: QueryLogsParams,
+  options?: RequestOptions
 ): Promise<QueryLogsResponse> {
   const query = buildQueryString(params);
-  return client.get<QueryLogsResponse>(`/api/v1/tables/${tableId}/logs?${query}`);
+  return client.get<QueryLogsResponse>(`/api/v1/tables/${tableId}/logs?${query}`, options);
 }
 
 export async function getQueryCharts(
   tableId: number,
-  params: QueryLogsParams
+  params: QueryLogsParams,
+  options?: RequestOptions
 ): Promise<QueryHistogramBucket[]> {
   const query = buildQueryString(params);
   const data = await client.get<{ histograms?: QueryHistogramBucket[] } | QueryHistogramBucket[]>(
-    `/api/v1/tables/${tableId}/charts?${query}`
+    `/api/v1/tables/${tableId}/charts?${query}`,
+    options
   );
   if (Array.isArray(data)) {
     return data;
@@ -277,18 +280,23 @@ export async function getQueryAnalysisFields(
   };
   return {
     baseFields: normalize(data?.baseFields),
-    logFields: normalize(data?.logFields)
+    logFields: normalize(data?.logFields),
+    supportsGlobalMatch: data?.supportsGlobalMatch
   };
 }
 
-export async function runQueryV2(payload: QueryRequestV2): Promise<QueryRunResponse> {
-  return client.post<QueryRunResponse>("/api/v2/query/run", payload);
+export async function runQueryV2(
+  payload: QueryRequestV2,
+  options?: RequestOptions
+): Promise<QueryRunResponse> {
+  return client.post<QueryRunResponse>("/api/v2/query/run", payload, options);
 }
 
 export async function getQueryFieldStats(
-  payload: QueryFieldStatsRequest
+  payload: QueryFieldStatsRequest,
+  options?: RequestOptions
 ): Promise<QueryFieldStatsResponse> {
-  return client.post<QueryFieldStatsResponse>("/api/v2/query/field-stats", payload);
+  return client.post<QueryFieldStatsResponse>("/api/v2/query/field-stats", payload, options);
 }
 
 export async function getQueryAutocomplete(

@@ -1,9 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
-
 :root {
   color-scheme: light;
-  --cv-font-headline: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
-  --cv-font-body: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  --cv-font-headline: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --cv-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
   --cv-surface: #faf8ff;
   --cv-surface-low: #f2f3ff;
   --cv-surface-high: #e2e7ff;
