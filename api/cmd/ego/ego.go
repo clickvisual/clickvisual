@@ -46,7 +46,13 @@ var (
 	topicsIngressStderr string
 	dryRun              bool
 
-	migrateMetadataSchema     = install.Migration
+	migrateMetadataSchema       = install.Migration
+	initializeEgoServicesForEgo = func() {
+		ego.New().Invoker(
+			invoker.Init,
+			service.Init,
+		)
+	}
 	loadClickHouseClusterInfo = func(instanceID int) (map[string]dto.ClusterInfo, error) {
 		op, err := service.InstanceManager.Load(instanceID)
 		if err != nil {
@@ -96,16 +102,6 @@ func init() {
 }
 
 func CmdFunc(cmd *cobra.Command, args []string) {
-	if err := ensureMetadataSchemaForEgo(); err != nil {
-		elog.Panic("初始化 metadata schema 失败: " + err.Error())
-	}
-
-	// 初始化应用
-	ego.New().Invoker(
-		invoker.Init,
-		service.Init,
-	)
-
 	// 加载初始化配置
 	if initConfigFile != "" {
 		if err := loadInitConfig(initConfigFile); err != nil {
@@ -152,6 +148,13 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 		elog.Info("Dry run 模式，跳过实际操作")
 		return
 	}
+
+	if err := ensureMetadataSchemaForEgo(); err != nil {
+		elog.Panic("初始化 metadata schema 失败: " + err.Error())
+	}
+
+	// 初始化应用
+	initializeEgoServicesForEgo()
 
 	// 执行初始化步骤
 	if err := initializeClickVisual(); err != nil {
