@@ -1,5 +1,7 @@
 # ClickHouse 连接配置
 clickhouse_dsn="tcp://localhost:9000?database=default&username=default&password="
+# ClickHouse cluster 名称；取消注释后启用集群模式
+# cluster="shard2-repl1"
 
 # Kafka 配置
 brokers=["kafka-service.default:9092", "kafka-service.default:9093", "kafka-service.default:9094"]
