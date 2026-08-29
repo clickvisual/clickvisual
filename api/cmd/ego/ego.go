@@ -382,7 +382,7 @@ func validateClickHouseCluster(instanceID int, clusterName string) error {
 
 	info, ok := clusters[clusterName]
 	if !ok {
-		available := make([]string, 0)
+		var available []string
 		for name, candidate := range clusters {
 			if candidate.MaxShardNum > 1 || candidate.MaxReplicaNum > 1 {
 				available = append(available, name)
