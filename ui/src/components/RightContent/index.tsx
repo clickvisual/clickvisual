@@ -40,12 +40,21 @@ const RightContent: React.FC = () => {
             前往 v2
         </Button>
         </Tooltip>
-        <Tooltip placement="bottom" title={"Shimo"}>
-        <Button type="link">
-            <a href="https://shimo.im/welcome" target="_blank">
+        <Tooltip
+          placement="bottom"
+          title={
+            "我们团队最新推出了石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！"
+          }
+        >
+          <Button
+            type="link"
+            href="https://github.com/shimodocs/shimodocs"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="我们团队最新推出了石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！"
+          >
             <IconFont type={"icon-shimo"} />
-            </a>
-        </Button>
+          </Button>
         </Tooltip>
         <Tooltip placement="bottom" title={"Github"}>
         <Button type="link">
