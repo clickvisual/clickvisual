@@ -9,10 +9,28 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 )
+
+func TestSupportsGlobalMatchForTableUsesMetadata(t *testing.T) {
+	assert.True(t, supportsGlobalMatchForTable(db.BaseTable{CreateType: constx.TableCreateTypeJSONEachRow}, nil))
+
+	assert.True(t, supportsGlobalMatchForTable(
+		db.BaseTable{CreateType: constx.TableCreateTypeExist, RawLogField: " body "},
+		[]*db.BaseIndex{{Field: "body"}},
+	))
+
+	assert.True(t, supportsGlobalMatchForTable(
+		db.BaseTable{CreateType: constx.TableCreateTypeExist},
+		[]*db.BaseIndex{{Field: "_raw_log_"}},
+	))
+
+	assert.False(t, supportsGlobalMatchForTable(db.BaseTable{CreateType: constx.TableCreateTypeExist}, nil))
+}
 
 func TestCreateJSONAsString(t *testing.T) {
 	config.InitCfg()

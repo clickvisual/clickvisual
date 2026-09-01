@@ -1,6 +1,8 @@
 package query
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -55,6 +57,18 @@ type FieldStatsResponse struct {
 	Plan  view.QueryPlan   `json:"plan"`
 }
 
+type sqlExecutor interface {
+	DoSQL(string) (view.RespComplete, error)
+}
+
+type contextSQLExecutor interface {
+	DoSQLContext(context.Context, string) (view.RespComplete, error)
+}
+
+func isRequestCanceled(err error) bool {
+	return errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
+}
+
 // Run godoc
 // @Summary      执行结构化日志查询
 // @Tags         QUERY
@@ -90,8 +104,11 @@ func Run(c *core.Context) {
 		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
 		return
 	}
-	result, err := runStructuredQueryWithFallback(op, req, ctx)
+	result, err := runStructuredQueryWithFallback(c.Request.Context(), op, req, ctx)
 	if err != nil {
+		if isRequestCanceled(err) {
+			return
+		}
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
@@ -106,10 +123,8 @@ func Run(c *core.Context) {
 	})
 }
 
-func runStructuredQueryWithFallback(op interface {
-	DoSQL(string) (view.RespComplete, error)
-}, req view.QueryRequestV2, ctx querycompile.CompileContext) (queryRunResult, error) {
-	result, err := runStructuredQueryOnce(op, req, ctx)
+func runStructuredQueryWithFallback(reqCtx context.Context, op sqlExecutor, req view.QueryRequestV2, ctx querycompile.CompileContext) (queryRunResult, error) {
+	result, err := runStructuredQueryOnce(reqCtx, op, req, ctx)
 	if err != nil {
 		return queryRunResult{}, err
 	}
@@ -120,7 +135,7 @@ func runStructuredQueryWithFallback(op interface {
 	if !ok {
 		return result, nil
 	}
-	fallbackResult, err := runStructuredQueryOnce(op, fallbackReq, ctx)
+	fallbackResult, err := runStructuredQueryOnce(reqCtx, op, fallbackReq, ctx)
 	if err != nil {
 		elog.Warn("query v2 raw log fallback failed", elog.FieldErr(err), elog.String("sql", result.SQL))
 		return result, nil
@@ -131,9 +146,7 @@ func runStructuredQueryWithFallback(op interface {
 	return result, nil
 }
 
-func runStructuredQueryOnce(op interface {
-	DoSQL(string) (view.RespComplete, error)
-}, req view.QueryRequestV2, ctx querycompile.CompileContext) (queryRunResult, error) {
+func runStructuredQueryOnce(reqCtx context.Context, op sqlExecutor, req view.QueryRequestV2, ctx querycompile.CompileContext) (queryRunResult, error) {
 	sql, plan, err := querycompile.Compile(req, ctx)
 	if err != nil {
 		return queryRunResult{}, err
@@ -142,15 +155,20 @@ func runStructuredQueryOnce(op interface {
 	if err != nil {
 		return queryRunResult{}, err
 	}
-	logs, err := op.DoSQL(sql)
+	logs, err := runSQL(reqCtx, op, sql)
 	if err != nil {
-		elog.Error("query v2 run logs failed", elog.FieldErr(err), elog.String("sql", sql))
+		if !isRequestCanceled(err) {
+			elog.Error("query v2 run logs failed", elog.FieldErr(err), elog.String("sql", sql))
+		}
 		return queryRunResult{}, err
 	}
 	count := uint64(len(logs.Logs))
-	if countResp, countErr := op.DoSQL(countSQL); countErr == nil {
+	if countResp, countErr := runSQL(reqCtx, op, countSQL); countErr == nil {
 		count = extractCount(countResp.Logs, count)
 	} else {
+		if isRequestCanceled(countErr) {
+			return queryRunResult{}, countErr
+		}
 		elog.Warn("query v2 run count failed", elog.FieldErr(countErr), elog.String("sql", countSQL))
 	}
 	return queryRunResult{
@@ -250,8 +268,11 @@ func FieldStats(c *core.Context) {
 		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
 		return
 	}
-	result, err := runFieldStatsWithFallback(op, req, ctx)
+	result, err := runFieldStatsWithFallback(c.Request.Context(), op, req, ctx)
 	if err != nil {
+		if isRequestCanceled(err) {
+			return
+		}
 		c.JSONE(core.CodeErr, err.Error(), err)
 		return
 	}
@@ -263,10 +284,8 @@ func FieldStats(c *core.Context) {
 	})
 }
 
-func runFieldStatsWithFallback(op interface {
-	DoSQL(string) (view.RespComplete, error)
-}, req view.QueryFieldStatsRequest, ctx querycompile.CompileContext) (fieldStatsRunResult, error) {
-	result, err := runFieldStatsOnce(op, req, ctx)
+func runFieldStatsWithFallback(reqCtx context.Context, op sqlExecutor, req view.QueryFieldStatsRequest, ctx querycompile.CompileContext) (fieldStatsRunResult, error) {
+	result, err := runFieldStatsOnce(reqCtx, op, req, ctx)
 	if err != nil {
 		return fieldStatsRunResult{}, err
 	}
@@ -277,7 +296,7 @@ func runFieldStatsWithFallback(op interface {
 	if !ok {
 		return result, nil
 	}
-	fallbackResult, err := runFieldStatsOnce(op, fallbackReq, ctx)
+	fallbackResult, err := runFieldStatsOnce(reqCtx, op, fallbackReq, ctx)
 	if err != nil {
 		elog.Warn("query v2 field stats raw log fallback failed", elog.FieldErr(err), elog.String("sql", result.SQL))
 		return result, nil
@@ -288,22 +307,24 @@ func runFieldStatsWithFallback(op interface {
 	return result, nil
 }
 
-func runFieldStatsOnce(op interface {
-	DoSQL(string) (view.RespComplete, error)
-}, req view.QueryFieldStatsRequest, ctx querycompile.CompileContext) (fieldStatsRunResult, error) {
+func runFieldStatsOnce(reqCtx context.Context, op sqlExecutor, req view.QueryFieldStatsRequest, ctx querycompile.CompileContext) (fieldStatsRunResult, error) {
 	statsSQL, totalSQL, plan, err := querycompile.CompileFieldStats(req, ctx)
 	if err != nil {
 		return fieldStatsRunResult{}, err
 	}
-	totalResp, err := op.DoSQL(totalSQL)
+	totalResp, err := runSQL(reqCtx, op, totalSQL)
 	if err != nil {
-		elog.Error("query v2 field stats total failed", elog.FieldErr(err), elog.String("sql", totalSQL))
+		if !isRequestCanceled(err) {
+			elog.Error("query v2 field stats total failed", elog.FieldErr(err), elog.String("sql", totalSQL))
+		}
 		return fieldStatsRunResult{}, err
 	}
 	total := extractCount(totalResp.Logs, 0)
-	statsResp, err := op.DoSQL(statsSQL)
+	statsResp, err := runSQL(reqCtx, op, statsSQL)
 	if err != nil {
-		elog.Error("query v2 field stats failed", elog.FieldErr(err), elog.String("sql", statsSQL))
+		if !isRequestCanceled(err) {
+			elog.Error("query v2 field stats failed", elog.FieldErr(err), elog.String("sql", statsSQL))
+		}
 		return fieldStatsRunResult{}, err
 	}
 	items := make([]FieldStatsItem, 0, len(statsResp.Logs))
@@ -325,6 +346,23 @@ func runFieldStatsOnce(op interface {
 		SQL:   statsSQL,
 		Plan:  plan,
 	}, nil
+}
+
+func runSQL(reqCtx context.Context, op sqlExecutor, sql string) (view.RespComplete, error) {
+	if err := reqCtx.Err(); err != nil {
+		return view.RespComplete{}, err
+	}
+	if contextOp, ok := op.(contextSQLExecutor); ok {
+		return contextOp.DoSQLContext(reqCtx, sql)
+	}
+	resp, err := op.DoSQL(sql)
+	if err != nil {
+		return resp, err
+	}
+	if err := reqCtx.Err(); err != nil {
+		return view.RespComplete{}, err
+	}
+	return resp, nil
 }
 
 func rawLogFieldStatsFallbackRequest(req view.QueryFieldStatsRequest) (view.QueryFieldStatsRequest, bool) {
@@ -352,11 +390,12 @@ func buildRunContext(tid int) (querycompile.CompileContext, dbmodel.BaseTable, e
 	if tableInfo.Name == "" || tableInfo.Database == nil {
 		return querycompile.CompileContext{}, dbmodel.BaseTable{}, fmt.Errorf("table %d not found", tid)
 	}
+	rawLogFieldExists, defaultRawLogExists := rawLogColumnAvailability(tableInfo)
 	rawLogColumn, rawLogUnavailable := rawLogColumnForTable(
 		tableInfo.CreateType,
 		tableInfo.RawLogField,
-		tableColumnRecorded(tableInfo.ID, tableInfo.RawLogField),
-		tableColumnRecorded(tableInfo.ID, "_raw_log_"),
+		rawLogFieldExists,
+		defaultRawLogExists,
 	)
 	return querycompile.CompileContext{
 		TableName:                fmt.Sprintf("`%s`.`%s`", tableInfo.Database.Name, tableInfo.Name),

@@ -307,7 +307,7 @@ func TestCompileRawLogLogicalFieldRequiresConfiguredRawColumn(t *testing.T) {
 	assert.Contains(t, err.Error(), "未配置日志内容字段")
 }
 
-func TestCompileNormalizesLogLevelEquality(t *testing.T) {
+func TestCompileUsesExactJSONPathConditionForLogLevelEquality(t *testing.T) {
 	req := view.QueryRequestV2{
 		Tid: 1,
 		ST:  1710000000,
@@ -335,11 +335,12 @@ func TestCompileNormalizesLogLevelEquality(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Contains(t, sql, "lowerUTF8(replaceRegexpAll(JSONExtractString(_raw_log_, 'lv')")
+	assert.Contains(t, sql, "JSONExtractString(_raw_log_, 'lv') = 'warn'")
+	assert.NotContains(t, sql, "lowerUTF8(replaceRegexpAll")
 	assert.Contains(t, sql, "= 'warn'")
 }
 
-func TestCompileNormalizesLogLevelColumnEquality(t *testing.T) {
+func TestCompileUsesExactColumnConditionForLogLevelEquality(t *testing.T) {
 	req := view.QueryRequestV2{
 		Tid: 1,
 		ST:  1710000000,
@@ -367,9 +368,9 @@ func TestCompileNormalizesLogLevelColumnEquality(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Contains(t, sql, "lowerUTF8(replaceRegexpAll(`lv`")
+	assert.Contains(t, sql, "`lv` = 'WARN'")
+	assert.NotContains(t, sql, "lowerUTF8(replaceRegexpAll(`lv`")
 	assert.NotContains(t, sql, "JSONExtractString(_raw_log_, 'lv')")
-	assert.Contains(t, sql, "= 'warn'")
 }
 
 func TestCompileSupportsNestedJSONPath(t *testing.T) {
@@ -482,8 +483,10 @@ func TestCompileFieldStatsUsesCurrentFilters(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Contains(t, statsSQL, "_time_second_ >= toDateTime(1710000000)")
-	assert.Contains(t, statsSQL, "lowerUTF8(replaceRegexpAll(`lv`")
-	assert.Contains(t, statsSQL, "= 'error'")
+	assert.Contains(t, statsSQL, "`lv` = 'error'")
+	assert.NotContains(t, statsSQL, "lowerUTF8(replaceRegexpAll(`lv`")
+	assert.Contains(t, totalSQL, "`lv` = 'error'")
+	assert.NotContains(t, totalSQL, "lowerUTF8(replaceRegexpAll(`lv`")
 	assert.Contains(t, statsSQL, "ifNull(toString(`container.name`), '') != ''")
 	assert.Contains(t, statsSQL, "GROUP BY field_value")
 	assert.Contains(t, statsSQL, "LIMIT 5")
