@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export const VERSION_STORAGE_KEY = "clickvisual-preferred-ui-version";
 
@@ -31,15 +31,18 @@ export function normalizePublicPath(value?: string) {
 
 export function getConfiguredPublicPath() {
   return normalizePublicPath(
-    typeof __CLICKVISUAL_PUBLIC_PATH__ === "string" ? __CLICKVISUAL_PUBLIC_PATH__ : ""
+    typeof __CLICKVISUAL_PUBLIC_PATH__ === "string"
+      ? __CLICKVISUAL_PUBLIC_PATH__
+      : "",
   );
 }
 
 export function getPublicPathLoginRedirectHref(
   pathname?: string,
-  configuredPublicPath = getConfiguredPublicPath()
+  configuredPublicPath = getConfiguredPublicPath(),
 ) {
-  const normalizedConfiguredPublicPath = normalizePublicPath(configuredPublicPath);
+  const normalizedConfiguredPublicPath =
+    normalizePublicPath(configuredPublicPath);
   if (!normalizedConfiguredPublicPath || typeof window === "undefined") {
     return "";
   }
@@ -53,8 +56,12 @@ export function getPublicPathLoginRedirectHref(
   return `${normalizedConfiguredPublicPath}/v2/login`;
 }
 
-export function getV2BasePath(pathname?: string, configuredPublicPath = getConfiguredPublicPath()) {
-  const normalizedConfiguredPublicPath = normalizePublicPath(configuredPublicPath);
+export function getV2BasePath(
+  pathname?: string,
+  configuredPublicPath = getConfiguredPublicPath(),
+) {
+  const normalizedConfiguredPublicPath =
+    normalizePublicPath(configuredPublicPath);
   if (normalizedConfiguredPublicPath) {
     return normalizedConfiguredPublicPath;
   }
@@ -77,7 +84,10 @@ export function getV1Href(pathname?: string, configuredPublicPath?: string) {
 }
 
 export function getV2Href(pathname?: string, configuredPublicPath?: string) {
-  const basePath = getV2BasePath(pathname, configuredPublicPath) || pathname?.replace(/\/query\/?$/, "") || "";
+  const basePath =
+    getV2BasePath(pathname, configuredPublicPath) ||
+    pathname?.replace(/\/query\/?$/, "") ||
+    "";
   return `${basePath}/v2/query`;
 }
 
@@ -85,7 +95,7 @@ export function buildV2RouteHref(
   routePath: string,
   searchParams?: URLSearchParams,
   pathname?: string,
-  configuredPublicPath?: string
+  configuredPublicPath?: string,
 ) {
   const normalizedRoutePath = routePath.replace(/^\/+/, "");
   const query = searchParams?.toString();
@@ -95,15 +105,13 @@ export function buildV2RouteHref(
 export function buildShareRouteHref(
   searchParams?: URLSearchParams,
   pathname?: string,
-  configuredPublicPath?: string
+  configuredPublicPath?: string,
 ) {
   const query = searchParams?.toString();
   return `${getV2BasePath(pathname, configuredPublicPath)}/share${query ? `?${query}` : ""}`;
 }
 
 export default function VersionSwitcher() {
-  const [lastPreferredVersion] = useState(getPreferredUiVersion);
-
   useEffect(() => {
     setPreferredUiVersion("v2");
   }, []);
@@ -116,15 +124,17 @@ export default function VersionSwitcher() {
     }
   };
 
-  const switchLabel =
-    lastPreferredVersion === "v1" ? "返回上次使用的 v1" : "前往 v1";
-
   return (
     <div className="cv-version-switcher" data-testid="shell-version-switcher">
-      <span className="cv-version-switcher__label">当前版本：v2</span>
-      <a className="cv-version-switcher__link" href={getV1Href()} onClick={handleSwitch}>
+      <a
+        className="cv-version-switcher__link"
+        href={getV1Href()}
+        onClick={handleSwitch}
+        title="切换到 v1"
+        aria-label="切换到 v1"
+      >
         <span aria-hidden="true">↗</span>
-        {switchLabel}
+        v1
       </a>
     </div>
   );
