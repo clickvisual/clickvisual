@@ -1,8 +1,13 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { EuiToolTip } from "@elastic/eui";
 import type { ReactNode } from "react";
 import { TimeRangeProvider } from "../state/TimeRangeContext";
 import { isPrivateLiteEdition } from "../config/runtime";
 import VersionSwitcher from "./VersionSwitcher";
+
+const SHIMODOCS_URL = "https://github.com/shimodocs/shimodocs";
+const SHIMODOCS_TOOLTIP =
+  "我们团队最新推出的石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！";
 
 const primaryNavigation = [
   { to: "/v2/overview", label: "总览大盘", icon: "◫" },
@@ -11,10 +16,12 @@ const primaryNavigation = [
   { to: "/v2/reports", label: "数据报表", icon: "◌" },
   { to: "/v2/alerts/rules", label: "告警中心", icon: "!" },
   { to: "/v2/settings/datasource", label: "配置中心", icon: "⋯" },
-  { to: "/v2/permission/users", label: "权限中心", icon: "⌥" }
+  { to: "/v2/permission/users", label: "权限中心", icon: "⌥" },
 ] as const;
 
-const privateLiteNavigation = primaryNavigation.filter((item) => item.to === "/v2/query");
+const privateLiteNavigation = primaryNavigation.filter(
+  (item) => item.to === "/v2/query",
+);
 
 function isNavigationActive(pathname: string, to: string) {
   if (to.startsWith("/v2/settings")) {
@@ -28,7 +35,9 @@ function isNavigationActive(pathname: string, to: string) {
 
 function ShellFrame({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const navigation = isPrivateLiteEdition() ? privateLiteNavigation : primaryNavigation;
+  const navigation = isPrivateLiteEdition()
+    ? privateLiteNavigation
+    : primaryNavigation;
   return (
     <div className="cv-shell">
       <header className="cv-shell__topbar" data-testid="app-shell-topbar">
@@ -43,7 +52,11 @@ function ShellFrame({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <nav aria-label="v2 主导航" className="cv-shell__nav" data-testid="app-shell-nav">
+          <nav
+            aria-label="v2 主导航"
+            className="cv-shell__nav"
+            data-testid="app-shell-nav"
+          >
             {navigation.map((item) => (
               <NavLink
                 key={item.to}
@@ -65,6 +78,20 @@ function ShellFrame({ children }: { children: ReactNode }) {
               <span className="cv-dot" aria-hidden="true" />
               v2
             </div>
+            <EuiToolTip content={SHIMODOCS_TOOLTIP} position="bottom">
+              <a
+                className="cv-shell__partner-link"
+                href={SHIMODOCS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={SHIMODOCS_TOOLTIP}
+              >
+                <span className="cv-shell__partner-mark" aria-hidden="true">
+                  S
+                </span>
+                <span className="cv-shell__partner-label">ShimoDocs</span>
+              </a>
+            </EuiToolTip>
             <VersionSwitcher />
           </div>
         </div>
