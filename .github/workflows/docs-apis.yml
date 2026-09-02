@@ -48,7 +48,7 @@ jobs:
       - name: create commit
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           delete-branch: true
           commit-message: 'docs: eapi'
           title: eapi
