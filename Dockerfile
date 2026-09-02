@@ -7,7 +7,7 @@ COPY ui/package.json ui/yarn.lock ./ui/
 COPY ui/patches ./ui/patches
 COPY ui-v2/package.json ui-v2/package-lock.json ./ui-v2/
 RUN cd ui && yarn install --frozen-lockfile --network-timeout 100000
-RUN cd ui-v2 && npm install
+RUN cd ui-v2 && npm ci
 ENV NODE_ENV=production
 COPY ui ./ui
 COPY ui-v2 ./ui-v2
