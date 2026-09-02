@@ -7008,6 +7008,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       <div className="cv-query-shell">
         <div className="cv-query-main">
           {!shareMode ? (
+            <>
             <div className="cv-query-log-tabs" aria-label="Log table workspace">
               <div className="cv-query-source-anchor" ref={sourcePickerRef}>
                 <EuiPopover
@@ -7090,7 +7091,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                 })}
               </div>
             </div>
-          ) : null}
           <section
             aria-label="Query input"
             className={[
@@ -7432,6 +7432,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               </div>
             ) : null}
           </section>
+            </>
           ) : (
             <section aria-label="分享查询" className="cv-panel cv-query-panel cv-query-share-summary">
               <div className="cv-panel-header">

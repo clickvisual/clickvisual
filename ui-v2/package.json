@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@elastic/charts": "^72.0.0",
+    "@elastic/datemath": "^5.0.3",
     "@elastic/eui": "^117.1.0",
     "@elastic/eui-theme-borealis": "^8.0.0",
     "@emotion/css": "^11.13.5",
