@@ -2542,13 +2542,55 @@ function isPromotedLogDetailMessageField(key: string, value: unknown, detailMess
 
 function scalarJsonEntries(parentKey: string, value: unknown) {
   const parsed = parseJsonObject(value);
-  if (!parsed) {
-    return [] as Array<[string, string]>;
+  if (parsed) {
+    return Object.entries(parsed)
+      .filter(([, item]) => isPresentLogValue(item) && !(item && typeof item === "object"))
+      .map(([key, item]) => {
+        const fieldKey = isRawLogDetailParent(parentKey) ? key : `${parentKey}.${key}`;
+        return {
+          key,
+          value: formatLogDetailValue(item),
+          fieldRef: {
+            fieldKey,
+            displayName: key,
+            source: "json_path",
+            path: fieldKey,
+            valueType: createDetailConditionValue(item).valueType,
+            isAccelerated: false
+          }
+        } as LogDetailNestedEntry;
+      })
+      .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
   }
-  if (valueType === "datetime") {
-    return { value: String(sample.value), valueType };
+  const parsedArray = parseJsonArray(value);
+  if (!parsedArray) {
+    return [] as LogDetailNestedEntry[];
   }
-  return { value: String(sample.value), valueType };
+  return parsedArray
+    .map((item, index) => {
+      const text = formatLogDetailValue(item).trim();
+      const separatorIndex = text.indexOf("=");
+      if (separatorIndex > 0) {
+        const key = text.slice(0, separatorIndex).trim();
+        const itemValue = text.slice(separatorIndex + 1).trim();
+        if (key && itemValue) {
+          return {
+            key,
+            value: itemValue,
+            fieldRef: {
+              fieldKey: `${parentKey}.${key}`,
+              displayName: key,
+              source: "tag_path",
+              path: `${parentKey}.${key}`,
+              valueType: "string",
+              isAccelerated: false
+            }
+          } as LogDetailNestedEntry;
+        }
+      }
+      return { key: `#${index + 1}`, value: text } as LogDetailNestedEntry;
+    })
+    .filter((item) => item.value.trim().length > 0 && item.value.trim().length <= 256);
 }
 
 function isLogTimeField(field: string) {
