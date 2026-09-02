@@ -10,6 +10,7 @@ import {
   getV2BasePath,
   getPreferredUiVersion,
   getPublicPathLoginRedirectHref,
+  isV1UiEnabled,
   normalizePublicPath,
   setPreferredUiVersion,
 } from "../src/shared/layout/VersionSwitcher";
@@ -17,6 +18,11 @@ import {
 const VERSION_STORAGE_KEY = "clickvisual-preferred-ui-version";
 
 describe("v2 version switcher", () => {
+  it("supports disabling the legacy v1 switcher for v2-only builds", () => {
+    expect(isV1UiEnabled(false)).toBe(false);
+    expect(isV1UiEnabled(true)).toBe(true);
+  });
+
   it("reads and writes the preferred ui version", () => {
     window.localStorage.clear();
 

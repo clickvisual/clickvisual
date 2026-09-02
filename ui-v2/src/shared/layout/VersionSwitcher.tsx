@@ -2,6 +2,15 @@ import { useEffect } from "react";
 
 export const VERSION_STORAGE_KEY = "clickvisual-preferred-ui-version";
 
+export function isV1UiEnabled(value?: boolean) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  return typeof __CLICKVISUAL_V1_ENABLED__ === "boolean"
+    ? __CLICKVISUAL_V1_ENABLED__
+    : true;
+}
+
 export function getPreferredUiVersion() {
   if (typeof window === "undefined") {
     return "v2";
@@ -115,6 +124,10 @@ export default function VersionSwitcher() {
   useEffect(() => {
     setPreferredUiVersion("v2");
   }, []);
+
+  if (!isV1UiEnabled()) {
+    return null;
+  }
 
   const handleSwitch = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();

@@ -8,6 +8,7 @@ COPY ui-v2/package.json ui-v2/package-lock.json ./ui-v2/
 RUN cd ui-v2 && npm ci
 
 ENV NODE_ENV production
+ENV VITE_ENABLE_V1_UI=false
 COPY ui-v2 ./ui-v2
 RUN cd ui-v2 && npm run build
 

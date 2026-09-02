@@ -6,7 +6,8 @@ export default defineConfig({
   base: "./",
   define: {
     __CLICKVISUAL_PUBLIC_PATH__: JSON.stringify(process.env.PUBLIC_PATH || process.env.VITE_PUBLIC_PATH || ""),
-    __CLICKVISUAL_V2_EDITION__: JSON.stringify(process.env.VITE_V2_EDITION || "")
+    __CLICKVISUAL_V2_EDITION__: JSON.stringify(process.env.VITE_V2_EDITION || ""),
+    __CLICKVISUAL_V1_ENABLED__: process.env.VITE_ENABLE_V1_UI !== "false"
   },
   server: {
     proxy: {
