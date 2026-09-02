@@ -761,6 +761,51 @@ describe("query page", () => {
     expect(runRequest).toContain('"value":"aud"');
   });
 
+  it("restores legacy v1 kw filter expressions as structured v2 conditions", async () => {
+    const defaultFetch = window.fetch;
+    const runPayloads: any[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "POST" && url.pathname.endsWith("/api/v2/query/run")) {
+          runPayloads.push(JSON.parse(String(init?.body || "{}")));
+        }
+        return defaultFetch(input, init);
+      })
+    );
+    const params = new URLSearchParams({
+      tid: "9527",
+      start: "1788328607",
+      end: "1788328787",
+      kw: "`_container_name_`='svc-table' and `ucode` > '499' and `error` not like '%deadline exceeded%'"
+    });
+    window.history.replaceState({}, "", `/share?${params.toString()}`);
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage shareMode />
+      </TimeRangeProvider>
+    );
+
+    expect(
+      await screen.findByText(
+        "`_container_name_` = 'svc-table' AND `ucode` > '499' AND `error` not like '%deadline exceeded%'"
+      )
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(runPayloads.length).toBeGreaterThan(0);
+    });
+    expect(runPayloads[0].conditions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ operator: "=", value: "svc-table" }),
+        expect.objectContaining({ operator: ">", value: "499" }),
+        expect.objectContaining({ operator: "not_contains", value: "%deadline exceeded%" })
+      ])
+    );
+  });
+
   it("applies compact URL query conditions and last run time to top values", async () => {
     const defaultFetch = window.fetch;
     const runPayloads: any[] = [];

@@ -173,7 +173,7 @@ function createConditionFromQueryToken(token: string, index: number): QueryFilte
   if (!trimmed) {
     return null;
   }
-  const match = trimmed.match(/^(.+?)\s*(not\s+like|like|!=|=)\s*(.+)$/i);
+  const match = trimmed.match(/^(.+?)\s*(not\s+like|like|!=|>=|<=|=|>|<)\s*(.+)$/i);
   if (!match) {
     return null;
   }
@@ -205,27 +205,38 @@ function parseQueryTextConditions(query: string) {
     .filter((item): item is QueryFilterCondition => Boolean(item));
 }
 
+function parseCompleteQueryConditions(query: string) {
+  const tokens = query.split(/\s+AND\s+/i);
+  const conditions = tokens.map((item, index) => createConditionFromQueryToken(item, index));
+  return conditions.every((item): item is QueryFilterCondition => Boolean(item)) ? conditions : [];
+}
+
 function readInitialQueryConditions() {
   if (typeof window === "undefined") {
     return [] as QueryFilterCondition[];
   }
   const params = new URLSearchParams(window.location.search);
   const query = params.get("query") ?? "";
-  if (!query.trim()) {
-    const keyword = params.get("kw")?.trim();
-    if (keyword) {
-      return [
-        {
-          id: "cond_url_kw",
-          field: GLOBAL_MATCH_FIELD,
-          operator: "like",
-          value: keyword,
-          valueType: "string"
-        }
-      ] as QueryFilterCondition[];
-    }
+  if (query.trim()) {
+    return parseQueryTextConditions(query);
   }
-  return parseQueryTextConditions(query);
+  const keyword = params.get("kw")?.trim();
+  if (!keyword) {
+    return [] as QueryFilterCondition[];
+  }
+  const legacyConditions = parseCompleteQueryConditions(keyword);
+  if (legacyConditions.length > 0) {
+    return legacyConditions;
+  }
+  return [
+    {
+      id: "cond_url_kw",
+      field: GLOBAL_MATCH_FIELD,
+      operator: "like",
+      value: keyword,
+      valueType: "string"
+    }
+  ] as QueryFilterCondition[];
 }
 
 function writeQueryToURL(query: string) {
