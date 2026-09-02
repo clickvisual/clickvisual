@@ -29,7 +29,7 @@ COPY go.mod go.sum ./
 RUN go mod download -x
 COPY . .
 COPY --from=js-builder /clickvisual/ui/dist ./api/internal/ui/dist
-COPY --from=js-builder /clickvisual/ui-v2/api/internal/ui/v2dist/dist ./api/internal/ui/v2dist/dist
+COPY --from=js-builder /clickvisual/api/internal/ui/v2dist/dist ./api/internal/ui/v2dist/dist
 RUN ls -rlt ./api/internal/ui/dist && make build.api
 
 
