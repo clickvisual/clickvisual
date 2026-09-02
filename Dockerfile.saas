@@ -1,5 +1,5 @@
 # UI v1 (ant-design-pro / Umi)
-FROM reg.smvm.cn/appbase/node:16-alpine3.18 as js-builder
+FROM reg.smvm.cn/appbase/node:22-alpine as js-builder
 
 ENV NODE_OPTIONS=--max_old_space_size=8000
 WORKDIR /clickvisual
