@@ -217,16 +217,18 @@ function readInitialQueryConditions() {
   }
   const params = new URLSearchParams(window.location.search);
   const query = params.get("query") ?? "";
+  const keyword = params.get("kw")?.trim();
+  if (keyword) {
+    const legacyConditions = parseCompleteQueryConditions(keyword);
+    if (legacyConditions.length > 0) {
+      return legacyConditions;
+    }
+  }
   if (query.trim()) {
     return parseQueryTextConditions(query);
   }
-  const keyword = params.get("kw")?.trim();
   if (!keyword) {
     return [] as QueryFilterCondition[];
-  }
-  const legacyConditions = parseCompleteQueryConditions(keyword);
-  if (legacyConditions.length > 0) {
-    return legacyConditions;
   }
   return [
     {

@@ -806,6 +806,57 @@ describe("query page", () => {
     );
   });
 
+  it("prefers legacy v1 kw when the link also carries a wrapped query expression", async () => {
+    const defaultFetch = window.fetch;
+    const runPayloads: any[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "POST" && url.pathname.endsWith("/api/v2/query/run")) {
+          runPayloads.push(JSON.parse(String(init?.body || "{}")));
+        }
+        return defaultFetch(input, init);
+      })
+    );
+    const params = new URLSearchParams({
+      tid: "9527",
+      start: "1788328607",
+      end: "1788328787",
+      kw: "`_container_name_`='svc-table' and `ucode` > '499'",
+      query: "_raw_log_ like '%`_container_name_`=\\'svc-table\\'%' AND `addr` != '\\\\'/duplicateBase\\\\''"
+    });
+    window.history.replaceState({}, "", `/share?${params.toString()}`);
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage shareMode />
+      </TimeRangeProvider>
+    );
+
+    expect(
+      await screen.findByText("`_container_name_` = 'svc-table' AND `ucode` > '499'")
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(runPayloads.length).toBeGreaterThan(0);
+    });
+    expect(runPayloads[0].conditions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: expect.objectContaining({ fieldKey: "_container_name_" }),
+          operator: "=",
+          value: "svc-table"
+        }),
+        expect.objectContaining({
+          field: expect.objectContaining({ fieldKey: "ucode" }),
+          operator: ">",
+          value: "499"
+        })
+      ])
+    );
+  });
+
   it("applies compact URL query conditions and last run time to top values", async () => {
     const defaultFetch = window.fetch;
     const runPayloads: any[] = [];
