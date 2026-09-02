@@ -173,7 +173,7 @@ function createConditionFromQueryToken(token: string, index: number): QueryFilte
   if (!trimmed) {
     return null;
   }
-  const match = trimmed.match(/^(.+?)\s*(not\s+like|like|!=|=)\s*(.+)$/i);
+  const match = trimmed.match(/^(.+?)\s*(not\s+like|like|!=|>=|<=|=|>|<)\s*(.+)$/i);
   if (!match) {
     return null;
   }
@@ -205,27 +205,61 @@ function parseQueryTextConditions(query: string) {
     .filter((item): item is QueryFilterCondition => Boolean(item));
 }
 
+function parseCompleteQueryConditions(query: string) {
+  const tokens = query.split(/\s+AND\s+/i);
+  const conditions = tokens.map((item, index) => createConditionFromQueryToken(item, index));
+  return conditions.every((item): item is QueryFilterCondition => Boolean(item)) ? conditions : [];
+}
+
+function readLegacyV1ShareQuery() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  const pathname = window.location.pathname.replace(/\/+$/, "");
+  if (!pathname.endsWith("/share")) {
+    return "";
+  }
+  const params = new URLSearchParams(window.location.search);
+  const keyword = params.get("kw")?.trim() ?? "";
+  if (!keyword || parseCompleteQueryConditions(keyword).length === 0) {
+    return "";
+  }
+  const query = params.get("query")?.trim() ?? "";
+  if (query && query !== keyword) {
+    return keyword;
+  }
+  const legacyMarkers = ["index", "logState", "mode", "queryType", "tab"];
+  return legacyMarkers.some((marker) => params.has(marker)) ? keyword : "";
+}
+
 function readInitialQueryConditions() {
   if (typeof window === "undefined") {
     return [] as QueryFilterCondition[];
   }
   const params = new URLSearchParams(window.location.search);
   const query = params.get("query") ?? "";
-  if (!query.trim()) {
-    const keyword = params.get("kw")?.trim();
-    if (keyword) {
-      return [
-        {
-          id: "cond_url_kw",
-          field: GLOBAL_MATCH_FIELD,
-          operator: "like",
-          value: keyword,
-          valueType: "string"
-        }
-      ] as QueryFilterCondition[];
+  const keyword = params.get("kw")?.trim();
+  if (keyword) {
+    const legacyConditions = parseCompleteQueryConditions(keyword);
+    if (legacyConditions.length > 0) {
+      return legacyConditions;
     }
   }
-  return parseQueryTextConditions(query);
+  if (query.trim()) {
+    return parseQueryTextConditions(query);
+  }
+  if (!keyword) {
+    return [] as QueryFilterCondition[];
+  }
+  return [
+    {
+      id: "cond_url_kw",
+      field: GLOBAL_MATCH_FIELD,
+      operator: "like",
+      value: keyword,
+      valueType: "string"
+    }
+  ] as QueryFilterCondition[];
 }
 
 function writeQueryToURL(query: string) {
@@ -470,6 +504,7 @@ export function useQueryWorkspace(
   }
 ) {
   const initialConditions = useMemo(() => readInitialQueryConditions(), []);
+  const legacyV1ShareQuery = useMemo(() => readLegacyV1ShareQuery(), []);
   const [instances, setInstances] = useState<QuerySourceInstance[]>([]);
   const [databases, setDatabases] = useState<QuerySourceDatabase[]>([]);
   const [tables, setTables] = useState<QuerySourceTable[]>([]);
@@ -844,7 +879,8 @@ export function useQueryWorkspace(
       effectiveConditions,
       analysisFields
     );
-    const shouldUseStructuredRun = !effectiveQueryText.trim() && structuredConditions.length > 0;
+    const shouldUseStructuredRun =
+      !legacyV1ShareQuery && !effectiveQueryText.trim() && structuredConditions.length > 0;
     const effectivePageSize =
       overridePageSize && Number.isFinite(overridePageSize) && overridePageSize > 0
         ? Math.round(overridePageSize)
@@ -852,7 +888,7 @@ export function useQueryWorkspace(
 
     const params = {
       ...timeParams,
-      query: requestQuery,
+      query: legacyV1ShareQuery || requestQuery,
       page: nextPage,
       pageSize: effectivePageSize
     };
