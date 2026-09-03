@@ -101,6 +101,18 @@ export default {
   "logLibraryManagement.description": "Manage log libraries across instances",
   "logLibraryManagement.create": "Add log library",
   "logLibraryManagement.loadingList": "Log libraries will appear here",
+  "logLibraryManagement.instance": "Select instance",
+  "logLibraryManagement.database": "Select database",
+  "logLibraryManagement.table": "Log library",
+  "logLibraryManagement.search": "Search log libraries, instances or databases",
+  "logLibraryManagement.empty": "No log libraries",
+  "logLibraryManagement.loadError": "Failed to load log libraries",
+  "logLibraryManagement.selectDatabase": "Please select a database first",
+  "logLibraryManagement.delete.title": "Delete log library",
+  "logLibraryManagement.delete.content":
+    "You are deleting log library “{name}” in database “{database}” on instance “{instance}”. This removes the physical table and may affect alarms. Continue?",
+  "logLibraryManagement.delete.success": "Log library deleted",
+  "logLibraryManagement.delete.error": "Failed to delete log library",
   "logLibraryManagement.forbidden":
     "Only administrators can access log management",
   "logLibraryManagement.backToQuery": "Back to log query",

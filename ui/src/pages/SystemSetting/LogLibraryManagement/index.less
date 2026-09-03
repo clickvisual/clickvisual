@@ -38,11 +38,38 @@
   min-height: 180px;
 }
 
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-top: 0;
+}
+
+.toolbar :global(.ant-select) {
+  min-width: 180px;
+}
+
+.toolbar :global(.ant-input-affix-wrapper),
+.toolbar :global(.ant-input) {
+  width: 240px;
+}
+
 .content {
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0 12px 12px;
+  overflow: auto;
   background: #fff;
   border: 1px solid #e5e7eb;
   border-top: 0;
   border-radius: 0 0 8px 8px;
+}
+
+.content :global(.ant-table-wrapper) {
+  width: 100%;
 }
 
 .state {
