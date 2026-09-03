@@ -5,6 +5,9 @@ APP_PATH=$(ROOT)
 SCRIPT_PATH:=$(APP_PATH)/scripts
 COMPILE_OUT:=$(APP_PATH)/bin/$(APP_NAME)
 HUB_USER:=clickvisual
+EAPI_VERSION:=v0.4.6
+EAPI_GO_VERSION:=go1.24.4
+REDOCLY_VERSION:=2.51.0
 
 build: build.ui build.ui-v2 build.dist build.api
 
@@ -12,6 +15,12 @@ docs:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ego gen api $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	@egogen --config egogen.yaml
 	@echo -e "success \n"
+
+api-docs:
+	@GOTOOLCHAIN=$(EAPI_GO_VERSION) go install github.com/gotomicro/eapi/cmd/eapi@$(EAPI_VERSION)
+	@"$$(go env GOPATH)/bin/eapi" --config eapi.yaml
+	@npx --yes @redocly/cli@$(REDOCLY_VERSION) lint api/docs/openapi.json
+	@npx --yes @redocly/cli@$(REDOCLY_VERSION) build-docs api/docs/openapi.json --output api/docs/index.html
 
 build.api:
 	@echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>making $@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"

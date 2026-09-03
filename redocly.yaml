@@ -1,0 +1,6 @@
+apis:
+  clickvisual:
+    root: api/docs/openapi.json
+
+extends:
+  - recommended

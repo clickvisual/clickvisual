@@ -1,37 +1,73 @@
 name: docs-apis
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/docs-apis.yml'
+      - '.redocly.lint-ignore.yaml'
+      - 'Makefile'
+      - 'api/**'
+      - 'eapi.yaml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'redocly.yaml'
   push:
     branches:
       - 'master'
+    paths:
+      - '.github/workflows/docs-apis.yml'
+      - '.redocly.lint-ignore.yaml'
+      - 'Makefile'
+      - 'api/**'
+      - 'eapi.yaml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'redocly.yaml'
+  workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+
+concurrency:
+  group: api-docs-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  updateAPI:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: '1.21.1'
-      - run: go version
-      - name: install eapi
-        id: eapi
-        run: |
-          export PATH=$(go env GOPATH)/bin:$PATH
-          go version 
-          go install github.com/gotomicro/eapi/cmd/eapi@v0.4.6
-          eapi --config eapi.yaml
-      - name: install redoc
-        run: npm i -g redoc-cli
-      - name: gen HTML
-        run: |
-          redoc-cli bundle ./api/docs/swagger.json ./api/docs/index.html
-          mv redoc-static.html ./api/docs/index.html
-      - name: install obsutil
+          go-version: '1.24.4'
+          cache: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Generate OpenAPI document
+        run: make api-docs
+      - name: Verify generated document is committed
+        run: git diff --exit-code -- api/docs/openapi.json
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: clickvisual-api-docs
+          path: |
+            api/docs/index.html
+            api/docs/openapi.json
+          retention-days: 7
+
+  publish:
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download documentation artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: clickvisual-api-docs
+          path: api-docs
+      - name: Install obsutil
         run: |
           wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
           tar -zxvf obsutil_linux_amd64.tar.gz
@@ -39,16 +75,10 @@ jobs:
           test -n "$obsutil_bin"
           chmod 755 "$obsutil_bin"
           echo "OBSUTIL_BIN=$obsutil_bin" >> "$GITHUB_ENV"
-      - name: config obsutil
+      - name: Configure obsutil
         run: |
           "$OBSUTIL_BIN" config -i "${{ secrets.OBS_ACCESS_KEY_ID }}" -k "${{ secrets.OBS_ACCESS_KEY_SECRET }}" -e https://obs.cn-north-4.myhuaweicloud.com
-      - name: upload docs by obsutil
+      - name: Publish API documentation
         run: |
-          "$OBSUTIL_BIN" cp ./api/docs/index.html obs://open-read/clickvisual/api/index.html -f -r
-      - name: create commit
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ secrets.RELEASE_TOKEN }}
-          delete-branch: true
-          commit-message: 'docs: eapi'
-          title: eapi
+          "$OBSUTIL_BIN" cp ./api-docs/index.html obs://open-read/clickvisual/api/index.html -f
+          "$OBSUTIL_BIN" cp ./api-docs/openapi.json obs://open-read/clickvisual/api/openapi.json -f
