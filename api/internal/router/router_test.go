@@ -172,6 +172,26 @@ func TestV2RoutesDefaultToFullEdition(t *testing.T) {
 	}
 }
 
+func TestV1RoutesLogLibraryManagementAreRootOnly(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	v1(r.Group(""))
+	routes := routeSet(r)
+	for _, item := range []routeKey{
+		{method: http.MethodPost, path: "/api/v1/log-library-management/storage"},
+		{method: http.MethodPost, path: "/api/v1/log-library-management/storage/:template"},
+		{method: http.MethodPost, path: "/api/v1/log-library-management/instances/:iid/tables-exist"},
+		{method: http.MethodPost, path: "/api/v1/log-library-management/instances/:iid/tables-exist-batch"},
+		{method: http.MethodDelete, path: "/api/v1/log-library-management/tables/:id"},
+		{method: http.MethodGet, path: "/api/v1/log-library-management/instances/:iid/databases/:database/tables/:table/columns"},
+		{method: http.MethodGet, path: "/api/v1/log-library-management/instances/:iid/databases/:database/tables/:table/ddl"},
+	} {
+		if !routes[item] {
+			t.Fatalf("expected root-only route %s %s", item.method, item.path)
+		}
+	}
+}
+
 func TestV2RoutesPrivateLiteEdition(t *testing.T) {
 	econf.Reset()
 	t.Cleanup(econf.Reset)

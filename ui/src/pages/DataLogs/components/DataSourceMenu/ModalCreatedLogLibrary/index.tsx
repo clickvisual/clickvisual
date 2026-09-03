@@ -18,8 +18,12 @@ export const logLibraryTypes = [
   { value: 2, type: "float" },
 ];
 
-const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
+const ModalCreatedLogLibrary = (props: {
+  onGetList: any;
+  managementMode?: boolean;
+}) => {
   const { onGetList } = props;
+  const { managementMode = false } = props;
   const logFormRef = useRef<FormInstance>(null);
   const i18n = useIntl();
   const {
@@ -31,6 +35,9 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
     doCreatedTableTemplate,
     doCreatedLogLibraryEachRow,
     doCreatedLocalLogLibraryBatch,
+    doCreatedManagementLogLibraryEachRow,
+    doCreatedManagementTableTemplate,
+    doCreatedManagementLocalLogLibraryBatch,
     isAccessLogLibrary,
     onChangeIsAccessLogLibrary,
     onChangeIsLogLibraryAllDatabase,
@@ -49,7 +56,10 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
       field.v3TableType = Number(field.v3TableType);
       const response =
         field.mode === 1
-          ? doCreatedLocalLogLibraryBatch.run(field.instance, {
+          ? (managementMode
+              ? doCreatedManagementLocalLogLibraryBatch
+              : doCreatedLocalLogLibraryBatch
+            ).run(field.instance, {
               mode: field.mode,
               timeField: field.timeField,
               instance: field.instance,
@@ -62,12 +72,18 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               ...field,
             })
           : field.mode === 0
-          ? doCreatedLogLibraryEachRow.run({
+          ? (managementMode
+              ? doCreatedManagementLogLibraryEachRow
+              : doCreatedLogLibraryEachRow
+            ).run({
               databaseId: addLogToDatabase?.id as number,
               ...field,
             })
           : field.mode === 3
-          ? doCreatedTableTemplate.run("ego", {
+          ? (managementMode
+              ? doCreatedManagementTableTemplate
+              : doCreatedTableTemplate
+            ).run("ego", {
               brokers: field.brokers,
               databaseId: addLogToDatabase?.id as number,
               days: field.days,
@@ -77,7 +93,10 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               topicsIngressStdout: field.topicsIngressStdout,
             })
           : field.mode === 4
-          ? doCreatedTableTemplate.run("ilogtail", {
+          ? (managementMode
+              ? doCreatedManagementTableTemplate
+              : doCreatedTableTemplate
+            ).run("ilogtail", {
               brokers: field.brokers,
               databaseId: addLogToDatabase?.id as number,
               topic: field.topic,
@@ -85,14 +104,17 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
               name: field.name,
             })
           : field.mode === 21
-          ? doCreatedTableTemplate.run("agent", {
+          ? (managementMode
+              ? doCreatedManagementTableTemplate
+              : doCreatedTableTemplate
+            ).run("agent", {
               databaseId: addLogToDatabase?.id as number,
               name: field.name,
             })
           : null;
       response &&
         response
-          .then((res) => {
+          .then((res: any) => {
             if (res?.code === 0) {
               message.success(
                 i18n.formatMessage({
@@ -170,7 +192,10 @@ const ModalCreatedLogLibrary = (props: { onGetList: any }) => {
       onCancel={() => onChangeLogLibraryCreatedModalVisible(false)}
       confirmLoading={
         doCreatedLogLibraryAsString.loading ||
-        doCreatedLocalLogLibraryBatch.loading
+        doCreatedLocalLogLibraryBatch.loading ||
+        doCreatedManagementLogLibraryEachRow.loading ||
+        doCreatedManagementTableTemplate.loading ||
+        doCreatedManagementLocalLogLibraryBatch.loading
       }
       onOk={() => logFormRef.current?.submit()}
     >

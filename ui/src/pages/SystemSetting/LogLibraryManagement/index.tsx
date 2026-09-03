@@ -71,7 +71,7 @@ const LogLibraryManagement = () => {
   const {
     onChangeAddLogToDatabase,
     onChangeLogLibraryCreatedModalVisible,
-    doDeletedLogLibrary,
+    doDeletedManagementLogLibrary,
   } = useModel("dataLogs");
 
   useEffect(() => {
@@ -187,7 +187,7 @@ const LogLibraryManagement = () => {
       cancelText: i18n.formatMessage({ id: "button.cancel" }),
       onOk: async () => {
         try {
-          const res = await doDeletedLogLibrary.run(record.id);
+          const res = await doDeletedManagementLogLibrary.run(record.id);
           if (res?.code !== 0) {
             message.error(
               res?.msg ||
@@ -263,9 +263,13 @@ const LogLibraryManagement = () => {
     if (!ddl) return;
     try {
       await navigator.clipboard.writeText(ddl);
-      message.success(i18n.formatMessage({ id: "logLibraryManagement.ddl.copied" }));
+      message.success(
+        i18n.formatMessage({ id: "logLibraryManagement.ddl.copied" })
+      );
     } catch (error) {
-      message.error(i18n.formatMessage({ id: "logLibraryManagement.ddl.copyError" }));
+      message.error(
+        i18n.formatMessage({ id: "logLibraryManagement.ddl.copyError" })
+      );
     }
   };
 
@@ -425,7 +429,7 @@ const LogLibraryManagement = () => {
           ]}
         />
       </div>
-      <ModalCreatedLogLibrary onGetList={loadData} />
+      <ModalCreatedLogLibrary onGetList={loadData} managementMode />
       <Drawer
         width={720}
         open={!!inspector}
@@ -439,7 +443,8 @@ const LogLibraryManagement = () => {
                   : i18n.formatMessage({ id: "logLibraryManagement.ddl" })}
               </div>
               <Typography.Text type="secondary">
-                {inspector.instanceName} / {inspector.databaseName} / {inspector.tableName}
+                {inspector.instanceName} / {inspector.databaseName} /{" "}
+                {inspector.tableName}
               </Typography.Text>
             </div>
           ) : null
@@ -455,7 +460,9 @@ const LogLibraryManagement = () => {
             <Alert
               type="error"
               showIcon
-              message={i18n.formatMessage({ id: "logLibraryManagement.inspectError" })}
+              message={i18n.formatMessage({
+                id: "logLibraryManagement.inspectError",
+              })}
             />
             {inspector ? (
               <Button
@@ -474,11 +481,15 @@ const LogLibraryManagement = () => {
             dataSource={columns}
             columns={[
               {
-                title: i18n.formatMessage({ id: "logLibraryManagement.column.name" }),
+                title: i18n.formatMessage({
+                  id: "logLibraryManagement.column.name",
+                }),
                 dataIndex: "name",
               },
               {
-                title: i18n.formatMessage({ id: "logLibraryManagement.column.type" }),
+                title: i18n.formatMessage({
+                  id: "logLibraryManagement.column.type",
+                }),
                 dataIndex: "typeDesc",
               },
             ]}
@@ -490,7 +501,11 @@ const LogLibraryManagement = () => {
                 {i18n.formatMessage({ id: "logLibraryManagement.ddl.copy" })}
               </Button>
             </div>
-            <Input.TextArea value={ddl} readOnly autoSize={{ minRows: 12, maxRows: 28 }} />
+            <Input.TextArea
+              value={ddl}
+              readOnly
+              autoSize={{ minRows: 12, maxRows: 28 }}
+            />
           </>
         )}
       </Drawer>
