@@ -4,5 +4,5 @@ import (
 	_ "embed"
 )
 
-//go:embed swagger.json
+//go:embed openapi.json
 var EGOGenAPI string

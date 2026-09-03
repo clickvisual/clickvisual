@@ -6,6 +6,81 @@
     },
     "openapi": "3.0.3",
     "paths": {
+        "/ai/run": {
+            "post": {
+                "description": "Run godoc",
+                "operationId": "ai.Run",
+                "responses": {},
+                "summary": "运行统一 AI 场景",
+                "tags": [
+                    "AI"
+                ]
+            }
+        },
+        "/alert/metrics-samples": {
+            "post": {
+                "description": "CreateMetricsSamples",
+                "operationId": "alert.CreateMetricsSamples",
+                "responses": {},
+                "summary": "Create metrics.samples table",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/alert/settings": {
+            "get": {
+                "description": "SettingList",
+                "operationId": "alert.SettingList",
+                "responses": {},
+                "summary": "告警配置列表",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
+        "/alert/settings/{instance-id}": {
+            "get": {
+                "description": "SettingInfo",
+                "operationId": "alert.SettingInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警配置详情",
+                "tags": [
+                    "ALARM"
+                ]
+            },
+            "patch": {
+                "description": "SettingUpdate",
+                "operationId": "alert.SettingUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "告警配置更新",
+                "tags": [
+                    "ALARM"
+                ]
+            }
+        },
         "/api/admin/login/{oauth}": {
             "get": {
                 "operationId": "user.Oauth",
@@ -2322,71 +2397,13 @@
                 ]
             }
         },
-        "/api/v2/alert/metrics-samples": {
+        "/api/v2/query/token/run": {
             "post": {
-                "description": "CreateMetricsSamples",
-                "operationId": "alert.CreateMetricsSamples",
-                "responses": {},
-                "summary": "Create metrics.samples table",
-                "tags": [
-                    "ALARM"
-                ]
+                "operationId": "query.TokenRun",
+                "responses": {}
             }
         },
-        "/api/v2/alert/settings": {
-            "get": {
-                "description": "SettingList",
-                "operationId": "alert.SettingList",
-                "responses": {},
-                "summary": "告警配置列表",
-                "tags": [
-                    "ALARM"
-                ]
-            }
-        },
-        "/api/v2/alert/settings/{instance-id}": {
-            "get": {
-                "description": "SettingInfo",
-                "operationId": "alert.SettingInfo",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "instance-id",
-                        "required": true,
-                        "schema": {
-                            "title": "instance-id",
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {},
-                "summary": "告警配置详情",
-                "tags": [
-                    "ALARM"
-                ]
-            },
-            "patch": {
-                "description": "SettingUpdate",
-                "operationId": "alert.SettingUpdate",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "instance-id",
-                        "required": true,
-                        "schema": {
-                            "title": "instance-id",
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {},
-                "summary": "告警配置更新",
-                "tags": [
-                    "ALARM"
-                ]
-            }
-        },
-        "/api/v2/base/install/local": {
+        "/base/install/local": {
             "get": {
                 "description": "instance",
                 "operationId": "base.ListUser",
@@ -2396,9 +2413,9 @@
                 ]
             }
         },
-        "/api/v2/base/instances": {
+        "/base/instances": {
             "get": {
-                "description": "other apis",
+                "description": "  gets all instances, databases, and table nested data",
                 "operationId": "base.InstanceList",
                 "responses": {},
                 "summary": "Gets all instance database and table data filtered by permissions test",
@@ -2407,9 +2424,151 @@
                 ]
             }
         },
-        "/api/v2/base/shorturls": {
+        "/base/settings/ai": {
+            "get": {
+                "operationId": "base.SettingsAIInfo",
+                "responses": {}
+            },
+            "patch": {
+                "operationId": "base.SettingsAIUpdate",
+                "responses": {}
+            }
+        },
+        "/base/settings/ai/test": {
             "post": {
-                "description": "todo: deprecated",
+                "operationId": "base.SettingsAITest",
+                "responses": {}
+            }
+        },
+        "/base/settings/alarm-channels": {
+            "get": {
+                "operationId": "base.SettingsAlarmChannelList",
+                "responses": {}
+            },
+            "post": {
+                "operationId": "base.SettingsAlarmChannelCreate",
+                "responses": {}
+            }
+        },
+        "/base/settings/alarm-channels/send-test": {
+            "post": {
+                "operationId": "base.SettingsAlarmChannelSendTest",
+                "responses": {}
+            }
+        },
+        "/base/settings/alarm-channels/{channel-id}": {
+            "delete": {
+                "operationId": "base.SettingsAlarmChannelDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "channel-id",
+                        "required": true,
+                        "schema": {
+                            "title": "channel-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "get": {
+                "operationId": "base.SettingsAlarmChannelInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "channel-id",
+                        "required": true,
+                        "schema": {
+                            "title": "channel-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "patch": {
+                "operationId": "base.SettingsAlarmChannelUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "channel-id",
+                        "required": true,
+                        "schema": {
+                            "title": "channel-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/base/settings/instances": {
+            "get": {
+                "operationId": "base.SettingsInstanceList",
+                "responses": {}
+            },
+            "post": {
+                "operationId": "base.SettingsInstanceCreate",
+                "responses": {}
+            }
+        },
+        "/base/settings/instances/test": {
+            "post": {
+                "operationId": "base.SettingsInstanceTest",
+                "responses": {}
+            }
+        },
+        "/base/settings/instances/{instance-id}": {
+            "delete": {
+                "operationId": "base.SettingsInstanceDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "get": {
+                "operationId": "base.SettingsInstanceInfo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "patch": {
+                "operationId": "base.SettingsInstanceUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/base/shorturls": {
+            "post": {
+                "description": "  Create short links",
                 "operationId": "base.ShortURLCreate",
                 "responses": {},
                 "summary": "Create short links",
@@ -2418,7 +2577,7 @@
                 ]
             }
         },
-        "/api/v2/base/su/{s-code}": {
+        "/base/su/{s-code}": {
             "get": {
                 "description": "ShortURLRedirect",
                 "operationId": "base.ShortURLRedirect",
@@ -2442,7 +2601,18 @@
                 ]
             }
         },
-        "/api/v2/base/users": {
+        "/base/system/schema-sync": {
+            "post": {
+                "description": "  复用安装迁移逻辑，同步 MySQL 元数据表结构",
+                "operationId": "base.SystemSchemaSync",
+                "responses": {},
+                "summary": "手动同步系统数据结构",
+                "tags": [
+                    "BASE"
+                ]
+            }
+        },
+        "/base/users": {
             "get": {
                 "description": "user apis",
                 "operationId": "base.ListUser",
@@ -2460,7 +2630,7 @@
                 ]
             }
         },
-        "/api/v2/base/users/{user-id}": {
+        "/base/users/{user-id}": {
             "delete": {
                 "description": "DeleteUser  godoc",
                 "operationId": "base.DeleteUser",
@@ -2500,7 +2670,7 @@
                 ]
             }
         },
-        "/api/v2/base/users/{user-id}/password-reset": {
+        "/base/users/{user-id}/password-reset": {
             "patch": {
                 "description": "ResetUserPassword  godoc",
                 "operationId": "base.ResetUserPassword",
@@ -2521,7 +2691,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql": {
+        "/pandas/instances/{instance-id}/databases/{database}/tables/{table}/create-sql": {
             "get": {
                 "description": "TableName Create SQL",
                 "operationId": "pandas.TableCreateSQL",
@@ -2561,7 +2731,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/instances/{instance-id}/table-dependencies": {
+        "/pandas/instances/{instance-id}/table-dependencies": {
             "get": {
                 "description": "TableDependencies",
                 "operationId": "pandas.TableDependencies",
@@ -2583,7 +2753,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/nodes-results/{result-id}": {
+        "/pandas/nodes-results/{result-id}": {
             "patch": {
                 "description": "NodeResultUpdate",
                 "operationId": "pandas.NodeResultUpdate",
@@ -2605,7 +2775,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/nodes/{node-id}/crontab": {
+        "/pandas/nodes/{node-id}/crontab": {
             "patch": {
                 "description": "NodeCrontabUpdate",
                 "operationId": "pandas.NodeCrontabUpdate",
@@ -2647,7 +2817,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/nodes/{node-id}/lock-acquire": {
+        "/pandas/nodes/{node-id}/lock-acquire": {
             "post": {
                 "description": "The edit lock can be actively obtained if the file is in the edit state",
                 "operationId": "pandas.NodeLockAcquire",
@@ -2669,7 +2839,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/nodes/{node-id}/results": {
+        "/pandas/nodes/{node-id}/results": {
             "get": {
                 "description": "The node running data is processed by Excel",
                 "operationId": "pandas.NodeResultListPage",
@@ -2691,7 +2861,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/utils/structural-transfer": {
+        "/pandas/utils/structural-transfer": {
             "post": {
                 "description": "DDL structural transfer",
                 "operationId": "pandas.StructuralTransfer",
@@ -2702,7 +2872,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/workers": {
+        "/pandas/workers": {
             "get": {
                 "description": "Timing schedule stats",
                 "operationId": "pandas.WorkerList",
@@ -2713,7 +2883,7 @@
                 ]
             }
         },
-        "/api/v2/pandas/workers/dashboard": {
+        "/pandas/workers/dashboard": {
             "get": {
                 "description": "WorkerDashboard",
                 "operationId": "pandas.WorkerDashboard",
@@ -2724,7 +2894,625 @@
                 ]
             }
         },
-        "/api/v2/storage": {
+        "/query/compile": {
+            "post": {
+                "description": "Compile godoc",
+                "operationId": "query.Compile",
+                "responses": {},
+                "summary": "编译结构化查询",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/field-stats": {
+            "post": {
+                "description": "FieldStats godoc",
+                "operationId": "query.FieldStats",
+                "responses": {},
+                "summary": "执行字段值分布统计",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/filters": {
+            "get": {
+                "description": "List godoc",
+                "operationId": "query.List",
+                "responses": {},
+                "summary": "获取筛选器列表",
+                "tags": [
+                    "QUERY"
+                ]
+            },
+            "post": {
+                "description": "Create godoc",
+                "operationId": "query.Create",
+                "responses": {},
+                "summary": "创建筛选器",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/filters/{filter-id}": {
+            "delete": {
+                "description": "Delete godoc",
+                "operationId": "query.Delete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "filter-id",
+                        "required": true,
+                        "schema": {
+                            "title": "filter-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "删除筛选器",
+                "tags": [
+                    "QUERY"
+                ]
+            },
+            "get": {
+                "description": "Get godoc",
+                "operationId": "query.Get",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "filter-id",
+                        "required": true,
+                        "schema": {
+                            "title": "filter-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取筛选器详情",
+                "tags": [
+                    "QUERY"
+                ]
+            },
+            "put": {
+                "description": "Update godoc",
+                "operationId": "query.Update",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "filter-id",
+                        "required": true,
+                        "schema": {
+                            "title": "filter-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "更新筛选器",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/ingestion/detect": {
+            "post": {
+                "description": "Detect godoc",
+                "operationId": "query.Detect",
+                "responses": {},
+                "summary": "识别日志样本结构",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/ingestion/fields": {
+            "post": {
+                "description": "Fields godoc",
+                "operationId": "query.Fields",
+                "responses": {},
+                "summary": "根据识别草案生成可查询字段目录",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/ingestion/publish": {
+            "post": {
+                "description": "Publish godoc",
+                "operationId": "query.Publish",
+                "responses": {},
+                "summary": "创建接入发布配置",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/ingestion/publish-draft": {
+            "post": {
+                "description": "PublishDraft godoc",
+                "operationId": "query.PublishDraft",
+                "responses": {},
+                "summary": "生成接入发布草案",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/instances/{instance-id}/databases/{database}/tables": {
+            "get": {
+                "description": "SourceTables godoc",
+                "operationId": "query.SourceTables",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "database",
+                        "required": true,
+                        "schema": {
+                            "title": "database",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取实例数据库下的已有表",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/run": {
+            "post": {
+                "description": "Run godoc",
+                "operationId": "query.Run",
+                "responses": {},
+                "summary": "执行结构化日志查询",
+                "tags": [
+                    "QUERY"
+                ]
+            }
+        },
+        "/query/tokens": {
+            "get": {
+                "operationId": "query.TokenList",
+                "responses": {}
+            },
+            "post": {
+                "operationId": "query.TokenCreate",
+                "responses": {}
+            }
+        },
+        "/query/tokens/{token-id}": {
+            "patch": {
+                "operationId": "query.TokenUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "token-id",
+                        "required": true,
+                        "schema": {
+                            "title": "token-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/query/tokens/{token-id}/audits": {
+            "get": {
+                "operationId": "query.TokenAuditList",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "tokenId",
+                        "schema": {
+                            "title": "tokenId",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "current",
+                        "schema": {
+                            "default": "1",
+                            "title": "current",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "pageSize",
+                        "schema": {
+                            "default": "20",
+                            "title": "pageSize",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "token-id",
+                        "required": true,
+                        "schema": {
+                            "title": "token-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/query/tokens/{token-id}/grants": {
+            "put": {
+                "operationId": "query.TokenGrantUpdate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "token-id",
+                        "required": true,
+                        "schema": {
+                            "title": "token-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/reports": {
+            "post": {
+                "description": "ReportUpsert godoc",
+                "operationId": "report.ReportUpsert",
+                "responses": {},
+                "summary": "保存报表定义",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/acceleration/check-run": {
+            "post": {
+                "operationId": "report.AccelerationCheckRun",
+                "responses": {}
+            }
+        },
+        "/reports/channels": {
+            "get": {
+                "description": "ChannelList godoc",
+                "operationId": "report.ChannelList",
+                "responses": {},
+                "summary": "获取报表投递渠道",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/configs": {
+            "post": {
+                "description": "ConfigUpsert godoc",
+                "operationId": "report.ConfigUpsert",
+                "responses": {},
+                "summary": "保存报表调度配置（仅调度）",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/configs/{node-id}": {
+            "get": {
+                "description": "ConfigGet godoc",
+                "operationId": "report.ConfigGet",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "node-id",
+                        "required": true,
+                        "schema": {
+                            "title": "node-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取报表调度配置（仅调度）",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/delivery": {
+            "get": {
+                "description": "DeliveryGet godoc",
+                "operationId": "report.DeliveryGet",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "reportId",
+                        "schema": {
+                            "title": "reportId",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取报表推送摘要",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/editor": {
+            "get": {
+                "description": "EditorGet godoc",
+                "operationId": "report.EditorGet",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "reportId",
+                        "schema": {
+                            "title": "reportId",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取报表编辑配置",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/executions": {
+            "get": {
+                "description": "ExecutionList godoc",
+                "operationId": "report.ExecutionList",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "reportId",
+                        "schema": {
+                            "title": "reportId",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取报表执行历史",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/instances": {
+            "get": {
+                "operationId": "report.ReportSourceInstances",
+                "responses": {}
+            }
+        },
+        "/reports/instances/{instance-id}/databases": {
+            "get": {
+                "operationId": "report.ReportSourceDatabases",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/reports/instances/{instance-id}/databases/{database}/tables": {
+            "get": {
+                "operationId": "report.ReportSourceTables",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "database",
+                        "required": true,
+                        "schema": {
+                            "title": "database",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/reports/instances/{instance-id}/databases/{database}/tables/{table}/columns": {
+            "get": {
+                "operationId": "report.ReportTableColumns",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instance-id",
+                        "required": true,
+                        "schema": {
+                            "title": "instance-id",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "database",
+                        "required": true,
+                        "schema": {
+                            "title": "database",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "table",
+                        "required": true,
+                        "schema": {
+                            "title": "table",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/reports/list": {
+            "get": {
+                "description": "ReportList godoc",
+                "operationId": "report.ReportList",
+                "responses": {},
+                "summary": "获取报表列表",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/preview": {
+            "get": {
+                "description": "PreviewGet godoc",
+                "operationId": "report.PreviewGet",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "reportId",
+                        "schema": {
+                            "title": "reportId",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取报表执行预览",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/preview-run": {
+            "post": {
+                "description": "PreviewRun godoc",
+                "operationId": "report.PreviewRun",
+                "responses": {},
+                "summary": "执行一次报表预览",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/results": {
+            "get": {
+                "description": "ResultGet godoc",
+                "operationId": "report.ResultGet",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "reportId",
+                        "schema": {
+                            "title": "reportId",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取报表运行结果数据",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/where-check": {
+            "post": {
+                "operationId": "report.WhereCheckRun",
+                "responses": {}
+            }
+        },
+        "/reports/workspace": {
+            "get": {
+                "description": "WorkspaceGet godoc",
+                "operationId": "report.WorkspaceGet",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "reportId",
+                        "schema": {
+                            "title": "reportId",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取报表工作区",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/reports/{report-id}": {
+            "delete": {
+                "description": "ReportDelete godoc",
+                "operationId": "report.ReportDelete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "report-id",
+                        "required": true,
+                        "schema": {
+                            "title": "report-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "删除报表定义",
+                "tags": [
+                    "REPORT"
+                ]
+            },
+            "get": {
+                "description": "ReportGet godoc",
+                "operationId": "report.ReportGet",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "report-id",
+                        "required": true,
+                        "schema": {
+                            "title": "report-id",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {},
+                "summary": "获取报表定义",
+                "tags": [
+                    "REPORT"
+                ]
+            }
+        },
+        "/storage": {
             "post": {
                 "description": "  Creating a log library",
                 "operationId": "storage.Create",
@@ -2735,7 +3523,7 @@
                 ]
             }
         },
-        "/api/v2/storage/collects": {
+        "/storage/collects": {
             "get": {
                 "description": "collect",
                 "operationId": "storage.ListCollect",
@@ -2755,7 +3543,7 @@
                 ]
             }
         },
-        "/api/v2/storage/collects/{collect-id}": {
+        "/storage/collects/{collect-id}": {
             "delete": {
                 "description": "  Delete Collect",
                 "operationId": "storage.DeleteCollect",
@@ -2797,7 +3585,7 @@
                 ]
             }
         },
-        "/api/v2/storage/mapping-json": {
+        "/storage/mapping-json": {
             "post": {
                 "description": "  Kafka JSON field mapping",
                 "operationId": "storage.KafkaJsonMapping",
@@ -2808,7 +3596,7 @@
                 ]
             }
         },
-        "/api/v2/storage/traces": {
+        "/storage/traces": {
             "get": {
                 "description": "trace apis",
                 "operationId": "storage.GetTraceList",
@@ -2819,7 +3607,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}": {
+        "/storage/{storage-id}": {
             "patch": {
                 "description": "  iStorage update",
                 "operationId": "storage.Update",
@@ -2841,7 +3629,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}/analysis-fields": {
+        "/storage/{storage-id}/analysis-fields": {
             "get": {
                 "description": "  iStorage analysis field list",
                 "operationId": "storage.AnalysisFields",
@@ -2863,7 +3651,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}/columns": {
+        "/storage/{storage-id}/columns": {
             "get": {
                 "description": "  Get storage columns",
                 "operationId": "storage.GetStorageColumns",
@@ -2885,7 +3673,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}/trace": {
+        "/storage/{storage-id}/trace": {
             "patch": {
                 "description": "  iStorage related trace info update",
                 "operationId": "storage.UpdateTraceInfo",
@@ -2907,7 +3695,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{storage-id}/trace-graph": {
+        "/storage/{storage-id}/trace-graph": {
             "get": {
                 "description": "  Get trace graph",
                 "operationId": "storage.GetTraceGraph",
@@ -2929,7 +3717,7 @@
                 ]
             }
         },
-        "/api/v2/storage/{template}": {
+        "/storage/{template}": {
             "post": {
                 "description": "  Create storage by template",
                 "operationId": "storage.CreateStorageByTemplate",
