@@ -1,0 +1,76 @@
+name: publish-release-dev
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: publish-release-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Cache web dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/yarn
+            ~/.npm
+          key: web-${{ runner.os }}-${{ hashFiles('ui/yarn.lock', 'ui-v2/package-lock.json') }}
+          restore-keys: web-${{ runner.os }}-
+
+      - name: Build v1 and v2 web assets
+        env:
+          NODE_OPTIONS: --max_old_space_size=8000
+        run: |
+          cd ui
+          yarn install --frozen-lockfile
+          yarn build
+          rm -rf ../api/internal/ui/dist
+          cp -rf dist ../api/internal/ui
+
+          cd ../ui-v2
+          npm ci
+          npm run build
+
+          test -s ../api/internal/ui/dist/index.html
+          test -s ../api/internal/ui/v2dist/dist/index.html
+          test -n "$(find ../api/internal/ui/v2dist/dist/assets -type f -print -quit)"
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build development archives
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: 'v2.18.0'
+          args: release --snapshot --clean --skip=validate
+
+      - name: Upload development archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: clickvisual-dev-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
