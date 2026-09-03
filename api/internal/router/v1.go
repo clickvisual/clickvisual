@@ -14,6 +14,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/permission"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/setting"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv1/user"
+	storagev2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 )
@@ -36,6 +37,14 @@ func v1(r *gin.RouterGroup) {
 	// Log library administration metadata (root users only)
 	rootGroup.GET("/log-library-management/instances/:iid/databases/:database/tables/:table/columns", core.Handle(base.LogLibraryManagementTableColumns))
 	rootGroup.GET("/log-library-management/instances/:iid/databases/:database/tables/:table/ddl", core.Handle(base.LogLibraryManagementTableDDL))
+	// Log library mutations use management-only façade routes. The rootGroup
+	// middleware keeps these operations restricted to administrators without
+	// changing the instance-level permissions of the legacy query APIs.
+	rootGroup.POST("/log-library-management/storage", core.Handle(storagev2.Create))
+	rootGroup.POST("/log-library-management/storage/:template", core.Handle(storagev2.CreateStorageByTemplate))
+	rootGroup.POST("/log-library-management/instances/:iid/tables-exist", core.Handle(base.TableCreateSelfBuilt))
+	rootGroup.POST("/log-library-management/instances/:iid/tables-exist-batch", core.Handle(base.TableCreateSelfBuiltBatch))
+	rootGroup.DELETE("/log-library-management/tables/:id", core.Handle(base.TableDelete))
 	// Cluster-related interfaces
 	rootGroup.GET("/clusters", core.Handle(kube.ClusterList))
 	rootGroup.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))

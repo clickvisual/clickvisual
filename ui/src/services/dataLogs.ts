@@ -350,6 +350,17 @@ export default {
     );
   },
 
+  // Root-only log library management mutations
+  async createdManagementTableEachRow(data: CreatedLogLibraryRequestEachRow) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/log-library-management/storage`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
+
   // Create a log library V3
   async createdTableAsString(data: CreatedLogLibraryRequestAsString) {
     return request<API.Res<string>>(
@@ -362,9 +373,20 @@ export default {
   },
 
   // Create a log library Template
-  async createdTableTemplate(template: string, data: CreatedTableTemplateType) {
+  async createdTableTemplate(template: string, data: any) {
     return request<API.Res<string>>(
       process.env.PUBLIC_PATH + `api/v2/storage/${template}`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
+
+  async createdManagementTableTemplate(template: string, data: any) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH +
+        `api/v1/log-library-management/storage/${template}`,
       {
         method: "POST",
         data,
@@ -392,6 +414,20 @@ export default {
     );
   },
 
+  async createdManagementLocalTable(
+    iid: number,
+    data: CreateLocalTableRequest
+  ) {
+    return request(
+      process.env.PUBLIC_PATH +
+        `api/v1/log-library-management/instances/${iid}/tables-exist`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
+
   async createdLocalTableBatch(
     iid: number,
     data: CreateLocalTableRequestBatch
@@ -405,10 +441,33 @@ export default {
     );
   },
 
+  async createdManagementLocalTableBatch(
+    iid: number,
+    data: CreateLocalTableRequestBatch
+  ) {
+    return request(
+      process.env.PUBLIC_PATH +
+        `api/v1/log-library-management/instances/${iid}/tables-exist-batch`,
+      {
+        method: "POST",
+        data,
+      }
+    );
+  },
+
   // Deleting a Log Library
   async deletedTable(id: number) {
     return request<API.Res<string>>(
       process.env.PUBLIC_PATH + `api/v1/tables/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+
+  async deletedManagementTable(id: number) {
+    return request<API.Res<string>>(
+      process.env.PUBLIC_PATH + `api/v1/log-library-management/tables/${id}`,
       {
         method: "DELETE",
       }
