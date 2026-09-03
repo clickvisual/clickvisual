@@ -3,7 +3,10 @@ import api, { DatabaseResponse } from "@/services/dataLogs";
 import { CheckRoot } from "@/services/pms";
 import systemSettingApi, { InstanceType } from "@/services/systemSetting";
 import {
+  CodeOutlined,
+  CopyOutlined,
   DeleteOutlined,
+  EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
@@ -11,6 +14,7 @@ import { useModel } from "@umijs/max";
 import {
   Alert,
   Button,
+  Drawer,
   Empty,
   Input,
   message,
@@ -18,10 +22,35 @@ import {
   Select,
   Spin,
   Table,
+  Typography,
 } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { history, useIntl } from "umi";
 import styles from "./index.less";
+
+interface LogLibraryRow {
+  id: number;
+  iid: number;
+  tableName: string;
+  instanceName: string;
+  databaseId: number;
+  databaseName: string;
+  desc?: string;
+}
+
+interface InspectorTarget {
+  kind: "columns" | "ddl";
+  iid: number;
+  instanceName: string;
+  databaseName: string;
+  tableName: string;
+}
+
+interface TableColumnMetadata {
+  name: string;
+  type: number;
+  typeDesc: string;
+}
 
 const LogLibraryManagement = () => {
   const i18n = useIntl();
@@ -32,8 +61,13 @@ const LogLibraryManagement = () => {
   const [databases, setDatabases] = useState<DatabaseResponse[]>([]);
   const [selectedDatabase, setSelectedDatabase] = useState<number>();
   const [keyword, setKeyword] = useState("");
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<LogLibraryRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [inspector, setInspector] = useState<InspectorTarget>();
+  const [inspectorLoading, setInspectorLoading] = useState(false);
+  const [inspectorError, setInspectorError] = useState(false);
+  const [columns, setColumns] = useState<TableColumnMetadata[]>([]);
+  const [ddl, setDdl] = useState("");
   const {
     onChangeAddLogToDatabase,
     onChangeLogLibraryCreatedModalVisible,
@@ -71,7 +105,7 @@ const LogLibraryManagement = () => {
       }
       const list = res?.data || [];
       setInstances(list);
-      const flattened: any[] = [];
+      const flattened: LogLibraryRow[] = [];
       list.forEach((instance: any) => {
         (instance.databases || []).forEach((database: any) => {
           (database.tables || []).forEach((table: any) => {
@@ -81,7 +115,7 @@ const LogLibraryManagement = () => {
               instanceName: instance.name || instance.instanceName,
               databaseId: database.id,
               databaseName: database.databaseName || database.name,
-            });
+            } as LogLibraryRow);
           });
         });
       });
@@ -183,6 +217,56 @@ const LogLibraryManagement = () => {
     }
     onChangeAddLogToDatabase(database);
     onChangeLogLibraryCreatedModalVisible(true);
+  };
+
+  const loadInspector = useCallback(async (target: InspectorTarget) => {
+    setInspector(target);
+    setInspectorLoading(true);
+    setInspectorError(false);
+    setColumns([]);
+    setDdl("");
+    try {
+      if (target.kind === "columns") {
+        const res = await api.getLogLibraryManagementTableColumns(
+          target.iid,
+          target.databaseName,
+          target.tableName
+        );
+        if (res?.code !== 0) throw new Error(res?.msg || "request failed");
+        setColumns(res.data || []);
+      } else {
+        const res = await api.getLogLibraryManagementTableDDL(
+          target.iid,
+          target.databaseName,
+          target.tableName
+        );
+        if (res?.code !== 0) throw new Error(res?.msg || "request failed");
+        setDdl(res.data?.ddl || "");
+      }
+    } catch (error) {
+      setInspectorError(true);
+    } finally {
+      setInspectorLoading(false);
+    }
+  }, []);
+
+  const openInspector = (kind: InspectorTarget["kind"], row: LogLibraryRow) =>
+    loadInspector({
+      kind,
+      iid: row.iid,
+      instanceName: row.instanceName,
+      databaseName: row.databaseName,
+      tableName: row.tableName,
+    });
+
+  const copyDDL = async () => {
+    if (!ddl) return;
+    try {
+      await navigator.clipboard.writeText(ddl);
+      message.success(i18n.formatMessage({ id: "logLibraryManagement.ddl.copied" }));
+    } catch (error) {
+      message.error(i18n.formatMessage({ id: "logLibraryManagement.ddl.copyError" }));
+    }
   };
 
   if (checking) {
@@ -310,22 +394,106 @@ const LogLibraryManagement = () => {
             {
               title: i18n.formatMessage({ id: "operation" }),
               key: "actions",
-              width: 100,
-              render: (_: any, record: any) => (
-                <Button
-                  danger
-                  type="link"
-                  icon={<DeleteOutlined />}
-                  onClick={() => confirmDelete(record)}
-                >
-                  {i18n.formatMessage({ id: "delete" })}
-                </Button>
+              width: 280,
+              render: (_: unknown, record: LogLibraryRow) => (
+                <>
+                  <Button
+                    type="link"
+                    icon={<EyeOutlined />}
+                    onClick={() => openInspector("columns", record)}
+                  >
+                    {i18n.formatMessage({ id: "logLibraryManagement.schema" })}
+                  </Button>
+                  <Button
+                    type="link"
+                    icon={<CodeOutlined />}
+                    onClick={() => openInspector("ddl", record)}
+                  >
+                    {i18n.formatMessage({ id: "logLibraryManagement.ddl" })}
+                  </Button>
+                  <Button
+                    danger
+                    type="link"
+                    icon={<DeleteOutlined />}
+                    onClick={() => confirmDelete(record)}
+                  >
+                    {i18n.formatMessage({ id: "delete" })}
+                  </Button>
+                </>
               ),
             },
           ]}
         />
       </div>
       <ModalCreatedLogLibrary onGetList={loadData} />
+      <Drawer
+        width={720}
+        open={!!inspector}
+        destroyOnClose
+        title={
+          inspector ? (
+            <div>
+              <div>
+                {inspector.kind === "columns"
+                  ? i18n.formatMessage({ id: "logLibraryManagement.schema" })
+                  : i18n.formatMessage({ id: "logLibraryManagement.ddl" })}
+              </div>
+              <Typography.Text type="secondary">
+                {inspector.instanceName} / {inspector.databaseName} / {inspector.tableName}
+              </Typography.Text>
+            </div>
+          ) : null
+        }
+        onClose={() => setInspector(undefined)}
+      >
+        {inspectorLoading ? (
+          <div className={styles.inspectorState}>
+            <Spin />
+          </div>
+        ) : inspectorError ? (
+          <div className={styles.inspectorState}>
+            <Alert
+              type="error"
+              showIcon
+              message={i18n.formatMessage({ id: "logLibraryManagement.inspectError" })}
+            />
+            {inspector ? (
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => loadInspector(inspector)}
+              >
+                {i18n.formatMessage({ id: "retry" })}
+              </Button>
+            ) : null}
+          </div>
+        ) : inspector?.kind === "columns" ? (
+          <Table<TableColumnMetadata>
+            rowKey="name"
+            size="small"
+            pagination={false}
+            dataSource={columns}
+            columns={[
+              {
+                title: i18n.formatMessage({ id: "logLibraryManagement.column.name" }),
+                dataIndex: "name",
+              },
+              {
+                title: i18n.formatMessage({ id: "logLibraryManagement.column.type" }),
+                dataIndex: "typeDesc",
+              },
+            ]}
+          />
+        ) : (
+          <>
+            <div className={styles.inspectorToolbar}>
+              <Button icon={<CopyOutlined />} onClick={copyDDL} disabled={!ddl}>
+                {i18n.formatMessage({ id: "logLibraryManagement.ddl.copy" })}
+              </Button>
+            </div>
+            <Input.TextArea value={ddl} readOnly autoSize={{ minRows: 12, maxRows: 28 }} />
+          </>
+        )}
+      </Drawer>
     </div>
   );
 };
