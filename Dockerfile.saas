@@ -34,7 +34,19 @@ RUN cd ui-v2 && npm run build
 FROM reg.smvm.cn/appbase/golang-build:1.24-alpine3.22 as go-builder
 ARG GOPROXY=goproxy.cn
 
-ENV GOPROXY=https://${GOPROXY},direct
+# Accept both a bare proxy host (for example, goproxy.cn) and a complete Go
+# proxy value (for example, https://goproxy.cn,direct).
+RUN set -eux; \
+    proxy="${GOPROXY%,direct}"; \
+    case "${proxy}" in \
+      http://*|https://*|direct|off) ;; \
+      *) proxy="https://${proxy}" ;; \
+    esac; \
+    case "${proxy}" in \
+      direct|off|*,direct) ;; \
+      *) proxy="${proxy},direct" ;; \
+    esac; \
+    go env -w GOPROXY="${proxy}"
 # RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk add --no-cache make bash tzdata
 
