@@ -1,4 +1,3 @@
-import deletedModal from "@/components/DeletedModal";
 import IconFont from "@/components/IconFont";
 import {
   ALARMRULES_PATH,
@@ -12,11 +11,9 @@ import {
 import { PaneType } from "@/models/datalogs/types";
 import { DefaultPane } from "@/models/datalogs/useLogPanes";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import { RestUrlStates } from "@/pages/DataLogs/hooks/useLogUrlParams";
 import useTimeOptions from "@/pages/DataLogs/hooks/useTimeOptions";
 import { IndexInfoType, TablesResponse } from "@/services/dataLogs";
 import { currentTimeStamp } from "@/utils/momentUtils";
-import useUrlState from "@ahooksjs/use-url-state";
 import {
   ApartmentOutlined,
   CalendarOutlined,
@@ -27,7 +24,7 @@ import {
   LinkOutlined,
 } from "@ant-design/icons";
 import { useModel } from "@umijs/max";
-import { Dropdown, message, Tooltip } from "antd";
+import { Dropdown, Tooltip } from "antd";
 import classNames from "classnames";
 import lodash from "lodash";
 import moment from "moment";
@@ -42,15 +39,12 @@ interface logLibraryType extends TablesResponse {
 
 type LogLibraryItemProps = {
   logLibrary: logLibraryType;
-  onGetList: any;
 };
 
 const LogLibraryItem = (props: LogLibraryItemProps) => {
-  const { logLibrary, onGetList } = props;
-  const [, setUrlState] = useUrlState();
+  const { logLibrary } = props;
   const { resizeMenuWidth, baseFieldsIndexList } = useModel("dataLogs");
   const {
-    doDeletedLogLibrary,
     doGetLogLibrary,
     onChangeLogLibrary,
     currentLogLibrary,
@@ -61,7 +55,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     onChangeLogPane,
     onChangeCurrentLogPane,
     onChangeViewsVisibleDraw,
-    resetLogs,
     resetLogPaneLogsAndHighCharts,
     onChangeIsModifyLog,
     onChangeCurrentEditLogLibrary,
@@ -74,7 +67,7 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     doGetColumns,
     onChangeColumsList,
   } = useModel("dataLogs");
-  const { logPanes, paneKeys, addLogPane, removeLogPane } = logPanesHelper;
+  const { logPanes, addLogPane } = logPanesHelper;
   const rawLogsIndexeListRef = useRef<IndexInfoType[] | undefined>(
     baseFieldsIndexList
   );
@@ -164,70 +157,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
     return `${LOGTOPOLOGY_PATH}?iid=${res?.data.database.iid}&dName=${res?.data.database.name}&tName=${logLibrary.tableName}&navKey=realtime`;
   };
 
-  const doDeleted = () => {
-    const hideMessage = message.loading(
-      {
-        content: i18n.formatMessage(
-          {
-            id: "datasource.logLibrary.deleted.loading",
-          },
-          { logLibrary: logLibrary.tableName }
-        ),
-        key: "deletedTable",
-      },
-      0
-    );
-    doDeletedLogLibrary
-      .run(logLibrary.id)
-      .then((res) => {
-        if (res?.code === 0) {
-          const currentKey = logLibrary.id.toString();
-          // 判断日志库是否打开
-          message.success(
-            {
-              content: i18n.formatMessage({
-                id: "datasource.logLibrary.deleted.success",
-              }),
-              key: "deletedTable",
-            },
-            3
-          );
-          onGetList();
-          // 不在打开的日志库中
-          if (!paneKeys.includes(currentKey)) return;
-
-          // 日志库打开，当前选中日志库是需要删除的日志库
-          const resultKeys = paneKeys.filter((key) => key !== currentKey);
-          const len = resultKeys.length;
-          // 删除日志库
-          removeLogPane(currentKey);
-
-          // 只打开了当前日志库
-          if (len === 0) {
-            resetLogs();
-            onChangeLogLibrary(undefined);
-            setUrlState(RestUrlStates);
-          }
-          // 如果还有其他日志库，则切换到第一条
-          if (len > 0 && parseInt(currentKey) === currentLogLibrary?.id) {
-            const currentPanes = lodash.cloneDeep(logPanes);
-            const currentPane = currentPanes[resultKeys[0]];
-            delete currentPanes[currentKey];
-            handleChangeRelativeAmountAndUnit(currentPane);
-            onChangeCurrentLogPane(currentPane, currentPanes);
-            onChangeLogLibrary({
-              id: parseInt(currentPane.paneId),
-              tableName: currentPane.pane,
-              createType: currentPane.paneType,
-              desc: currentPane.desc,
-              relTraceTableId: currentPane.relTraceTableId,
-            });
-          }
-        } else hideMessage();
-      })
-      .catch(() => hideMessage());
-  };
-
   const items = useMemo(() => {
     let item: any = [
       {
@@ -304,30 +233,6 @@ const LogLibraryItem = (props: LogLibraryItemProps) => {
         icon: <FundOutlined />,
       });
     }
-    item.push({
-      label: (
-        <span className={logLibraryListStyles.deletedSpan}>
-          {i18n.formatMessage({
-            id: "datasource.tooltip.icon.deleted",
-          })}
-        </span>
-      ),
-      key: "log-delete",
-      onClick: () => {
-        deletedModal({
-          onOk: () => {
-            doDeleted();
-          },
-          content: i18n.formatMessage(
-            {
-              id: "datasource.logLibrary.deleted.content",
-            },
-            { logLibrary: logLibrary.tableName }
-          ),
-        });
-      },
-      icon: <IconFont type={"icon-delete"} />,
-    });
     return item;
   }, [
     logLibrary,

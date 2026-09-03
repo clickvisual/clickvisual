@@ -6,9 +6,9 @@ import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/Log
 import LogLibraryInfoDraw from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/LogLibraryInfoDraw";
 import { TablesResponse } from "@/services/dataLogs";
 import useUrlState from "@ahooksjs/use-url-state";
-import { DownOutlined, PlusOutlined } from "@ant-design/icons";
+import { DownOutlined } from "@ant-design/icons";
 import { useModel } from "@umijs/max";
-import { Button, Empty, Tree } from "antd";
+import { Empty, Tree } from "antd";
 import { cloneDeep } from "lodash";
 import { useEffect, useState } from "react";
 import { useIntl } from "umi";
@@ -21,8 +21,7 @@ type LogLibraryListProps = {
 const LogLibraryList = (props: LogLibraryListProps) => {
   const { list, onGetList } = props;
   const [urlState] = useUrlState();
-  const { onChangeLogLibraryCreatedModalVisible, resizeMenuWidth } =
-    useModel("dataLogs");
+  const { resizeMenuWidth } = useModel("dataLogs");
   const {
     expandedKeys,
     onChangeExpandedKeys,
@@ -96,15 +95,6 @@ const LogLibraryList = (props: LogLibraryListProps) => {
             id: "datasource.logLibrary.empty",
           })}
         />
-        <div className={logLibraryListStyles.emptyBtn}>
-          <Button
-            onClick={() => onChangeLogLibraryCreatedModalVisible(true)}
-            type={"primary"}
-            icon={<PlusOutlined />}
-          >
-            {i18n.formatMessage({ id: "datasource.logLibrary.quickAdd" })}
-          </Button>
-        </div>
       </>
     );
   }
