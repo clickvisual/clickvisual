@@ -1,16 +1,13 @@
 import deletedModal from "@/components/DeletedModal";
 import IconFont from "@/components/IconFont";
 import logLibraryListStyles from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList/index.less";
-import { PlusSquareOutlined } from "@ant-design/icons";
-import { Dropdown, Menu, message, Tooltip } from "antd";
+import { Dropdown, message, Tooltip } from "antd";
 import { useIntl, useModel } from "umi";
 
 const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
   const { databasesItem, onGetList } = props;
   const i18n = useIntl();
   const {
-    onChangeLogLibraryCreatedModalVisible,
-    onChangeAddLogToDatabase,
     onChangeIsEditDatabase,
     resizeMenuWidth,
     onChangeCurrentEditDatabase,
@@ -69,17 +66,6 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
       icon: <IconFont style={{ color: "#000" }} type={"icon-database-edit"} />,
     },
     {
-      label: i18n.formatMessage({
-        id: "datasource.draw.table.operation.tip",
-      }),
-      key: "database-creat",
-      onClick: () => {
-        onChangeAddLogToDatabase(databasesItem);
-        onChangeLogLibraryCreatedModalVisible(true);
-      },
-      icon: <PlusSquareOutlined style={{ color: "#000" }} />,
-    },
-    {
       label: (
         <span className={logLibraryListStyles.deletedSpan}>
           {i18n.formatMessage({ id: "datasource.draw.table.delete.tip" })}
@@ -92,8 +78,6 @@ const DatabaseItem = (props: { databasesItem: any; onGetList: any }) => {
       icon: <IconFont type={"icon-delete"} />,
     },
   ];
-
-  const menu = <Menu items={items} />;
 
   const tooltipTitle = (
     <div>
