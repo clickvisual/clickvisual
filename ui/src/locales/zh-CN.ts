@@ -96,6 +96,13 @@ export default {
   "menu.systemSettings.pms": "权限管理",
   "menu.systemSettings.role": "角色管理",
   "menu.systemSettings.user": "用户管理",
+  "menu.systemSettings.logLibraries": "日志管理",
+  "logLibraryManagement.title": "日志管理",
+  "logLibraryManagement.description": "集中管理实例下的日志库",
+  "logLibraryManagement.create": "新增日志库",
+  "logLibraryManagement.loadingList": "日志库列表将在此处展示",
+  "logLibraryManagement.forbidden": "仅管理员可访问日志管理",
+  "logLibraryManagement.backToQuery": "返回日志查询",
   "menu.bigdata": "分析",
   "menu.bigdata.realtime": "实时业务",
   "menu.bigdata.temporaryQuery": "临时查询",
@@ -352,7 +359,8 @@ export default {
   "datasource.logLibrary.usingSystemTime": "使用系统时间",
   "datasource.logLibrary.placeholder.type": "请选择数据表类型",
   "datasource.logLibrary.placeholder.days": "请输入日志保存天数",
-  "datasource.logLibrary.placeholder.brokers": "kafka:9092,kafka:9093,kafka:9094",
+  "datasource.logLibrary.placeholder.brokers":
+    "kafka:9092,kafka:9093,kafka:9094",
   "datasource.logLibrary.placeholder.topics":
     "请输入 Topics，支持数字、英文字母或中划线",
   "datasource.logLibrary.placeholder.consumers": "请输入 Consumers",
