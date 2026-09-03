@@ -33,6 +33,9 @@ func v1(r *gin.RouterGroup) {
 	rootGroup.POST("/configurations/:id/publish", core.Handle(configure.Publish))
 	rootGroup.GET("/configurations/:id/histories", core.Handle(configure.HistoryList))
 	rootGroup.GET("/configurations/:id/histories/:version", core.Handle(configure.HistoryInfo))
+	// Log library administration metadata (root users only)
+	rootGroup.GET("/log-library-management/instances/:iid/databases/:database/tables/:table/columns", core.Handle(base.LogLibraryManagementTableColumns))
+	rootGroup.GET("/log-library-management/instances/:iid/databases/:database/tables/:table/ddl", core.Handle(base.LogLibraryManagementTableDDL))
 	// Cluster-related interfaces
 	rootGroup.GET("/clusters", core.Handle(kube.ClusterList))
 	rootGroup.GET("/clusters/:clusterId/configmaps", core.Handle(kube.ConfigMapList))

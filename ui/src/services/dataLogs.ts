@@ -176,6 +176,16 @@ export interface TableColumnsResponse {
   conformToStandard: TableColumn[];
 }
 
+export interface LogLibraryManagementColumn {
+  name: string;
+  type: number;
+  typeDesc: string;
+}
+
+export interface LogLibraryManagementDDLResponse {
+  ddl: string;
+}
+
 export interface CreateLocalTableRequest {
   databaseName: string;
   tableName: string;
@@ -673,6 +683,35 @@ export default {
       {
         method: "GET",
       }
+    );
+  },
+
+  // Root-only log library administration metadata
+  async getLogLibraryManagementTableColumns(
+    iid: number,
+    database: string,
+    table: string
+  ) {
+    return request<API.Res<LogLibraryManagementColumn[]>>(
+      process.env.PUBLIC_PATH +
+        `api/v1/log-library-management/instances/${iid}/databases/${encodeURIComponent(
+          database
+        )}/tables/${encodeURIComponent(table)}/columns`,
+      { method: "GET" }
+    );
+  },
+
+  async getLogLibraryManagementTableDDL(
+    iid: number,
+    database: string,
+    table: string
+  ) {
+    return request<API.Res<LogLibraryManagementDDLResponse>>(
+      process.env.PUBLIC_PATH +
+        `api/v1/log-library-management/instances/${iid}/databases/${encodeURIComponent(
+          database
+        )}/tables/${encodeURIComponent(table)}/ddl`,
+      { method: "GET" }
     );
   },
 };
