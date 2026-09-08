@@ -52,6 +52,7 @@ func Init() error {
 
 	Index = NewIndex()
 	Alert = NewAlarm()
+	initOverview()
 
 	initGob()
 	configure.InitConfigure()
