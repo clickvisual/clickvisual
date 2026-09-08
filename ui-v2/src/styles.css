@@ -6022,9 +6022,24 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
   margin-bottom: 6px;
 }
 
+/* Overview keeps one bordered container per section; everything inside is
+   separated by hairlines and whitespace instead of nested boxes. */
+.cv-overview-page .cv-ranked-list,
+.cv-overview-page .cv-event-list {
+  gap: 0;
+}
+
 .cv-overview-page .cv-ranked-list__item,
 .cv-overview-page .cv-event-list__item {
-  background: #ffffff;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 6px 0;
+}
+
+.cv-overview-page .cv-ranked-list__item + .cv-ranked-list__item,
+.cv-overview-page .cv-event-list__item + .cv-event-list__item {
+  border-top: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
 }
 
 .cv-overview-page .cv-dashboard-aside .cv-panel {
@@ -6034,10 +6049,59 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
 .cv-overview-page .cv-metric-grid {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   margin-bottom: 8px;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
+  overflow: visible;
 }
 
 .cv-overview-page .cv-metric-card {
   gap: 4px;
+  padding: 4px 12px 10px 0;
+  border-right: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
+}
+
+.cv-overview-page .cv-metric-card + .cv-metric-card {
+  padding-left: 12px;
+}
+
+.cv-overview-page .cv-metric-card__label {
+  font-weight: 600;
+  color: var(--cv-text-soft);
+}
+
+.cv-overview-page .cv-subpanel__title {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cv-text-soft);
+}
+
+.cv-overview-page .cv-empty-inline {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 0;
+  text-align: left;
+}
+
+.cv-overview-page .cv-trend-bars__track {
+  max-width: none;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  justify-content: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
+}
+
+.cv-overview-page .cv-overview-trend {
+  gap: 0;
+}
+
+.cv-overview-page .cv-overview-trend__bar {
+  width: 60%;
+  max-width: 28px;
+  border-radius: 3px 3px 0 0;
 }
 
 .cv-overview-page .cv-metric-card__trend {
@@ -6083,7 +6147,7 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
   padding: 0 8px;
   background: var(--cv-surface-muted);
   color: var(--cv-text);
-  box-shadow: inset 0 0 0 1px var(--cv-border);
+  box-shadow: none;
 }
 
 .cv-overview-chip-link {
@@ -6138,7 +6202,15 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
   }
 
   .cv-overview-page .cv-metric-grid .cv-metric-card:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--cv-border);
+    border-bottom: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
+  }
+
+  .cv-overview-page .cv-metric-grid .cv-metric-card:nth-child(2n + 1) {
+    padding-left: 0;
+  }
+
+  .cv-overview-page .cv-metric-grid .cv-metric-card:nth-child(n + 3) {
+    padding-top: 8px;
   }
 
   .cv-overview-trend {
