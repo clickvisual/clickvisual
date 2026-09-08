@@ -369,8 +369,12 @@ function DailyTrend({ points }: { points: OverviewDailyItem[] }) {
         <div key={point.date} className="cv-trend-bars__item">
           <div className="cv-trend-bars__track">
             <div
-              className="cv-overview-trend__bar"
-              style={{ height: point.count > 0 ? `${Math.max((point.count / maxValue) * 100, 4)}%` : 0 }}
+              className={
+                point.count > 0
+                  ? "cv-overview-trend__bar"
+                  : "cv-overview-trend__bar cv-overview-trend__bar--zero"
+              }
+              style={{ height: point.count > 0 ? `${Math.max((point.count / maxValue) * 100, 4)}%` : undefined }}
             />
           </div>
           <div className="cv-trend-bars__meta">

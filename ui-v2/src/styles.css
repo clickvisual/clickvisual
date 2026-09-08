@@ -6022,24 +6022,27 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
   margin-bottom: 6px;
 }
 
-/* Overview keeps one bordered container per section; everything inside is
-   separated by hairlines and whitespace instead of nested boxes. */
+/* Overview keeps one bordered container per section. Inside, the metric
+   group sits on a single soft band and everything else is separated by
+   whitespace and type hierarchy only: no nested boxes, no hairlines. */
 .cv-overview-page .cv-ranked-list,
 .cv-overview-page .cv-event-list {
-  gap: 0;
+  gap: 2px;
 }
 
 .cv-overview-page .cv-ranked-list__item,
 .cv-overview-page .cv-event-list__item {
   border: 0;
-  border-radius: 0;
+  border-radius: 6px;
   background: transparent;
-  padding: 6px 0;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  transition: background-color 120ms ease;
 }
 
-.cv-overview-page .cv-ranked-list__item + .cv-ranked-list__item,
-.cv-overview-page .cv-event-list__item + .cv-event-list__item {
-  border-top: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
+.cv-overview-page .cv-ranked-list__item:hover,
+.cv-overview-page .cv-event-list__item:hover {
+  background: var(--cv-surface-muted);
 }
 
 .cv-overview-page .cv-dashboard-aside .cv-panel {
@@ -6048,21 +6051,20 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
 
 .cv-overview-page .cv-metric-grid {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  margin-bottom: 8px;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
   border: 0;
-  border-radius: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
+  border-radius: 8px;
+  background: var(--cv-surface-muted);
   overflow: visible;
 }
 
 .cv-overview-page .cv-metric-card {
   gap: 4px;
-  padding: 4px 12px 10px 0;
-  border-right: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
-}
-
-.cv-overview-page .cv-metric-card + .cv-metric-card {
-  padding-left: 12px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
 }
 
 .cv-overview-page .cv-metric-card__label {
@@ -6070,10 +6072,20 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
   color: var(--cv-text-soft);
 }
 
+.cv-overview-page .cv-metric-card__value {
+  font-size: 22px;
+}
+
+.cv-overview-page .cv-rank-grid {
+  gap: 16px;
+}
+
 .cv-overview-page .cv-subpanel__title {
-  margin: 0 0 4px;
-  font-size: 12px;
-  font-weight: 600;
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--cv-text-soft);
 }
 
@@ -6081,7 +6093,7 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
   border: 0;
   border-radius: 0;
   background: transparent;
-  padding: 10px 0;
+  padding: 8px 0;
   text-align: left;
 }
 
@@ -6091,7 +6103,6 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
   border-radius: 0;
   background: transparent;
   justify-content: center;
-  border-bottom: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
 }
 
 .cv-overview-page .cv-overview-trend {
@@ -6101,7 +6112,12 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
 .cv-overview-page .cv-overview-trend__bar {
   width: 60%;
   max-width: 28px;
-  border-radius: 3px 3px 0 0;
+  border-radius: 3px;
+}
+
+.cv-overview-page .cv-overview-trend__bar--zero {
+  height: 3px;
+  background: var(--cv-border);
 }
 
 .cv-overview-page .cv-metric-card__trend {
@@ -6197,20 +6213,8 @@ body .cv-query-fields-panel__popover-panel:has(.cv-query-fields-panel__stats) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .cv-overview-page .cv-metric-grid .cv-metric-card:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .cv-overview-page .cv-metric-grid .cv-metric-card:nth-child(-n + 2) {
-    border-bottom: 1px solid color-mix(in srgb, var(--cv-border) 70%, transparent);
-  }
-
-  .cv-overview-page .cv-metric-grid .cv-metric-card:nth-child(2n + 1) {
-    padding-left: 0;
-  }
-
-  .cv-overview-page .cv-metric-grid .cv-metric-card:nth-child(n + 3) {
-    padding-top: 8px;
+  .cv-overview-page .cv-rank-grid {
+    gap: 12px;
   }
 
   .cv-overview-trend {
