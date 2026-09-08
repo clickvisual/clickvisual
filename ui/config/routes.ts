@@ -86,6 +86,11 @@ export default [
         component: "./SystemSetting/User",
       },
       {
+        path: "/sys/log-libraries",
+        name: "logLibraries",
+        component: "./SystemSetting/LogLibraryManagement",
+      },
+      {
         path: "*",
         redirect: "/",
       },

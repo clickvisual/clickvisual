@@ -100,3 +100,5 @@ permission:
             method: POST
       - name: user
         path: /sys/user
+      - name: logLibraries
+        path: /sys/log-libraries

@@ -15,6 +15,7 @@ import ReportResultPage from "../domains/report/pages/ReportResultPage";
 import ReportSchedulePage from "../domains/report/pages/ReportSchedulePage";
 import SettingsDatasourcePage from "../domains/settings/pages/SettingsDatasourcePage";
 import SettingsQueryTokensPage from "../domains/settings/pages/SettingsQueryTokensPage";
+import LogLibraryManagementPage from "../domains/logLibrary/pages/LogLibraryManagementPage";
 import { isPrivateLiteEdition } from "../shared/config/runtime";
 import { getV2BasePath } from "../shared/layout/VersionSwitcher";
 
@@ -82,6 +83,10 @@ export function createV2Routes(privateLite = isPrivateLiteEdition()) {
         {
           path: "settings/query-tokens",
           element: <SettingsQueryTokensPage />
+        },
+        {
+          path: "settings/log-libraries",
+          element: <LogLibraryManagementPage />
         },
         {
           path: "permission/users",

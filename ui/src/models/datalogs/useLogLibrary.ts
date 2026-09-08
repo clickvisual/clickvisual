@@ -74,6 +74,21 @@ export default function useLogLibrary() {
   const deletedLogLibrary = useRequest(api.deletedTable, {
     loadingText: false,
   });
+  const deletedManagementLogLibrary = useRequest(api.deletedManagementTable, {
+    loadingText: false,
+  });
+  const createdManagementLogLibraryEachRow = useRequest(
+    api.createdManagementTableEachRow,
+    { loadingText: false }
+  );
+  const createdManagementTableTemplate = useRequest(
+    api.createdManagementTableTemplate,
+    { loadingText: false }
+  );
+  const createdManagementLocalLogLibraryBatch = useRequest(
+    api.createdManagementLocalTableBatch,
+    { loadingText: false }
+  );
   const getLogLibrary = useRequest(api.getTableInfo, {
     loadingText: false,
   });
@@ -110,6 +125,11 @@ export default function useLogLibrary() {
     doCreatedTableTemplate,
     doGetMappingJson,
     doDeletedLogLibrary: deletedLogLibrary,
+    doDeletedManagementLogLibrary: deletedManagementLogLibrary,
+    doCreatedManagementLogLibraryEachRow: createdManagementLogLibraryEachRow,
+    doCreatedManagementTableTemplate: createdManagementTableTemplate,
+    doCreatedManagementLocalLogLibraryBatch:
+      createdManagementLocalLogLibraryBatch,
     doGetLogLibrary: getLogLibrary,
     getLogLibraryLoading: getLogLibrary.loading,
     doUpdateLogLibrary,

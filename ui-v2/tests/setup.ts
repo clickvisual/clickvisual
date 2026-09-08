@@ -4,6 +4,7 @@ import {
   buildReportWorkspaceMock,
   reportResultMockById
 } from "../src/domains/report/mocks/reportMockData";
+import { buildOverviewSummaryMock } from "./fixtures/overviewSummary";
 
 class TestResizeObserver {
   observe() {}
@@ -88,6 +89,18 @@ beforeEach(() => {
             msg: "succ",
             data: buildReportWorkspaceMock(reportId)
           })
+        };
+      }
+
+      if (method === "GET" && url.pathname.endsWith("/api/v2/overview/summary")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: buildOverviewSummaryMock()
+            })
         };
       }
 

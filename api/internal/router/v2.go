@@ -8,9 +8,11 @@ import (
 	goredoc "github.com/link-duan/go-redoc"
 
 	"github.com/clickvisual/clickvisual/api/docs"
+	basev1 "github.com/clickvisual/clickvisual/api/internal/api/apiv1/base"
 	aiv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/ai"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/alert"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/base"
+	overviewv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/overview"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/pandas"
 	queryv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/query"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/report"
@@ -37,6 +39,9 @@ func v2(r *gin.RouterGroup) {
 }
 
 func v2Full(r *gin.RouterGroup) {
+	logLibraryManagementRoutes(r)
+	// The overview dashboard module - overview
+	r.GET("/overview/summary", core.Handle(overviewv2.Summary))
 	// swagger docs
 	{
 		r.GET("/swagger/*any", goredoc.GinHandler(&goredoc.Setting{
@@ -176,6 +181,7 @@ func v2Full(r *gin.RouterGroup) {
 }
 
 func v2PrivateLite(r *gin.RouterGroup) {
+	logLibraryManagementRoutes(r)
 	// Minimal base reads required by the v2 query workbench.
 	{
 		r.GET("/base/instances", core.Handle(base.InstanceList))
@@ -201,4 +207,19 @@ func v2PrivateLite(r *gin.RouterGroup) {
 		r.PUT("/query/tokens/:token-id/grants", core.Handle(queryv2.TokenGrantUpdate))
 		r.GET("/query/tokens/:token-id/audits", core.Handle(queryv2.TokenAuditList))
 	}
+}
+
+// logLibraryManagementRoutes exposes the v2 management contract while keeping
+// the legacy v1 handlers and their validation/event semantics. The dedicated
+// subgroup is Root-only so ordinary query permissions are unaffected.
+func logLibraryManagementRoutes(r *gin.RouterGroup) {
+	root := r.Group("/base/log-library-management", middlewares.RootChecker())
+	root.POST("/storage", core.Handle(storage.Create))
+	root.POST("/storage/preview-json", core.Handle(basev1.LogLibraryManagementPreviewJSON))
+	root.POST("/storage/:template", core.Handle(storage.CreateStorageByTemplate))
+	root.POST("/instances/:iid/tables-exist", core.Handle(basev1.TableCreateSelfBuilt))
+	root.POST("/instances/:iid/tables-exist-batch", core.Handle(basev1.TableCreateSelfBuiltBatch))
+	root.DELETE("/tables/:id", core.Handle(basev1.TableDelete))
+	root.GET("/instances/:iid/databases/:database/tables/:table/columns", core.Handle(basev1.LogLibraryManagementTableColumns))
+	root.GET("/instances/:iid/databases/:database/tables/:table/ddl", core.Handle(basev1.LogLibraryManagementTableDDL))
 }

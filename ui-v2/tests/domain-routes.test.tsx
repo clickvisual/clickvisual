@@ -13,25 +13,20 @@ describe("v2 domain routes", () => {
     render(<RouterProvider router={memoryRouter} />);
 
     expect(await screen.findByRole("heading", { name: "总览大盘" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "KPI 概览区" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "日志量与错误率趋势" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "最近报表" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "日志接入统计" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "告警统计" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "分析报表统计" })).toBeInTheDocument();
     expect(screen.queryByText("一键生成告警规则")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "当前值班动作" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "值班状态" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "最近告警" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "跨模块入口" })).not.toBeInTheDocument();
-    expect(await screen.findByRole("link", { name: "日报-核心指标概览" })).toHaveAttribute(
-      "href",
-      "/v2/reports/1001"
-    );
-    expect(screen.queryByText("生产错误汇总日报")).not.toBeInTheDocument();
+    const reportLinks = await screen.findAllByRole("link", { name: "日报-核心指标概览" });
+    expect(reportLinks.every((link) => link.getAttribute("href") === "/v2/reports/1001")).toBe(true);
     expect(await screen.findByText("真实数据")).toBeInTheDocument();
-    expect(screen.getByText("2 张日志表")).toBeInTheDocument();
+    expect(screen.getByText("1 个实例 · 1 个数据库")).toBeInTheDocument();
     const tableLinks = await screen.findAllByRole("link", { name: "logs" });
     expect(tableLinks.some((link) =>
-      link.getAttribute("href") ===
-        "/v2/query?instanceId=1&database=default&table=logs&tableId=9527&query=_raw_log_+like+%27%25ERROR%25%27"
+      link.getAttribute("href") === "/v2/query?instanceId=1&database=default&table=logs&tableId=9527"
     )).toBe(true);
   });
 

@@ -1,12 +1,11 @@
-import LoggingLibraryStyles from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary/index.less";
-import SearchLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/SearchLogLibrary";
-import LogLibraryList from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList";
 import CreatedDatabaseModal from "@/pages/DataLogs/components/DataSourceMenu/CreatedDatabaseModal";
-import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
+import LoggingLibraryStyles from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary/index.less";
+import LogLibraryList from "@/pages/DataLogs/components/DataSourceMenu/LogLibraryList";
+import SearchLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/SearchLogLibrary";
+import { Empty, Spin } from "antd";
+import { cloneDeep } from "lodash";
 import { useEffect, useState } from "react";
 import { useIntl, useModel } from "umi";
-import { cloneDeep } from "lodash";
-import { Empty, Spin } from "antd";
 
 const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
   const i18n = useIntl();
@@ -52,7 +51,6 @@ const LoggingLibrary = (props: { instanceTree: any; onGetList: any }) => {
         )}
       </Spin>
       <CreatedDatabaseModal onGetList={onGetList} />
-      <ModalCreatedLogLibrary onGetList={onGetList} />
     </div>
   );
 };

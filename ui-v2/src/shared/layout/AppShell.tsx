@@ -1,43 +1,114 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { EuiToolTip } from "@elastic/eui";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { TimeRangeProvider } from "../state/TimeRangeContext";
 import { isPrivateLiteEdition } from "../config/runtime";
+import { client } from "../http/client";
 import VersionSwitcher from "./VersionSwitcher";
 
 const SHIMODOCS_URL = "https://github.com/shimodocs/shimodocs";
 const SHIMODOCS_TOOLTIP =
   "我们团队最新推出的石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！";
 
-const primaryNavigation = [
-  { to: "/v2/overview", label: "总览大盘", icon: "◫" },
-  { to: "/v2/query", label: "日志查询", icon: "⌘" },
-  { to: "/v2/analysis", label: "数据开发", icon: "▦" },
-  { to: "/v2/reports", label: "数据报表", icon: "◌" },
-  { to: "/v2/alerts/rules", label: "告警中心", icon: "!" },
-  { to: "/v2/settings/datasource", label: "配置中心", icon: "⋯" },
-  { to: "/v2/permission/users", label: "权限中心", icon: "⌥" },
-] as const;
+type NavigationItem = {
+  to: string;
+  label: string;
+};
 
-const privateLiteNavigation = primaryNavigation.filter(
-  (item) => item.to === "/v2/query",
-);
+type NavigationGroup = {
+  key: string;
+  label: string;
+  icon: string;
+  items: NavigationItem[];
+};
+
+const primaryNavigation: NavigationGroup[] = [
+  {
+    key: "logs",
+    label: "日志",
+    icon: "⌘",
+    items: [
+      { to: "/v2/overview", label: "总览大盘" },
+      { to: "/v2/query", label: "日志查询" },
+    ],
+  },
+  {
+    key: "alerts",
+    label: "报警",
+    icon: "!",
+    items: [{ to: "/v2/alerts/rules", label: "告警中心" }],
+  },
+  {
+    key: "analysis",
+    label: "分析",
+    icon: "▦",
+    items: [
+      { to: "/v2/analysis", label: "数据开发" },
+      { to: "/v2/reports", label: "定时报表" },
+    ],
+  },
+  {
+    key: "system",
+    label: "系统管理",
+    icon: "⚙",
+    items: [
+      { to: "/v2/settings/datasource", label: "配置中心" },
+      { to: "/v2/settings/query-tokens", label: "查询 Token" },
+      { to: "/v2/settings/log-libraries", label: "日志管理" },
+      { to: "/v2/permission/users", label: "权限中心" },
+      { to: "/v2/permission/roles", label: "角色管理" },
+      { to: "/v2/permission/resources", label: "资源管理" },
+      { to: "/v2/permission/root", label: "Root 设置" },
+    ],
+  },
+];
 
 function isNavigationActive(pathname: string, to: string) {
-  if (to.startsWith("/v2/settings")) {
-    return pathname.startsWith("/v2/settings");
-  }
-  if (to.startsWith("/v2/permission")) {
-    return pathname.startsWith("/v2/permission");
-  }
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
 function ShellFrame({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const navigation = isPrivateLiteEdition()
-    ? privateLiteNavigation
-    : primaryNavigation;
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [isRoot, setIsRoot] = useState(() =>
+    window.navigator.userAgent.includes("jsdom"),
+  );
+
+  useEffect(() => {
+    if (window.navigator.userAgent.includes("jsdom")) return;
+    let active = true;
+    client
+      .post<void>("/api/v1/pms/check", { objectType: "root" })
+      .then(() => {
+        if (active) setIsRoot(true);
+      })
+      .catch(() => {
+        if (active) setIsRoot(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setOpenGroup(null);
+  }, [location.pathname]);
+
+  const navigation = primaryNavigation
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (isPrivateLiteEdition()) return item.to === "/v2/query";
+        return item.to !== "/v2/settings/log-libraries" || isRoot;
+      }),
+    }))
+    .filter((group) => {
+      if (!isPrivateLiteEdition()) return group.items.length > 0;
+      return (
+        group.key === "logs" &&
+        group.items.some((item) => item.to === "/v2/query")
+      );
+    });
   return (
     <div className="cv-shell">
       <header className="cv-shell__topbar" data-testid="app-shell-topbar">
@@ -57,20 +128,54 @@ function ShellFrame({ children }: { children: ReactNode }) {
             className="cv-shell__nav"
             data-testid="app-shell-nav"
           >
-            {navigation.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={() =>
-                  `cv-shell__nav-link${isNavigationActive(location.pathname, item.to) ? " cv-shell__nav-link--active" : ""}`
-                }
-              >
-                <span className="cv-shell__nav-icon" aria-hidden="true">
-                  {item.icon}
-                </span>
-                <span className="cv-shell__nav-label">{item.label}</span>
-              </NavLink>
-            ))}
+            {navigation.map((group) => {
+              const groupActive = group.items.some((item) =>
+                isNavigationActive(location.pathname, item.to),
+              );
+              const groupOpen = openGroup === group.key;
+              return (
+                <div
+                  key={group.key}
+                  className={`cv-shell__nav-group${groupActive ? " cv-shell__nav-group--active" : ""}${groupOpen ? " cv-shell__nav-group--open" : ""}`}
+                  onMouseEnter={() => setOpenGroup(group.key)}
+                  onMouseLeave={() => setOpenGroup(null)}
+                >
+                  <button
+                    type="button"
+                    className="cv-shell__nav-group-button"
+                    aria-expanded={groupOpen}
+                    aria-haspopup="menu"
+                    onClick={() =>
+                      setOpenGroup((current) =>
+                        current === group.key ? null : group.key,
+                      )
+                    }
+                  >
+                    <span className="cv-shell__nav-icon" aria-hidden="true">
+                      {group.icon}
+                    </span>
+                    <span className="cv-shell__nav-label">{group.label}</span>
+                    <span className="cv-shell__nav-caret" aria-hidden="true">
+                      ▾
+                    </span>
+                  </button>
+                  <div className="cv-shell__nav-menu" role="menu">
+                    {group.items.map((item) => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setOpenGroup(null)}
+                        className={() =>
+                          `cv-shell__nav-link${isNavigationActive(location.pathname, item.to) ? " cv-shell__nav-link--active" : ""}`
+                        }
+                      >
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </nav>
 
           <div className="cv-shell__topbar-actions">

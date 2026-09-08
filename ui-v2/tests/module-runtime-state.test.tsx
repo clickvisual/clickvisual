@@ -15,7 +15,7 @@ describe("v2 module runtime states", () => {
     expect(
       await screen.findByRole("alert", { name: "总览聚合接口暂不可用" })
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "KPI 概览区" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "日志接入统计" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "一键生成告警规则" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "当前值班动作" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "值班状态" })).not.toBeInTheDocument();

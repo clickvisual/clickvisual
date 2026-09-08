@@ -58,7 +58,6 @@ const DataSourceMenu = () => {
                     <LogLibraryItem
                       logLibrary={tablesItem}
                       key={`table-${tablesItem.id}`}
-                      onGetList={getList}
                     />
                   ),
                   key: `table-${tablesItem.id}`,

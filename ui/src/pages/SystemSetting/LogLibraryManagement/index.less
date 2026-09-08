@@ -1,0 +1,93 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 8px;
+  background: #f6f7f9;
+}
+
+.header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px 8px 0 0;
+}
+
+.header h2 {
+  margin: 0 0 2px;
+  font-size: 16px;
+}
+
+.header span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.content,
+.state {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-top: 0;
+}
+
+.toolbar :global(.ant-select) {
+  min-width: 180px;
+}
+
+.toolbar :global(.ant-input-affix-wrapper),
+.toolbar :global(.ant-input) {
+  width: 240px;
+}
+
+.content {
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0 12px 12px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+.content :global(.ant-table-wrapper) {
+  width: 100%;
+}
+
+.state {
+  flex-direction: column;
+  padding: 24px;
+}
+
+.inspectorState {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+}
+
+.inspectorToolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
