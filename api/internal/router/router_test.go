@@ -165,6 +165,7 @@ func TestV2RoutesDefaultToFullEdition(t *testing.T) {
 		{method: http.MethodGet, path: "/api/v2/alert/settings"},
 		{method: http.MethodGet, path: "/api/v2/pandas/workers"},
 		{method: http.MethodGet, path: "/api/v2/base/users"},
+		{method: http.MethodGet, path: "/api/v2/overview/summary"},
 	} {
 		if !routes[item] {
 			t.Fatalf("expected full route %s %s", item.method, item.path)
@@ -175,11 +176,10 @@ func TestV2RoutesDefaultToFullEdition(t *testing.T) {
 func TestLogLibraryManagementRoutesAreRootOnly(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	v1(r.Group(""))
 	v2(r.Group(""))
+	v1(r.Group(""))
 	routes := routeSet(r)
 	for _, item := range []routeKey{
-		{method: http.MethodPost, path: "/api/v1/log-library-management/storage"},
 		{method: http.MethodPost, path: "/api/v2/base/log-library-management/storage"},
 		{method: http.MethodPost, path: "/api/v2/base/log-library-management/storage/preview-json"},
 		{method: http.MethodPost, path: "/api/v2/base/log-library-management/storage/:template"},
@@ -188,6 +188,7 @@ func TestLogLibraryManagementRoutesAreRootOnly(t *testing.T) {
 		{method: http.MethodDelete, path: "/api/v2/base/log-library-management/tables/:id"},
 		{method: http.MethodGet, path: "/api/v2/base/log-library-management/instances/:iid/databases/:database/tables/:table/columns"},
 		{method: http.MethodGet, path: "/api/v2/base/log-library-management/instances/:iid/databases/:database/tables/:table/ddl"},
+		{method: http.MethodPost, path: "/api/v1/log-library-management/storage"},
 		{method: http.MethodPost, path: "/api/v1/log-library-management/storage/:template"},
 		{method: http.MethodPost, path: "/api/v1/log-library-management/instances/:iid/tables-exist"},
 		{method: http.MethodPost, path: "/api/v1/log-library-management/instances/:iid/tables-exist-batch"},
@@ -234,6 +235,7 @@ func TestV2RoutesPrivateLiteEdition(t *testing.T) {
 		{method: http.MethodGet, path: "/api/v2/alert/settings"},
 		{method: http.MethodGet, path: "/api/v2/pandas/workers"},
 		{method: http.MethodGet, path: "/api/v2/base/users"},
+		{method: http.MethodGet, path: "/api/v2/overview/summary"},
 	} {
 		if routes[item] {
 			t.Fatalf("did not expect private-lite route %s %s", item.method, item.path)

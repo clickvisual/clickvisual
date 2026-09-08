@@ -36,7 +36,6 @@ describe("v2 domain ai actions and fallback readiness", () => {
     expect(scoped.queryByRole("button", { name: "优化 SQL / 索引" })).not.toBeInTheDocument();
     expect(scoped.queryByRole("heading", { name: "当前值班动作" })).not.toBeInTheDocument();
     expect(scoped.queryByRole("heading", { name: "值班状态" })).not.toBeInTheDocument();
-    expect(scoped.queryByRole("heading", { name: "最近告警" })).not.toBeInTheDocument();
     expect(scoped.queryByRole("heading", { name: "跨模块入口" })).not.toBeInTheDocument();
     expect(scoped.getByRole("heading", { name: "最近报表" })).toBeInTheDocument();
     expectNoGenericFallbackState();
