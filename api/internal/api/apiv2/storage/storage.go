@@ -77,7 +77,9 @@ func Create(c *core.Context) {
 		c.JSONE(1, "permission verification failed", err)
 		return
 	}
-	param.CreateType = constx.TableCreateTypeJSONEachRow
+	if param.CreateType == 0 {
+		param.CreateType = constx.TableCreateTypeJSONEachRow
+	}
 	_, err = service.StorageCreate(c.Uid(), databaseInfo, param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
