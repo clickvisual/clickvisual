@@ -1,12 +1,17 @@
-import { Button, Space, Tooltip } from "antd";
+import IconFont from "@/components/IconFont";
+import { CaretDownOutlined, LinkOutlined } from "@ant-design/icons";
+import { Button, Dropdown, Space, Tooltip } from "antd";
 import React from "react";
 import { SelectLang, useModel } from "umi";
 import Avatar from "./AvatarDropdown";
 import styles from "./index.less";
-import IconFont from "@/components/IconFont";
 
 export type SiderTheme = "light" | "dark";
 const VERSION_STORAGE_KEY = "clickvisual-preferred-ui-version";
+const OFFICEDEX_URL = "https://officedex.ai/";
+const SHIMODOCS_URL = "https://github.com/shimodocs/shimodocs";
+const SHIMODOCS_TOOLTIP =
+  "我们团队最新推出的石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！";
 
 function getV2Href() {
   return `${process.env.PUBLIC_PATH || "/"}v2/query`;
@@ -32,6 +37,34 @@ const RightContent: React.FC = () => {
     }
   };
 
+  const partnerMenu = {
+    items: [
+      {
+        key: "officedex",
+        icon: <LinkOutlined />,
+        label: (
+          <a href={OFFICEDEX_URL} target="_blank" rel="noopener noreferrer">
+            OfficeDex
+          </a>
+        ),
+      },
+      {
+        key: "shimodocs",
+        icon: <IconFont type="icon-shimo" />,
+        label: (
+          <a
+            href={SHIMODOCS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={SHIMODOCS_TOOLTIP}
+          >
+            ShimoDocs
+          </a>
+        ),
+      },
+    ],
+  };
+
   return (
     <Space className={className}>
       <Avatar />
@@ -40,22 +73,34 @@ const RightContent: React.FC = () => {
           v2
         </Button>
       </Tooltip>
-      <Tooltip
-        placement="bottom"
-        title={
-          "我们团队最新推出了石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！"
-        }
-      >
-        <Button
-          type="link"
-          href="https://github.com/shimodocs/shimodocs"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="我们团队最新推出了石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！"
+      <Space size={0} className={styles.partnerSplit}>
+        <Tooltip placement="bottom" title="OfficeDex">
+          <Button
+            type="link"
+            href={OFFICEDEX_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="OfficeDex"
+          >
+            OfficeDex
+          </Button>
+        </Tooltip>
+        <Dropdown
+          menu={partnerMenu}
+          trigger={["hover"]}
+          mouseEnterDelay={0.08}
+          mouseLeaveDelay={0.12}
+          placement="bottomRight"
         >
-          <IconFont type={"icon-shimo"} />
-        </Button>
-      </Tooltip>
+          <Button
+            type="link"
+            className={styles.partnerCaret}
+            aria-label="合作产品"
+          >
+            <CaretDownOutlined />
+          </Button>
+        </Dropdown>
+      </Space>
       <Tooltip placement="bottom" title={"Github"}>
         <Button type="link">
           <a href="https://github.com/clickvisual/clickvisual" target="_blank">

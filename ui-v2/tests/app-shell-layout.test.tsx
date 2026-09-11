@@ -52,16 +52,26 @@ describe("v2 app shell", () => {
     expect(screen.getByTestId("shell-version-switcher")).toBeInTheDocument();
   });
 
-  it("shows the ShimoDocs tooltip on hover", async () => {
+  it("opens partner menu on hover and links OfficeDex directly", async () => {
     const memoryRouter = createMemoryRouter(routes, {
       initialEntries: ["/v2/overview"],
     });
 
     render(<RouterProvider router={memoryRouter} />);
 
-    const shimoDocsLink = screen.getByRole("link", {
-      name: "我们团队最新推出的石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！",
-    });
+    const officeDexPrimary = screen.getByRole("link", { name: /OfficeDex/ });
+    expect(officeDexPrimary).toHaveAttribute("href", "https://officedex.ai/");
+    expect(officeDexPrimary).toHaveAttribute("target", "_blank");
+    expect(officeDexPrimary).toHaveAttribute("rel", "noopener noreferrer");
+
+    fireEvent.mouseEnter(screen.getByTestId("partner-menu-wrap"));
+
+    const officeDexLink = screen.getByRole("menuitem", { name: /OfficeDex/ });
+    expect(officeDexLink).toHaveAttribute("href", "https://officedex.ai/");
+    expect(officeDexLink).toHaveAttribute("target", "_blank");
+    expect(officeDexLink).toHaveAttribute("rel", "noopener noreferrer");
+
+    const shimoDocsLink = screen.getByRole("menuitem", { name: "ShimoDocs" });
     expect(shimoDocsLink).toHaveAttribute(
       "href",
       "https://github.com/shimodocs/shimodocs",
@@ -69,9 +79,14 @@ describe("v2 app shell", () => {
     expect(shimoDocsLink).toHaveAttribute("target", "_blank");
     expect(shimoDocsLink).toHaveAttribute("rel", "noopener noreferrer");
 
-    fireEvent.mouseOver(shimoDocsLink);
-    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+    expect(shimoDocsLink).toHaveAttribute(
+      "title",
       "我们团队最新推出的石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！",
     );
+
+    expect(
+      officeDexLink.compareDocumentPosition(shimoDocsLink) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });
