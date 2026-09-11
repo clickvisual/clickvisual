@@ -1,11 +1,11 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { EuiToolTip } from "@elastic/eui";
 import { useEffect, useState, type ReactNode } from "react";
 import { TimeRangeProvider } from "../state/TimeRangeContext";
 import { isPrivateLiteEdition } from "../config/runtime";
 import { client } from "../http/client";
 import VersionSwitcher from "./VersionSwitcher";
 
+const OFFICEDEX_URL = "https://officedex.ai/";
 const SHIMODOCS_URL = "https://github.com/shimodocs/shimodocs";
 const SHIMODOCS_TOOLTIP =
   "我们团队最新推出的石墨文档私有化版本5人永久免费版 @ShimoDocs，欢迎了解！";
@@ -70,6 +70,7 @@ function isNavigationActive(pathname: string, to: string) {
 function ShellFrame({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [openPartnerMenu, setOpenPartnerMenu] = useState(false);
   const [isRoot, setIsRoot] = useState(() =>
     window.navigator.userAgent.includes("jsdom"),
   );
@@ -92,6 +93,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setOpenGroup(null);
+    setOpenPartnerMenu(false);
   }, [location.pathname]);
 
   const navigation = primaryNavigation
@@ -183,20 +185,88 @@ function ShellFrame({ children }: { children: ReactNode }) {
               <span className="cv-dot" aria-hidden="true" />
               v2
             </div>
-            <EuiToolTip content={SHIMODOCS_TOOLTIP} position="bottom">
-              <a
-                className="cv-shell__partner-link"
-                href={SHIMODOCS_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={SHIMODOCS_TOOLTIP}
-              >
-                <span className="cv-shell__partner-mark" aria-hidden="true">
-                  S
-                </span>
-                <span className="cv-shell__partner-label">ShimoDocs</span>
-              </a>
-            </EuiToolTip>
+            <div
+              className="cv-shell__partner-menu-wrap"
+              data-testid="partner-menu-wrap"
+              onMouseEnter={() => setOpenPartnerMenu(true)}
+              onMouseLeave={() => setOpenPartnerMenu(false)}
+            >
+              <div className="cv-shell__partner-split">
+                <a
+                  className="cv-shell__partner-primary"
+                  href={OFFICEDEX_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="OfficeDex"
+                >
+                  <span className="cv-shell__partner-mark" aria-hidden="true">
+                    O
+                  </span>
+                  <span className="cv-shell__partner-label">OfficeDex</span>
+                </a>
+                <button
+                  type="button"
+                  className="cv-shell__partner-caret-btn"
+                  aria-label="合作产品"
+                  aria-expanded={openPartnerMenu}
+                  aria-haspopup="menu"
+                  tabIndex={-1}
+                >
+                  <svg
+                    className="cv-shell__partner-caret"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2.75 4.5 6 7.75 9.25 4.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              {openPartnerMenu ? (
+                <div className="cv-shell__partner-menu" role="menu">
+                  <a
+                    className="cv-shell__partner-menu-item cv-shell__partner-menu-item--primary"
+                    href={OFFICEDEX_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    role="menuitem"
+                  >
+                    <span
+                      className="cv-shell__partner-menu-mark"
+                      aria-hidden="true"
+                    >
+                      O
+                    </span>
+                    OfficeDex
+                  </a>
+                  <a
+                    className="cv-shell__partner-menu-item"
+                    href={SHIMODOCS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="ShimoDocs"
+                    title={SHIMODOCS_TOOLTIP}
+                    role="menuitem"
+                  >
+                    <span
+                      className="cv-shell__partner-menu-mark cv-shell__partner-menu-mark--shimo"
+                      aria-hidden="true"
+                    >
+                      S
+                    </span>
+                    ShimoDocs
+                  </a>
+                </div>
+              ) : null}
+            </div>
             <VersionSwitcher />
           </div>
         </div>
