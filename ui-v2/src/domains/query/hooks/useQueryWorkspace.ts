@@ -221,15 +221,23 @@ function readLegacyV1ShareQuery() {
   }
   const params = new URLSearchParams(window.location.search);
   const keyword = params.get("kw")?.trim() ?? "";
-  if (!keyword || parseCompleteQueryConditions(keyword).length === 0) {
+  if (!keyword) {
     return "";
   }
   const query = params.get("query")?.trim() ?? "";
-  if (query && query !== keyword) {
+  const legacyMarkers = ["index", "logState", "mode", "queryType", "tab"];
+  const hasLegacyShareShape = legacyMarkers.some((marker) => params.has(marker));
+  const parsed = parseCompleteQueryConditions(keyword);
+  if (parsed.length > 0) {
+    if (query && query !== keyword) {
+      return keyword;
+    }
+    return hasLegacyShareShape ? keyword : "";
+  }
+  if (hasLegacyShareShape || (query && query !== keyword)) {
     return keyword;
   }
-  const legacyMarkers = ["index", "logState", "mode", "queryType", "tab"];
-  return legacyMarkers.some((marker) => params.has(marker)) ? keyword : "";
+  return "";
 }
 
 function readInitialQueryConditions() {
