@@ -880,6 +880,85 @@ describe("query page", () => {
     expect(requests.some((item) => item.includes("POST /api/v2/query/run"))).toBe(false);
   });
 
+  it("uses legacy v1 kw on alarm share links when the filter has in-lists", async () => {
+    const defaultFetch = window.fetch;
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        requests.push(`${init?.method || "GET"} ${url.pathname}${url.search}`);
+        return defaultFetch(input, init);
+      })
+    );
+    const alarmKw =
+      "status='404' and host!='t.smvm.cn' and host!='otel.shimo.im'and host!='tr.shimo.im' and `method`='GET' and url in ['/','/welcome']";
+    const params = new URLSearchParams({
+      tid: "9527",
+      start: "1789355974",
+      end: "1789356154",
+      mode: "0",
+      tab: "custom",
+      kw: alarmKw,
+      query: "`_raw_log_` like '%status=\\'404\\%'"
+    });
+    window.history.replaceState({}, "", `/share?${params.toString()}`);
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage shareMode />
+      </TimeRangeProvider>
+    );
+
+    await waitFor(() => {
+      expect(requests.some((item) => item.includes("GET /api/v1/tables/9527/logs"))).toBe(true);
+    });
+    expect(requests.some((item) => item.includes("POST /api/v2/query/run"))).toBe(false);
+    const logsRequest = requests.find((item) => item.includes("GET /api/v1/tables/9527/logs")) ?? "";
+    const logsUrl = new URL(logsRequest.replace(/^GET /, ""), "http://localhost");
+    expect(logsUrl.searchParams.get("query")).toBe(alarmKw);
+    expect(logsRequest).not.toContain("_raw_log_");
+  });
+
+  it("uses legacy v1 kw on alarm share links when only kw contains an in-list", async () => {
+    const defaultFetch = window.fetch;
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        requests.push(`${init?.method || "GET"} ${url.pathname}${url.search}`);
+        return defaultFetch(input, init);
+      })
+    );
+    const alarmKw = "status='404' and url in ['/','/welcome']";
+    const params = new URLSearchParams({
+      tid: "9527",
+      start: "1789355974",
+      end: "1789356154",
+      mode: "0",
+      tab: "custom",
+      kw: alarmKw
+    });
+    window.history.replaceState({}, "", `/share?${params.toString()}`);
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage shareMode />
+      </TimeRangeProvider>
+    );
+
+    await waitFor(() => {
+      expect(requests.some((item) => item.includes("GET /api/v1/tables/9527/logs"))).toBe(true);
+    });
+    expect(requests.some((item) => item.includes("POST /api/v2/query/run"))).toBe(false);
+    const logsRequest = requests.find((item) => item.includes("GET /api/v1/tables/9527/logs")) ?? "";
+    const logsUrl = new URL(logsRequest.replace(/^GET /, ""), "http://localhost");
+    expect(logsUrl.searchParams.get("query")).toBe(alarmKw);
+  });
+
   it("applies compact URL query conditions and last run time to top values", async () => {
     const defaultFetch = window.fetch;
     const runPayloads: any[] = [];
