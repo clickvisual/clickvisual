@@ -85,6 +85,19 @@ var _hmt = _hmt || [];
                         text: "GitHub",
                         link: "https://github.com/clickvisual/clickvisual",
                     },
+                    {
+                        text: "OfficeDex",
+                        items: [
+                            {
+                                text: "OfficeDex",
+                                link: "https://officedex.ai/",
+                            },
+                            {
+                                text: "ShimoDocs",
+                                link: "https://github.com/shimodocs/shimodocs",
+                            },
+                        ],
+                    },
                 ],
                 docsDir: "docs",
                 docsBranch: "master",
@@ -108,6 +121,19 @@ var _hmt = _hmt || [];
                     {
                         text: "GitHub",
                         link: "https://github.com/clickvisual/clickvisual",
+                    },
+                    {
+                        text: "OfficeDex",
+                        items: [
+                            {
+                                text: "OfficeDex",
+                                link: "https://officedex.ai/",
+                            },
+                            {
+                                text: "ShimoDocs",
+                                link: "https://github.com/shimodocs/shimodocs",
+                            },
+                        ],
                     },
                 ],
                 docsDir: "docs",
@@ -224,6 +250,19 @@ var _hmt = _hmt || [];
                     {
                         text: "GitHub",
                         link: "https://github.com/clickvisual/clickvisual",
+                    },
+                    {
+                        text: "OfficeDex",
+                        items: [
+                            {
+                                text: "OfficeDex",
+                                link: "https://officedex.ai/",
+                            },
+                            {
+                                text: "ShimoDocs",
+                                link: "https://github.com/shimodocs/shimodocs",
+                            },
+                        ],
                     },
                 ],
                 docsDir: "docs",
