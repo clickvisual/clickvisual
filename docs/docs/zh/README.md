@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: https://clickvisual.net/clickvisual/logo.png
+heroImage: /logo.png
 heroText: ClickVisual
 actionText: 快速上手 →
 actionLink: /zh/clickvisual/
