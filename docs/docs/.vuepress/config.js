@@ -42,7 +42,8 @@ var _hmt = _hmt || [];
         if(NODE_ENV === 'production'){
             return {
                 output: {
-                    publicPath: 'https://clickvisual.net/clickvisual/'
+                    // 镜像站点自托管静态资源时覆盖该变量，例如 DOCS_PUBLIC_PATH=/
+                    publicPath: process.env.DOCS_PUBLIC_PATH || 'https://clickvisual.net/clickvisual/'
                 },
                 resolve: {
                     //配置路径别名
