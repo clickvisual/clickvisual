@@ -4257,7 +4257,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     if (!nextSelection) {
       return;
     }
-    setHistogramSelectionDraft(nextSelection);
+    // Drag-to-select on the histogram zooms in immediately on brush release
+    // (matches Kibana/Grafana). Single-bucket clicks still go through the
+    // draft+confirm overlay via handleHistogramElementClick.
+    clearHistogramSelection();
+    applyHistogramBucketRange(nextSelection.anchorIndex, nextSelection.hoverIndex);
   }
 
   function handleHistogramElementClick(elements: Array<[unknown]>) {
