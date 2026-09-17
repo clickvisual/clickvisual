@@ -3344,6 +3344,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const savedQuerySearchInputRef = useRef<HTMLInputElement | null>(null);
   const sourceSearchInputRef = useRef<HTMLInputElement | null>(null);
   const sourcePickerRef = useRef<HTMLDivElement | null>(null);
+  const sourcePickerHoverCloseTimerRef = useRef<number | null>(null);
   const inlineFieldPickerRef = useRef<HTMLLabelElement | null>(null);
   const histogramSelectionOverlayRef = useRef<HTMLDivElement | null>(null);
   const histogramSelectionRef = useRef<HistogramSelection | null>(null);
@@ -3864,6 +3865,42 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }, 0);
     return () => window.clearTimeout(focusTimer);
   }, [sourcePickerOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (sourcePickerHoverCloseTimerRef.current != null) {
+        window.clearTimeout(sourcePickerHoverCloseTimerRef.current);
+      }
+    };
+  }, []);
+
+  function clearSourcePickerHoverCloseTimer() {
+    if (sourcePickerHoverCloseTimerRef.current == null) {
+      return;
+    }
+    window.clearTimeout(sourcePickerHoverCloseTimerRef.current);
+    sourcePickerHoverCloseTimerRef.current = null;
+  }
+
+  function openSourcePickerFromHover() {
+    clearSourcePickerHoverCloseTimer();
+    setSourcePickerOpen(true);
+  }
+
+  function scheduleCloseSourcePickerFromHover() {
+    clearSourcePickerHoverCloseTimer();
+    sourcePickerHoverCloseTimerRef.current = window.setTimeout(() => {
+      sourcePickerHoverCloseTimerRef.current = null;
+      const hoveringAnchor = Boolean(sourcePickerRef.current?.matches(":hover"));
+      const hoveringPanel = Boolean(document.querySelector(".cv-query-source-popover-panel:hover"));
+      const hoveringContextMenu = Boolean(document.querySelector(".cv-context-menu:hover"));
+      if (hoveringAnchor || hoveringPanel || hoveringContextMenu) {
+        return;
+      }
+      setSourcePickerOpen(false);
+      closeInstanceContextMenu();
+    }, 160);
+  }
 
   useEffect(() => {
     if (!tableAutoQueryRequest) {
@@ -7056,7 +7093,12 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
           {!shareMode ? (
             <>
             <div className="cv-query-log-tabs" aria-label="Log table workspace">
-              <div className="cv-query-source-anchor" ref={sourcePickerRef}>
+              <div
+                className="cv-query-source-anchor"
+                ref={sourcePickerRef}
+                onMouseEnter={openSourcePickerFromHover}
+                onMouseLeave={scheduleCloseSourcePickerFromHover}
+              >
                 <EuiPopover
                   anchorPosition="downLeft"
                   button={
@@ -7087,6 +7129,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                     </button>
                   }
                   closePopover={() => {
+                    clearSourcePickerHoverCloseTimer();
                     setSourcePickerOpen(false);
                     closeInstanceContextMenu();
                   }}
@@ -7095,6 +7138,10 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                   ownFocus={false}
                   panelClassName="cv-query-source-popover-panel"
                   panelPaddingSize="none"
+                  panelProps={{
+                    onMouseEnter: openSourcePickerFromHover,
+                    onMouseLeave: scheduleCloseSourcePickerFromHover
+                  }}
                   repositionToCrossAxis={false}
                   repositionOnScroll
                 >
@@ -7104,6 +7151,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               <div className="cv-query-log-tab-list" role="tablist" aria-label="Log table tabs">
                 {validOpenLogTabs.map((tab) => {
                   const active = tab.id === workspace.selectedTableId;
+                  const fullName = `${tab.databaseName}.${tab.tableName}`;
                   return (
                     <span
                       key={tab.id}
@@ -7113,18 +7161,21 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                         type="button"
                         role="tab"
                         aria-selected={active}
-                        aria-label={`${tab.databaseName}.${tab.tableName}`}
-                        title={`${tab.databaseName}.${tab.tableName}`}
+                        aria-label={fullName}
+                        title={fullName}
                         className="cv-query-log-tab__main"
                         onClick={() => switchLogTab(tab)}
                       >
                         <EuiIcon type="table" size="s" aria-hidden="true" className="cv-query-log-tab__icon" />
-                        <strong>{tab.tableName}</strong>
+                        <span className="cv-query-log-tab__text">
+                          <span>{tab.databaseName}</span>
+                          <strong>{tab.tableName}</strong>
+                        </span>
                       </button>
                       <button
                         type="button"
                         className="cv-query-log-tab__close"
-                        aria-label={`Close table ${tab.tableName}`}
+                        aria-label={`Close table ${fullName}`}
                         onClick={(event) => {
                           event.stopPropagation();
                           closeLogTab(tab);
@@ -7494,9 +7545,15 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                     ? `${workspace.selectedDatabase}.${workspace.selectedTable}`
                     : "未选择"}
                 </span>
-                <span>
+                <span className="cv-query-share-summary__range">
                   <strong>查询范围</strong>
-                  {startTime && endTime ? `${startTime} - ${endTime}` : "未设置"}
+                  <div className="cv-query-share-summary__range-picker" role="group" aria-label="Share query controls">
+                    <TimeRangeAbsolutePicker
+                      value={absolutePickerRange}
+                      onChange={applyAbsolutePickerRange}
+                      isLoading={workspace.loading || workspace.chartLoading}
+                    />
+                  </div>
                 </span>
               </div>
               <div className="cv-query-builder__preview">

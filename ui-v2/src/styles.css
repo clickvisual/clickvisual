@@ -852,6 +852,19 @@ textarea {
   font-size: 11px;
 }
 
+.cv-query-share-summary__range {
+  align-content: start;
+}
+
+.cv-query-share-summary__range-picker {
+  min-width: 0;
+}
+
+.cv-query-share-summary__range-picker .cv-query-time-picker {
+  width: 100%;
+  max-width: 420px;
+}
+
 .cv-query-tree {
   display: grid;
   gap: 8px;
@@ -11610,8 +11623,8 @@ body:has(.cv-query-page) .cv-shell__main {
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 26px;
-  padding: 1px 2px;
+  min-height: 42px;
+  padding: 3px 2px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -11645,13 +11658,13 @@ body:has(.cv-query-page) .cv-shell__main {
   justify-content: center;
   gap: 5px;
   width: auto;
-  height: 26px;
+  height: 40px;
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
   color: var(--cv-primary-text);
   cursor: pointer;
-  padding: 0 7px;
+  padding: 0 8px;
   box-shadow: none;
   font-size: 11.5px;
   font-weight: 650;
@@ -11986,12 +11999,12 @@ body:has(.cv-query-page) .cv-shell__main {
 
 .cv-query-log-tab__main {
   display: flex;
-  gap: 5px;
-  min-height: 26px;
+  gap: 6px;
+  min-height: 40px;
   min-width: 0;
-  max-width: 168px;
+  max-width: 196px;
   align-items: center;
-  padding: 0 8px;
+  padding: 5px 10px;
 }
 
 .cv-query-log-tab__icon {
@@ -12000,19 +12013,40 @@ body:has(.cv-query-page) .cv-shell__main {
   opacity: 0.68 !important;
 }
 
-.cv-query-log-tab__main strong {
+.cv-query-log-tab__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.cv-query-log-tab__main strong,
+.cv-query-log-tab__text > span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cv-query-log-tab__main strong {
   color: #343741;
   font-size: 11.5px;
   font-weight: 650;
 }
 
+.cv-query-log-tab__text > span {
+  color: #69707d;
+  font-size: 10px;
+  font-weight: 500;
+}
+
 .cv-query-log-tab--active .cv-query-log-tab__main strong {
   color: var(--cv-primary-text);
   font-weight: 700;
+}
+
+.cv-query-log-tab--active .cv-query-log-tab__text > span {
+  color: color-mix(in srgb, var(--cv-primary-text) 72%, #69707d);
 }
 
 .cv-query-log-tab--active .cv-query-log-tab__icon {
