@@ -24,7 +24,7 @@ describe("query page", () => {
     await waitForQueryPageReady();
     const sourceButton = screen.getByRole("button", { name: "Sources" });
     if (sourceButton.getAttribute("aria-expanded") !== "true") {
-      fireEvent.click(sourceButton);
+      fireEvent.mouseEnter(sourceButton.closest(".cv-query-source-anchor") ?? sourceButton);
     }
     return screen.findByRole("tree", { name: "Instances, databases, and log tables" });
   }
@@ -339,6 +339,20 @@ describe("query page", () => {
     expect(screen.getByRole("button", { name: "Add condition" })).toBeInTheDocument();
   });
 
+  it("opens the datasource panel on Sources hover", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    const sourceAnchor = screen.getByRole("button", { name: "Sources" }).closest(".cv-query-source-anchor");
+    expect(sourceAnchor).toBeTruthy();
+    fireEvent.mouseEnter(sourceAnchor!);
+    expect(await screen.findByRole("tree", { name: "Instances, databases, and log tables" })).toBeInTheDocument();
+  });
+
   it("shows a quick log library creation entry from the datasource panel", async () => {
     render(
       <TimeRangeProvider>
@@ -384,8 +398,8 @@ describe("query page", () => {
     expect(screen.getByRole("button", { name: "Table logs" })).toBeInTheDocument();
   });
 
-  it("keeps the full query controls available on the share page", async () => {
-    window.history.replaceState({}, "", "/share?database=default&table=logs");
+  it("keeps the time range picker available on the share page", async () => {
+    window.history.replaceState({}, "", "/share?database=default&table=logs&start=1700000000&end=1700003600");
 
     render(
       <TimeRangeProvider>
@@ -393,12 +407,11 @@ describe("query page", () => {
       </TimeRangeProvider>
     );
 
-    expect(await screen.findByRole("region", { name: "Query input" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Time range:/ })).toBeInTheDocument();
     expect(screen.queryByRole("tree", { name: "Instances, databases, and log tables" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Add condition" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Recent" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Saved" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();
+    expect(screen.queryByRole("tablist", { name: "Log table tabs" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Previous time range" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next time range" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Run" })).toBeInTheDocument();
   });
 
@@ -1423,6 +1436,8 @@ describe("query page", () => {
     await screen.findByRole("heading", { name: "Log query" });
     expect(await screen.findByRole("tablist", { name: "Log table tabs" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "default.logs" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "default.logs" })).toHaveTextContent("logs");
+    expect(screen.getByRole("tab", { name: "default.logs" })).toHaveTextContent("default");
     addInlineCondition("service", "gateway");
     expect(screen.getByRole("button", { name: "service = gateway" })).toBeInTheDocument();
     await openDatasourcePanel();
