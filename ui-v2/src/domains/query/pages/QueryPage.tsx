@@ -1,4 +1,5 @@
 import { Fragment, forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { CSSProperties, DragEvent, KeyboardEvent, MouseEvent, ReactNode, UIEvent, WheelEvent } from "react";
 import {
   EuiButtonIcon,
@@ -8,8 +9,6 @@ import {
   EuiIcon,
   EuiPopover,
   EuiSuperSelect,
-  EuiTab,
-  EuiTabs,
   EuiToolTip
 } from "@elastic/eui";
 import {
@@ -37,7 +36,13 @@ import {
   deleteQueryTable,
   getQueryFieldStats
 } from "../api/query";
-import { buildQueryFieldRef, buildStructuredConditions, useQueryWorkspace } from "../hooks/useQueryWorkspace";
+import {
+  buildQueryFieldRef,
+  buildStructuredConditions,
+  buildVisualQuery,
+  parseQueryTextConditions,
+  useQueryWorkspace
+} from "../hooks/useQueryWorkspace";
 import type {
   QueryFieldStatsResponse,
   QueryFieldRef,
@@ -49,7 +54,7 @@ import type {
   QuerySourceTable,
   QuerySourceTreeTarget
 } from "../types/contracts";
-import ContextMenu from "../../../shared/components/ContextMenu";
+import ContextMenu, { type ContextMenuItem } from "../../../shared/components/ContextMenu";
 import { isPrivateLiteEdition } from "../../../shared/config/runtime";
 import { buildShareRouteHref, buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
 
@@ -190,7 +195,7 @@ type LogDetailNestedEntry = {
   value: string;
   fieldRef?: QueryFieldRef;
 };
-type QueryFieldCatalogGroupKey = "log" | "base" | "all";
+type QueryFieldCatalogGroupKey = "base" | "log" | "temp";
 type QueryFieldCatalogItem = {
   key: string;
   field: string;
@@ -215,6 +220,7 @@ type QueryFieldStatsState = {
   loading: boolean;
   data: QueryFieldStatsResponse | null;
   error: string;
+  fromTempFields?: boolean;
 };
 type QueryFieldStatsView = {
   unsupportedError: boolean;
@@ -227,13 +233,15 @@ type QueryFieldStatsView = {
 const CONTAINER_NAME_RESULT_COLUMN_KEY = "container.name";
 const LEGACY_CONTAINER_NAME_RESULT_COLUMN_KEY = "_container_name_";
 const DEFAULT_RESULT_COLUMN_KEYS = ["__time", "__level", "tid", "__message", CONTAINER_NAME_RESULT_COLUMN_KEY, "error"] as const;
+const MAX_VISIBLE_RESULT_COLUMNS = 10;
 const LEGACY_DEFAULT_RESULT_COLUMN_KEYS = ["__time", "__level", "__message"] as const;
 const RESULT_COLUMN_STORAGE_PREFIX = "clickvisual-v2-query-result-columns";
 const RESULT_COLUMN_STORAGE_VERSION = 2;
 const OPEN_LOG_TABS_STORAGE_PREFIX = "clickvisual-v2-query-open-tabs";
 const GLOBAL_MATCH_FIELD = "All fields";
 const LEGACY_GLOBAL_MATCH_FIELD = "全局匹配";
-const GLOBAL_MATCH_DISPLAY_LABEL = GLOBAL_MATCH_FIELD;
+const GLOBAL_MATCH_COLUMN = "_raw_log_";
+const GLOBAL_MATCH_DISPLAY_LABEL = GLOBAL_MATCH_COLUMN;
 const QUERY_PAGE_SIZE_OPTIONS = [50, 100, 200] as const;
 const RESULT_TABLE_TOGGLE_COLUMN_WIDTH = 34;
 const QUERY_OVERSCROLL_GUARD_CLASS = "cv-query-overscroll-guard";
@@ -473,7 +481,7 @@ const LOG_DETAIL_FIELD_PRIORITY = [
   "type",
   "ucode"
 ] as const;
-const FIELD_STATS_UNIQUE_FIELDS = ["tid"] as const;
+const HIDDEN_JSON_CATALOG_FIELDS = ["req", "res"] as const;
 const DEFAULT_TIME_RANGE_MINUTES = 15;
 const ABSOLUTE_TIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 const ABSOLUTE_DAY_PRESET_RANGES = [
@@ -586,6 +594,17 @@ function formatHitsLabel(value: number) {
 
 function formatRowsLabel(value: number) {
   return `${formatCount(value)} ${value === 1 ? "row" : "rows"}`;
+}
+
+function formatQueryCost(cost: number) {
+  if (!Number.isFinite(cost) || cost <= 0) {
+    return "";
+  }
+  if (cost < 1000) {
+    return `${Math.round(cost)}ms`;
+  }
+  const seconds = cost / 1000;
+  return `${seconds.toFixed(seconds >= 10 ? 1 : 2)}s`;
 }
 
 function formatConditionCountLabel(value: number) {
@@ -967,19 +986,22 @@ function formatConditionFieldLabel(field: string) {
   if (!normalized) {
     return "Field";
   }
-  return isGlobalMatchField(normalized) ? GLOBAL_MATCH_DISPLAY_LABEL : normalized;
+  return isGlobalMatchField(normalized) ? GLOBAL_MATCH_COLUMN : normalized;
 }
 
 function formatConditionFieldInputValue(field: string) {
-  return isGlobalMatchField(field) ? GLOBAL_MATCH_DISPLAY_LABEL : field;
+  return isGlobalMatchField(field) ? GLOBAL_MATCH_COLUMN : field;
 }
 
 function parseConditionFieldInput(value: string) {
   const normalized = value.trim();
-  return normalized.toLowerCase() === GLOBAL_MATCH_DISPLAY_LABEL.toLowerCase() ||
+  if (
+    normalized.toLowerCase() === GLOBAL_MATCH_FIELD.toLowerCase() ||
     normalized === LEGACY_GLOBAL_MATCH_FIELD
-    ? GLOBAL_MATCH_FIELD
-    : value;
+  ) {
+    return "";
+  }
+  return value;
 }
 
 function normalizeFieldPickerKey(field: string) {
@@ -995,7 +1017,15 @@ function getStorageAnalysisValueType(field: QueryStorageAnalysisField): QueryFil
 }
 
 function normalizeFieldCatalogKey(field: string) {
-  return normalizeResultColumnOptionField(field).trim().toLowerCase();
+  const normalized = field.trim().toLowerCase();
+  if (
+    normalized === CONTAINER_NAME_RESULT_COLUMN_KEY ||
+    normalized === LEGACY_CONTAINER_NAME_RESULT_COLUMN_KEY ||
+    normalized === "container_name"
+  ) {
+    return LEGACY_CONTAINER_NAME_RESULT_COLUMN_KEY;
+  }
+  return normalized;
 }
 
 type FieldPickerChoice = {
@@ -1010,7 +1040,7 @@ function buildFieldPickerChoices(value: string, options: QueryFieldPickerOption[
   const uniqueOptions = options
     .map((item) => {
       const key = normalizeFieldPickerKey(item.field);
-      if (!key || seenOptions.has(key)) {
+      if (!key || seenOptions.has(key) || isGlobalMatchField(item.field)) {
         return null;
       }
       seenOptions.add(key);
@@ -1021,7 +1051,9 @@ function buildFieldPickerChoices(value: string, options: QueryFieldPickerOption[
       };
     })
     .filter(Boolean) as FieldPickerChoice[];
-  const hasCustomValue = Boolean(value.trim() && !seenOptions.has(normalizedValueKey));
+  const hasCustomValue = Boolean(
+    value.trim() && !seenOptions.has(normalizedValueKey) && !isGlobalMatchField(value)
+  );
   return hasCustomValue
     ? [
         {
@@ -2374,6 +2406,77 @@ function formatLogDetailValue(value: unknown) {
   return typeof value === "string" ? stripAnsi(value) : String(value);
 }
 
+function formatPrettyLogDetailValue(value: unknown) {
+  const objectValue = parseJsonObject(value);
+  if (objectValue) {
+    try {
+      return JSON.stringify(objectValue, null, 2);
+    } catch {
+      return null;
+    }
+  }
+  const arrayValue = parseJsonArray(value);
+  if (arrayValue) {
+    try {
+      return JSON.stringify(arrayValue, null, 2);
+    } catch {
+      return null;
+    }
+  }
+  if (value && typeof value === "object") {
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function isHiddenLogDetailField(key: string) {
+  return isRawLogDetailParent(key) || isLowPriorityResultField(key);
+}
+
+function isStructuredColumnSample(value: unknown) {
+  return formatPrettyLogDetailValue(value) !== null;
+}
+
+function columnHasStructuredValue(columnKey: string, rows: NormalizedLogRow[]) {
+  if (!columnKey || columnKey.startsWith("__")) {
+    return false;
+  }
+  const normalizedKey = normalizeResultColumnKey(columnKey);
+  for (const row of rows) {
+    const raw = row.parsed[columnKey] ?? row.parsed[normalizedKey];
+    if (isStructuredColumnSample(raw)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function capVisibleResultColumnKeys(keys: string[]) {
+  if (keys.length <= MAX_VISIBLE_RESULT_COLUMNS) {
+    return keys;
+  }
+  const defaultSet = new Set<string>(DEFAULT_RESULT_COLUMN_KEYS);
+  const defaults = keys.filter((key) => defaultSet.has(key));
+  const extras = keys.filter((key) => !defaultSet.has(key));
+  const room = Math.max(0, MAX_VISIBLE_RESULT_COLUMNS - defaults.length);
+  return [...defaults, ...extras.slice(0, room)];
+}
+
+function fieldMatchesResultColumn(fieldKey: string, columnKey: string) {
+  if (!columnKey || columnKey.startsWith("__")) {
+    return false;
+  }
+  return fieldKey === columnKey || normalizeResultColumnKey(fieldKey) === normalizeResultColumnKey(columnKey);
+}
+
+function isVisibleTableDetailField(fieldKey: string, columns: QueryResultColumn[]) {
+  return columns.some((column) => fieldMatchesResultColumn(fieldKey, column.key));
+}
+
 function sanitizeLogJsonValue(value: unknown): unknown {
   if (!isPresentLogValue(value)) {
     return undefined;
@@ -2431,9 +2534,12 @@ function canCreateConditionFromDetailValue(field: string, value: unknown) {
   return String(value).trim().length > 0 && String(value).trim().length <= 256;
 }
 
-function isUniqueFieldStatsField(field: string) {
-  const normalized = field.trim().toLowerCase();
-  return FIELD_STATS_UNIQUE_FIELDS.includes(normalized as (typeof FIELD_STATS_UNIQUE_FIELDS)[number]);
+function isHiddenJsonCatalogField(field: string, sample: unknown = "") {
+  const key = field.trim().toLowerCase();
+  if (HIDDEN_JSON_CATALOG_FIELDS.includes(key as (typeof HIDDEN_JSON_CATALOG_FIELDS)[number])) {
+    return true;
+  }
+  return isStructuredColumnSample(sample) || (Boolean(sample) && typeof sample === "object");
 }
 
 function isTimeFieldStatsField(field: string) {
@@ -2463,7 +2569,7 @@ function isTimeFieldStatsField(field: string) {
 }
 
 function canShowFieldStatsForField(field: string) {
-  return Boolean(field) && !/^_?raw/i.test(field) && !isUniqueFieldStatsField(field) && !isTimeFieldStatsField(field);
+  return Boolean(field) && !/^_?raw/i.test(field) && !isTimeFieldStatsField(field);
 }
 
 function canOpenFieldStats(field: string, value: unknown) {
@@ -2825,58 +2931,73 @@ function getResultColumnTextMaxLength(columnKey: string) {
 function getResultColumnMinWidth(columnKey: string) {
   const layoutClass = getResultColumnLayoutClass(columnKey);
   if (layoutClass === "cv-query-result-col--time") {
-    return 132;
+    return 124;
   }
   if (layoutClass === "cv-query-result-col--level") {
-    return 64;
+    return 72;
   }
   if (layoutClass === "cv-query-result-col--id") {
-    return 96;
+    return 88;
   }
   if (layoutClass === "cv-query-result-col--message") {
-    return 220;
+    return 56;
   }
   if (layoutClass === "cv-query-result-col--wide") {
-    return 160;
+    return 72;
   }
   if (normalizeResultColumnKey(columnKey) === CONTAINER_NAME_RESULT_COLUMN_KEY) {
-    return 176;
+    return 108;
   }
-  return 104;
+  return 88;
 }
 
 function getResultColumnMaxWidth(columnKey: string) {
   const layoutClass = getResultColumnLayoutClass(columnKey);
-  if (layoutClass === "cv-query-result-col--message" || layoutClass === "cv-query-result-col--wide") {
-    return 720;
+  if (layoutClass === "cv-query-result-col--message") {
+    return 160;
   }
-  return 520;
+  if (layoutClass === "cv-query-result-col--level") {
+    return 120;
+  }
+  if (layoutClass === "cv-query-result-col--wide") {
+    return 280;
+  }
+  return 280;
 }
 
 function getDefaultResultColumnWidth(columnKey: string) {
   const layoutClass = getResultColumnLayoutClass(columnKey);
   if (layoutClass === "cv-query-result-col--time") {
-    return 152;
-  }
-  if (layoutClass === "cv-query-result-col--level") {
-    return 78;
-  }
-  if (layoutClass === "cv-query-result-col--id") {
     return 136;
   }
+  if (layoutClass === "cv-query-result-col--level") {
+    return 80;
+  }
+  if (layoutClass === "cv-query-result-col--id") {
+    return 104;
+  }
   if (layoutClass === "cv-query-result-col--message") {
-    return 360;
+    return 72;
   }
   if (normalizeResultColumnKey(columnKey) === CONTAINER_NAME_RESULT_COLUMN_KEY) {
-    return 180;
+    return 140;
   }
   if (columnKey === "error") {
-    return 196;
+    return 72;
   }
   if (layoutClass === "cv-query-result-col--wide") {
-    return 220;
+    return 96;
   }
-  return 156;
+  return 120;
+}
+
+function shouldPinResultColumnWidth(columnKey: string) {
+  const layoutClass = getResultColumnLayoutClass(columnKey);
+  return (
+    layoutClass === "cv-query-result-col--time" ||
+    layoutClass === "cv-query-result-col--level" ||
+    layoutClass === "cv-query-result-col--message"
+  );
 }
 
 function clampResultColumnWidth(columnKey: string, width: number) {
@@ -2994,8 +3115,8 @@ function writeOpenLogTabs(storageKey: string, tabs: OpenLogTab[]) {
 function createConditionDraft(): QueryFilterCondition {
   return {
     id: `cond_modal_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-    field: GLOBAL_MATCH_FIELD,
-    operator: "like",
+    field: "",
+    operator: "=",
     value: "",
     valueType: "string"
   };
@@ -3244,7 +3365,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const [shareLoading, setShareLoading] = useState(false);
   const [fieldCatalogOpen, setFieldCatalogOpen] = useState(false);
   const [fieldCatalogSearch, setFieldCatalogSearch] = useState("");
-  const [activeFieldCatalogGroupKey, setActiveFieldCatalogGroupKey] = useState<QueryFieldCatalogGroupKey>("log");
+  const [collapsedFieldCatalogGroups, setCollapsedFieldCatalogGroups] = useState<QueryFieldCatalogGroupKey[]>([]);
+  const [expandedEmptyFieldGroups, setExpandedEmptyFieldGroups] = useState<QueryFieldCatalogGroupKey[]>([]);
   const [resultColumnKeys, setResultColumnKeys] = useState<string[]>([...DEFAULT_RESULT_COLUMN_KEYS]);
   const [resultColumnWidths, setResultColumnWidths] = useState<Record<string, number>>({});
   const [resultColumnMenuKey, setResultColumnMenuKey] = useState<string | null>(null);
@@ -3259,6 +3381,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const [expandedLogDisplayMode, setExpandedLogDisplayMode] = useState<"fields" | "json">("fields");
   const [expandedLogNestedKeys, setExpandedLogNestedKeys] = useState<Set<string>>(() => new Set());
   const [expandedLogMetadataIndexes, setExpandedLogMetadataIndexes] = useState<Set<number>>(() => new Set());
+  const [logDetailMenu, setLogDetailMenu] = useState<{ x: number; y: number; items: ContextMenuItem[] } | null>(null);
   const [resultBulkExpandLoading, setResultBulkExpandLoading] = useState(false);
   const [conditionModalOpen, setConditionModalOpen] = useState(false);
   const [conditionModalMode, setConditionModalMode] = useState<QueryConditionModalMode>("create");
@@ -3271,10 +3394,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const [savedQuerySearch, setSavedQuerySearch] = useState("");
   const [queryHistoryMenuOpen, setQueryHistoryMenuOpen] = useState(false);
   const [queryHistorySearch, setQueryHistorySearch] = useState("");
-  const [queryPreviewOpen, setQueryPreviewOpen] = useState(false);
   const [sourcePickerOpen, setSourcePickerOpen] = useState(false);
   const [sourceSearch, setSourceSearch] = useState("");
   const [queryInputFocused, setQueryInputFocused] = useState(false);
+  const [queryInputMode, setQueryInputMode] = useState<"sql" | "interactive">("sql");
+  const [disabledQueryText, setDisabledQueryText] = useState("");
   const [filterComposerOpen, setFilterComposerOpen] = useState(false);
   const [inlineFieldPickerOpen, setInlineFieldPickerOpen] = useState(false);
   const [inlineFieldPickerActiveIndex, setInlineFieldPickerActiveIndex] = useState(0);
@@ -3341,6 +3465,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const conditionModalBackdropPressedRef = useRef(false);
   const filterComposerRef = useRef<HTMLDivElement | null>(null);
   const queryHistorySearchInputRef = useRef<HTMLInputElement | null>(null);
+  const sqlInputRef = useRef<HTMLInputElement | null>(null);
   const savedQuerySearchInputRef = useRef<HTMLInputElement | null>(null);
   const sourceSearchInputRef = useRef<HTMLInputElement | null>(null);
   const sourcePickerRef = useRef<HTMLDivElement | null>(null);
@@ -3394,14 +3519,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       ) {
         setQueryHistoryMenuOpen(false);
         setSavedQueryMenuOpen(false);
-      }
-      if (
-        fieldCatalogOpen &&
-        target instanceof Element &&
-        !fieldCatalogRef.current?.contains(target) &&
-        !target.closest(".cv-query-fields-panel__popover-panel")
-      ) {
-        closeFieldCatalogPanel();
       }
       if (
         sourcePickerOpen &&
@@ -3667,7 +3784,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }, []);
 
   useEffect(() => {
-    setExpandedLogIndexes(new Set());
+    const count = workspace.logs?.logs.length ?? 0;
+    setExpandedLogIndexes(new Set(Array.from({ length: count }, (_, index) => index)));
     setExpandedLogDisplayMode("fields");
     setExpandedLogNestedKeys(new Set());
     setExpandedLogMetadataIndexes(new Set());
@@ -4031,10 +4149,23 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     const visibleColumnKeys = new Set(visibleResultColumns.map((item) => item.key));
     const columnOptionsByKey = new Map(resultColumnOptions.map((item) => [item.key, item]));
     const findSampleValue = (field: string) => {
+      const lookupFields =
+        normalizeFieldCatalogKey(field) === LEGACY_CONTAINER_NAME_RESULT_COLUMN_KEY
+          ? Array.from(
+              new Set([
+                field,
+                CONTAINER_NAME_RESULT_COLUMN_KEY,
+                LEGACY_CONTAINER_NAME_RESULT_COLUMN_KEY,
+                "container_name"
+              ])
+            )
+          : [field];
       for (const row of normalizedLogRows) {
-        const value = row.parsed[field];
-        if (isPresentLogValue(value)) {
-          return value;
+        for (const lookupField of lookupFields) {
+          const value = row.parsed[lookupField];
+          if (isPresentLogValue(value)) {
+            return value;
+          }
         }
       }
       return "";
@@ -4046,37 +4177,43 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       sampleValue: unknown = "",
       seen: Set<string>
     ): QueryFieldCatalogItem | null => {
-      const normalizedField = normalizeResultColumnOptionField(field);
-      const key = normalizeFieldCatalogKey(normalizedField);
-      if (!normalizedField || seen.has(key) || isGlobalMatchField(normalizedField)) {
+      const catalogField = field.trim();
+      const key = normalizeFieldCatalogKey(catalogField);
+      if (!catalogField || seen.has(key) || isGlobalMatchField(catalogField)) {
         return null;
       }
       seen.add(key);
-      const sample = isPresentLogValue(sampleValue) ? sampleValue : findSampleValue(normalizedField);
+      const sample = isPresentLogValue(sampleValue) ? sampleValue : findSampleValue(catalogField);
+      if (isHiddenJsonCatalogField(catalogField, sample)) {
+        return null;
+      }
       const fieldRef = buildQueryFieldRef(
         {
           id: `field_catalog_${group}_${key}`,
-          field: normalizedField,
+          field: catalogField,
           operator: "=",
           value: "",
           valueType
         },
         workspace.analysisFields
       );
-      const columnOption = columnOptionsByKey.get(normalizedField);
-      const label = columnOption?.label ?? normalizedField;
+      const columnOption =
+        columnOptionsByKey.get(catalogField) ?? columnOptionsByKey.get(normalizeResultColumnOptionField(catalogField));
+      const visibleColumnKey = columnOption?.key ?? normalizeResultColumnOptionField(catalogField);
       return {
-        key: `${group}:${normalizedField}`,
-        field: normalizedField,
-        label,
+        key: `${group}:${catalogField}`,
+        field: catalogField,
+        label: catalogField,
         group,
-        columnKey: columnOption?.key ?? normalizedField,
+        columnKey: visibleColumnKey,
         valueType,
         sampleValue: sample,
         fieldRef,
-        canToggleColumn: Boolean(columnOption?.kind === "field"),
-        isColumnVisible: visibleColumnKeys.has(columnOption?.key ?? normalizedField),
-        canShowTopValues: canShowFieldStatsForField(normalizedField) && !(sample && typeof sample === "object")
+        canToggleColumn:
+          Boolean(columnOption?.kind === "field") &&
+          (visibleColumnKeys.has(visibleColumnKey) || !isStructuredColumnSample(sample)),
+        isColumnVisible: visibleColumnKeys.has(visibleColumnKey),
+        canShowTopValues: canShowFieldStatsForField(catalogField) && !(sample && typeof sample === "object")
       };
     };
     const buildStorageItems = (fields: QueryStorageAnalysisField[], group: QueryFieldCatalogGroupKey) => {
@@ -4087,6 +4224,9 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     };
     const baseItems = buildStorageItems(workspace.analysisFields.baseFields, "base");
     const logItems = buildStorageItems(workspace.analysisFields.logFields, "log");
+    const indexedKeys = new Set(
+      [...baseItems, ...logItems].map((item) => normalizeFieldCatalogKey(item.field))
+    );
     const parsedFields = Array.from(
       normalizedLogRows.reduce<Set<string>>((acc, row) => {
         Object.entries(row.parsed).forEach(([field, value]) => {
@@ -4096,37 +4236,20 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             !isBuiltinResultFieldAlias(field) &&
             !field.startsWith("__")
           ) {
-            acc.add(normalizeResultColumnOptionField(field));
+            acc.add(field);
           }
         });
         return acc;
       }, new Set<string>())
     ).sort(compareResultFieldColumns);
-    const allFieldMetadata = new Map<string, { field: string; valueType: QueryFilterValueType; sampleValue: unknown }>();
-    const addAllField = (field: string, valueType: QueryFilterValueType, sampleValue: unknown = "") => {
-      const normalizedField = normalizeResultColumnOptionField(field);
-      const key = normalizeFieldCatalogKey(normalizedField);
-      if (!normalizedField || allFieldMetadata.has(key) || isGlobalMatchField(normalizedField)) {
-        return;
-      }
-      allFieldMetadata.set(key, { field: normalizedField, valueType, sampleValue });
-    };
-    workspace.analysisFields.logFields.forEach((item) => {
-      addAllField(getStorageAnalysisFieldName(item), getStorageAnalysisValueType(item));
-    });
-    workspace.analysisFields.baseFields.forEach((item) => {
-      addAllField(getStorageAnalysisFieldName(item), getStorageAnalysisValueType(item));
-    });
-    parsedFields.forEach((field) => {
-      const sample = findSampleValue(field);
-      addAllField(field, createDetailConditionValue(sample).valueType, sample);
-    });
-    const allSeen = new Set<string>();
-    const allItems = Array.from(allFieldMetadata.values())
-      .sort((fieldA, fieldB) => compareResultFieldColumns(fieldA.field, fieldB.field))
-      .map((metadata) => {
-        const sample = isPresentLogValue(metadata.sampleValue) ? metadata.sampleValue : findSampleValue(metadata.field);
-        return buildItem(metadata.field, "all", metadata.valueType, sample, allSeen);
+    const tempSeen = new Set<string>();
+    const tempItems = parsedFields
+      .map((field) => {
+        const sample = findSampleValue(field);
+        if (indexedKeys.has(normalizeFieldCatalogKey(field))) {
+          return null;
+        }
+        return buildItem(field, "temp", createDetailConditionValue(sample).valueType, sample, tempSeen);
       })
       .filter((item): item is QueryFieldCatalogItem => Boolean(item));
     const filterItems = (items: QueryFieldCatalogItem[]) =>
@@ -4135,11 +4258,15 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             `${item.label} ${item.field} ${item.group} ${item.valueType}`.toLowerCase().includes(search)
           )
         : items;
-    return [
-      { key: "log", title: "Log Fields", items: filterItems(logItems) },
-      { key: "base", title: "Base Fields", items: filterItems(baseItems) },
-      { key: "all", title: "All Fields", items: filterItems(allItems) }
+    const groups: QueryFieldCatalogGroup[] = [
+      { key: "base", title: "Base fields", items: filterItems(baseItems) },
+      { key: "log", title: "Log fields", items: filterItems(logItems) }
     ];
+    const filteredTempItems = filterItems(tempItems);
+    if (filteredTempItems.length > 0 || search) {
+      groups.push({ key: "temp", title: "Temp fields", items: filteredTempItems });
+    }
+    return groups;
   }, [
     fieldCatalogSearch,
     normalizedLogRows,
@@ -4148,25 +4275,22 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     workspace.analysisFields
   ]);
   const visibleFieldCatalogCount = useMemo(
-    () => fieldCatalogGroups.find((group) => group.key === "all")?.items.length ?? 0,
+    () => fieldCatalogGroups.reduce((count, group) => count + group.items.length, 0),
     [fieldCatalogGroups]
   );
-  const activeFieldCatalogGroup =
-    fieldCatalogGroups.find((group) => group.key === activeFieldCatalogGroupKey) ?? fieldCatalogGroups[0];
 
-  useEffect(() => {
-    if (!fieldCatalogOpen) {
+  function toggleFieldCatalogGroup(key: QueryFieldCatalogGroupKey) {
+    const group = fieldCatalogGroups.find((item) => item.key === key);
+    if (group && group.items.length === 0) {
+      setExpandedEmptyFieldGroups((current) =>
+        current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
+      );
       return;
     }
-    const activeGroup = fieldCatalogGroups.find((group) => group.key === activeFieldCatalogGroupKey);
-    if ((activeGroup?.items.length ?? 0) > 0 || visibleFieldCatalogCount === 0) {
-      return;
-    }
-    const firstGroupWithItems = fieldCatalogGroups.find((group) => group.items.length > 0);
-    if (firstGroupWithItems) {
-      setActiveFieldCatalogGroupKey(firstGroupWithItems.key);
-    }
-  }, [activeFieldCatalogGroupKey, fieldCatalogGroups, fieldCatalogOpen, visibleFieldCatalogCount]);
+    setCollapsedFieldCatalogGroups((current) =>
+      current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
+    );
+  }
 
   useEffect(() => {
     if (resultColumnMenuKey && !visibleResultColumns.some((column) => column.key === resultColumnMenuKey)) {
@@ -4181,16 +4305,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       return `${INVALID_QUERY_PREVIEW_PREFIX}: ${error instanceof Error ? error.message : "Check filters"}`;
     }
   }, [workspace.queryText, workspace.conditions, workspace.analysisFields]);
-  const canShowQueryPreview = Boolean(workspace.queryText.trim() || workspace.conditions.length > 0);
-  const canUseQueryPreview =
-    queryPreview !== EMPTY_QUERY_PREVIEW && !queryPreview.startsWith(INVALID_QUERY_PREVIEW_PREFIX);
-
-  useEffect(() => {
-    if (!canShowQueryPreview && queryPreviewOpen) {
-      setQueryPreviewOpen(false);
-    }
-  }, [canShowQueryPreview, queryPreviewOpen]);
-
   function applyTimeRange(range: [Date, Date], pickerRange?: QueryAbsolutePickerRange) {
     setTimeRange(range);
     setAbsolutePickerRange(pickerRange ?? buildAbsolutePickerRange(range));
@@ -4229,11 +4343,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     clearHistogramSelection();
     applyTimeRange(nextRange, buildAbsolutePickerRange(nextRange));
     void workspace.runQuery(1, toSecondRange(nextRange));
-  }
-
-  function setHistogramSelectionDraft(selection: HistogramSelection | null) {
-    histogramSelectionRef.current = selection;
-    setHistogramSelection(selection);
   }
 
   function clearHistogramSelection() {
@@ -4282,21 +4391,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     applyHistogramTimeRange(nextRange);
   }
 
-  function selectHistogramBucket(index: number) {
-    if (!histogramChartData[index]) {
-      return;
-    }
-    setHistogramSelectionDraft({ anchorIndex: index, hoverIndex: index });
-  }
-
   function handleHistogramBrushEnd(brushArea: { x?: [number, number] }) {
     const nextSelection = findHistogramSelectionFromExtent(histogramChartData, brushArea.x);
     if (!nextSelection) {
       return;
     }
-    // Drag-to-select on the histogram zooms in immediately on brush release
-    // (matches Kibana/Grafana). Single-bucket clicks still go through the
-    // draft+confirm overlay via handleHistogramElementClick.
     clearHistogramSelection();
     applyHistogramBucketRange(nextSelection.anchorIndex, nextSelection.hoverIndex);
   }
@@ -4307,7 +4406,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       return;
     }
     const index = histogramChartData.findIndex((item) => item.from === datum.from && item.to === datum.to);
-    selectHistogramBucket(index);
+    if (index < 0) {
+      return;
+    }
+    clearHistogramSelection();
+    applyHistogramBucketRange(index, index);
   }
 
   function parseProfileTime(value: string) {
@@ -4343,28 +4446,14 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }
     workspace.applyFilterProfile(profile);
     setSavedQueryMenuOpen(false);
+    const visual = buildVisualQuery(profile.conditions);
+    if (queryInputMode === "sql" && visual) {
+      workspace.setQueryText(visual);
+      workspace.setConditions([]);
+      void workspace.runQuery(1, nextRange ? toSecondRange(nextRange) : undefined, [], visual);
+      return;
+    }
     void workspace.runQuery(1, nextRange ? toSecondRange(nextRange) : undefined, profile.conditions);
-  }
-
-  function convertConditionsToManualSql() {
-    const nextQuery = queryPreview.trim();
-    if (!nextQuery || !canUseQueryPreview) {
-      return;
-    }
-    workspace.setQueryText(nextQuery);
-    workspace.setConditions([]);
-    workspace.setActiveConditionId(null);
-    setFilterComposerOpen(false);
-    setInlineFieldPickerOpen(false);
-    setFeedbackMessage("");
-  }
-
-  async function copyQueryPreview() {
-    if (!canUseQueryPreview) {
-      return;
-    }
-    const copied = await copyTextToClipboard(queryPreview);
-    setFeedbackMessage(copied ? "SQL copied" : "Copy SQL failed");
   }
 
   async function copyExpandedLog(row: NormalizedLogRow) {
@@ -4436,7 +4525,9 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
 
   function updateResultColumnKeys(nextKeys: string[]) {
     const uniqueKeys = normalizeResultColumnKeys(nextKeys);
-    const normalizedKeys = uniqueKeys.length > 0 ? uniqueKeys : [...DEFAULT_RESULT_COLUMN_KEYS];
+    const withoutJson = uniqueKeys.filter((key) => !columnHasStructuredValue(key, normalizedLogRows));
+    const cappedKeys = capVisibleResultColumnKeys(withoutJson);
+    const normalizedKeys = cappedKeys.length > 0 ? cappedKeys : [...DEFAULT_RESULT_COLUMN_KEYS];
     setResultColumnKeys(normalizedKeys);
     writeResultColumnKeys(resultColumnStorageKey, normalizedKeys);
   }
@@ -4452,9 +4543,32 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       setFeedbackMessage("");
       return;
     }
+    if (columnHasStructuredValue(columnKey, normalizedLogRows)) {
+      setFeedbackMessage("JSON fields can't be added as columns");
+      return;
+    }
+    if (visibleKeys.length >= MAX_VISIBLE_RESULT_COLUMNS) {
+      setFeedbackMessage("You can add at most 10 fields");
+      return;
+    }
     updateResultColumnKeys([...visibleKeys, columnKey]);
     setFeedbackMessage("");
   }
+
+  useEffect(() => {
+    if (normalizedLogRows.length === 0) {
+      return;
+    }
+    const nextKeys = capVisibleResultColumnKeys(
+      resultColumnKeys.filter((key) => !columnHasStructuredValue(key, normalizedLogRows))
+    );
+    if (
+      nextKeys.length !== resultColumnKeys.length ||
+      nextKeys.some((key, index) => key !== resultColumnKeys[index])
+    ) {
+      updateResultColumnKeys(nextKeys);
+    }
+  }, [normalizedLogRows, resultColumnKeys]);
 
   function resetResultTableHorizontalScroll() {
     resultTableScrollRef.current?.scrollTo?.({ left: 0 });
@@ -4615,14 +4729,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }
 
   function handleResultTableHeaderWheel(event: WheelEvent<HTMLDivElement>) {
-    const delta = event.deltaX || (event.shiftKey ? event.deltaY : 0);
-    if (!resultTableScrollRef.current || !delta) {
-      return;
-    }
-    event.preventDefault();
-    resultTableScrollRef.current.scrollLeft += delta;
-    if (resultTableHeaderScrollRef.current) {
-      resultTableHeaderScrollRef.current.scrollLeft = resultTableScrollRef.current.scrollLeft;
+    if (event.deltaX || event.shiftKey) {
+      event.preventDefault();
     }
   }
 
@@ -4634,7 +4742,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
           <col
             key={column.key}
             className={`cv-query-result-col ${getResultColumnLayoutClass(column.key)}`}
-            style={{ width: getResultColumnWidth(column.key, resultColumnWidths) }}
+            style={
+              resultColumnWidths[column.key] || shouldPinResultColumnWidth(column.key)
+                ? { width: getResultColumnWidth(column.key, resultColumnWidths) }
+                : undefined
+            }
           />
         ))}
       </colgroup>
@@ -4884,11 +4996,12 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
 
   function buildRawLogFieldStatsRef(field: string, sampleValue: unknown) {
     const sample = createDetailConditionValue(sampleValue);
+    const path = field.replace(/^_?raw_log_?\./i, "");
     return {
-      fieldKey: field,
-      displayName: field,
+      fieldKey: path,
+      displayName: path,
       source: "json_path" as const,
-      path: field,
+      path,
       valueType: sample.valueType === "number" ? "number" as const : "string" as const,
       isAccelerated: false
     };
@@ -4923,9 +5036,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     if (!canShowFieldStatsForField(field) || (explicitFieldKey && !canShowFieldStatsForField(explicitFieldKey))) {
       const feedbackField = explicitFieldKey || field;
       setFeedbackMessage(
-        isUniqueFieldStatsField(field) || isUniqueFieldStatsField(explicitFieldKey)
-          ? `${feedbackField} is unique and cannot show top values`
-          : isTimeFieldStatsField(field) || isTimeFieldStatsField(explicitFieldKey)
+        isTimeFieldStatsField(field) || isTimeFieldStatsField(explicitFieldKey)
           ? `${feedbackField} is time-related and cannot show top values`
           : "Raw log fields cannot show top values"
       );
@@ -5045,7 +5156,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         fieldRef: context.fieldRef,
         loading: true,
         data: null,
-        error: ""
+        error: "",
+        fromTempFields: item.group === "temp"
       }
     }));
     try {
@@ -5061,7 +5173,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
           fieldRef: context.fieldRef,
           loading: false,
           data,
-          error: ""
+          error: "",
+          fromTempFields: item.group === "temp"
         }
       }));
     } catch (error) {
@@ -5090,7 +5203,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
           fieldRef: context.fieldRef,
           loading: false,
           data: null,
-          error: message
+          error: message,
+          fromTempFields: item.group === "temp"
         }
       }));
     }
@@ -5152,16 +5266,75 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       rawValue = row.parsed[column.key];
     }
     const empty = !isPresentLogValue(rawValue) || rawValue === "-";
+    const pretty = empty ? null : formatPrettyLogDetailValue(rawValue);
     return {
       empty,
-      text: empty ? "—" : formatLogDetailValue(rawValue)
+      wrap: Boolean(pretty),
+      text: empty ? "—" : pretty ?? formatLogDetailValue(rawValue)
     };
   }
 
   function applyConditionsAndRun(nextConditions: QueryFilterCondition[], activeConditionId: string | null) {
+    if (queryInputMode === "sql") {
+      const added = nextConditions.filter((condition) => !workspace.conditions.some((item) => item.id === condition.id));
+      const extra = buildVisualQuery(added);
+      const baseSql = workspace.queryText.trim() || buildVisualQuery(workspace.conditions);
+      const merged = [baseSql, extra].filter(Boolean).join(" AND ");
+      workspace.setQueryText(merged);
+      workspace.setConditions([]);
+      workspace.setActiveConditionId(null);
+      void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, [], merged);
+      return;
+    }
+    workspace.setQueryText("");
     workspace.setConditions(nextConditions);
     workspace.setActiveConditionId(activeConditionId);
-    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions);
+    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions, "");
+  }
+
+  function splitSqlForInteractiveMode(sql: string) {
+    const tokens = sql
+      .split(/\s+AND\s+/i)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const parsed: QueryFilterCondition[] = [];
+    const leftover: string[] = [];
+    tokens.forEach((token, index) => {
+      const conditions = parseQueryTextConditions(token);
+      if (conditions.length === 1) {
+        parsed.push({ ...conditions[0], id: `cond_switch_${index}_${conditions[0].id}` });
+      } else {
+        leftover.push(token);
+      }
+    });
+    return { parsed, remainder: leftover.join(" AND ") };
+  }
+
+  function switchQueryInputMode(nextMode: "sql" | "interactive") {
+    if (nextMode === queryInputMode) {
+      return;
+    }
+    if (nextMode === "interactive") {
+      if (workspace.conditions.length === 0 && workspace.queryText.trim()) {
+        const { parsed, remainder } = splitSqlForInteractiveMode(workspace.queryText);
+        if (parsed.length > 0) {
+          workspace.setConditions(parsed);
+          workspace.setQueryText(remainder);
+        }
+      }
+      setDisabledQueryText("");
+      setQueryInputMode("interactive");
+      return;
+    }
+    const leftover = (disabledQueryText || workspace.queryText).trim();
+    const visual = buildVisualQuery(workspace.conditions);
+    const merged = [leftover, visual].filter(Boolean).join(" AND ");
+    if (merged) {
+      workspace.setQueryText(merged);
+      workspace.setConditions([]);
+    }
+    setDisabledQueryText("");
+    setQueryInputMode("sql");
   }
 
   function addConditionFromLogDetail(field: string, value: unknown, operator: "=" | "!=" = "=") {
@@ -5198,10 +5371,15 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         return;
       }
     }
-    const conditionValue = createTypedDetailConditionValue(
-      value,
-      fieldRef.valueType === "number" || fieldRef.valueType === "datetime" ? fieldRef.valueType : "string"
-    );
+    const nestedJsonField = field.includes(".");
+    const conditionValue = nestedJsonField
+      ? typeof value === "number" && Number.isFinite(value)
+        ? { value, valueType: "number" as const }
+        : { value: String(value), valueType: "string" as const }
+      : createTypedDetailConditionValue(
+          value,
+          fieldRef.valueType === "number" || fieldRef.valueType === "datetime" ? fieldRef.valueType : "string"
+        );
     if (!conditionValue) {
       setFeedbackMessage(`${field} cannot be added as a numeric condition`);
       return;
@@ -5223,7 +5401,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       field,
       operator,
       value: conditionValue.value,
-      valueType: conditionValue.valueType
+      valueType: conditionValue.valueType,
+      nestedJson: nestedJsonField
     };
     applyConditionsAndRun([...workspace.conditions, nextCondition], nextCondition.id);
     setFeedbackMessage("");
@@ -5235,7 +5414,10 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       return;
     }
     const existingCondition = workspace.conditions.find(
-      (condition) => isGlobalMatchField(condition.field) && String(condition.value) === text
+      (condition) =>
+        (isGlobalMatchField(condition.field) || condition.field === GLOBAL_MATCH_COLUMN) &&
+        condition.operator === "like" &&
+        String(condition.value) === text
     );
     if (existingCondition) {
       workspace.setActiveConditionId(existingCondition.id);
@@ -5244,7 +5426,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }
     const nextCondition: QueryFilterCondition = {
       id: `cond_detail_global_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-      field: GLOBAL_MATCH_FIELD,
+      field: GLOBAL_MATCH_COLUMN,
       operator: "like",
       value: text,
       valueType: "string"
@@ -5312,7 +5494,9 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     const detailColumnOption =
       resultColumnOptions.find((item) => item.key === conditionField) ??
       resultColumnOptions.find((item) => item.key === displayField);
-    const canToggleColumn = Boolean(detailColumnOption && detailColumnOption.kind === "field");
+    const canToggleColumn =
+      Boolean(detailColumnOption && detailColumnOption.kind === "field") &&
+      (detailColumnVisible || !isStructuredColumnSample(value));
     const detailColumnVisible = detailColumnOption
       ? visibleResultColumns.some((column) => column.key === detailColumnOption.key)
       : false;
@@ -5419,9 +5603,9 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }
 
   function renderLogDetailFieldCell(
-    row: NormalizedLogRow,
+    _row: NormalizedLogRow,
     displayField: string,
-    value: unknown,
+    _value: unknown,
     options: {
       title?: string;
       conditionField?: string;
@@ -5432,15 +5616,157 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     return (
       <strong className="cv-query-detail__field-cell" title={options.title ?? displayField}>
         <span className="cv-query-detail__key-text">{displayField}</span>
-        {renderLogDetailFieldActions(row, displayField, value, options)}
       </strong>
     );
   }
 
-  function renderLogDetailValueCell(value: unknown) {
+  function openLogDetailValueMenu(
+    event: { clientX: number; clientY: number; preventDefault(): void; stopPropagation(): void },
+    row: NormalizedLogRow,
+    displayField: string,
+    value: unknown,
+    options: { conditionField?: string } = {}
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+    const conditionField = options.conditionField ?? displayField;
+    const prettyValue = formatPrettyLogDetailValue(value);
+    const displayValue = prettyValue ?? formatLogDetailValue(value);
+    const canCopyValue = isPresentLogValue(value) && displayValue.trim() !== "—";
+    const canUseCondition = !prettyValue && canCreateConditionFromDetailValue(conditionField, value);
+    const canUseAnalysis = !prettyValue && canStartAIAnalysisFromField(conditionField, value);
+    const items: ContextMenuItem[] = [];
+    if (canUseCondition) {
+      items.push(
+        {
+          key: "add",
+          label: "添加查询条件",
+          onSelect: () => addConditionFromLogDetail(conditionField, value)
+        },
+        {
+          key: "exclude",
+          label: "排除查询条件",
+          onSelect: () => addConditionFromLogDetail(conditionField, value, "!=")
+        }
+      );
+    }
+    if (canUseAnalysis) {
+      items.push({
+        key: "link",
+        label: "查看链路",
+        onSelect: () => openLinkQueryModal(row, conditionField, value)
+      });
+    }
+    if (canCopyValue) {
+      items.push({
+        key: "copy",
+        label: "复制值",
+        separatorBefore: items.length > 0,
+        onSelect: () => {
+          void copyLogDetailValue(displayField, prettyValue ?? value);
+        }
+      });
+    }
+    if (items.length === 0) {
+      return;
+    }
+    setLogDetailMenu({ x: event.clientX, y: event.clientY, items });
+  }
+
+  function renderJsonTokenTree(value: unknown, path: string, row: NormalizedLogRow, indent = 0): ReactNode {
+    const pad = "  ".repeat(indent);
+    const padInner = "  ".repeat(indent + 1);
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return "[]";
+      }
+      return (
+        <>
+          {"[\n"}
+          {value.map((item, index) => (
+            <Fragment key={`${path}[${index}]`}>
+              {padInner}
+              {renderJsonTokenTree(item, path, row, indent + 1)}
+              {index < value.length - 1 ? "," : ""}
+              {"\n"}
+            </Fragment>
+          ))}
+          {pad}
+          {"]"}
+        </>
+      );
+    }
+    if (value && typeof value === "object") {
+      const entries = Object.entries(value as Record<string, unknown>);
+      if (entries.length === 0) {
+        return "{}";
+      }
+      return (
+        <>
+          {"{\n"}
+          {entries.map(([key, item], index) => {
+            const childPath = path ? `${path}.${key}` : key;
+            return (
+              <Fragment key={childPath}>
+                {padInner}
+                <span className="cv-query-detail__json-key">{JSON.stringify(key)}</span>
+                {": "}
+                {renderJsonTokenTree(item, childPath, row, indent + 1)}
+                {index < entries.length - 1 ? "," : ""}
+                {"\n"}
+              </Fragment>
+            );
+          })}
+          {pad}
+          {"}"}
+        </>
+      );
+    }
+    return (
+      <button
+        type="button"
+        className="cv-query-detail__json-token"
+        title={path}
+        onClick={(event) => openLogDetailValueMenu(event, row, path, value, { conditionField: path })}
+      >
+        {JSON.stringify(value)}
+      </button>
+    );
+  }
+
+  function renderLogDetailValueCell(
+    row: NormalizedLogRow,
+    displayField: string,
+    value: unknown,
+    options: { conditionField?: string } = {}
+  ) {
+    const structured =
+      parseJsonObject(value) ??
+      parseJsonArray(value) ??
+      (value && typeof value === "object" ? value : null);
+    if (structured) {
+      const rootPath = options.conditionField ?? displayField;
+      return (
+        <span className="cv-query-detail__value-cell">
+          <pre className="cv-query-detail__json-value">{renderJsonTokenTree(structured, rootPath, row)}</pre>
+        </span>
+      );
+    }
     const displayValue = formatLogDetailValue(value);
     return (
-      <span className="cv-query-detail__value-text" title={displayValue}>
+      <span
+        className="cv-query-detail__value-cell cv-query-detail__value-cell--action"
+        role="button"
+        tabIndex={0}
+        title={displayValue}
+        onClick={(event) => openLogDetailValueMenu(event, row, displayField, value, options)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openLogDetailValueMenu(event, row, displayField, value, options);
+          }
+        }}
+      >
         {displayValue}
       </span>
     );
@@ -5698,6 +6024,32 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions);
   }
 
+  function leftoverSqlText() {
+    return (disabledQueryText || workspace.queryText).trim();
+  }
+
+  function leftoverSqlDisabled() {
+    return Boolean(disabledQueryText.trim());
+  }
+
+  function toggleLeftoverSqlDisabled() {
+    const text = leftoverSqlText();
+    if (!text) {
+      return;
+    }
+    if (leftoverSqlDisabled()) {
+      setDisabledQueryText("");
+      workspace.setQueryText(text);
+      setFeedbackMessage("");
+      void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, workspace.conditions, text);
+      return;
+    }
+    setDisabledQueryText(text);
+    workspace.setQueryText("");
+    setFeedbackMessage("");
+    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, workspace.conditions, "");
+  }
+
   const activeCondition = useMemo(
     () => workspace.conditions.find((item) => item.id === workspace.activeConditionId) ?? null,
     [workspace.activeConditionId, workspace.conditions]
@@ -5705,19 +6057,14 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
 
   const conditionFieldOptions = useMemo(
     () =>
-      ([...(workspace.suggestionFieldOptions as QueryFieldPickerOption[])]).sort((left, right) => {
-        const leftIsGlobal = isGlobalMatchField(left.field);
-        const rightIsGlobal = isGlobalMatchField(right.field);
-        if (leftIsGlobal !== rightIsGlobal) {
-          return leftIsGlobal ? -1 : 1;
-        }
-        return compareResultFieldColumns(left.field, right.field);
-      }),
+      ([...(workspace.suggestionFieldOptions as QueryFieldPickerOption[])])
+        .filter((item) => !isGlobalMatchField(item.field))
+        .sort((left, right) => compareResultFieldColumns(left.field, right.field)),
     [workspace.suggestionFieldOptions]
   );
   const inlineFieldPickerOptions = useMemo(() => {
     const search = formatConditionFieldInputValue(inlineConditionDraft.field).trim().toLowerCase();
-    if (!search || isGlobalMatchField(inlineConditionDraft.field)) {
+    if (!search) {
       return conditionFieldOptions;
     }
     return conditionFieldOptions.filter((item) =>
@@ -5907,7 +6254,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       return;
     }
     setInlineConditionDraft(applyConditionFieldDefaults(createConditionDraft(), field));
-    setQueryPreviewOpen(false);
     setQueryHistoryMenuOpen(false);
     setSavedQueryMenuOpen(false);
     setFilterComposerOpen(true);
@@ -5956,6 +6302,51 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     };
   }
 
+  function openFieldStatsValueMenu(
+    event: { clientX: number; clientY: number; preventDefault(): void; stopPropagation(): void },
+    statsState: QueryFieldStatsState,
+    value: string,
+    conditionField: string
+  ) {
+    const items: ContextMenuItem[] = [];
+    const fieldKey = conditionField || statsState.fieldRef.fieldKey || statsState.field;
+    items.push({
+      key: "add",
+      label: "添加查询条件",
+      hint: statsState.fromTempFields
+        ? "该字段未配置索引，查询走模糊匹配，可能会命中更多全局数据"
+        : undefined,
+      onSelect: () => addConditionFromFieldStatsValue(statsState.fieldRef, value, "=", conditionField || undefined)
+    });
+    if (conditionField) {
+      items.push({
+        key: "exclude",
+        label: "排除查询条件",
+        onSelect: () => addConditionFromFieldStatsValue(statsState.fieldRef, value, "!=", conditionField)
+      });
+    }
+    const linkRow = normalizedLogRows.find((row) => {
+      const current = row.parsed[fieldKey] ?? row.parsed[statsState.field];
+      return String(current ?? "") === value;
+    });
+    if (linkRow && canStartAIAnalysisFromField(fieldKey, value)) {
+      items.push({
+        key: "link",
+        label: "查看链路",
+        onSelect: () => openLinkQueryModal(linkRow, fieldKey, value)
+      });
+    }
+    items.push({
+      key: "copy",
+      label: "复制值",
+      separatorBefore: true,
+      onSelect: () => {
+        void copyLogDetailValue(statsState.field, value);
+      }
+    });
+    setLogDetailMenu({ x: event.clientX, y: event.clientY, items });
+  }
+
   function renderFieldStatsContent(statsState: QueryFieldStatsState, statsView = buildFieldStatsView(statsState)) {
     return (
       <div className="cv-query-field-stats">
@@ -5975,70 +6366,45 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               (statsState.fieldRef.source === "column" && statsState.fieldRef.isAccelerated)
             ? statsState.fieldRef.fieldKey
             : "";
-          const targetLabel = conditionField || GLOBAL_MATCH_DISPLAY_LABEL;
           return (
             <div key={`${item.value}-${item.count}`} className="cv-query-field-stats__item">
               <EuiToolTip
                 anchorClassName="cv-query-field-stats__value-anchor"
-                content={item.value}
+                content={`${item.value} · ${formatPercentage(item.percentage)}`}
                 display="block"
                 position="top"
               >
-                <span className="cv-query-field-stats__value">{item.value}</span>
+                <button
+                  type="button"
+                  className="cv-query-field-stats__value"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openFieldStatsValueMenu(event, statsState, item.value, conditionField);
+                  }}
+                >
+                  {item.value}
+                </button>
               </EuiToolTip>
-              <span className="cv-query-field-stats__bar" aria-hidden="true">
-                <span style={{ width: `${Math.max(item.percentage, 1)}%` }} />
-              </span>
-              <span className="cv-query-field-stats__meta">
-                <strong>{formatPercentage(item.percentage)}</strong>
-                <span>{formatCount(item.count)}</span>
-              </span>
-              <span className="cv-query-field-stats__actions">
-                <EuiToolTip content={`Filter for ${targetLabel} = ${item.value}`}>
-                  <button
-                    type="button"
-                    className="cv-query-field-stats__action"
-                    aria-label={`Filter for ${targetLabel} = ${item.value}`}
-                    onClick={() => addConditionFromFieldStatsValue(
-                      statsState.fieldRef,
-                      item.value,
-                      "=",
-                      conditionField || undefined
-                    )}
-                  >
-                    <EuiIcon type="filterInclude" size="s" aria-hidden="true" />
-                  </button>
-                </EuiToolTip>
-                {conditionField ? (
-                  <EuiToolTip content={`Filter out ${conditionField} = ${item.value}`}>
-                    <button
-                      type="button"
-                      className="cv-query-field-stats__action"
-                      aria-label={`Filter out ${conditionField} = ${item.value}`}
-                      onClick={() => addConditionFromFieldStatsValue(
-                        statsState.fieldRef,
-                        item.value,
-                        "!=",
-                        conditionField
-                      )}
-                    >
-                      <EuiIcon type="filterExclude" size="s" aria-hidden="true" />
-                    </button>
-                  </EuiToolTip>
-                ) : null}
-                <EuiToolTip content={`Copy ${statsState.field} value`}>
-                  <button
-                    type="button"
-                    className="cv-query-field-stats__action"
-                    aria-label={`Copy ${statsState.field} value ${item.value}`}
-                    onClick={() => {
-                      void copyLogDetailValue(statsState.field, item.value);
-                    }}
-                  >
-                    <EuiIcon type="copyClipboard" size="s" aria-hidden="true" />
-                  </button>
-                </EuiToolTip>
-              </span>
+              <EuiToolTip
+                anchorClassName="cv-query-field-stats__bar-anchor"
+                content={formatPercentage(item.percentage)}
+                position="top"
+              >
+                <span className="cv-query-field-stats__bar" aria-hidden="true">
+                  <span style={{ width: `${Math.max(item.percentage, 1)}%` }} />
+                </span>
+              </EuiToolTip>
+              <EuiToolTip
+                anchorClassName="cv-query-field-stats__meta-anchor"
+                content={formatPercentage(item.percentage)}
+                position="top"
+              >
+                <span className="cv-query-field-stats__meta">
+                  <strong>{formatPercentage(item.percentage)}</strong>
+                  <span>{formatCount(item.count)}</span>
+                </span>
+              </EuiToolTip>
             </div>
           );
         })}
@@ -6101,23 +6467,10 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             title={item.label}
             onClick={() => openFieldCatalogTopValues(item)}
           >
-            {item.canShowTopValues ? (
-              <EuiIcon
-                className="cv-query-fields-panel__field-toggle"
-                type={isTopValuesOpen ? "arrowDown" : "arrowRight"}
-                size="s"
-                aria-hidden="true"
-              />
-            ) : (
-              <span
-                className="cv-query-fields-panel__field-toggle cv-query-fields-panel__field-toggle--empty"
-                aria-hidden="true"
-              />
-            )}
             <span className="cv-query-fields-panel__field-name">{item.label}</span>
           </button>
           <span className="cv-query-fields-panel__actions" aria-label={`${item.label} actions`}>
-            {item.canToggleColumn ? (
+            {item.canToggleColumn && !allCurrentBatchLogsExpanded ? (
               <EuiButtonIcon
                 aria-label={columnActionLabel}
                 className="cv-query-fields-panel__icon-button"
@@ -6132,6 +6485,14 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                 }}
               />
             ) : null}
+            {isTopValuesOpen ? (
+              <EuiIcon
+                className="cv-query-fields-panel__field-caret"
+                type="arrowUp"
+                size="s"
+                aria-hidden="true"
+              />
+            ) : null}
           </span>
         </div>
         {isTopValuesOpen ? (
@@ -6140,9 +6501,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             role="region"
             aria-label={`${inlineStatsState?.field ?? item.label} top values`}
           >
-            <div className="cv-query-fields-panel__stats-header">
-              <span>Top values</span>
-              {inlineStatsState?.loading ? (
+            {inlineStatsState?.loading ? (
+              <div className="cv-query-fields-panel__stats-header">
                 <button
                   type="button"
                   className="cv-query-fields-panel__stats-cancel"
@@ -6151,8 +6511,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                 >
                   Cancel
                 </button>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
             {inlineStatsState ? renderFieldStatsContent(inlineStatsState, inlineStatsView ?? undefined) : null}
           </div>
         ) : null}
@@ -6160,41 +6520,12 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     );
   }
 
-  function renderFieldCatalogTabs() {
-    return (
-      <EuiTabs className="cv-query-fields-panel__tabs" size="s" expand={false} aria-label="Field groups">
-        {fieldCatalogGroups.map((group) => (
-          <EuiTab
-            key={group.key}
-            className="cv-query-fields-panel__tab"
-            isSelected={group.key === activeFieldCatalogGroupKey}
-            onClick={() => setActiveFieldCatalogGroupKey(group.key)}
-            aria-label={`${group.title} ${group.items.length}`}
-          >
-            <span>{group.title}</span>
-            <strong>{formatCount(group.items.length)}</strong>
-          </EuiTab>
-        ))}
-      </EuiTabs>
-    );
-  }
-
   function renderFieldCatalogPanel() {
     return (
-      <div className="cv-query-fields-panel" role="dialog" aria-label="Fields">
+      <div className="cv-query-fields-panel" role="complementary" aria-label="Fields">
         <div className="cv-query-fields-panel__header">
           <strong>Fields</strong>
           <span>{formatCount(visibleFieldCatalogCount)}</span>
-          <EuiButtonIcon
-            aria-label="Close fields"
-            className="cv-query-fields-panel__close"
-            color="text"
-            iconSize="s"
-            iconType="cross"
-            size="xs"
-            title="Close fields"
-            onClick={closeFieldCatalogPanel}
-          />
         </div>
         <div className="cv-query-fields-panel__search">
           <EuiFieldSearch
@@ -6220,14 +6551,50 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             aria-label="Search fields"
           />
         </div>
-        {renderFieldCatalogTabs()}
         <div className="cv-query-fields-panel__body">
-          {activeFieldCatalogGroup.items.length > 0 ? (
-            <div className="cv-query-fields-panel__group-list">
-              {activeFieldCatalogGroup.items.map(renderFieldCatalogItem)}
-            </div>
-          ) : (
+          {visibleFieldCatalogCount === 0 && fieldCatalogGroups.every((group) => group.items.length === 0) ? (
             <div className="cv-query-fields-panel__empty">No data</div>
+          ) : (
+            fieldCatalogGroups.map((group) => {
+              const collapsed =
+                group.items.length === 0
+                  ? !expandedEmptyFieldGroups.includes(group.key)
+                  : collapsedFieldCatalogGroups.includes(group.key);
+              return (
+                <section key={group.key} className="cv-query-fields-panel__section">
+                  <div className="cv-query-fields-panel__section-toolbar">
+                    <button
+                      type="button"
+                      className="cv-query-fields-panel__section-header"
+                      aria-expanded={!collapsed}
+                      onClick={() => toggleFieldCatalogGroup(group.key)}
+                    >
+                      <EuiIcon type={collapsed ? "arrowRight" : "arrowDown"} size="s" aria-hidden="true" />
+                      <strong>{group.title}</strong>
+                      <span>{formatCount(group.items.length)}</span>
+                    </button>
+                    {group.key === "temp" ? (
+                      <EuiToolTip content="Parsed from the current logs. Conditions use JSON extract and are slower than indexed fields.">
+                        <button
+                          type="button"
+                          className="cv-query-fields-panel__section-help"
+                          aria-label="About temp fields"
+                        >
+                          <EuiIcon type="help" size="s" aria-hidden="true" />
+                        </button>
+                      </EuiToolTip>
+                    ) : null}
+                  </div>
+                  {collapsed ? null : group.items.length > 0 ? (
+                    <div className="cv-query-fields-panel__group-list">
+                      {group.items.map(renderFieldCatalogItem)}
+                    </div>
+                  ) : (
+                    <div className="cv-query-fields-panel__empty">No data</div>
+                  )}
+                </section>
+              );
+            })
           )}
         </div>
         <div className="cv-query-fields-panel__footer">
@@ -6244,14 +6611,9 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     const value = String(inlineConditionDraft.value ?? "").trim();
     const effectiveValueType = isGlobalMatchField(field) ? "string" : inlineConditionDraft.valueType;
     const effectiveOperator = normalizeConditionOperator(field, inlineConditionDraft.operator, effectiveValueType);
-    if (!field || !value) {
+    if (!field || !value || isGlobalMatchField(field)) {
       setFilterComposerOpen(true);
       setFeedbackMessage("Enter a field and value");
-      return;
-    }
-    if (isGlobalMatchField(field) && workspace.analysisFields.supportsGlobalMatch === false) {
-      setFilterComposerOpen(true);
-      setFeedbackMessage(`Current log table has no log content field, cannot use ${GLOBAL_MATCH_DISPLAY_LABEL}`);
       return;
     }
     if (
@@ -6291,7 +6653,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }
 
   function openInlineConditionComposer() {
-    setQueryPreviewOpen(false);
     setQueryHistoryMenuOpen(false);
     setSavedQueryMenuOpen(false);
     setFieldPickerOpen(false);
@@ -6332,6 +6693,19 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   function applyAutocompleteItem(query: string) {
     workspace.setQueryText(query);
     setQueryInputFocused(false);
+  }
+
+  function applySqlHintItem(query: string) {
+    if (queryInputMode === "interactive") {
+      const { parsed, remainder } = splitSqlForInteractiveMode(query);
+      workspace.setQueryText(remainder);
+      workspace.setConditions(parsed);
+      setDisabledQueryText("");
+      setQueryInputFocused(false);
+      void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, parsed, remainder);
+      return;
+    }
+    applyAutocompleteItem(query);
   }
 
   function renderHistogramEmptyState() {
@@ -6455,6 +6829,15 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         ? `${formatCount(resultRangeStart)} - ${formatCount(resultRangeEnd)}`
         : formatRowsLabel(resultLoadedCount)
       : "No data";
+  const queryCostLabel = formatQueryCost(workspace.logs?.cost ?? 0);
+  const queryTotalLabel = hasResultKnownTotal ? formatCount(resultTotalCount) : "";
+  const queryStatsControl =
+    queryCostLabel || queryTotalLabel ? (
+      <span className="cv-query-query-stats" aria-label="Query stats">
+        {queryCostLabel ? <span>Time {queryCostLabel}</span> : null}
+        {queryTotalLabel ? <span>Total {queryTotalLabel}</span> : null}
+      </span>
+    ) : null;
   const isUnsupportedLogContentQuery = isUnsupportedLogContentQueryError(workspace.errorMessage);
   const resultBlockingErrorMessage = isUnsupportedLogContentQuery ? "" : workspace.errorMessage;
   const modalFieldStatsView = fieldStatsState ? buildFieldStatsView(fieldStatsState) : null;
@@ -6469,18 +6852,28 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     currentResultBatchIndexes.every((index) =>
       expandedLogIndexes.has(index)
     );
-  const resultBulkExpandControl = currentResultBatchCount > 1 ? (
-    <ResultToolbarIconAction
-      label={allCurrentBatchLogsExpanded ? "Collapse all" : "Expand all"}
-      icon={allCurrentBatchLogsExpanded ? "fold" : "unfold"}
+  const resultBulkExpandControl = currentResultBatchCount > 0 ? (
+    <button
+      type="button"
+      className={
+        allCurrentBatchLogsExpanded
+          ? "cv-query-expand-switch cv-query-expand-switch--on"
+          : "cv-query-expand-switch"
+      }
       onClick={toggleAllLoadedLogDetails}
       disabled={resultBulkExpandLoading}
-      loading={resultBulkExpandLoading}
-      ariaPressed={allCurrentBatchLogsExpanded}
-      showIcon={false}
-      showLabel
-      title={`${allCurrentBatchLogsExpanded ? "Collapse" : "Expand"} current page (${formatCount(currentResultBatchCount)} rows)`}
-    />
+      aria-label={allCurrentBatchLogsExpanded ? "Show table" : "Show KV"}
+      aria-pressed={allCurrentBatchLogsExpanded}
+      aria-busy={resultBulkExpandLoading || undefined}
+      title={allCurrentBatchLogsExpanded ? "Show table" : "Show KV"}
+    >
+      <span className="cv-query-expand-switch__track" aria-hidden="true">
+        <span className="cv-query-expand-switch__thumb" />
+      </span>
+      <span className="cv-query-expand-switch__label">
+        {allCurrentBatchLogsExpanded ? "KV" : "Table"}
+      </span>
+    </button>
   ) : null;
   const resultLoadingControl = workspace.loading ? (
     <span className="cv-query-result-bar__loading">
@@ -6879,6 +7272,37 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const visibleQueryHistory = queryHistorySearchKeyword
     ? workspace.queryHistory.filter((query) => query.toLowerCase().includes(queryHistorySearchKeyword))
     : workspace.queryHistory;
+  const currentSqlText = (workspace.queryText || buildVisualQuery(workspace.conditions)).trim();
+  const sqlHintKeyword = currentSqlText;
+  const sqlHintKeywordLower = sqlHintKeyword.toLowerCase();
+  const sqlHintRows = [
+    ...(currentSqlText && (queryInputMode === "sql" || !sqlHintKeyword || currentSqlText.toLowerCase().includes(sqlHintKeywordLower))
+      ? [{ kind: "current" as const, text: currentSqlText }]
+      : []),
+    ...workspace.queryHistory
+      .filter((item) => item !== sqlHintKeyword && (!sqlHintKeywordLower || item.toLowerCase().includes(sqlHintKeywordLower)))
+      .map((text) => ({ kind: "history" as const, text })),
+    ...workspace.autocompleteItems
+      .filter((item) => item !== sqlHintKeyword)
+      .map((text) => ({ kind: "keyword" as const, text }))
+  ];
+
+  function renderSqlHintText(text: string) {
+    if (!sqlHintKeywordLower) {
+      return text;
+    }
+    const index = text.toLowerCase().indexOf(sqlHintKeywordLower);
+    if (index < 0) {
+      return text;
+    }
+    return (
+      <>
+        {text.slice(0, index)}
+        <em>{text.slice(index, index + sqlHintKeyword.length)}</em>
+        {text.slice(index + sqlHintKeyword.length)}
+      </>
+    );
+  }
   const savedQuerySearchKeyword = savedQuerySearch.trim().toLowerCase();
   const visibleSavedFilterProfiles = savedQuerySearchKeyword
     ? workspace.savedFilterProfiles.filter((profile) => {
@@ -6907,94 +7331,26 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         <EuiPopover
           anchorPosition="downRight"
           button={
-            <button
-              type="button"
-              className="cv-query-text-action"
-              onClick={() => {
-                setSavedQueryMenuOpen(false);
-                setQueryHistoryMenuOpen((current) => !current);
-              }}
-              aria-expanded={queryHistoryMenuOpen}
-              aria-haspopup="dialog"
-              title="Recent queries"
+            <EuiToolTip
+              content="Save the current query to favorites so you can run it quickly next time"
+              delay="regular"
+              position="bottom"
+              display="inlineBlock"
             >
-              Recent
-            </button>
-          }
-          closePopover={() => setQueryHistoryMenuOpen(false)}
-          display="inlineBlock"
-          isOpen={queryHistoryMenuOpen}
-          ownFocus={false}
-          panelClassName="cv-query-saved__popover-panel"
-          panelPaddingSize="none"
-          repositionOnScroll
-        >
-          <div
-            className="cv-query-saved__menu cv-query-saved__menu--popover cv-query-saved__menu--history"
-            role="dialog"
-            aria-label="Recent queries"
-          >
-            {workspace.queryHistory.length > 0 ? (
-              <>
-                <div className="cv-query-saved__search">
-                  <EuiFieldSearch
-                    compressed
-                    fullWidth
-                    inputRef={(node) => {
-                      queryHistorySearchInputRef.current = node;
-                    }}
-                    aria-label="Search recent queries"
-                    placeholder="Search recent queries"
-                    value={queryHistorySearch}
-                    onChange={(event) => setQueryHistorySearch(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Escape" && queryHistorySearch) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        setQueryHistorySearch("");
-                      }
-                    }}
-                  />
-                </div>
-                <div className="cv-query-saved__list">
-                  {visibleQueryHistory.map((query, index) => (
-                    <article key={`${query}-${index}`} className="cv-query-saved__item cv-query-saved__item--single">
-                      <button type="button" onClick={() => applyQueryHistoryItem(query)}>
-                        <strong title={query}>{query}</strong>
-                      </button>
-                    </article>
-                  ))}
-                  {visibleQueryHistory.length === 0 ? (
-                    <div className="cv-query-saved__empty cv-query-saved__empty--inline">No data</div>
-                  ) : null}
-                </div>
-                <div className="cv-query-saved__footer">
-                  <button type="button" className="cv-query-saved__footer-action" onClick={clearQueryHistory}>
-                    Clear history
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="cv-query-saved__empty">No data</div>
-            )}
-          </div>
-        </EuiPopover>
-        <EuiPopover
-          anchorPosition="downRight"
-          button={
-            <button
-              type="button"
-              className="cv-query-text-action"
-              onClick={() => {
-                setQueryHistoryMenuOpen(false);
-                setSavedQueryMenuOpen((current) => !current);
-              }}
-              aria-expanded={savedQueryMenuOpen}
-              aria-haspopup="dialog"
-              title="Saved queries"
-            >
-              Saved
-            </button>
+              <button
+                type="button"
+                className="cv-query-icon-action"
+                onClick={() => {
+                  setQueryHistoryMenuOpen(false);
+                  setSavedQueryMenuOpen((current) => !current);
+                }}
+                aria-expanded={savedQueryMenuOpen}
+                aria-haspopup="dialog"
+                aria-label="Favorite"
+              >
+                <EuiIcon type="starEmpty" size="m" aria-hidden="true" />
+              </button>
+            </EuiToolTip>
           }
           closePopover={() => setSavedQueryMenuOpen(false)}
           display="inlineBlock"
@@ -7004,7 +7360,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
           panelPaddingSize="none"
           repositionOnScroll
         >
-          <div className="cv-query-saved__menu cv-query-saved__menu--popover" role="dialog" aria-label="Saved queries">
+          <div className="cv-query-saved__menu cv-query-saved__menu--popover" role="dialog" aria-label="Favorite queries">
             {workspace.savedFilterLoading ? <div className="cv-query-saved__status">Loading</div> : null}
             {workspace.savedFilterProfiles.length > 0 ? (
               <>
@@ -7015,8 +7371,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                     inputRef={(node) => {
                       savedQuerySearchInputRef.current = node;
                     }}
-                    aria-label="Search saved queries"
-                    placeholder="Search saved queries"
+                    aria-label="Search favorite queries"
+                    placeholder="Search favorite queries"
                     value={savedQuerySearch}
                     onChange={(event) => setSavedQuerySearch(event.target.value)}
                     onKeyDown={(event) => {
@@ -7038,7 +7394,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                       <button
                         type="button"
                         className="cv-query-saved__delete"
-                        aria-label={`Delete saved query ${profile.name}`}
+                        aria-label={`Delete favorite query ${profile.name}`}
                         onClick={(event) => {
                           event.stopPropagation();
                           void deleteSavedFilterProfile(profile.id, profile.name);
@@ -7065,21 +7421,28 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                   openSaveQueryModal();
                 }}
               >
-                Save current query
+                Favorite current query
               </button>
             </div>
           </div>
         </EuiPopover>
-        <button
-          type="button"
-          className="cv-query-text-action cv-query-text-action--share"
-          onClick={() => void handleShareQuery()}
-          aria-busy={shareLoading}
-          disabled={shareLoading}
-          title={shareLoading ? "Creating share link" : "Share query"}
+        <EuiToolTip
+          content={shareLoading ? "Creating share link" : "Share query"}
+          delay="regular"
+          position="bottom"
+          display="inlineBlock"
         >
-          Share
-        </button>
+          <button
+            type="button"
+            className="cv-query-icon-action"
+            onClick={() => void handleShareQuery()}
+            aria-label="Share"
+            aria-busy={shareLoading}
+            disabled={shareLoading}
+          >
+            <EuiIcon type="share" size="m" aria-hidden="true" />
+          </button>
+        </EuiToolTip>
       </div>
     </div>
   );
@@ -7091,7 +7454,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       <div className="cv-query-shell">
         <div className="cv-query-main">
           {!shareMode ? (
-            <>
             <div className="cv-query-log-tabs" aria-label="Log table workspace">
               <div
                 className="cv-query-source-anchor"
@@ -7188,6 +7550,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                 })}
               </div>
             </div>
+          ) : null}
           <section
             aria-label="Query input"
             className={[
@@ -7200,77 +7563,75 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               .join(" ")}
           >
             <div className="cv-query-command-row">
-              <div className="cv-query-sql" onBlur={() => window.setTimeout(() => setQueryInputFocused(false), 120)}>
-                <span className="cv-query-sql__badge">
-                  SQL
-                  <EuiToolTip content="ClickHouse SQL syntax" position="top">
-                    <button type="button" className="cv-query-sql__tip" aria-label="SQL syntax tip">
-                      <EuiIcon type="info" size="s" aria-hidden="true" />
-                    </button>
-                  </EuiToolTip>
-                </span>
+              <div
+                className={
+                  queryInputMode === "interactive"
+                    ? "cv-query-sql cv-query-sql--interactive"
+                    : "cv-query-sql"
+                }
+                onBlur={() => window.setTimeout(() => setQueryInputFocused(false), 120)}
+              >
+                <div className="cv-query-sql__badge cv-query-mode" role="tablist" aria-label="Query input mode">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={queryInputMode === "sql"}
+                    className={
+                      queryInputMode === "sql"
+                        ? "cv-query-mode__button cv-query-mode__button--active"
+                        : "cv-query-mode__button"
+                    }
+                    onClick={() => switchQueryInputMode("sql")}
+                  >
+                    SQL
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={queryInputMode === "interactive"}
+                    className={
+                      queryInputMode === "interactive"
+                        ? "cv-query-mode__button cv-query-mode__button--active"
+                        : "cv-query-mode__button"
+                    }
+                    onClick={() => switchQueryInputMode("interactive")}
+                  >
+                    Builder
+                  </button>
+                </div>
+                {queryInputMode === "sql" ? (
                 <input
-                  value={workspace.queryText}
+                  ref={sqlInputRef}
+                  value={workspace.queryText || buildVisualQuery(workspace.conditions)}
                   onFocus={() => setQueryInputFocused(true)}
-                  onChange={(event) => workspace.setQueryText(event.target.value)}
+                  onChange={(event) => {
+                    setDisabledQueryText("");
+                    workspace.setQueryText(event.target.value);
+                    if (workspace.conditions.length > 0) {
+                      workspace.setConditions([]);
+                    }
+                  }}
                   onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      setQueryInputFocused(false);
+                      sqlInputRef.current?.blur();
+                      return;
+                    }
                     if (event.key === "Enter" && !event.shiftKey) {
                       event.preventDefault();
+                      setQueryInputFocused(false);
                       void workspace.runQuery(1);
                     }
                   }}
                   placeholder="Search"
                   spellCheck={false}
                   aria-label="SQL query"
+                  aria-expanded={queryInputFocused}
+                  aria-haspopup="listbox"
                 />
-                {workspace.queryText.trim() ? (
-                  <button
-                    type="button"
-                    className="cv-query-sql__clear"
-                    aria-label="Clear SQL query"
-                    onClick={() => workspace.setQueryText("")}
-                  >
-                    ×
-                  </button>
-                ) : null}
-                {queryInputFocused && workspace.autocompleteItems.length > 0 ? (
-                  <div className="cv-query-sql__suggestions" role="listbox" aria-label="Query suggestions">
-                    {workspace.autocompleteItems.map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        role="option"
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => applyAutocompleteItem(item)}
-                      >
-                        {item}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-              <TimeRangeAbsolutePicker
-                value={absolutePickerRange}
-                onChange={applyAbsolutePickerRange}
-                isLoading={workspace.loading || workspace.chartLoading}
-              />
-              <div className="cv-query-command-row__actions">
-                <button
-                  type="button"
-                  className="cv-action-button cv-query-run-button"
-                  onClick={() => void workspace.runQuery(1)}
-                  disabled={workspace.loading}
-                  aria-busy={workspace.loading}
-                >
-                  <EuiIcon type="search" size="s" aria-hidden="true" />
-                  <span>Run</span>
-                </button>
-              </div>
-              {queryUtilityActions}
-            </div>
-
-            <div className="cv-query-kibana">
-              <div className="cv-query-filter-bar" aria-label="Filter conditions">
+                ) : (
+                <div className="cv-query-sql__interactive" aria-label="Filter conditions">
                 <div className="cv-query-add-filter-anchor" ref={filterComposerRef}>
                   <EuiPopover
                     anchorPosition="downLeft"
@@ -7287,9 +7648,10 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                         }}
                         aria-expanded={filterComposerOpen}
                         aria-haspopup="dialog"
+                        aria-label="Add condition"
                       >
                         <EuiIcon type="plus" size="s" aria-hidden="true" />
-                        Add condition
+                        Cond
                       </button>
                     }
                     closePopover={cancelInlineCondition}
@@ -7412,8 +7774,56 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                     </div>
                   </EuiPopover>
                 </div>
-                {workspace.conditions.length > 0 ? (
+                {workspace.conditions.length > 0 || leftoverSqlText() ? (
                   <div className="cv-query-filter-pills" role="list" aria-label="Applied conditions">
+                    {leftoverSqlText() ? (
+                      <span
+                        key="sql-remainder"
+                        role="listitem"
+                        className={
+                          leftoverSqlDisabled()
+                            ? "cv-query-filter-pill cv-query-filter-pill--sql cv-query-filter-pill--disabled"
+                            : "cv-query-filter-pill cv-query-filter-pill--sql"
+                        }
+                      >
+                        <button
+                          type="button"
+                          className="cv-query-filter-pill__main"
+                          onClick={() => switchQueryInputMode("sql")}
+                          title={leftoverSqlText()}
+                        >
+                          <span>{leftoverSqlText()}</span>
+                        </button>
+                        <EuiToolTip content={leftoverSqlDisabled() ? "Enable" : "Disable"}>
+                          <button
+                            type="button"
+                            className="cv-query-filter-pill__toggle"
+                            aria-label={`${leftoverSqlDisabled() ? "Enable" : "Disable"} SQL condition`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleLeftoverSqlDisabled();
+                            }}
+                          >
+                            <EuiIcon type={leftoverSqlDisabled() ? "eye" : "eyeClosed"} size="s" aria-hidden="true" />
+                          </button>
+                        </EuiToolTip>
+                        <EuiToolTip content="Remove">
+                          <button
+                            type="button"
+                            className="cv-query-filter-pill__remove"
+                            aria-label="Remove SQL condition"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setDisabledQueryText("");
+                              workspace.setQueryText("");
+                              void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, workspace.conditions, "");
+                            }}
+                          >
+                            <EuiIcon type="cross" size="s" aria-hidden="true" />
+                          </button>
+                        </EuiToolTip>
+                      </span>
+                    ) : null}
                     {workspace.conditions.map((condition) => {
                       const conditionFieldLabel = formatConditionFieldLabel(condition.field);
                       return (
@@ -7440,7 +7850,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                             <em>{condition.operator}</em>
                             <span>{formatConditionSummaryValue(condition.value)}</span>
                           </button>
-                          <EuiToolTip content={condition.disabled ? "Enable condition" : "Disable condition"}>
+                          <EuiToolTip content={condition.disabled ? "Enable" : "Disable"}>
                             <button
                               type="button"
                               className="cv-query-filter-pill__toggle"
@@ -7453,117 +7863,109 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                               <EuiIcon type={condition.disabled ? "eye" : "eyeClosed"} size="s" aria-hidden="true" />
                             </button>
                           </EuiToolTip>
-                          <button
-                            type="button"
-                            className="cv-query-filter-pill__remove"
-                            aria-label={`Remove condition ${conditionFieldLabel}`}
-                            title="Remove condition"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              removeConditionAndRun(condition.id);
-                            }}
-                          >
-                            <EuiIcon type="cross" size="s" aria-hidden="true" />
-                          </button>
+                          <EuiToolTip content="Remove">
+                            <button
+                              type="button"
+                              className="cv-query-filter-pill__remove"
+                              aria-label={`Remove condition ${conditionFieldLabel}`}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                removeConditionAndRun(condition.id);
+                              }}
+                            >
+                              <EuiIcon type="cross" size="s" aria-hidden="true" />
+                            </button>
+                          </EuiToolTip>
                         </span>
                       );
                     })}
                   </div>
                 ) : null}
-                {canShowQueryPreview ? (
-                  <div className="cv-query-builder__preview-wrap">
-                    <EuiPopover
-                      anchorPosition="downLeft"
-                      button={
+                </div>
+                )}
+                {queryInputMode === "sql" && workspace.queryText.trim() ? (
+                  <button
+                    type="button"
+                    className="cv-query-sql__clear"
+                    aria-label="Clear SQL query"
+                    onClick={() => {
+                      setDisabledQueryText("");
+                      workspace.setQueryText("");
+                    }}
+                  >
+                    ×
+                  </button>
+                ) : null}
+                {queryInputMode === "sql" && queryInputFocused ? (
+                  <div className="cv-query-sql__suggestions" role="listbox" aria-label="Recent queries">
+                    {sqlHintRows.length > 0 ? (
+                      sqlHintRows.map((item) => (
                         <button
+                          key={`${item.kind}:${item.text}`}
                           type="button"
-                          className="cv-query-builder__preview-trigger"
-                          onClick={() => setQueryPreviewOpen((current) => !current)}
-                          aria-expanded={queryPreviewOpen}
-                          aria-haspopup="dialog"
+                          role="option"
+                          className="cv-query-sql__hint"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
+                            applySqlHintItem(item.text);
+                            setQueryHistoryMenuOpen(false);
+                          }}
                         >
-                          <EuiIcon type="inspect" size="s" aria-hidden="true" />
-                          <span>Inspect SQL</span>
+                          <EuiIcon
+                            type={item.kind === "current" ? "pin" : item.kind === "history" ? "clock" : "search"}
+                            size="s"
+                            aria-hidden="true"
+                          />
+                          <span className="cv-query-sql__hint-text" title={item.text}>
+                            {renderSqlHintText(item.text)}
+                          </span>
+                          <span className="cv-query-sql__hint-kind">
+                            {item.kind === "current" ? "Current" : item.kind === "history" ? "History" : "Keyword"}
+                          </span>
                         </button>
-                      }
-                      closePopover={() => setQueryPreviewOpen(false)}
-                      isOpen={queryPreviewOpen}
-                      ownFocus={false}
-                      panelClassName="cv-query-preview-popover-panel"
-                      panelPaddingSize="none"
-                      repositionOnScroll
-                    >
-                      <div className="cv-query-builder__preview" role="dialog" aria-label="SQL preview">
-                        <code>{queryPreview}</code>
-                        {canUseQueryPreview ? (
-                          <div className="cv-query-builder__preview-actions">
-                            <button
-                              type="button"
-                              className="cv-query-builder__preview-action"
-                              onClick={() => void copyQueryPreview()}
-                            >
-                              Copy
-                            </button>
-                            {workspace.conditions.length > 0 ? (
-                              <button
-                                type="button"
-                                className="cv-query-builder__preview-action cv-query-builder__preview-action--primary"
-                                onClick={convertConditionsToManualSql}
-                              >
-                                Use as SQL
-                              </button>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </div>
-                    </EuiPopover>
+                      ))
+                    ) : (
+                      <div className="cv-query-sql__hint-empty">No data</div>
+                    )}
                   </div>
                 ) : null}
               </div>
-
+              <TimeRangeAbsolutePicker
+                value={absolutePickerRange}
+                onChange={applyAbsolutePickerRange}
+                isLoading={workspace.loading || workspace.chartLoading}
+              />
+              <div className="cv-query-command-row__actions">
+                <EuiToolTip content="Run" delay="regular" position="bottom" display="inlineBlock">
+                  <button
+                    type="button"
+                    className="cv-query-icon-action cv-query-run-button"
+                    onClick={() => void workspace.runQuery(1)}
+                    disabled={workspace.loading}
+                    aria-busy={workspace.loading}
+                    aria-label="Run"
+                  >
+                    <EuiIcon type="search" size="m" aria-hidden="true" />
+                  </button>
+                </EuiToolTip>
+              </div>
+              {queryUtilityActions}
             </div>
-
-            {feedbackMessage ? (
-              <div className="cv-query-feedback" role="status" aria-live="polite">
-                {feedbackMessage}
-              </div>
-            ) : null}
           </section>
-            </>
-          ) : (
-            <section aria-label="分享查询" className="cv-panel cv-query-panel cv-query-share-summary">
-              <div className="cv-panel-header">
-                <div>
-                  <h2 className="cv-panel-title">分享查询</h2>
-                </div>
-                {workspace.loading ? <span className="cv-query-panel__status">查询中...</span> : null}
-              </div>
-              <div className="cv-query-share-summary__grid">
-                <span>
-                  <strong>日志表</strong>
-                  {workspace.selectedDatabase && workspace.selectedTable
-                    ? `${workspace.selectedDatabase}.${workspace.selectedTable}`
-                    : "未选择"}
-                </span>
-                <span className="cv-query-share-summary__range">
-                  <strong>查询范围</strong>
-                  <div className="cv-query-share-summary__range-picker" role="group" aria-label="Share query controls">
-                    <TimeRangeAbsolutePicker
-                      value={absolutePickerRange}
-                      onChange={applyAbsolutePickerRange}
-                      isLoading={workspace.loading || workspace.chartLoading}
-                    />
-                  </div>
-                </span>
-              </div>
-              <div className="cv-query-builder__preview">
-                <strong>查询预览</strong>
-                <code>{queryPreview}</code>
-              </div>
-            </section>
-          )}
 
-          <div className="cv-query-workspace">
+          <div
+            className={
+              !resultBlockingErrorMessage && hasResultRows
+                ? "cv-query-workspace cv-query-workspace--with-fields"
+                : "cv-query-workspace"
+            }
+          >
+            {!resultBlockingErrorMessage && hasResultRows ? (
+              <aside className="cv-query-fields-sidebar" ref={fieldCatalogRef}>
+                {renderFieldCatalogPanel()}
+              </aside>
+            ) : null}
+            <div className="cv-query-workspace__main">
             <section
               aria-label="Histogram"
               className={
@@ -7586,6 +7988,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                 >
                   <div className="cv-query-histogram-toolbar__primary">
                     <div className="cv-query-histogram-summary" aria-live="polite">
+                      {queryStatsControl}
                       {histogramSelectionRange ? (
                         <span className="cv-query-histogram-selection-summary">
                           <strong>
@@ -7826,68 +8229,27 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                             {resultToolbarPagerControls}
                           </div>
                         ) : null}
-                        <div className="cv-query-result-actions__group cv-query-result-actions__group--view">
-                          <div
-                            className={
-                              fieldCatalogOpen
-                                ? "cv-query-fields-panel-anchor cv-query-fields-panel-anchor--open"
-                                : "cv-query-fields-panel-anchor"
-                            }
-                            ref={fieldCatalogRef}
-                          >
-                            <EuiPopover
-                              anchorPosition="downRight"
-                              button={
-                                <EuiToolTip content="Fields" delay="long">
-                                  <button
-                                    type="button"
-                                    className="cv-query-result-action cv-query-result-action--text"
-                                    onClick={() => {
-                                      if (fieldCatalogOpen) {
-                                        closeFieldCatalogPanel();
-                                      } else {
-                                        setFieldCatalogOpen(true);
-                                      }
-                                    }}
-                                    aria-label="Fields"
-                                    aria-expanded={fieldCatalogOpen}
-                                    aria-haspopup="dialog"
-                                    title="Fields"
-                                  >
-                                    <span className="cv-query-result-action__label">Fields</span>
-                                  </button>
-                                </EuiToolTip>
-                              }
-                              closePopover={closeFieldCatalogPanel}
-                              display="inlineBlock"
-                              isOpen={fieldCatalogOpen}
-                              ownFocus={false}
-                              panelClassName="cv-query-fields-panel__popover-panel"
-                              panelPaddingSize="none"
-                              repositionOnScroll
-                            >
-                              {renderFieldCatalogPanel()}
-                            </EuiPopover>
-                          </div>
-                        </div>
+                        <div className="cv-query-result-actions__group cv-query-result-actions__group--view" />
                       </div>
                     </div>
+              {allCurrentBatchLogsExpanded ? null : (
               <div
                 className="cv-query-result-table-header"
                 ref={resultTableHeaderScrollRef}
                 onWheel={handleResultTableHeaderWheel}
               >
-                <table className="cv-query-result-table cv-query-result-table--header" style={{ minWidth: resultTableMinWidth }}>
+                <table className="cv-query-result-table cv-query-result-table--header">
                   {renderResultTableColGroup()}
                   {renderResultTableHeader()}
                 </table>
               </div>
+              )}
               <div
                 className="cv-query-result-table-scroll"
                 ref={resultTableScrollRef}
                 onScroll={handleResultTableBodyScroll}
               >
-                <table className="cv-query-result-table cv-query-result-table--body" style={{ minWidth: resultTableMinWidth }}>
+                <table className="cv-query-result-table cv-query-result-table--body">
                   {renderResultTableColGroup()}
                   <tbody>
                     {normalizedLogRows.map((row, index) => {
@@ -7895,69 +8257,33 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                     const detailMessageEntry = getLogDetailMessageEntry(row);
                     const detailMessageText = getLogDetailMessageText(row);
                     const visibleLogDetailEntries = getVisibleLogDetailEntries(row);
-                    const primaryLogDetailEntries = visibleLogDetailEntries.filter(
-                      ([key, value]) => !isLowPriorityResultField(key) && !isPromotedLogDetailMessageField(key, value, detailMessageText)
+                    const primaryLogDetailEntries = visibleLogDetailEntries
+                      .filter(
+                        ([key, value]) =>
+                          !isHiddenLogDetailField(key) &&
+                          !isPromotedLogDetailMessageField(key, value, detailMessageText)
+                      )
+                      .sort(([left], [right]) => {
+                        const leftVisible = isVisibleTableDetailField(left, visibleResultColumns);
+                        const rightVisible = isVisibleTableDetailField(right, visibleResultColumns);
+                        if (leftVisible !== rightVisible) {
+                          return leftVisible ? -1 : 1;
+                        }
+                        return compareLogDetailFields(left, right);
+                      });
+                    const renderLogDetailEntryRows = ([key, value]: [string, unknown]) => (
+                      <div key={key} className="cv-query-detail__row">
+                        {renderLogDetailFieldCell(row, key, value)}
+                        {renderLogDetailValueCell(row, key, value)}
+                      </div>
                     );
-                    const metadataLogDetailEntries = visibleLogDetailEntries.filter(
-                      ([key, value]) => isLowPriorityResultField(key) && !isPromotedLogDetailMessageField(key, value, detailMessageText)
-                    );
-                    const metadataExpanded = expandedLogMetadataIndexes.has(index);
-                    const renderLogDetailEntryRows = ([key, value]: [string, unknown]) => {
-                      const nestedEntries = scalarJsonEntries(key, value);
-                      const nestedToggleKey = `${index}:${key}`;
-                      const nestedExpanded = expandedLogNestedKeys.has(nestedToggleKey);
-                      return (
-                        <Fragment key={key}>
-                          <div className="cv-query-detail__row">
-                            {renderLogDetailFieldCell(row, key, value, {
-                              statsPreferRawLog: !isPresentLogValue(row.original[key])
-                            })}
-                            <span className="cv-query-detail__value-cell">
-                              {renderLogDetailValueCell(value)}
-                              {nestedEntries.length > 0 ? (
-                                <button
-                                  type="button"
-                                  className="cv-query-detail__nested-toggle"
-                                  aria-expanded={nestedExpanded}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    toggleExpandedLogNestedField(index, key);
-                                  }}
-                                >
-                                  {nestedExpanded ? "Hide fields" : formatFieldsCount(nestedEntries.length)}
-                                </button>
-                              ) : null}
-                            </span>
-                          </div>
-                          {nestedExpanded ? nestedEntries.map((nestedEntry) => {
-                            const nestedKey = nestedEntry.key;
-                            const nestedValue = nestedEntry.value;
-                            const nestedConditionField = nestedEntry.fieldRef?.fieldKey ?? nestedKey;
-                            return (
-                              <div key={`${key}.${nestedKey}`} className="cv-query-detail__row cv-query-detail__row--nested">
-                                {renderLogDetailFieldCell(row, nestedKey, nestedValue, {
-                                  title: `${key}.${nestedKey}`,
-                                  conditionField: nestedConditionField,
-                                  statsPreferRawLog: true,
-                                  statsFieldRef: nestedEntry.fieldRef
-                                })}
-                                {renderLogDetailValueCell(nestedValue)}
-                              </div>
-                            );
-                          }) : null}
-                        </Fragment>
-                      );
-                    };
                     return (
                       <Fragment key={`${index}-${row.timeText}`}>
+                        {isLogExpanded ? null : (
                         <tr
-                          className={
-                            isLogExpanded
-                              ? "cv-query-result-table__row cv-query-result-table__row--active"
-                              : "cv-query-result-table__row"
-                          }
+                          className="cv-query-result-table__row"
                           tabIndex={0}
-                          aria-expanded={isLogExpanded}
+                          aria-expanded={false}
                           onClick={() => toggleExpandedLog(index)}
                           onKeyDown={(event) => {
                             if (event.key === "Enter" || event.key === " ") {
@@ -8002,13 +8328,17 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                                 key={column.key}
                                 className={cellClassName || undefined}
                               >
-                                <span className="cv-query-truncate-text" title={value.text}>
-                                  {truncate(value.text, getResultColumnTextMaxLength(column.key))}
+                                <span
+                                  className={value.wrap ? "cv-query-wrap-text" : "cv-query-truncate-text"}
+                                  title={value.text}
+                                >
+                                  {value.text}
                                 </span>
                               </td>
                             );
                           })}
                         </tr>
+                        )}
                         {isLogExpanded ? (
                           <tr className="cv-query-result-table__detail-row">
                             <td colSpan={visibleResultColumns.length + 1}>
@@ -8017,6 +8347,18 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                                 className={`cv-query-detail cv-query-detail--inline cv-query-detail--${expandedLogDisplayMode}`}
                               >
                                 <div className="cv-query-detail__header">
+                                  <button
+                                    type="button"
+                                    className="cv-query-result-table__toggle-button"
+                                    aria-label="Collapse log details"
+                                    aria-expanded="true"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      toggleExpandedLog(index);
+                                    }}
+                                  >
+                                    <EuiIcon type="arrowDown" size="s" aria-hidden="true" />
+                                  </button>
                                   <div className="cv-query-detail__view-switch" role="tablist" aria-label="Log detail view">
                                     <button
                                       type="button"
@@ -8074,32 +8416,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                                     <div className="cv-query-detail__focus">
                                       <div className="cv-query-detail__message">
                                         {renderLogDetailFieldCell(row, detailMessageEntry.key, detailMessageEntry.value)}
-                                        <code title={detailMessageText}>{detailMessageText}</code>
+                                        {renderLogDetailValueCell(row, detailMessageEntry.key, detailMessageEntry.value)}
                                       </div>
                                     </div>
                                     <div className="cv-query-detail__fields">
                                       {primaryLogDetailEntries.map(renderLogDetailEntryRows)}
-                                      {metadataLogDetailEntries.length > 0 ? (
-                                        <>
-                                          <div className="cv-query-detail__row cv-query-detail__row--metadata-toggle">
-                                            <strong className="cv-query-detail__field-cell">
-                                              <span className="cv-query-detail__key-text">Metadata</span>
-                                            </strong>
-                                            <button
-                                              type="button"
-                                              className="cv-query-detail__metadata-toggle"
-                                              aria-expanded={metadataExpanded}
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                toggleExpandedLogMetadata(index);
-                                              }}
-                                            >
-                                              {metadataExpanded ? "Hide fields" : `Show ${formatFieldsCount(metadataLogDetailEntries.length)}`}
-                                            </button>
-                                          </div>
-                                          {metadataExpanded ? metadataLogDetailEntries.map(renderLogDetailEntryRows) : null}
-                                        </>
-                                      ) : null}
                                     </div>
                                   </div>
                                 )}
@@ -8129,14 +8450,24 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                 </div>
               ) : null}
             </div>
-          </div>
+            </div>
         ) : null}
 
         {!resultBlockingErrorMessage && (!workspace.logs || workspace.logs.logs.length === 0) ? renderResultEmptyState() : null}
             </section>
+            </div>
           </div>
         </div>
       </div>
+
+      {feedbackMessage
+        ? createPortal(
+            <div className="cv-query-feedback" role="status" aria-live="polite">
+              {feedbackMessage}
+            </div>,
+            document.body
+          )
+        : null}
 
       <ContextMenu
         open={treeContextMenu.items.length > 0}
@@ -8145,6 +8476,15 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         ariaLabel={treeContextMenu.ariaLabel}
         items={treeContextMenu.items}
         onClose={closeInstanceContextMenu}
+      />
+
+      <ContextMenu
+        open={Boolean(logDetailMenu)}
+        x={logDetailMenu?.x ?? 0}
+        y={logDetailMenu?.y ?? 0}
+        ariaLabel="日志字段操作"
+        items={logDetailMenu?.items ?? []}
+        onClose={() => setLogDetailMenu(null)}
       />
 
       {fieldStatsState ? (

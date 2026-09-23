@@ -146,7 +146,40 @@ function normalizeDateTimeValue(value: string | number) {
 }
 
 function quoteQueryField(field: string) {
-  return `\`${field.replaceAll("`", "``")}\``;
+  const trimmed = field.trim();
+  if (trimmed.includes("(") || trimmed.includes(")")) {
+    return trimmed;
+  }
+  return `\`${trimmed.replaceAll("`", "``")}\``;
+}
+
+function escapeClickHouseString(value: string) {
+  return value.replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+}
+
+function buildRawLogJsonPathArgs(path: string) {
+  return path
+    .split(".")
+    .filter(Boolean)
+    .map((segment) => `'${escapeClickHouseString(segment)}'`)
+    .join(", ");
+}
+
+function buildNestedRawLogPredicate(
+  field: string,
+  value: string | number,
+  valueType: QueryFilterValueType,
+  operator: string
+) {
+  const args = buildRawLogJsonPathArgs(field);
+  const negated = operator === "!=" || operator === "<>" || operator === "not like";
+  if (valueType === "number") {
+    const cmp = negated ? "!=" : "=";
+    return `JSONExtractFloat(_raw_log_, ${args}) ${cmp} ${normalizeNumberValue(value, field)}`;
+  }
+  const jsonToken = JSON.stringify(String(value));
+  const cmp = negated ? "=" : ">";
+  return `position(JSONExtractRaw(_raw_log_, ${args}), '${escapeClickHouseString(jsonToken)}') ${cmp} 0`;
 }
 
 function isGlobalMatchField(field: string) {
@@ -168,6 +201,15 @@ function unquoteQueryValue(value: string) {
   return trimmed;
 }
 
+function isRawLogLikeField(field: string) {
+  const normalized = String(field || "").trim();
+  return isGlobalMatchField(normalized) || normalized === GLOBAL_MATCH_COLUMN;
+}
+
+function unwrapLikeValue(value: string) {
+  return value.startsWith("%") && value.endsWith("%") && value.length >= 2 ? value.slice(1, -1) : value;
+}
+
 function createConditionFromQueryToken(token: string, index: number): QueryFilterCondition | null {
   const trimmed = token.trim();
   if (!trimmed) {
@@ -178,27 +220,30 @@ function createConditionFromQueryToken(token: string, index: number): QueryFilte
     return null;
   }
   const rawField = match[1].trim().replace(/^`|`$/g, "");
+  if (rawField.includes("(") || rawField.includes(")")) {
+    return null;
+  }
   const rawOperator = match[2].toLowerCase() as QueryFilterCondition["operator"];
   const rawValue = match[3].trim();
   const rawValueQuote = rawValue[0];
   const isExplicitStringValue =
     (rawValueQuote === "'" || rawValueQuote === "\"") && rawValue.endsWith(rawValueQuote);
   let value = unquoteQueryValue(rawValue);
-  const isGlobalMatch =
+  const isRawLogLike =
     rawField === GLOBAL_MATCH_COLUMN && (rawOperator === "like" || rawOperator === "not like");
-  if (isGlobalMatch && value.startsWith("%") && value.endsWith("%") && value.length >= 2) {
-    value = value.slice(1, -1);
+  if (isRawLogLike) {
+    value = unwrapLikeValue(value);
   }
   return {
     id: `cond_url_${index}`,
-    field: isGlobalMatch ? GLOBAL_MATCH_FIELD : rawField,
+    field: rawField,
     operator: rawOperator,
     value,
-    valueType: /^-?\d+(\.\d+)?$/.test(value) && !isExplicitStringValue && !isGlobalMatch ? "number" : "string"
+    valueType: /^-?\d+(\.\d+)?$/.test(value) && !isExplicitStringValue && !isRawLogLike ? "number" : "string"
   };
 }
 
-function parseQueryTextConditions(query: string) {
+export function parseQueryTextConditions(query: string) {
   return query
     .split(/\s+AND\s+/i)
     .map((item, index) => createConditionFromQueryToken(item, index))
@@ -213,6 +258,10 @@ function parseCompleteQueryConditions(query: string) {
 
 function readLegacyV1ShareQuery() {
   if (typeof window === "undefined") {
+    return "";
+  }
+  const pathname = window.location.pathname.replace(/\/+$/, "");
+  if (!pathname.endsWith("/share")) {
     return "";
   }
   const params = new URLSearchParams(window.location.search);
@@ -258,7 +307,7 @@ function readInitialQueryConditions() {
   return [
     {
       id: "cond_url_kw",
-      field: GLOBAL_MATCH_FIELD,
+      field: GLOBAL_MATCH_COLUMN,
       operator: "like",
       value: keyword,
       valueType: "string"
@@ -293,7 +342,7 @@ function isSystemTimeField(field: string) {
   return /^_time(_[a-z]+)?_$/.test(field) || field === "time" || field === "timestamp";
 }
 
-function buildVisualQuery(conditions: QueryFilterCondition[]) {
+export function buildVisualQuery(conditions: QueryFilterCondition[]) {
   const enabledConditions = conditions.filter((condition) => !condition.disabled);
   const validConditions = enabledConditions.filter(
     (condition) => String(condition.field || "").trim() && String(condition.value ?? "").trim()
@@ -307,10 +356,15 @@ function buildVisualQuery(conditions: QueryFilterCondition[]) {
       if (!field) {
         throw new Error("Field is required");
       }
-      if (isGlobalMatchField(field)) {
-        const raw = String(condition.value ?? "").replaceAll("'", "\\'");
-        const operator = condition.operator === "not like" ? "not like" : "like";
+      if (isGlobalMatchField(field) || (isRawLogLikeField(field) && (condition.operator === "like" || condition.operator === "not like"))) {
+        const raw = unwrapLikeValue(String(condition.value ?? "")).replaceAll("'", "\\'");
+        const operator = isGlobalMatchField(field)
+          ? condition.operator === "not like" ? "not like" : "like"
+          : condition.operator;
         return `${quoteQueryField(GLOBAL_MATCH_COLUMN)} ${operator} '%${raw}%'`;
+      }
+      if (condition.nestedJson) {
+        return buildNestedRawLogPredicate(field, condition.value, condition.valueType, condition.operator);
       }
       validateOperatorValueType(condition.operator, condition.valueType);
       const normalizedValue =
@@ -978,20 +1032,7 @@ export function useQueryWorkspace(
 
   const suggestionFieldOptions = useMemo(
     () => {
-      const globalMatchOptions =
-        analysisFields.supportsGlobalMatch === false
-          ? []
-          : [
-              {
-                field: GLOBAL_MATCH_FIELD,
-                source: "column" as const,
-                sourceLabel: "All fields",
-                queryLabel: "Log content LIKE",
-                valueType: "string" as const
-              }
-            ];
       const options = [
-        ...globalMatchOptions,
         ...analysisFields.baseFields.map((item) => ({
           field: storageFieldName(item),
           source: "column" as const,
@@ -1011,7 +1052,7 @@ export function useQueryWorkspace(
       return options
         .map((item) => ({ ...item, field: String(item.field || "").trim() }))
         .filter((item) => {
-          if (!item.field) {
+          if (!item.field || isGlobalMatchField(item.field)) {
             return false;
           }
           const key = normalizeSuggestionFieldKey(item.field);

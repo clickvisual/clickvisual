@@ -126,6 +126,7 @@ export interface QueryFilterCondition {
   value: string | number;
   valueType: QueryFilterValueType;
   disabled?: boolean;
+  nestedJson?: boolean;
 }
 
 export interface QueryFilterTimeRange {
