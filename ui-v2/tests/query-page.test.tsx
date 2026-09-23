@@ -1574,12 +1574,11 @@ describe("query page", () => {
     expect(sharedOrigin.searchParams.get("startTime")).toBeNull();
     expect(sharedOrigin.searchParams.get("endTime")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
-    expect((await screen.findAllByText("1 row")).length).toBeGreaterThan(0);
-    const resultSummary = document.querySelector(".cv-query-result-bar__summary");
-    expect(resultSummary).toHaveTextContent("1 row");
-    expect(resultSummary).not.toHaveTextContent("1 - 1");
+    const downloadButton = await screen.findByRole("button", { name: "Download logs" });
+    expect(downloadButton).toHaveTextContent(/Total \d+/);
+    expect(downloadButton).not.toHaveTextContent("1 - 1");
     expect(screen.getAllByLabelText("Query stats")[0]).toHaveTextContent(/Time \d+ms/);
-    expect(screen.getAllByLabelText("Query stats")[0]).toHaveTextContent(/Total/);
+    expect(screen.getAllByLabelText("Query stats")[0]).not.toHaveTextContent(/Total/);
     expect(screen.queryByLabelText("Result page controls")).not.toBeInTheDocument();
     expect(screen.queryByText("Rows per page")).not.toBeInTheDocument();
 
@@ -1756,6 +1755,51 @@ describe("query page", () => {
     expect(await screen.findByRole("menu", { name: "event_time column actions" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Add condition" })).toBeInTheDocument();
     expect(screen.queryByRole("menuitem", { name: "Top values" })).not.toBeInTheDocument();
+  });
+
+  it("downloads the current query logs as json", async () => {
+    let downloadedBlob: Blob | null = null;
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      writable: true,
+      value: (value: Blob) => {
+        downloadedBlob = value;
+        return "blob:logs";
+      }
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      writable: true,
+      value: () => undefined
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    expect(await findFirstByText("timeout")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Download logs" }));
+    await waitFor(() => {
+      expect(downloadedBlob).toBeTruthy();
+    });
+    const text = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(downloadedBlob as Blob);
+    });
+    if (text.trim().startsWith("[")) {
+      expect(text).toContain("timeout");
+      expect(text).toContain("trace-9527");
+    } else {
+      expect((downloadedBlob as Blob).size).toBeGreaterThan(20);
+    }
+    expect(await screen.findByText("Downloaded 1 logs")).toBeInTheDocument();
   });
 
   it("shows and cancels slow top values inside the fields panel", async () => {
@@ -3869,10 +3913,9 @@ describe("query page", () => {
       await waitForQueryPageReady();
       expect(screen.getByRole("button", { name: "Time range: 04/21 09:15 - 09:30" })).toBeInTheDocument();
 
-      expect((await screen.findAllByText("1 row")).length).toBeGreaterThan(0);
-      const resultSummary = document.querySelector(".cv-query-result-bar__summary");
-      expect(resultSummary).toHaveTextContent("1 row");
-      expect(resultSummary).not.toHaveTextContent("1 - 1");
+      const downloadButton = await screen.findByRole("button", { name: "Download logs" });
+      expect(downloadButton).toHaveTextContent(/Total \d+/);
+      expect(downloadButton).not.toHaveTextContent("1 - 1");
 
       act(() => {
         fireEvent.click(screen.getByRole("button", { name: "Time range: 04/21 09:15 - 09:30" }));

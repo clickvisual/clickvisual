@@ -243,6 +243,7 @@ const LEGACY_GLOBAL_MATCH_FIELD = "全局匹配";
 const GLOBAL_MATCH_COLUMN = "_raw_log_";
 const GLOBAL_MATCH_DISPLAY_LABEL = GLOBAL_MATCH_COLUMN;
 const QUERY_PAGE_SIZE_OPTIONS = [50, 100, 200] as const;
+const DOWNLOAD_LOG_ROW_LIMIT = 10000;
 const RESULT_TABLE_TOGGLE_COLUMN_WIDTH = 34;
 const QUERY_OVERSCROLL_GUARD_CLASS = "cv-query-overscroll-guard";
 const QUERY_HORIZONTAL_WHEEL_THRESHOLD = 4;
@@ -590,10 +591,6 @@ function formatFieldsCount(value: number) {
 
 function formatHitsLabel(value: number) {
   return value === 1 ? "hit" : "hits";
-}
-
-function formatRowsLabel(value: number) {
-  return `${formatCount(value)} ${value === 1 ? "row" : "rows"}`;
 }
 
 function formatQueryCost(cost: number) {
@@ -2521,6 +2518,38 @@ function formatLogJsonPreview(row: NormalizedLogRow) {
   return JSON.stringify(sanitizeLogJsonObject(row.parsed), null, 2);
 }
 
+function formatDownloadedLogs(rows: Array<Record<string, unknown>>) {
+  return JSON.stringify(rows.map((row) => sanitizeLogJsonObject(row)));
+}
+
+function downloadBlobFile(filename: string, blob: Blob) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  link.rel = "noopener";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 4000);
+}
+
+async function compressJsonDownload(json: string): Promise<{ blob: Blob; extension: string }> {
+  const jsonBlob = new Blob([json], { type: "application/json;charset=utf-8" });
+  if (typeof CompressionStream !== "function") {
+    return { blob: jsonBlob, extension: ".json" };
+  }
+  try {
+    const compressed = await new Response(jsonBlob.stream().pipeThrough(new CompressionStream("gzip"))).blob();
+    return {
+      blob: new Blob([compressed], { type: "application/gzip" }),
+      extension: ".json.gz"
+    };
+  } catch {
+    return { blob: jsonBlob, extension: ".json" };
+  }
+}
+
 function canCreateConditionFromDetailValue(field: string, value: unknown) {
   if (/^_?raw/i.test(field)) {
     return false;
@@ -3363,6 +3392,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   });
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
+  const [downloadLogsLoading, setDownloadLogsLoading] = useState(false);
+  const downloadLogsAbortRef = useRef<AbortController | null>(null);
   const [fieldCatalogOpen, setFieldCatalogOpen] = useState(false);
   const [fieldCatalogSearch, setFieldCatalogSearch] = useState("");
   const [collapsedFieldCatalogGroups, setCollapsedFieldCatalogGroups] = useState<QueryFieldCatalogGroupKey[]>([]);
@@ -4459,6 +4490,45 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   async function copyExpandedLog(row: NormalizedLogRow) {
     const copied = await copyTextToClipboard(formatLogJsonPreview(row));
     setFeedbackMessage(copied ? "Log copied" : "Copy log failed");
+  }
+
+  async function downloadCurrentLogs() {
+    if (downloadLogsLoading) {
+      return;
+    }
+    downloadLogsAbortRef.current?.abort();
+    const abortController = new AbortController();
+    downloadLogsAbortRef.current = abortController;
+    setDownloadLogsLoading(true);
+    try {
+      const result = await workspace.collectLogsForDownload(DOWNLOAD_LOG_ROW_LIMIT, abortController.signal);
+      if (abortController.signal.aborted) {
+        return;
+      }
+      if (result.logs.length === 0) {
+        setFeedbackMessage("No logs to download");
+        return;
+      }
+      const stamp = moment().format("YYYYMMDD-HHmmss");
+      const source = [workspace.selectedDatabase, workspace.selectedTable].filter(Boolean).join("_") || "logs";
+      const packed = await compressJsonDownload(formatDownloadedLogs(result.logs));
+      downloadBlobFile(`${source}_${stamp}${packed.extension}`, packed.blob);
+      setFeedbackMessage(
+        result.truncated
+          ? `Downloaded ${formatCount(result.logs.length)} of ${formatCount(result.total)} hits (export limit)`
+          : `Downloaded ${formatCount(result.logs.length)} logs`
+      );
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        return;
+      }
+      setFeedbackMessage(error instanceof Error ? error.message : "Download logs failed");
+    } finally {
+      if (downloadLogsAbortRef.current === abortController) {
+        downloadLogsAbortRef.current = null;
+      }
+      setDownloadLogsLoading(false);
+    }
   }
 
   async function copyLogDetailValue(field: string, value: unknown) {
@@ -6823,21 +6893,40 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const shouldShowResultRangeSummary =
     resultLoadedCount > 0 &&
     (shouldShowResultPager || currentResultPage > 1);
-  const resultBarSummaryText =
-    resultLoadedCount > 0
-      ? shouldShowResultRangeSummary
-        ? `${formatCount(resultRangeStart)} - ${formatCount(resultRangeEnd)}`
-        : formatRowsLabel(resultLoadedCount)
-      : "No data";
+  const resultTotalDisplayCount = hasResultKnownTotal ? resultTotalCount : resultLoadedCount;
+  const resultCountControl =
+    resultLoadedCount > 0 ? (
+      <button
+        type="button"
+        className="cv-query-result-bar__summary cv-query-result-bar__download"
+        onClick={() => {
+          void downloadCurrentLogs();
+        }}
+        disabled={downloadLogsLoading}
+        aria-label="Download logs"
+        title={`Download matching logs (up to ${formatCount(DOWNLOAD_LOG_ROW_LIMIT)})`}
+      >
+        {downloadLogsLoading ? (
+          <span className="cv-query-result-action__spinner cv-query-result-action__spinner--active" aria-hidden="true" />
+        ) : (
+          <EuiIcon type="download" size="s" aria-hidden="true" />
+        )}
+        {shouldShowResultRangeSummary ? (
+          <span className="cv-query-result-bar__range">
+            {formatCount(resultRangeStart)} - {formatCount(resultRangeEnd)}
+          </span>
+        ) : null}
+        <span>Total {formatCount(resultTotalDisplayCount)}</span>
+      </button>
+    ) : (
+      <span className="cv-query-result-bar__summary">No data</span>
+    );
   const queryCostLabel = formatQueryCost(workspace.logs?.cost ?? 0);
-  const queryTotalLabel = hasResultKnownTotal ? formatCount(resultTotalCount) : "";
-  const queryStatsControl =
-    queryCostLabel || queryTotalLabel ? (
-      <span className="cv-query-query-stats" aria-label="Query stats">
-        {queryCostLabel ? <span>Time {queryCostLabel}</span> : null}
-        {queryTotalLabel ? <span>Total {queryTotalLabel}</span> : null}
-      </span>
-    ) : null;
+  const queryStatsControl = queryCostLabel ? (
+    <span className="cv-query-query-stats" aria-label="Query stats">
+      Time {queryCostLabel}
+    </span>
+  ) : null;
   const isUnsupportedLogContentQuery = isUnsupportedLogContentQueryError(workspace.errorMessage);
   const resultBlockingErrorMessage = isUnsupportedLogContentQuery ? "" : workspace.errorMessage;
   const modalFieldStatsView = fieldStatsState ? buildFieldStatsView(fieldStatsState) : null;
@@ -8207,10 +8296,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                   >
                     <div className="cv-query-result-bar">
                       <div className="cv-query-result-bar__page">
-                        <span className="cv-query-result-bar__summary">
-                          {resultBarSummaryText}
-                          {shouldShowResultRangeSummary && hasResultKnownTotal ? <> <em>of {formatCount(resultTotalCount)}</em></> : null}
-                        </span>
+                        {resultCountControl}
                         {resultLoadingControl}
                         {resultToolbarPageSizeControl ? (
                           <span className="cv-query-result-bar__page-size">
@@ -8438,12 +8524,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               {resultFooterPageSizeControl || resultFooterPagerControls ? (
                 <div className="cv-query-result-footer">
                   <div className="cv-query-result-footer__meta">
-                    <span className="cv-query-result-footer__summary">
-                      {resultBarSummaryText}
-                      {shouldShowResultRangeSummary && hasResultKnownTotal ? (
-                        <em>of {formatCount(resultTotalCount)}</em>
-                      ) : null}
-                    </span>
+                    {resultCountControl}
                     {resultFooterPageSizeControl}
                   </div>
                   {resultFooterPagerControls}

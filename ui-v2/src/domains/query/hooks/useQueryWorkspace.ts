@@ -29,6 +29,7 @@ import type {
 } from "../types/contracts";
 
 const DEFAULT_PAGE_SIZE = 50;
+const DOWNLOAD_LOG_PAGE_SIZE = 200;
 const QUERY_HISTORY_STORAGE_KEY = "clickvisual-v2-query-history";
 const DEFAULT_CONDITION_OPERATOR = "=";
 const GLOBAL_MATCH_FIELD = "All fields";
@@ -1105,6 +1106,86 @@ export function useQueryWorkspace(
     await refreshSavedFilterProfiles();
   }
 
+  async function collectLogsForDownload(limit: number, signal?: AbortSignal) {
+    const effectiveTableId = selectedTableId ?? selectedTableEntry?.id ?? null;
+    if (!effectiveTableId) {
+      throw new Error("Select an instance, database, and log table first");
+    }
+    const timeParams = lastRunSnapshot?.range ?? createTimeParams(startTime, endTime);
+    if (!timeParams) {
+      throw new Error("Select a valid start and end time");
+    }
+    if (hasUnsupportedGlobalMatchCondition(conditions, analysisFields)) {
+      throw new Error("Current log table has no log content field, cannot use All fields");
+    }
+    let generatedQuery = "";
+    try {
+      generatedQuery = buildVisualQuery(conditions);
+    } catch (error) {
+      if (!queryText.trim()) {
+        throw error instanceof Error ? error : new Error("Invalid conditions");
+      }
+    }
+    const requestQuery = buildCombinedQuery(queryText, generatedQuery) || undefined;
+    const structuredConditions = buildStructuredConditions(conditions, analysisFields);
+    const shouldUseStructuredRun =
+      !legacyV1ShareQuery && !queryText.trim() && structuredConditions.length > 0;
+    const maxRows = Math.max(1, Math.floor(limit));
+    const collected: Array<Record<string, unknown>> = [];
+    let total = 0;
+    let page = 1;
+    while (collected.length < maxRows) {
+      if (signal?.aborted) {
+        throw new DOMException("Aborted", "AbortError");
+      }
+      const pageSize = Math.min(DOWNLOAD_LOG_PAGE_SIZE, maxRows - collected.length);
+      const requestOptions = { signal };
+      const data = shouldUseStructuredRun
+        ? await runQueryV2(
+            {
+              tid: effectiveTableId,
+              st: timeParams.st,
+              et: timeParams.et,
+              page,
+              pageSize,
+              conditions: structuredConditions,
+              sorts: [],
+              displayFields: []
+            },
+            requestOptions
+          )
+        : await getQueryLogs(
+            effectiveTableId,
+            {
+              ...timeParams,
+              query: legacyV1ShareQuery || requestQuery,
+              page,
+              pageSize
+            },
+            requestOptions
+          );
+      total = Number(data.count) > 0 ? Number(data.count) : total;
+      const batch = Array.isArray(data.logs) ? data.logs : [];
+      if (batch.length === 0) {
+        break;
+      }
+      collected.push(...batch);
+      if (batch.length < pageSize) {
+        break;
+      }
+      if (total > 0 && collected.length >= total) {
+        break;
+      }
+      page += 1;
+    }
+    const logs = collected.slice(0, maxRows);
+    return {
+      logs,
+      total: total || logs.length,
+      truncated: (total || 0) > logs.length
+    };
+  }
+
   function clearQueryHistory() {
     const effectiveTableId = selectedTableId ?? selectedTableEntry?.id ?? null;
     if (!effectiveTableId) {
@@ -1219,6 +1300,7 @@ export function useQueryWorkspace(
       setConditions([]);
       setActiveConditionId(null);
     },
+    collectLogsForDownload,
     clearQueryHistory,
     saveCurrentQuery,
     deleteSavedFilterProfile,

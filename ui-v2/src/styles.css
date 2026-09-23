@@ -15013,6 +15013,30 @@ body:has(
   white-space: nowrap;
 }
 
+.cv-query-result-bar__download {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.cv-query-result-bar__download:hover,
+.cv-query-result-bar__download:focus-visible {
+  color: var(--cv-primary-text);
+  outline: none;
+}
+
+.cv-query-result-bar__download:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.cv-query-result-bar__range {
+  color: #98a2b3;
+  font-weight: 500;
+}
+
 .cv-query-result-bar__summary em {
   color: #98a2b3;
   font-style: normal;
