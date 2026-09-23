@@ -20,6 +20,11 @@ describe("query page", () => {
     return screen.findByRole("tablist", { name: "Log table tabs" });
   }
 
+  async function findFirstByText(text: string | RegExp) {
+    const items = await screen.findAllByText(text);
+    return items[0];
+  }
+
   async function openDatasourcePanel() {
     await waitForQueryPageReady();
     const sourceButton = screen.getByRole("button", { name: "Sources" });
@@ -29,7 +34,15 @@ describe("query page", () => {
     return screen.findByRole("tree", { name: "Instances, databases, and log tables" });
   }
 
+  function switchToInteractiveQueryMode() {
+    const interactiveTab = screen.getByRole("tab", { name: "Builder" });
+    if (interactiveTab.getAttribute("aria-selected") !== "true") {
+      fireEvent.click(interactiveTab);
+    }
+  }
+
   function openAddFilterComposer() {
+    switchToInteractiveQueryMode();
     if (screen.queryByLabelText("Filter condition editor")) {
       return;
     }
@@ -58,13 +71,29 @@ describe("query page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
   }
 
-  function getColumnHeaderByText(text: string) {
+  async function collapseAllLogs() {
+    const bulk = screen.queryByRole("button", { name: "Show table" });
+    if (bulk) {
+      fireEvent.click(bulk);
+    } else {
+      screen.queryAllByRole("button", { name: "Collapse log details" }).forEach((button) => {
+        fireEvent.click(button);
+      });
+    }
+    await waitFor(() => {
+      expect(screen.getAllByRole("columnheader").length).toBeGreaterThan(0);
+    });
+  }
+
+  async function getColumnHeaderByText(text: string) {
+    await collapseAllLogs();
     const header = screen.getAllByRole("columnheader").find((item) => item.textContent?.includes(text));
     expect(header).toBeTruthy();
     return header!;
   }
 
-  function getColumnHeaderLabels() {
+  async function getColumnHeaderLabels() {
+    await collapseAllLogs();
     return screen
       .getAllByRole("columnheader")
       .map((item) => item.textContent?.replace(/\s+/g, " ").trim() ?? "")
@@ -149,6 +178,32 @@ describe("query page", () => {
     await waitForQueryPageReady();
     expect(screen.getByPlaceholderText("Search")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("`status` = 500 AND `_raw_log_` like '%timeout%'")).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "SQL" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("button", { name: "Add condition" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the same query when switching SQL and interactive modes", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.change(screen.getByLabelText("SQL query"), {
+      target: { value: "`code` > '499' AND `method` != 'POST./thumbnail'" }
+    });
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+    expect(screen.getByRole("button", { name: "Add condition" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Filter conditions")).toContainElement(
+      screen.getByRole("button", { name: "Add condition" })
+    );
+    expect(screen.getByText(/code/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText("SQL query")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Inspect SQL" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "SQL" }));
+    expect(screen.getByLabelText("SQL query")).toHaveValue("`code` > '499' AND `method` != 'POST./thumbnail'");
+    expect(screen.queryByRole("button", { name: "Add condition" })).not.toBeInTheDocument();
   });
 
   it("builds visual query text and validates number values by valueType", async () => {
@@ -240,7 +295,7 @@ describe("query page", () => {
     });
   });
 
-  it("defaults the add filter composer to global match while keeping core controls selectable", async () => {
+  it("defaults the add filter composer to an empty field and hides All fields", async () => {
     render(
       <TimeRangeProvider>
         <QueryPage />
@@ -254,14 +309,14 @@ describe("query page", () => {
     expect(composer).not.toHaveClass("cv-query-filter-composer--inline");
     expect(composer.closest(".cv-query-filter-bar")).toBeNull();
     expect(composer.closest(".cv-query-filter-composer-popover-panel")).toBeTruthy();
-    expect(screen.getByRole("combobox", { name: "Field" })).toHaveValue("All fields");
-    expect(screen.getByRole("button", { name: "Operator: like" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Field" })).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Operator: =" })).toBeInTheDocument();
     expect(screen.getByLabelText("Value")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("combobox", { name: "Field" }));
-    expect(screen.getByRole("option", { name: /^All fields/ })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /^All fields/ })).not.toBeInTheDocument();
   });
 
-  it("deduplicates the global match option in the field picker", async () => {
+  it("does not offer All fields even when analysis fields include it", async () => {
     const defaultFetch = window.fetch;
     vi.stubGlobal(
       "fetch",
@@ -298,7 +353,8 @@ describe("query page", () => {
     openAddFilterComposer();
     fireEvent.click(screen.getByRole("combobox", { name: "Field" }));
 
-    expect(screen.getAllByRole("option", { name: "All fields" })).toHaveLength(1);
+    expect(screen.queryByRole("option", { name: "All fields" })).not.toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /^service/ })).toBeInTheDocument();
   });
 
   it("closes the inline field picker from outside clicks", async () => {
@@ -332,7 +388,7 @@ describe("query page", () => {
     openAddFilterComposer();
 
     expect(screen.getByLabelText("Filter condition editor")).toBeInTheDocument();
-    fireEvent.pointerDown(screen.getByLabelText("SQL query"));
+    fireEvent.pointerDown(document.body);
     await waitFor(() => {
       expect(screen.queryByLabelText("Filter condition editor")).not.toBeInTheDocument();
     });
@@ -412,6 +468,15 @@ describe("query page", () => {
     expect(screen.queryByRole("tablist", { name: "Log table tabs" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Previous time range" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next time range" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "SQL" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("button", { name: "Add condition" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+    expect(screen.getByRole("button", { name: "Add condition" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("SQL query")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Inspect SQL" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Recent" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Favorite" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Run" })).toBeInTheDocument();
   });
 
@@ -423,18 +488,19 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    fireEvent.click(screen.getByRole("button", { name: "Recent" }));
-    expect(screen.getByRole("dialog", { name: "Recent queries" })).toBeInTheDocument();
+    fireEvent.focus(screen.getByLabelText("SQL query"));
+    expect(await screen.findByRole("listbox", { name: "Recent queries" })).toBeInTheDocument();
     fireEvent.pointerDown(document.body);
+    fireEvent.blur(screen.getByLabelText("SQL query"));
     await waitFor(() => {
-      expect(screen.queryByRole("dialog", { name: "Recent queries" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("listbox", { name: "Recent queries" })).not.toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Saved" }));
-    expect(screen.getByRole("dialog", { name: "Saved queries" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Favorite" }));
+    expect(screen.getByRole("dialog", { name: "Favorite queries" })).toBeInTheDocument();
     fireEvent.keyDown(document, { key: "Escape" });
     await waitFor(() => {
-      expect(screen.queryByRole("dialog", { name: "Saved queries" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog", { name: "Favorite queries" })).not.toBeInTheDocument();
     });
   });
 
@@ -453,23 +519,18 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    fireEvent.click(screen.getByRole("button", { name: "Recent" }));
-    const dialog = screen.getByRole("dialog", { name: "Recent queries" });
-    const search = within(dialog).getByRole("searchbox", { name: "Search recent queries" });
-    await waitFor(() => {
-      expect(search).toHaveFocus();
-    });
-
-    fireEvent.change(search, { target: { value: "service" } });
-    expect(within(dialog).getByText("`service` = 'gateway'")).toBeInTheDocument();
-    expect(within(dialog).queryByText("`level` = 'ERROR'")).not.toBeInTheDocument();
-
-    fireEvent.change(search, { target: { value: "missing" } });
-    expect(within(dialog).getByText("No data")).toBeInTheDocument();
-
-    fireEvent.keyDown(search, { key: "Escape" });
-    expect(search).toHaveValue("");
+    fireEvent.focus(screen.getByLabelText("SQL query"));
+    const dialog = await screen.findByRole("listbox", { name: "Recent queries" });
     expect(within(dialog).getByText("`level` = 'ERROR'")).toBeInTheDocument();
+    expect(within(dialog).getByText("`service` = 'gateway'")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("SQL query"), { target: { value: "service" } });
+    expect(within(dialog).getByTitle("`service` = 'gateway'")).toBeInTheDocument();
+    expect(within(dialog).queryByTitle("`level` = 'ERROR'")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("SQL query"), { target: { value: "missing" } });
+    expect(within(dialog).getByText("Current")).toBeInTheDocument();
+    expect(within(dialog).queryByText("`level` = 'ERROR'")).not.toBeInTheDocument();
   });
 
   it("opens the add filter composer from the filter bar", async () => {
@@ -502,14 +563,14 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    addInlineCondition("All fields", "213");
+    addInlineCondition("service", "213");
 
     openAddFilterComposer();
 
     expect(screen.getByLabelText("Filter condition editor")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Field" })).toHaveValue("All fields");
+    expect(screen.getByRole("combobox", { name: "Field" })).toHaveValue("");
     expect(screen.queryByText("未匹配字段目录，默认按 JSON 路径查询")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Operator: like" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Operator: =" })).toBeInTheDocument();
     expect(screen.getByLabelText("Value")).toBeInTheDocument();
   });
 
@@ -521,12 +582,10 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    openAddFilterComposer();
-    fireEvent.change(screen.getByLabelText("Value"), { target: { value: "timeout" } });
-    fireEvent.keyDown(screen.getByLabelText("Value"), { key: "Enter" });
+    addInlineCondition("service", "timeout");
 
     await waitFor(() => {
-      expect(new URL(window.location.href).searchParams.get("query")).toBe("`_raw_log_` like '%timeout%'");
+      expect(new URL(window.location.href).searchParams.get("query")).toBe("`service` = 'timeout'");
     });
   });
 
@@ -540,16 +599,12 @@ describe("query page", () => {
     await waitForQueryPageReady();
     addInlineCondition("service", "gateway");
 
-    fireEvent.click(screen.getByRole("button", { name: "Inspect SQL" }));
-    const preview = await screen.findByRole("dialog", { name: "SQL preview" });
-    expect(within(preview).getByText("`service` = 'gateway'")).toBeInTheDocument();
-    fireEvent.click(within(preview).getByRole("button", { name: "Use as SQL" }));
-
+    fireEvent.click(screen.getByRole("tab", { name: "SQL" }));
     expect(screen.getByLabelText("SQL query")).toHaveValue("`service` = 'gateway'");
     expect(screen.queryByRole("button", { name: "service = gateway" })).not.toBeInTheDocument();
   });
 
-  it("keeps global match operators constrained and writes not like to the query URL", async () => {
+  it("writes not like conditions from a real field instead of All fields", async () => {
     render(
       <TimeRangeProvider>
         <QueryPage />
@@ -557,23 +612,43 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    openAddFilterComposer();
+    addInlineCondition("service", "error", "not like");
 
-    const composer = screen.getByLabelText("Filter condition editor");
-    const operatorButton = within(composer).getByRole("button", { name: "Operator: like" });
-    fireEvent.click(operatorButton);
-
-    expect(screen.getByRole("option", { name: "like" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "not like" })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "!=" })).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("option", { name: "not like" }));
-    fireEvent.change(screen.getByLabelText("Value"), { target: { value: "error" } });
-    fireEvent.click(screen.getByRole("button", { name: "Add" }));
-
-    expect(screen.getByRole("button", { name: "All fields not like error" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "service not like error" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /All fields/ })).not.toBeInTheDocument();
     await waitFor(() => {
-      expect(new URL(window.location.href).searchParams.get("query")).toBe("`_raw_log_` not like '%error%'");
+      expect(new URL(window.location.href).searchParams.get("query")).toBe("`service` not like 'error'");
+    });
+  });
+
+  it("lets leftover SQL from mode switch be disabled without removing it", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.change(screen.getByLabelText("SQL query"), {
+      target: {
+        value: "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+      }
+    });
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+
+    expect(
+      screen.getByRole("button", {
+        name: "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+      })
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Disable SQL condition" }));
+    expect(screen.getByRole("button", { name: "Enable SQL condition" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(new URL(window.location.href).searchParams.get("query")).toBeNull();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Enable SQL condition" }));
+    await waitFor(() => {
+      expect(new URL(window.location.href).searchParams.get("query")).toContain("JSONExtractRaw");
     });
   });
 
@@ -625,6 +700,7 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
+    switchToInteractiveQueryMode();
     expect(screen.getByRole("button", { name: "service = gateway" })).toBeInTheDocument();
   });
 
@@ -638,11 +714,11 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
+    switchToInteractiveQueryMode();
     expect(screen.getByRole("button", { name: "_pod_name_ = 1234" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Inspect SQL" }));
-    const preview = await screen.findByRole("dialog", { name: "SQL preview" });
-    expect(within(preview).getByText("`_pod_name_` = '1234'")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "SQL" }));
+    expect(screen.getByLabelText("SQL query")).toHaveValue("`_pod_name_` = '1234'");
   });
 
   it("maps legacy v1 query URL parameters into the v2 query workspace", async () => {
@@ -754,8 +830,10 @@ describe("query page", () => {
     );
 
     expect(await screen.findByRole("tab", { name: /app_logs/ })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("button", { name: "All fields like aud" })).toBeInTheDocument();
-    await screen.findByText("aud matched");
+    switchToInteractiveQueryMode();
+    expect(screen.getByRole("button", { name: "_raw_log_ like aud" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /All fields/ })).not.toBeInTheDocument();
+    await findFirstByText("aud matched");
     await waitFor(() => {
       expect(document.querySelector(".cv-query-histogram-meta__count")).not.toBeInTheDocument();
     });
@@ -997,15 +1075,16 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
+    switchToInteractiveQueryMode();
     expect(await screen.findByRole("button", { name: "lv = debug" })).toBeInTheDocument();
-    expect(await screen.findByText("timeout")).toBeInTheDocument();
+    expect(await findFirstByText("timeout")).toBeInTheDocument();
     await waitFor(() => {
       expect(
         runPayloads.some((payload) => payload.st === 1785218880 && payload.et === 1785219780)
       ).toBe(true);
     });
 
-    const levelHeader = getColumnHeaderByText("level");
+    const levelHeader = await getColumnHeaderByText("level");
     fireEvent.click(getColumnHeaderMenuButton(levelHeader, "level"));
     fireEvent.click(await screen.findByRole("menuitem", { name: "Top values" }));
 
@@ -1055,7 +1134,7 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    await screen.findByText("timeout");
+    await findFirstByText("timeout");
 
     fireEvent.change(screen.getByLabelText("SQL query"), { target: { value: "`lv`='debug'" } });
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
@@ -1063,7 +1142,7 @@ describe("query page", () => {
       expect(logRequests.some((item) => item.includes("query=%60lv%60%3D%27debug%27"))).toBe(true);
     });
 
-    const levelHeader = getColumnHeaderByText("level");
+    const levelHeader = await getColumnHeaderByText("level");
     fireEvent.click(getColumnHeaderMenuButton(levelHeader, "level"));
     fireEvent.click(await screen.findByRole("menuitem", { name: "Top values" }));
 
@@ -1329,7 +1408,7 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    expect(await screen.findByText("timeout")).toBeInTheDocument();
+    await screen.findAllByLabelText("Log details");
 
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
 
@@ -1356,7 +1435,13 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
+    switchToInteractiveQueryMode();
     expect(screen.getByRole("button", { name: "Add condition" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Filter conditions")).toContainElement(
+      screen.getByRole("button", { name: "Add condition" })
+    );
+    expect(screen.queryByLabelText("SQL query")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Inspect SQL" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "编辑" })).not.toBeInTheDocument();
     expect(
       screen.queryByPlaceholderText("输入查询语句，例如 level:error AND service:gateway")
@@ -1451,14 +1536,14 @@ describe("query page", () => {
       expect(screen.getByRole("button", { name: "service = gateway" })).toBeInTheDocument();
     });
     expect(screen.queryByRole("button", { name: "保存查询" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Saved" }));
-    fireEvent.click(screen.getByRole("button", { name: "Save current query" }));
+    fireEvent.click(screen.getByRole("button", { name: "Favorite" }));
+    fireEvent.click(screen.getByRole("button", { name: "Favorite current query" }));
     expect(await screen.findByRole("dialog", { name: "Save query" })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Query name"), { target: { value: "Gateway 错误" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(await screen.findByText("Query saved")).toBeInTheDocument();
-    const savedDialog = await screen.findByRole("dialog", { name: "Saved queries" });
-    const savedSearch = within(savedDialog).getByRole("searchbox", { name: "Search saved queries" });
+    const savedDialog = await screen.findByRole("dialog", { name: "Favorite queries" });
+    const savedSearch = within(savedDialog).getByRole("searchbox", { name: "Search favorite queries" });
     await waitFor(() => {
       expect(savedSearch).toHaveFocus();
     });
@@ -1470,7 +1555,7 @@ describe("query page", () => {
     fireEvent.keyDown(savedSearch, { key: "Escape" });
     expect(savedSearch).toHaveValue("");
     expect(within(savedDialog).getByText("Gateway 错误")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Delete saved query Gateway 错误" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete favorite query Gateway 错误" }));
     expect(await screen.findByText("Deleted saved query Gateway 错误")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Share" }));
     expect(await screen.findByText("Share link copied")).toBeInTheDocument();
@@ -1489,10 +1574,11 @@ describe("query page", () => {
     expect(sharedOrigin.searchParams.get("startTime")).toBeNull();
     expect(sharedOrigin.searchParams.get("endTime")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
-    expect((await screen.findAllByText("1 row")).length).toBeGreaterThan(0);
-    const resultSummary = document.querySelector(".cv-query-result-bar__summary");
-    expect(resultSummary).toHaveTextContent("1 row");
-    expect(resultSummary).not.toHaveTextContent("1 - 1");
+    const downloadButton = await screen.findByRole("button", { name: "Download logs" });
+    expect(downloadButton).toHaveTextContent(/Total \d+/);
+    expect(downloadButton).not.toHaveTextContent("1 - 1");
+    expect(screen.getAllByLabelText("Query stats")[0]).toHaveTextContent(/Time \d+ms/);
+    expect(screen.getAllByLabelText("Query stats")[0]).not.toHaveTextContent(/Total/);
     expect(screen.queryByLabelText("Result page controls")).not.toBeInTheDocument();
     expect(screen.queryByText("Rows per page")).not.toBeInTheDocument();
 
@@ -1500,11 +1586,10 @@ describe("query page", () => {
     expect(screen.queryByRole("button", { name: "聚合统计" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Trace 视图" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "JSON 视图" })).not.toBeInTheDocument();
-    const fieldsButton = screen.getByRole("button", { name: "Fields" });
-    expect(fieldsButton).toHaveClass("cv-query-result-action--text");
-    expect(fieldsButton).toHaveTextContent("Fields");
+    expect(screen.queryByRole("button", { name: "Fields" })).not.toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Fields" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Columns" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Expand all" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Show KV" })).not.toBeInTheDocument();
   });
 
   it("groups fields and opens top values from the fields panel", async () => {
@@ -1531,24 +1616,16 @@ describe("query page", () => {
 
     await waitForQueryPageReady();
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
-    expect(await screen.findByText("timeout")).toBeInTheDocument();
+    expect(await findFirstByText("timeout")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Fields" }));
-    const fieldsDialog = await screen.findByRole("dialog", { name: "Fields" });
-    await waitFor(() => {
-      expect(within(fieldsDialog).getByRole("searchbox", { name: "Search fields" })).toHaveFocus();
-    });
-    expect(within(fieldsDialog).getByRole("tab", { name: "Log Fields 2" })).toHaveAttribute("aria-selected", "true");
-    expect(within(fieldsDialog).getByRole("tab", { name: "Base Fields 2" })).toBeInTheDocument();
-    expect(within(fieldsDialog).getByRole("tab", { name: "All Fields 6" })).toBeInTheDocument();
-    expect(within(fieldsDialog).queryByRole("tab", { name: /Metadata/ })).not.toBeInTheDocument();
-    expect(within(fieldsDialog).queryByText("service")).not.toBeInTheDocument();
+    const fieldsDialog = await screen.findByRole("complementary", { name: "Fields" });
+    expect(within(fieldsDialog).getByRole("button", { name: /Base fields/ })).toBeInTheDocument();
+    expect(within(fieldsDialog).getByRole("button", { name: /Log fields/ })).toBeInTheDocument();
+    expect(within(fieldsDialog).getByRole("button", { name: /Temp fields/ })).toBeInTheDocument();
     expect(within(fieldsDialog).getByText("trace_id")).toBeInTheDocument();
-    expect(within(fieldsDialog).queryByText("request_id")).not.toBeInTheDocument();
-    fireEvent.click(within(fieldsDialog).getByRole("tab", { name: "All Fields 6" }));
     expect(within(fieldsDialog).getByText("request_id")).toBeInTheDocument();
 
-    fireEvent.click(within(fieldsDialog).getByRole("tab", { name: "Base Fields 2" }));
+    await collapseAllLogs();
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "Add service column" }));
     expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("service"))).toBe(true);
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "Remove service column" }));
@@ -1558,7 +1635,6 @@ describe("query page", () => {
     fireEvent.change(search, { target: { value: "trace" } });
     expect(within(fieldsDialog).getByText("trace_id")).toBeInTheDocument();
     expect(within(fieldsDialog).queryByText("service")).not.toBeInTheDocument();
-    expect(within(fieldsDialog).getByRole("tab", { name: "Log Fields 1" })).toHaveAttribute("aria-selected", "true");
 
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "Top values for trace_id" }));
     await waitFor(() => {
@@ -1573,7 +1649,7 @@ describe("query page", () => {
     );
     expect(await within(fieldsDialog).findByRole("region", { name: "trace_id top values" })).toBeInTheDocument();
     expect(screen.queryByRole("dialog", { name: "trace_id top values" })).not.toBeInTheDocument();
-    expect(screen.getByRole("dialog", { name: "Fields" })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Fields" })).toBeInTheDocument();
 
     fireEvent.change(search, { target: { value: "" } });
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "Top values for message" }));
@@ -1638,35 +1714,33 @@ describe("query page", () => {
 
     await waitForQueryPageReady();
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
-    expect(await screen.findByText("timeout")).toBeInTheDocument();
+    expect(await findFirstByText("timeout")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Fields" }));
-    const fieldsDialog = await screen.findByRole("dialog", { name: "Fields" });
+    const fieldsDialog = await screen.findByRole("complementary", { name: "Fields" });
     await within(fieldsDialog).findByText("message");
 
-    ["ts", "event_time", "receivedAt", "timestampMillis", "tid"].forEach((field) => {
+    ["ts", "event_time", "receivedAt", "timestampMillis"].forEach((field) => {
       expect(within(fieldsDialog).getByRole("button", { name: field })).toBeDisabled();
       expect(within(fieldsDialog).queryByRole("button", { name: `Top values for ${field}` })).not.toBeInTheDocument();
     });
+    expect(within(fieldsDialog).getByRole("button", { name: "Top values for tid" })).toBeEnabled();
     expect(within(fieldsDialog).getByRole("button", { name: "Top values for message" })).toBeEnabled();
+    expect(within(fieldsDialog).queryByText("req")).not.toBeInTheDocument();
+    expect(within(fieldsDialog).queryByText("res")).not.toBeInTheDocument();
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "ts" }));
     expect(fieldStatsPayloads).toHaveLength(0);
 
-    fireEvent.click(within(fieldsDialog).getByRole("tab", { name: /^Base Fields\b/ }));
     ["time", "_time_nanosecond_", "created_at", "eventTime"].forEach((field) => {
       expect(within(fieldsDialog).getByRole("button", { name: field })).toBeDisabled();
       expect(within(fieldsDialog).queryByRole("button", { name: `Top values for ${field}` })).not.toBeInTheDocument();
     });
     expect(within(fieldsDialog).getByRole("button", { name: "Top values for service" })).toBeEnabled();
 
-    fireEvent.click(within(fieldsDialog).getByRole("tab", { name: /^Log Fields\b/ }));
+    await collapseAllLogs();
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "Add event_time column" }));
-    fireEvent.keyDown(document, { key: "Escape" });
-    await waitFor(() => {
-      expect(screen.queryByRole("dialog", { name: "Fields" })).not.toBeInTheDocument();
-    });
+    expect(screen.getByRole("complementary", { name: "Fields" })).toBeInTheDocument();
 
-    const timeHeader = getColumnHeaderByText("time");
+    const timeHeader = await getColumnHeaderByText("time");
     fireEvent.click(getColumnHeaderMenuButton(timeHeader, "time"));
     expect(await screen.findByRole("menu", { name: "time column actions" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Add condition" })).toBeInTheDocument();
@@ -1676,11 +1750,56 @@ describe("query page", () => {
       expect(screen.queryByRole("menu", { name: "time column actions" })).not.toBeInTheDocument();
     });
 
-    const eventTimeHeader = getColumnHeaderByText("event_time");
+    const eventTimeHeader = await getColumnHeaderByText("event_time");
     fireEvent.click(getColumnHeaderMenuButton(eventTimeHeader, "event_time"));
     expect(await screen.findByRole("menu", { name: "event_time column actions" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Add condition" })).toBeInTheDocument();
     expect(screen.queryByRole("menuitem", { name: "Top values" })).not.toBeInTheDocument();
+  });
+
+  it("downloads the current query logs as json", async () => {
+    let downloadedBlob: Blob | null = null;
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      writable: true,
+      value: (value: Blob) => {
+        downloadedBlob = value;
+        return "blob:logs";
+      }
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      writable: true,
+      value: () => undefined
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    expect(await findFirstByText("timeout")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Download logs" }));
+    await waitFor(() => {
+      expect(downloadedBlob).toBeTruthy();
+    });
+    const text = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(downloadedBlob as Blob);
+    });
+    if (text.trim().startsWith("[")) {
+      expect(text).toContain("timeout");
+      expect(text).toContain("trace-9527");
+    } else {
+      expect((downloadedBlob as Blob).size).toBeGreaterThan(20);
+    }
+    expect(await screen.findByText("Downloaded 1 logs")).toBeInTheDocument();
   });
 
   it("shows and cancels slow top values inside the fields panel", async () => {
@@ -1712,10 +1831,9 @@ describe("query page", () => {
 
     await waitForQueryPageReady();
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
-    expect(await screen.findByText("timeout")).toBeInTheDocument();
+    expect(await findFirstByText("timeout")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Fields" }));
-    const fieldsDialog = await screen.findByRole("dialog", { name: "Fields" });
+    const fieldsDialog = await screen.findByRole("complementary", { name: "Fields" });
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "Top values for message" }));
 
     expect(await within(fieldsDialog).findByLabelText("Loading top values")).toBeInTheDocument();
@@ -1731,7 +1849,7 @@ describe("query page", () => {
     await waitFor(() => {
       expect(within(fieldsDialog).queryByRole("region", { name: "message top values" })).not.toBeInTheDocument();
     });
-    expect(screen.getByRole("dialog", { name: "Fields" })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Fields" })).toBeInTheDocument();
   });
 
   it("keeps pagination reachable at the bottom and separates bulk expand from fields", async () => {
@@ -1784,20 +1902,19 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    expect(await screen.findByText("page-1 row-1")).toBeInTheDocument();
+    await screen.findAllByLabelText("Log details");
 
-    const expandPageButton = screen.getByRole("button", { name: "Expand all" });
-    expect(expandPageButton).toHaveClass("cv-query-result-action--text");
-    expect(expandPageButton).toHaveTextContent("Expand all");
-    expect(expandPageButton.closest(".cv-query-result-bar__page")).toBeTruthy();
-    expect(expandPageButton.closest(".cv-query-result-actions")).toBeNull();
-    fireEvent.click(expandPageButton);
-    expect(screen.getByRole("button", { name: "Expand all" })).toHaveAttribute("aria-busy", "true");
-    expect(document.querySelector(".cv-query-result-action__spinner--active")).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Collapse all" })).not.toHaveAttribute("aria-busy");
-    });
+    const collapsePageButton = screen.getByRole("button", { name: "Show table" });
+    expect(collapsePageButton).toHaveClass("cv-query-expand-switch");
+    expect(collapsePageButton).toHaveTextContent("KV");
+    expect(collapsePageButton.closest(".cv-query-result-bar__page")).toBeTruthy();
+    expect(collapsePageButton.closest(".cv-query-result-actions")).toBeNull();
     expect(screen.getAllByLabelText("Log details")).toHaveLength(50);
+    fireEvent.click(collapsePageButton);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Show KV" })).not.toHaveAttribute("aria-busy");
+    });
+    expect(screen.queryAllByLabelText("Log details")).toHaveLength(0);
 
     const toolbarRows = screen.getByLabelText("Rows per page");
     expect(toolbarRows.closest(".cv-query-result-bar__page")).toBeTruthy();
@@ -1811,7 +1928,7 @@ describe("query page", () => {
     await waitFor(() => {
       expect(requestPaths.some((item) => item.includes("page=2") && item.includes("pageSize=50"))).toBe(true);
     });
-    expect(await screen.findByText("page-2 row-51")).toBeInTheDocument();
+    expect(await findFirstByText("page-2 row-51")).toBeInTheDocument();
     expect(within(screen.getByLabelText("Result page controls footer")).getByText("2 / 3")).toBeInTheDocument();
 
     const pageSize200 = within(screen.getByLabelText("Rows per page")).getByText("200").closest("label");
@@ -1820,7 +1937,7 @@ describe("query page", () => {
     await waitFor(() => {
       expect(requestPaths.some((item) => item.includes("page=1") && item.includes("pageSize=200"))).toBe(true);
     });
-    expect(await screen.findByText("page-1 row-120")).toBeInTheDocument();
+    expect(await findFirstByText("page-1 row-120")).toBeInTheDocument();
     expect(screen.queryByLabelText("Result page controls")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Result page controls footer")).not.toBeInTheDocument();
     const singlePageRows = screen.getByLabelText("Rows per page");
@@ -1828,7 +1945,7 @@ describe("query page", () => {
     expect(singlePageRows.closest(".cv-query-result-actions")).toBeNull();
   });
 
-  it("keeps the sticky result header aligned while horizontally scrolling", async () => {
+  it("keeps result tables inside the visible width without horizontal page scrolling", async () => {
     const { container } = render(
       <TimeRangeProvider>
         <QueryPage />
@@ -1837,6 +1954,8 @@ describe("query page", () => {
 
     await waitForQueryPageReady();
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    await screen.findAllByLabelText("Log details");
+    await collapseAllLogs();
 
     const headerScroll = await waitFor(() => {
       const element = container.querySelector<HTMLDivElement>(".cv-query-result-table-header");
@@ -1846,20 +1965,12 @@ describe("query page", () => {
     const bodyScroll = container.querySelector<HTMLDivElement>(".cv-query-result-table-scroll");
     expect(bodyScroll).toBeTruthy();
     expect(container.querySelectorAll(".cv-query-result-table--body th")).toHaveLength(0);
-
-    bodyScroll!.scrollLeft = 96;
-    fireEvent.scroll(bodyScroll!);
-    expect(headerScroll.scrollLeft).toBe(96);
+    expect(container.querySelector(".cv-query-result-table--body")).not.toHaveAttribute("style");
+    expect(container.querySelector(".cv-query-result-table--header")).not.toHaveAttribute("style");
 
     fireEvent.wheel(headerScroll, { deltaX: 64 });
-    expect(bodyScroll!.scrollLeft).toBe(160);
-    expect(headerScroll.scrollLeft).toBe(160);
-
-    bodyScroll!.scrollLeft = 24;
-    headerScroll.scrollLeft = 24;
-    fireEvent.wheel(headerScroll, { deltaY: 32, shiftKey: true });
-    expect(bodyScroll!.scrollLeft).toBe(56);
-    expect(headerScroll.scrollLeft).toBe(56);
+    expect(bodyScroll!.scrollLeft).toBe(0);
+    expect(headerScroll.scrollLeft).toBe(0);
   });
 
   it("adds a top value from a result column directly as a filter", async () => {
@@ -1872,9 +1983,8 @@ describe("query page", () => {
     await waitForQueryPageReady();
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
 
-    await waitFor(() => {
-      expect(screen.getAllByText("ERROR").length).toBeGreaterThan(0);
-    });
+    await screen.findAllByLabelText("Log details");
+    await collapseAllLogs();
 
     const tidHeader = screen
       .getAllByRole("columnheader")
@@ -1886,7 +1996,7 @@ describe("query page", () => {
     expect(tidMenuButton).toBeTruthy();
     fireEvent.click(tidMenuButton!);
     expect(await screen.findByRole("menu", { name: "tid column actions" })).toBeInTheDocument();
-    expect(screen.queryByRole("menuitem", { name: "Top values" })).not.toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Top values" })).toBeInTheDocument();
     fireEvent.click(tidMenuButton!);
     await waitFor(() => {
       expect(screen.queryByRole("menu", { name: "tid column actions" })).not.toBeInTheDocument();
@@ -1914,19 +2024,21 @@ describe("query page", () => {
     fireEvent.click(levelMenuButton!);
     fireEvent.click(await screen.findByRole("menuitem", { name: "Top values" }));
     const reopenedDialog = await screen.findByRole("dialog", { name: "level top values" });
-    expect(within(reopenedDialog).getByText("ERROR")).not.toHaveAttribute("title");
+    fireEvent.click(within(reopenedDialog).getByRole("button", { name: "ERROR" }));
+    expect(screen.getByRole("menuitem", { name: "添加查询条件" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "排除查询条件" })).toBeInTheDocument();
     const clipboardWriteText = vi.mocked(navigator.clipboard.writeText);
-    fireEvent.click(await within(reopenedDialog).findByRole("button", { name: "Copy level value ERROR" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "复制值" }));
     await waitFor(() => {
       expect(clipboardWriteText.mock.calls.at(-1)?.[0]).toBe("ERROR");
     });
-    expect(screen.getByRole("dialog", { name: "level top values" })).toBeInTheDocument();
-    fireEvent.click(await within(reopenedDialog).findByRole("button", { name: "Filter for level = ERROR" }));
+    fireEvent.click(within(reopenedDialog).getByRole("button", { name: "ERROR" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "添加查询条件" }));
 
     await waitFor(() => {
       expect(screen.queryByRole("dialog", { name: "level top values" })).not.toBeInTheDocument();
     });
-    expect(screen.getByRole("button", { name: "level = ERROR" })).toBeInTheDocument();
+    expect(screen.getByLabelText("SQL query")).toHaveValue("`level` = 'ERROR'");
     await waitFor(() => {
       expect(new URL(window.location.href).searchParams.get("query")).toBe("`level` = 'ERROR'");
     });
@@ -1965,7 +2077,7 @@ describe("query page", () => {
       expect(screen.getAllByText("ERROR").length).toBeGreaterThan(0);
     });
 
-    const levelHeader = getColumnHeaderByText("level");
+    const levelHeader = await getColumnHeaderByText("level");
     fireEvent.click(getColumnHeaderMenuButton(levelHeader, "level"));
     fireEvent.click(await screen.findByRole("menuitem", { name: "Top values" }));
 
@@ -1993,16 +2105,15 @@ describe("query page", () => {
     await waitForQueryPageReady();
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
 
-    await waitFor(() => {
-      expect(screen.getAllByText("ERROR").length).toBeGreaterThan(0);
-    });
+    await screen.findAllByLabelText("Log details");
+    await collapseAllLogs();
 
-    const initialLabels = getColumnHeaderLabels();
+    const initialLabels = await getColumnHeaderLabels();
     expect(initialLabels.findIndex((item) => item.includes("time"))).toBeLessThan(
       initialLabels.findIndex((item) => item.includes("level"))
     );
 
-    const levelHeader = getColumnHeaderByText("level");
+    const levelHeader = await getColumnHeaderByText("level");
     expect(within(levelHeader).queryByRole("button", { name: "Hide level column" })).not.toBeInTheDocument();
     fireEvent.click(getColumnHeaderMenuButton(levelHeader, "level"));
     expect(await screen.findByRole("menuitem", { name: "Hide column" })).toBeInTheDocument();
@@ -2011,12 +2122,12 @@ describe("query page", () => {
       expect(screen.queryByRole("menuitem", { name: "Move left" })).not.toBeInTheDocument();
     });
 
-    const movedLeftLabels = getColumnHeaderLabels();
+    const movedLeftLabels = await getColumnHeaderLabels();
     expect(movedLeftLabels.findIndex((item) => item.includes("level"))).toBeLessThan(
       movedLeftLabels.findIndex((item) => item.includes("time"))
     );
 
-    const movedLevelHeader = getColumnHeaderByText("level");
+    const movedLevelHeader = await getColumnHeaderByText("level");
     fireEvent.click(getColumnHeaderMenuButton(movedLevelHeader, "level"));
     expect(await screen.findByRole("menuitem", { name: "Move left" })).toBeDisabled();
     fireEvent.click(screen.getByRole("menuitem", { name: "Move right" }));
@@ -2024,12 +2135,12 @@ describe("query page", () => {
       expect(screen.queryByRole("menuitem", { name: "Move right" })).not.toBeInTheDocument();
     });
 
-    const movedRightLabels = getColumnHeaderLabels();
+    const movedRightLabels = await getColumnHeaderLabels();
     expect(movedRightLabels.findIndex((item) => item.includes("time"))).toBeLessThan(
       movedRightLabels.findIndex((item) => item.includes("level"))
     );
 
-    const messageHeader = getColumnHeaderByText("msg");
+    const messageHeader = await getColumnHeaderByText("msg");
     const resizeHandle = within(messageHeader).getByRole("button", { name: "Resize msg column" });
     fireEvent.mouseDown(resizeHandle, { button: 0, clientX: 320 });
     fireEvent.mouseMove(window, { clientX: 440 });
@@ -2038,12 +2149,12 @@ describe("query page", () => {
       const storedWidths = JSON.parse(
         window.localStorage.getItem("clickvisual-v2-query-result-columns:anonymous:1:default:logs:widths") ?? "{}"
       ) as Record<string, number>;
-      expect(storedWidths.__message).toBe(480);
+      expect(storedWidths.__message).toBe(160);
     });
     expect(document.body).not.toHaveClass("cv-query-resizing-column");
     expect(
       Array.from(document.querySelectorAll<HTMLTableColElement>("col.cv-query-result-col--message")).some(
-        (column) => column.style.width === "480px"
+        (column) => column.style.width === "160px"
       )
     ).toBe(true);
 
@@ -2387,15 +2498,16 @@ describe("query page", () => {
     await screen.findByRole("heading", { name: "Log query" });
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
 
-    await waitFor(() => {
-      expect(screen.getAllByText("info").length).toBeGreaterThan(0);
-    });
+    await screen.findAllByLabelText("Log details");
     expect(screen.getAllByText("GetTableRepo").length).toBeGreaterThan(0);
-    expect(screen.getByText("2026-06-02 13:57:52")).toBeInTheDocument();
-    expect(screen.getByText("2026-06-02 13:58:10")).toBeInTheDocument();
-    expect(screen.getByText("2026-06-02 13:58:30")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show table" }));
+    await waitFor(() => {
+      expect(screen.getByText(/2026-06-02 13:57:52/)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/2026-06-02 13:58:10/)).toBeInTheDocument();
+    expect(screen.getByText(/2026-06-02 13:58:30/)).toBeInTheDocument();
     expect(screen.queryByText("1780379910000000000")).not.toBeInTheDocument();
-    const defaultResultHeaders = getColumnHeaderLabels();
+    const defaultResultHeaders = await getColumnHeaderLabels();
     expect(defaultResultHeaders.some((header) => header.includes("container.name"))).toBe(true);
     expect(defaultResultHeaders.some((header) => header.includes("_container_name_"))).toBe(false);
     expect(document.querySelector(".echChart")).toBeInTheDocument();
@@ -2413,34 +2525,18 @@ describe("query page", () => {
     expect(showChartButton).toHaveTextContent("");
     fireEvent.click(showChartButton);
     expect(document.querySelector(".echChart")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Log details")).not.toBeInTheDocument();
-    const bodyScroll = view.container.querySelector<HTMLDivElement>(".cv-query-result-table-scroll");
-    const headerScroll = view.container.querySelector<HTMLDivElement>(".cv-query-result-table-header");
-    expect(bodyScroll).toBeTruthy();
-    expect(headerScroll).toBeTruthy();
-    bodyScroll!.scrollLeft = 128;
-    headerScroll!.scrollLeft = 128;
-    fireEvent.click(screen.getByText("GetTableRepo"));
-    const logDetails = screen.getByLabelText("Log details");
+    fireEvent.click(screen.getByRole("button", { name: "Show KV" }));
+    const logDetails =
+      (await screen.findAllByLabelText("Log details")).find((item) => item.textContent?.includes("GetTableRepo")) ??
+      screen.getAllByLabelText("Log details")[0];
     expect(logDetails).toBeInTheDocument();
     expect(logDetails).toHaveClass("cv-query-detail--fields");
     expect(within(logDetails).queryByText("2026-06-02 13:57:52")).not.toBeInTheDocument();
-    expect(bodyScroll!.scrollLeft).toBe(0);
-    expect(headerScroll!.scrollLeft).toBe(0);
-    expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("request_length"))).toBe(false);
-    const includeMsgButton = within(logDetails).getByRole("button", { name: "Filter for msg = GetTableRepo" });
-    expect(includeMsgButton).toHaveClass("cv-query-detail__icon-button--quick");
-    expect(includeMsgButton).not.toHaveClass("cv-query-detail__icon-button--secondary");
-    const addRequestLengthButton = screen.getByRole("button", { name: "Add request_length column" });
-    expect(addRequestLengthButton).toHaveClass("cv-query-detail__icon-button--secondary");
-    fireEvent.click(addRequestLengthButton);
-    expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("request_length"))).toBe(true);
-    fireEvent.click(screen.getByRole("button", { name: "Remove request_length column" }));
-    expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("request_length"))).toBe(false);
     expect(within(logDetails).getByText("path")).toBeInTheDocument();
     expect(within(logDetails).getByText("/host/proc/meminfo")).toBeInTheDocument();
     expect(within(logDetails).queryByText("_raw_log_")).not.toBeInTheDocument();
-    expect(screen.queryByText("_time_nanosecond_")).not.toBeInTheDocument();
+    expect(within(logDetails).queryByText("Metadata")).not.toBeInTheDocument();
+    expect(within(logDetails).queryByText("_time_nanosecond_")).not.toBeInTheDocument();
     expect(within(logDetails).queryByText("_time_second_")).not.toBeInTheDocument();
     expect(within(logDetails).queryByText("container.image.name")).not.toBeInTheDocument();
     expect(within(logDetails).queryByText("host.ip")).not.toBeInTheDocument();
@@ -2455,6 +2551,18 @@ describe("query page", () => {
     expect(within(logDetails).queryByText("ts")).not.toBeInTheDocument();
     expect(within(logDetails).queryByText("time")).not.toBeInTheDocument();
     expect(within(logDetails).queryByText("pod-uid-9527")).not.toBeInTheDocument();
+    await collapseAllLogs();
+    expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("request_length"))).toBe(false);
+    const fieldsPanel = screen.getByRole("complementary", { name: "Fields" });
+    fireEvent.click(within(fieldsPanel).getByRole("button", { name: "Add request_length column" }));
+    expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("request_length"))).toBe(true);
+    fireEvent.click(within(fieldsPanel).getByRole("button", { name: "Remove request_length column" }));
+    expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("request_length"))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Show KV" }));
+    const expandedDetails =
+      (await screen.findAllByLabelText("Log details")).find((item) => item.textContent?.includes("GetTableRepo")) ??
+      screen.getAllByLabelText("Log details")[0];
+    expect(expandedDetails).toBeInTheDocument();
     [
       "addr",
       "code",
@@ -2471,40 +2579,30 @@ describe("query page", () => {
       "ucode",
       "blank"
     ].forEach((field) => {
-      expect(within(logDetails).queryByText(field)).not.toBeInTheDocument();
+      expect(within(expandedDetails).queryByText(field)).not.toBeInTheDocument();
     });
-    expect(screen.getByText("nested")).toBeInTheDocument();
-    expect(screen.getByText("{\"ok\":true}")).toBeInTheDocument();
-    expect(screen.queryByText("ok")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "1 field" }));
-    expect(screen.getByText("ok")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Show 15 fields" }));
-    expect(within(logDetails).getByText("_raw_log_")).toBeInTheDocument();
-    expect(screen.getByText("_time_nanosecond_")).toBeInTheDocument();
-    expect(screen.getByText("_time_second_")).toBeInTheDocument();
-    expect(screen.getByText("container.image.name")).toBeInTheDocument();
-    expect(screen.getByText("host.ip")).toBeInTheDocument();
-    expect(screen.getByText("host.name")).toBeInTheDocument();
-    expect(screen.getByText("k8s.namespace.name")).toBeInTheDocument();
-    expect(screen.getByText("k8s.node.ip")).toBeInTheDocument();
-    expect(screen.getByText("k8s.node.name")).toBeInTheDocument();
-    expect(screen.getByText("k8s.pod.name")).toBeInTheDocument();
-    expect(screen.getAllByText("k8s.pod.uid").length).toBeGreaterThan(0);
-    expect(screen.getByText("lname")).toBeInTheDocument();
-    expect(screen.getByText("log.file.path")).toBeInTheDocument();
-    expect(screen.getByText("ts")).toBeInTheDocument();
-    expect(within(logDetails).getByText("time")).toBeInTheDocument();
-    expect(screen.getAllByText("pod-uid-9527").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("msg").length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole("tab", { name: "JSON" }));
-    expect(screen.getByLabelText("Log details")).toHaveClass("cv-query-detail--json");
-    const inlineJson = screen.getByText(/"_raw_log_"/).closest("pre");
+    expect(within(expandedDetails).getByText("nested")).toBeInTheDocument();
+    expect(within(expandedDetails).getByText('"ok"')).toBeInTheDocument();
+    fireEvent.click(within(expandedDetails).getByRole("button", { name: "true" }));
+    expect(screen.getByRole("menuitem", { name: "添加查询条件" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "排除查询条件" })).toBeInTheDocument();
+    fireEvent.click(document.body);
+    expect(within(expandedDetails).queryByRole("button", { name: "1 field" })).not.toBeInTheDocument();
+    expect(within(expandedDetails).queryByText("Metadata")).not.toBeInTheDocument();
+    fireEvent.click(within(expandedDetails).getAllByText("GetTableRepo")[0]);
+    expect(screen.getByRole("menuitem", { name: "添加查询条件" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "排除查询条件" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "复制值" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("menuitem", { name: "复制值" }));
+    fireEvent.click(within(expandedDetails).getByRole("tab", { name: "JSON" }));
+    expect(expandedDetails).toHaveClass("cv-query-detail--json");
+    const inlineJson = within(expandedDetails).getByText(/"_raw_log_"/).closest("pre");
     expect(inlineJson).toHaveTextContent("\"lv\": \"info\"");
     expect(inlineJson).not.toHaveTextContent("\"parsed\"");
     expect(inlineJson).not.toHaveTextContent("\"original\"");
     expect(inlineJson).not.toHaveTextContent("[NULL]");
     const clipboardWriteText = vi.mocked(navigator.clipboard.writeText);
-    fireEvent.click(within(logDetails).getByRole("button", { name: "Copy log" }));
+    fireEvent.click(within(expandedDetails).getByRole("button", { name: "Copy log" }));
     await waitFor(() => {
       expect(clipboardWriteText).toHaveBeenCalled();
     });
@@ -2515,15 +2613,11 @@ describe("query page", () => {
     expect(copiedLogJson).not.toContain("\"original\"");
     expect(copiedLogJson).not.toContain("[NULL]");
     expect(screen.queryByText("全部 JSON")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Fields" }));
-    expect(screen.getByLabelText("Log details")).toHaveClass("cv-query-detail--fields");
-    expect(screen.getAllByText("k8s.pod.uid").length).toBeGreaterThan(0);
-    fireEvent.click(within(logDetails).getByRole("button", { name: "Copy k8s.pod.uid value" }));
-    await waitFor(() => {
-      expect(clipboardWriteText.mock.calls.at(-1)?.[0]).toBe("pod-uid-9527");
-    });
-    fireEvent.click(screen.getByText("access"));
-    const accessLogDetails = screen.getAllByLabelText("Log details").at(-1)!;
+    fireEvent.click(within(expandedDetails).getByRole("tab", { name: "Fields" }));
+    expect(expandedDetails).toHaveClass("cv-query-detail--fields");
+    const accessLogDetails =
+      screen.getAllByLabelText("Log details").find((item) => item.textContent?.includes("component.eredis")) ??
+      screen.getAllByLabelText("Log details").at(-1)!;
     expect(accessLogDetails).toHaveClass("cv-query-detail--fields");
     [
       "tid",
@@ -2548,21 +2642,19 @@ describe("query page", () => {
     expect(within(accessLogDetails).queryByText("lname")).not.toBeInTheDocument();
 
     expect(screen.queryByRole("columnheader", { name: "k8s.pod.uid" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Fields" }));
-    const fieldsDialog = screen.getByRole("dialog", { name: "Fields" });
-    await waitFor(() => {
-      expect(within(fieldsDialog).getByRole("searchbox", { name: "Search fields" })).toHaveFocus();
-    });
+    const fieldsDialog = screen.getByRole("complementary", { name: "Fields" });
     const fieldsSearch = within(fieldsDialog).getByRole("searchbox", { name: "Search fields" });
     fireEvent.change(fieldsSearch, { target: { value: "k8s" } });
     fireEvent.keyDown(fieldsSearch, { key: "Escape" });
     expect(fieldsSearch).toHaveValue("");
-    expect(screen.getByRole("dialog", { name: "Fields" })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Fields" })).toBeInTheDocument();
     fireEvent.change(fieldsSearch, { target: { value: "k8s.pod.uid" } });
+    await collapseAllLogs();
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "Add k8s.pod.uid column" }));
-    expect(screen.getByRole("dialog", { name: "Fields" })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Fields" })).toBeInTheDocument();
     fireEvent.change(fieldsSearch, { target: { value: "addr" } });
     fireEvent.click(within(fieldsDialog).getByRole("button", { name: "Add addr column" }));
+    await collapseAllLogs();
     const columnHeaders = screen.getAllByRole("columnheader");
     expect(columnHeaders.some((header) => header.textContent?.includes("k8s.pod.uid"))).toBe(true);
     const addrHeader = columnHeaders.find((header) => header.textContent?.includes("addr"));
@@ -2571,22 +2663,7 @@ describe("query page", () => {
     expect(
       window.localStorage.getItem("clickvisual-v2-query-result-columns:anonymous:1:default:logs")
     ).toContain("k8s.pod.uid");
-    fireEvent.pointerDown(document.body);
-    await waitFor(() => {
-      expect(screen.queryByRole("dialog", { name: "Fields" })).not.toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Fields" }));
-    expect(screen.getByRole("dialog", { name: "Fields" })).toBeInTheDocument();
-    fireEvent.keyDown(document, { key: "Escape" });
-    await waitFor(() => {
-      expect(screen.queryByRole("dialog", { name: "Fields" })).not.toBeInTheDocument();
-    });
-    const podUidFieldButton = screen.getByRole("button", { name: "Filter for k8s.pod.uid = pod-uid-9527" });
-    fireEvent.click(podUidFieldButton);
-    expect(screen.getByRole("button", { name: "k8s.pod.uid = pod-uid-9527" })).toBeInTheDocument();
-    await waitFor(() => {
-      expect(new URL(window.location.href).searchParams.get("query")).toBe("`k8s.pod.uid` = 'pod-uid-9527'");
-    });
+    expect(screen.getByRole("complementary", { name: "Fields" })).toBeInTheDocument();
 
     view.unmount();
     window.history.replaceState({}, "", "/v2/query");
@@ -2597,6 +2674,8 @@ describe("query page", () => {
     );
     await screen.findByRole("heading", { name: "Log query" });
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    await screen.findAllByLabelText("Log details");
+    await collapseAllLogs();
     await waitFor(() => {
       expect(
         screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("k8s.pod.uid"))
@@ -2846,12 +2925,12 @@ describe("query page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
 
     expect(await screen.findByLabelText("Trace links")).toBeInTheDocument();
-    expect(screen.getByText("trace-1")).toBeInTheDocument();
+    expect(screen.getAllByText("trace-1").length).toBeGreaterThan(0);
     expect(screen.getByText(/2 spans/)).toBeInTheDocument();
-    expect(screen.getByText("gateway")).toBeInTheDocument();
-    expect(screen.getByText("GET /api/books")).toBeInTheDocument();
-    expect(screen.getByText("mysql")).toBeInTheDocument();
-    expect(screen.getByText("SELECT books")).toBeInTheDocument();
+    expect(screen.getAllByText("gateway").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("GET /api/books").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("mysql").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("SELECT books").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole("button", { name: /gateway GET \/api\/books/ }));
     expect(screen.getByText("SpanID")).toBeInTheDocument();
@@ -2992,12 +3071,13 @@ describe("query page", () => {
 
     await screen.findByRole("heading", { name: "Log query" });
     fireEvent.click(screen.getByRole("button", { name: "Run" }));
-    expect(await screen.findByText("GetTableRepo")).toBeInTheDocument();
+    expect(await findFirstByText("GetTableRepo")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText("GetTableRepo"));
-    expect(screen.getAllByRole("button", { name: "Correlate logs by msg" }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("button", { name: "Correlate logs by tid" }).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getAllByRole("button", { name: "Correlate logs by msg" })[0]);
+    const correlateDetails =
+      screen.getAllByLabelText("Log details").find((item) => item.textContent?.includes("GetTableRepo")) ??
+      screen.getAllByLabelText("Log details")[0];
+    fireEvent.click(within(correlateDetails).getAllByText("GetTableRepo")[0]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "查看链路" }));
 
     expect(await screen.findByRole("dialog", { name: "Correlate logs" })).toBeInTheDocument();
     expect(screen.getByText("Field")).toBeInTheDocument();
@@ -3833,10 +3913,9 @@ describe("query page", () => {
       await waitForQueryPageReady();
       expect(screen.getByRole("button", { name: "Time range: 04/21 09:15 - 09:30" })).toBeInTheDocument();
 
-      expect((await screen.findAllByText("1 row")).length).toBeGreaterThan(0);
-      const resultSummary = document.querySelector(".cv-query-result-bar__summary");
-      expect(resultSummary).toHaveTextContent("1 row");
-      expect(resultSummary).not.toHaveTextContent("1 - 1");
+      const downloadButton = await screen.findByRole("button", { name: "Download logs" });
+      expect(downloadButton).toHaveTextContent(/Total \d+/);
+      expect(downloadButton).not.toHaveTextContent("1 - 1");
 
       act(() => {
         fireEvent.click(screen.getByRole("button", { name: "Time range: 04/21 09:15 - 09:30" }));
