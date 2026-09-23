@@ -1,9 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export interface ContextMenuItem {
   key: string;
   label: string;
   onSelect: () => void;
+  separatorBefore?: boolean;
+  hint?: string;
 }
 
 interface ContextMenuProps {
@@ -88,18 +90,21 @@ export default function ContextMenu({
       style={{ left: `${position.x}px`, top: `${position.y}px` }}
     >
       {items.map((item) => (
-        <button
-          key={item.key}
-          type="button"
-          role="menuitem"
-          className="cv-context-menu__item"
-          onClick={() => {
-            item.onSelect();
-            onClose();
-          }}
-        >
-          {item.label}
-        </button>
+        <Fragment key={item.key}>
+          {item.separatorBefore ? <div className="cv-context-menu__separator" role="separator" /> : null}
+          <button
+            type="button"
+            role="menuitem"
+            className={item.hint ? "cv-context-menu__item cv-context-menu__item--with-hint" : "cv-context-menu__item"}
+            onClick={() => {
+              item.onSelect();
+              onClose();
+            }}
+          >
+            <span className="cv-context-menu__label">{item.label}</span>
+            {item.hint ? <span className="cv-context-menu__hint">{item.hint}</span> : null}
+          </button>
+        </Fragment>
       ))}
     </div>
   );
