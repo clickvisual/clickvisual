@@ -1193,6 +1193,64 @@ describe("query page", () => {
     expect(within(details).queryByText("Metadata")).not.toBeInTheDocument();
   });
 
+  it("uses JSONExtract for KV conditions on fields that are not base or log fields", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      msg: "duration",
+                      queueUpDuration: 93.912,
+                      _raw_log_: {
+                        msg: "duration",
+                        queueUpDuration: 93.912,
+                        type: "USER_CHANGES"
+                      }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("USER_CHANGES"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "添加查询条件" }));
+
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("JSONExtractRaw(_raw_log_, 'type')");
+      expect(sql).toContain("USER_CHANGES");
+      expect(sql).not.toContain("`type` = 'USER_CHANGES'");
+    });
+  });
+
   it("applies compact URL query conditions and last run time to top values", async () => {
     const defaultFetch = window.fetch;
     const runPayloads: any[] = [];

@@ -2434,6 +2434,23 @@ function isHiddenLogDetailField(key: string) {
   return isRawLogDetailParent(key);
 }
 
+function shouldUseRawLogJsonCondition(field: string, fieldRef: QueryFieldRef) {
+  if (field.includes(".") || fieldRef.source === "tag_path") {
+    return true;
+  }
+  if (fieldRef.source === "column" && fieldRef.isAccelerated) {
+    return false;
+  }
+  const normalized = field.trim();
+  if (/^_/.test(normalized) && /_$/.test(normalized)) {
+    return false;
+  }
+  if (normalized === "time" || normalized === "timestamp") {
+    return false;
+  }
+  return fieldRef.source === "json_path";
+}
+
 function isStructuredColumnSample(value: unknown) {
   return formatPrettyLogDetailValue(value) !== null;
 }
@@ -5441,7 +5458,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         return;
       }
     }
-    const nestedJsonField = field.includes(".");
+    const nestedJsonField = shouldUseRawLogJsonCondition(field, fieldRef);
     const conditionValue = nestedJsonField
       ? typeof value === "number" && Number.isFinite(value)
         ? { value, valueType: "number" as const }
