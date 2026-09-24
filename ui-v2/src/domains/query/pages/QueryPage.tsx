@@ -5373,10 +5373,10 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, [], merged);
       return;
     }
-    workspace.setQueryText("");
+    const leftover = leftoverSqlDisabled() ? "" : workspace.queryText.trim();
     workspace.setConditions(nextConditions);
     workspace.setActiveConditionId(activeConditionId);
-    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions, "");
+    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions, leftover);
   }
 
   function splitSqlForInteractiveMode(sql: string) {
@@ -5460,7 +5460,9 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }
     const nestedJsonField = shouldUseRawLogJsonCondition(field, fieldRef);
     const conditionValue = nestedJsonField
-      ? typeof value === "number" && Number.isFinite(value)
+      ? typeof value === "boolean"
+        ? { value: value ? "true" : "false", valueType: "string" as const }
+        : typeof value === "number" && Number.isFinite(value)
         ? { value, valueType: "number" as const }
         : { value: String(value), valueType: "string" as const }
       : createTypedDetailConditionValue(
@@ -5528,11 +5530,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     operator: "=" | "!=" = "=",
     conditionField?: string
   ) {
-    const directConditionField =
-      conditionField ??
-      (fieldRef.source === "tag_path" || (fieldRef.source === "column" && fieldRef.isAccelerated)
-        ? fieldRef.fieldKey
-        : "");
+    const canUseFieldKey =
+      fieldRef.source === "tag_path" ||
+      fieldRef.source === "json_path" ||
+      (fieldRef.source === "column" && fieldRef.isAccelerated);
+    const directConditionField = conditionField || (canUseFieldKey ? fieldRef.fieldKey : "");
     if (directConditionField) {
       addConditionFromLogDetail(directConditionField, value, operator);
       closeAllFieldStats();
@@ -6401,7 +6403,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       key: "add",
       label: "添加查询条件",
       hint: statsState.fromTempFields
-        ? "该字段未配置索引，查询走模糊匹配，可能会命中更多全局数据"
+        ? "该字段未配置索引，从 _raw_log_ 抽取，可能比索引字段慢"
         : undefined,
       onSelect: () => addConditionFromFieldStatsValue(statsState.fieldRef, value, "=", conditionField || undefined)
     });
@@ -6447,12 +6449,13 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
           <div className="cv-query-empty-text">No data</div>
         ) : null}
         {statsView.items.map((item) => {
-          const conditionField = statsView.shouldUseLoaded
-            ? statsState.fieldRef.fieldKey
-            : statsState.fieldRef.source === "tag_path" ||
-              (statsState.fieldRef.source === "column" && statsState.fieldRef.isAccelerated)
-            ? statsState.fieldRef.fieldKey
-            : "";
+          const conditionField =
+            statsView.shouldUseLoaded ||
+            statsState.fieldRef.source === "tag_path" ||
+            statsState.fieldRef.source === "json_path" ||
+            (statsState.fieldRef.source === "column" && statsState.fieldRef.isAccelerated)
+              ? statsState.fieldRef.fieldKey
+              : "";
           return (
             <div key={`${item.value}-${item.count}`} className="cv-query-field-stats__item">
               <EuiToolTip

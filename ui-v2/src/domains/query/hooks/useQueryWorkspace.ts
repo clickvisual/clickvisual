@@ -168,12 +168,17 @@ function buildRawLogJsonPathArgs(path: string) {
 
 function buildNestedRawLogPredicate(
   field: string,
-  value: string | number,
+  value: string | number | boolean,
   valueType: QueryFilterValueType,
   operator: string
 ) {
   const args = buildRawLogJsonPathArgs(field);
   const negated = operator === "!=" || operator === "<>" || operator === "not like";
+  if (value === true || value === false || value === "true" || value === "false") {
+    const asBool = value === true || value === "true";
+    const cmp = negated ? "!=" : "=";
+    return `JSONExtractRaw(_raw_log_, ${args}) ${cmp} '${asBool}'`;
+  }
   if (valueType === "number") {
     const cmp = negated ? "!=" : "=";
     return `JSONExtractFloat(_raw_log_, ${args}) ${cmp} ${normalizeNumberValue(value, field)}`;
@@ -181,6 +186,79 @@ function buildNestedRawLogPredicate(
   const jsonToken = JSON.stringify(String(value));
   const cmp = negated ? "=" : ">";
   return `position(JSONExtractRaw(_raw_log_, ${args}), '${escapeClickHouseString(jsonToken)}') ${cmp} 0`;
+}
+
+function parseJsonExtractPathArgs(args: string) {
+  const parts: string[] = [];
+  const matcher = /'((?:\\'|[^'])*)'/g;
+  let match: RegExpExecArray | null = matcher.exec(args);
+  while (match) {
+    parts.push(match[1].replaceAll("\\'", "'"));
+    match = matcher.exec(args);
+  }
+  return parts.length > 0 ? parts.join(".") : null;
+}
+
+function parseNestedRawLogToken(token: string, index: number): QueryFilterCondition | null {
+  const trimmed = token.trim();
+  const floatMatch = trimmed.match(/^JSONExtractFloat\(\s*_raw_log_\s*,\s*(.+)\s*\)\s*(!=|=)\s*(.+)$/i);
+  if (floatMatch) {
+    const field = parseJsonExtractPathArgs(floatMatch[1]);
+    const numeric = Number(floatMatch[3].trim());
+    if (!field || !Number.isFinite(numeric)) {
+      return null;
+    }
+    return {
+      id: `cond_url_${index}`,
+      field,
+      operator: floatMatch[2] as "=" | "!=",
+      value: numeric,
+      valueType: "number",
+      nestedJson: true
+    };
+  }
+  const boolMatch = trimmed.match(/^JSONExtractRaw\(\s*_raw_log_\s*,\s*(.+)\s*\)\s*(!=|=)\s*'(true|false)'$/i);
+  if (boolMatch) {
+    const field = parseJsonExtractPathArgs(boolMatch[1]);
+    if (!field) {
+      return null;
+    }
+    return {
+      id: `cond_url_${index}`,
+      field,
+      operator: boolMatch[2] as "=" | "!=",
+      value: boolMatch[3].toLowerCase(),
+      valueType: "string",
+      nestedJson: true
+    };
+  }
+  const posMatch = trimmed.match(
+    /^position\(\s*JSONExtractRaw\(\s*_raw_log_\s*,\s*(.+)\s*\)\s*,\s*'((?:\\'|[^'])*)'\s*\)\s*(>|=)\s*0$/i
+  );
+  if (posMatch) {
+    const field = parseJsonExtractPathArgs(posMatch[1]);
+    if (!field) {
+      return null;
+    }
+    let value: string | number = posMatch[2].replaceAll("\\'", "'");
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      if (typeof parsed === "string" || typeof parsed === "number") {
+        value = parsed;
+      }
+    } catch {
+      // keep raw token text
+    }
+    return {
+      id: `cond_url_${index}`,
+      field,
+      operator: posMatch[3] === "=" ? "!=" : "=",
+      value,
+      valueType: typeof value === "number" ? "number" : "string",
+      nestedJson: true
+    };
+  }
+  return null;
 }
 
 function isGlobalMatchField(field: string) {
@@ -215,6 +293,10 @@ function createConditionFromQueryToken(token: string, index: number): QueryFilte
   const trimmed = token.trim();
   if (!trimmed) {
     return null;
+  }
+  const nested = parseNestedRawLogToken(trimmed, index);
+  if (nested) {
+    return nested;
   }
   const match = trimmed.match(/^(.+?)\s*(not\s+like|like|!=|>=|<=|=|>|<)\s*(.+)$/i);
   if (!match) {

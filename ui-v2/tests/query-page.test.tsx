@@ -1,7 +1,12 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useEffect } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildStructuredConditions, useQueryWorkspace } from "../src/domains/query/hooks/useQueryWorkspace";
+import {
+  buildStructuredConditions,
+  buildVisualQuery,
+  parseQueryTextConditions,
+  useQueryWorkspace
+} from "../src/domains/query/hooks/useQueryWorkspace";
 import { TimeRangeProvider } from "../src/shared/state/TimeRangeContext";
 import QueryLinkPage from "../src/domains/query/pages/QueryLinkPage";
 import QueryPage, { HistogramSelectionOverlay } from "../src/domains/query/pages/QueryPage";
@@ -631,14 +636,14 @@ describe("query page", () => {
     await waitForQueryPageReady();
     fireEvent.change(screen.getByLabelText("SQL query"), {
       target: {
-        value: "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+        value: "url in ['/','/welcome']"
       }
     });
     fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
 
     expect(
       screen.getByRole("button", {
-        name: "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+        name: "url in ['/','/welcome']"
       })
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Disable SQL condition" }));
@@ -648,8 +653,31 @@ describe("query page", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Enable SQL condition" }));
     await waitFor(() => {
-      expect(new URL(window.location.href).searchParams.get("query")).toContain("JSONExtractRaw");
+      expect(new URL(window.location.href).searchParams.get("query")).toContain("url in");
     });
+  });
+
+  it("turns JSONExtract SQL into builder chips when switching modes", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.change(screen.getByLabelText("SQL query"), {
+      target: {
+        value: "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+      }
+    });
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+    expect(
+      screen.getByRole("button", { name: "req.metadata.Accept = application/nd.shimo.v2+json" })
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "SQL" }));
+    expect(screen.getByLabelText("SQL query")).toHaveValue(
+      "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+    );
   });
 
   it("keeps disabled conditions visible but excludes them from query text and URL", async () => {
@@ -1248,6 +1276,222 @@ describe("query page", () => {
       expect(sql).toContain("JSONExtractRaw(_raw_log_, 'type')");
       expect(sql).toContain("USER_CHANGES");
       expect(sql).not.toContain("`type` = 'USER_CHANGES'");
+    });
+  });
+
+  it("uses JSONExtract when adding a condition from Temp fields top values", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        const method = init?.method || "GET";
+        if (method === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      msg: "duration",
+                      _raw_log_: {
+                        msg: "duration",
+                        type: "USER_CHANGES"
+                      }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        if (method === "POST" && url.pathname.endsWith("/api/v2/query/field-stats")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  items: [{ value: "USER_CHANGES", count: 1, percentage: 100 }],
+                  total: 1
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const fieldsPanel = await screen.findByRole("complementary", { name: "Fields" });
+    const typeField = await within(fieldsPanel).findByRole("button", { name: "Top values for type" });
+    fireEvent.click(typeField);
+    const topValues = await within(fieldsPanel).findByRole("region", { name: "type top values" });
+    fireEvent.click(within(topValues).getByRole("button", { name: "USER_CHANGES" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("JSONExtractRaw(_raw_log_, 'type')");
+      expect(sql).toContain("USER_CHANGES");
+      expect(sql).not.toContain("`type` = 'USER_CHANGES'");
+      expect(sql).not.toContain("`_raw_log_` like '%USER_CHANGES%'");
+    });
+  });
+
+  it("parses JSONExtract predicates back into nested conditions", () => {
+    const parsed = parseQueryTextConditions(
+      "position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0 AND JSONExtractFloat(_raw_log_, 'fileType') = -4 AND JSONExtractRaw(_raw_log_, 'isFallback') = 'false'"
+    );
+    expect(parsed).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: "type", operator: "=", value: "USER_CHANGES", nestedJson: true }),
+        expect.objectContaining({ field: "fileType", operator: "=", value: -4, valueType: "number", nestedJson: true }),
+        expect.objectContaining({ field: "isFallback", operator: "=", value: "false", nestedJson: true })
+      ])
+    );
+    expect(buildVisualQuery(parsed)).toContain("JSONExtractRaw(_raw_log_, 'type')");
+    expect(buildVisualQuery(parsed)).toContain("JSONExtractFloat(_raw_log_, 'fileType') = -4");
+    expect(buildVisualQuery(parsed)).toContain("JSONExtractRaw(_raw_log_, 'isFallback') = 'false'");
+  });
+
+  it("keeps leftover SQL in builder mode when adding another condition", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      msg: "duration",
+                      queueUpDuration: 93.912,
+                      isFallback: false,
+                      fileType: -4,
+                      _raw_log_: {
+                        msg: "duration",
+                        queueUpDuration: 93.912,
+                        type: "USER_CHANGES",
+                        isFallback: false,
+                        fileType: -4
+                      }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("USER_CHANGES"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+    await waitFor(() => {
+      expect((screen.getByLabelText("SQL query") as HTMLInputElement).value).toContain("JSONExtractRaw(_raw_log_, 'type')");
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+    expect(screen.getByRole("button", { name: "Add condition" })).toBeInTheDocument();
+
+    fireEvent.click(within(details).getByText("duration"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+
+    await waitFor(() => {
+      const sqlAfter = new URL(window.location.href).searchParams.get("query") ?? "";
+      expect(sqlAfter).toContain("JSONExtractRaw(_raw_log_, 'type')");
+      expect(sqlAfter).toContain("duration");
+      expect(sqlAfter.toLowerCase()).toContain("msg");
+    });
+    expect(screen.queryByText(/_raw_log_ like/i)).not.toBeInTheDocument();
+  });
+
+  it("adds boolean false from KV as a JSONExtract equality", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      isFallback: false,
+                      _raw_log_: { isFallback: false, msg: "duration" }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("false"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("JSONExtractRaw(_raw_log_, 'isFallback') = 'false'");
+      expect(sql).not.toContain("`_raw_log_` like");
+      expect(sql).not.toContain("\"false\"");
     });
   });
 
