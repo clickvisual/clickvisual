@@ -1495,6 +1495,88 @@ describe("query page", () => {
     });
   });
 
+  it("replaces type equals JSONExtract when excluding the same value in SQL mode", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      msg: "duration",
+                      _raw_log_: { msg: "duration", type: "USER_CHANGES" }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("USER_CHANGES"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+    await waitFor(() => {
+      expect((screen.getByLabelText("SQL query") as HTMLInputElement).value).toContain(
+        "position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0"
+      );
+    });
+    fireEvent.click(within(details).getByText("USER_CHANGES"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /排除查询条件/ }));
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') = 0");
+      expect(sql).not.toContain("position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0");
+    });
+  });
+
+  it("does not keep leftover type equals SQL when builder adds type not-equals", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.change(screen.getByLabelText("SQL query"), {
+      target: {
+        value:
+          "position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0 AND `msg` = 'duration' AND `queueUpDuration` > 80 AND position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') = 0"
+      }
+    });
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+    expect(screen.getByRole("button", { name: "type != USER_CHANGES" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "type = USER_CHANGES" })).not.toBeInTheDocument();
+    await waitFor(() => {
+      const sql = new URL(window.location.href).searchParams.get("query") ?? "";
+      expect(sql).toContain("position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') = 0");
+      expect(sql).not.toContain("position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0");
+    });
+  });
+
   it("applies compact URL query conditions and last run time to top values", async () => {
     const defaultFetch = window.fetch;
     const runPayloads: any[] = [];

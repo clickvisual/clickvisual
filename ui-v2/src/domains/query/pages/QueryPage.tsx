@@ -5361,24 +5361,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     };
   }
 
-  function applyConditionsAndRun(nextConditions: QueryFilterCondition[], activeConditionId: string | null) {
-    if (queryInputMode === "sql") {
-      const added = nextConditions.filter((condition) => !workspace.conditions.some((item) => item.id === condition.id));
-      const extra = buildVisualQuery(added);
-      const baseSql = workspace.queryText.trim() || buildVisualQuery(workspace.conditions);
-      const merged = [baseSql, extra].filter(Boolean).join(" AND ");
-      workspace.setQueryText(merged);
-      workspace.setConditions([]);
-      workspace.setActiveConditionId(null);
-      void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, [], merged);
-      return;
-    }
-    const leftover = leftoverSqlDisabled() ? "" : workspace.queryText.trim();
-    workspace.setConditions(nextConditions);
-    workspace.setActiveConditionId(activeConditionId);
-    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions, leftover);
-  }
-
   function splitSqlForInteractiveMode(sql: string) {
     const tokens = sql
       .split(/\s+AND\s+/i)
@@ -5397,17 +5379,71 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     return { parsed, remainder: leftover.join(" AND ") };
   }
 
+  function absorbLeftoverSql(nextConditions: QueryFilterCondition[], leftoverSql: string) {
+    if (!leftoverSql.trim()) {
+      return { conditions: nextConditions, remainder: "" };
+    }
+    const { parsed, remainder } = splitSqlForInteractiveMode(leftoverSql);
+    const claimedFields = new Set(nextConditions.map((condition) => condition.field));
+    const absorbedByField = new Map<string, QueryFilterCondition>();
+    parsed.forEach((condition) => {
+      if (claimedFields.has(condition.field)) {
+        return;
+      }
+      absorbedByField.set(condition.field, condition);
+    });
+    return {
+      conditions: [...nextConditions, ...absorbedByField.values()],
+      remainder
+    };
+  }
+
+  function replaceSqlClausesForFields(sql: string, fields: string[], extraSql: string) {
+    const fieldSet = new Set(fields);
+    const { parsed, remainder } = splitSqlForInteractiveMode(sql);
+    const kept = parsed.filter((condition) => !fieldSet.has(condition.field));
+    return [remainder, buildVisualQuery(kept), extraSql].filter(Boolean).join(" AND ");
+  }
+
+  function applyConditionsAndRun(nextConditions: QueryFilterCondition[], activeConditionId: string | null) {
+    if (queryInputMode === "sql") {
+      const added = nextConditions.filter((condition) => !workspace.conditions.some((item) => item.id === condition.id));
+      const extra = buildVisualQuery(added);
+      const baseSql = workspace.queryText.trim() || buildVisualQuery(workspace.conditions);
+      const merged = replaceSqlClausesForFields(
+        baseSql,
+        added.map((condition) => condition.field),
+        extra
+      );
+      workspace.setQueryText(merged);
+      workspace.setConditions([]);
+      workspace.setActiveConditionId(null);
+      void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, [], merged);
+      return;
+    }
+    const leftoverSql = leftoverSqlDisabled() ? "" : workspace.queryText.trim();
+    const absorbed = absorbLeftoverSql(nextConditions, leftoverSql);
+    workspace.setConditions(absorbed.conditions);
+    workspace.setQueryText(absorbed.remainder);
+    workspace.setActiveConditionId(activeConditionId);
+    void workspace.runQuery(
+      1,
+      timeRange ? toSecondRange(timeRange) : undefined,
+      absorbed.conditions,
+      leftoverSqlDisabled() ? "" : absorbed.remainder
+    );
+  }
+
   function switchQueryInputMode(nextMode: "sql" | "interactive") {
     if (nextMode === queryInputMode) {
       return;
     }
     if (nextMode === "interactive") {
-      if (workspace.conditions.length === 0 && workspace.queryText.trim()) {
-        const { parsed, remainder } = splitSqlForInteractiveMode(workspace.queryText);
-        if (parsed.length > 0) {
-          workspace.setConditions(parsed);
-          workspace.setQueryText(remainder);
-        }
+      const sourceSql = workspace.queryText.trim();
+      if (sourceSql) {
+        const absorbed = absorbLeftoverSql(workspace.conditions, sourceSql);
+        workspace.setConditions(absorbed.conditions);
+        workspace.setQueryText(absorbed.remainder);
       }
       setDisabledQueryText("");
       setQueryInputMode("interactive");
@@ -5493,7 +5529,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       valueType: conditionValue.valueType,
       nestedJson: nestedJsonField
     };
-    applyConditionsAndRun([...workspace.conditions, nextCondition], nextCondition.id);
+    const withoutSameField = workspace.conditions.filter((condition) => condition.field !== field);
+    applyConditionsAndRun([...withoutSameField, nextCondition], nextCondition.id);
     setFeedbackMessage("");
   }
 
