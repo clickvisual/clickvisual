@@ -1041,6 +1041,158 @@ describe("query page", () => {
     expect(logsUrl.searchParams.get("query")).toBe(alarmKw);
   });
 
+  it("uses the updated query on share pages after adding a KV exclude condition", async () => {
+    const defaultFetch = window.fetch;
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        requests.push(`${init?.method || "GET"} ${url.pathname}${url.search}`);
+        return defaultFetch(input, init);
+      })
+    );
+    const originalKw =
+      "`msg` = 'duration' and `queueUpDuration` > 80 and `_raw_log_` not like 'N2A1gKPoP9he4BqD'";
+    const originalQuery = "`msg` = 'duration' AND `queueUpDuration` > 80";
+    const params = new URLSearchParams({
+      tid: "9527",
+      start: "1789355974",
+      end: "1789356154",
+      mode: "0",
+      tab: "custom",
+      kw: originalKw,
+      query: originalQuery
+    });
+    window.history.replaceState({}, "", `/share?${params.toString()}`);
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage shareMode />
+      </TimeRangeProvider>
+    );
+
+    await waitFor(() => {
+      expect(requests.some((item) => item.includes("GET /api/v1/tables/9527/logs"))).toBe(true);
+    });
+    const initialLogs = requests.find((item) => item.includes("GET /api/v1/tables/9527/logs")) ?? "";
+    const initialLogsUrl = new URL(initialLogs.replace(/^GET /, ""), "http://localhost");
+    expect(initialLogsUrl.searchParams.get("query")).toBe(originalKw);
+
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("timeout"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "排除查询条件" }));
+
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("`message` != 'timeout'");
+      const pageQuery = new URL(window.location.href).searchParams.get("query");
+      expect(pageQuery).toBe(sql);
+      const laterLogs = requests
+        .filter((item) => item.includes("GET /api/v1/tables/9527/logs"))
+        .slice(1);
+      expect(laterLogs.length).toBeGreaterThan(0);
+      const laterLogsUrl = new URL(laterLogs[0].replace(/^GET /, ""), "http://localhost");
+      expect(laterLogsUrl.searchParams.get("query")).toBe(sql);
+      const laterCharts = requests.filter((item) => item.includes("GET /api/v1/tables/9527/charts"));
+      const laterChartsUrl = new URL(laterCharts.at(-1)!.replace(/^GET /, ""), "http://localhost");
+      expect(laterChartsUrl.searchParams.get("query")).toBe(sql);
+      const pageKw = new URL(window.location.href).searchParams.get("kw");
+      expect(pageKw === null || pageKw === sql).toBe(true);
+    });
+  });
+
+  it("shows system fields from the log JSON in the Fields tab", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      _cluster_: "shimopro-level-0-ult14-dy5ne",
+                      _container_name_: "smpro-svc-edit-worker-mosheet",
+                      _log_agent_: "16863fc1-9e37-43f8-bb21-1817f2eb6aed",
+                      _namespace_: "default",
+                      _node_ip_: "10.66.1.196",
+                      _node_name_: "10.66.1.196",
+                      _pod_name_: "smpro-svc-edit-worker-mosheet-f968847f8-4czfv",
+                      _source_: "reg.smvm.cn/cicd/shimo-saas/svc-edit:5b0629f3",
+                      _time_nanosecond_: "2026-09-23T19:17:19+08:00",
+                      _time_second_: "2026-09-23T19:17:19+08:00",
+                      _raw_log_: {
+                        lv: "warn",
+                        ts: 1790162239.436122,
+                        msg: "duration",
+                        lname: "default.log",
+                        partition: 50,
+                        offset: 130531408,
+                        type: "USER_CHANGES",
+                        fileGuid: "B1Awdlo2G1IKlD3m",
+                        fileType: -4,
+                        userId: 97902056,
+                        rev: 74671,
+                        clientId: "bd0b8628-739f-4c83-8d2e-eae7d3c7e835",
+                        newRev: 0,
+                        csLength: 233,
+                        queueUpDuration: 93.912,
+                        waitDuration: 0,
+                        processDuration: 0.007,
+                        consumeDuration: 93.919,
+                        isFallback: false,
+                        fallbackCount: 0
+                      }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    expect(details).toHaveClass("cv-query-detail--fields");
+    [
+      "_cluster_",
+      "_pod_name_",
+      "_namespace_",
+      "_node_ip_",
+      "_source_",
+      "_time_nanosecond_",
+      "ts",
+      "lname",
+      "fileGuid"
+    ].forEach((field) => {
+      expect(within(details).getByText(field)).toBeInTheDocument();
+    });
+    expect(within(details).queryByText("_raw_log_")).not.toBeInTheDocument();
+    expect(within(details).queryByText("Metadata")).not.toBeInTheDocument();
+  });
+
   it("applies compact URL query conditions and last run time to top values", async () => {
     const defaultFetch = window.fetch;
     const runPayloads: any[] = [];
@@ -2536,21 +2688,21 @@ describe("query page", () => {
     expect(within(logDetails).getByText("/host/proc/meminfo")).toBeInTheDocument();
     expect(within(logDetails).queryByText("_raw_log_")).not.toBeInTheDocument();
     expect(within(logDetails).queryByText("Metadata")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("_time_nanosecond_")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("_time_second_")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("container.image.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("host.ip")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("host.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.namespace.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.node.ip")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.node.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.pod.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.pod.uid")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("lname")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("log.file.path")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("ts")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("time")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("pod-uid-9527")).not.toBeInTheDocument();
+    expect(within(logDetails).getByText("_time_nanosecond_")).toBeInTheDocument();
+    expect(within(logDetails).getByText("_time_second_")).toBeInTheDocument();
+    expect(within(logDetails).getByText("container.image.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("host.ip")).toBeInTheDocument();
+    expect(within(logDetails).getByText("host.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.namespace.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.node.ip")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.node.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.pod.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.pod.uid")).toBeInTheDocument();
+    expect(within(logDetails).getByText("lname")).toBeInTheDocument();
+    expect(within(logDetails).getByText("log.file.path")).toBeInTheDocument();
+    expect(within(logDetails).getByText("ts")).toBeInTheDocument();
+    expect(within(logDetails).getByText("time")).toBeInTheDocument();
+    expect(within(logDetails).getByText("pod-uid-9527")).toBeInTheDocument();
     await collapseAllLogs();
     expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("request_length"))).toBe(false);
     const fieldsPanel = screen.getByRole("complementary", { name: "Fields" });
@@ -2639,7 +2791,7 @@ describe("query page", () => {
     });
     expect(within(accessLogDetails).getByText("del")).toBeInTheDocument();
     expect(within(accessLogDetails).getByText("component.eredis")).toBeInTheDocument();
-    expect(within(accessLogDetails).queryByText("lname")).not.toBeInTheDocument();
+    expect(within(accessLogDetails).getByText("lname")).toBeInTheDocument();
 
     expect(screen.queryByRole("columnheader", { name: "k8s.pod.uid" })).not.toBeInTheDocument();
     const fieldsDialog = screen.getByRole("complementary", { name: "Fields" });

@@ -2431,7 +2431,7 @@ function formatPrettyLogDetailValue(value: unknown) {
 }
 
 function isHiddenLogDetailField(key: string) {
-  return isRawLogDetailParent(key) || isLowPriorityResultField(key);
+  return isRawLogDetailParent(key);
 }
 
 function isStructuredColumnSample(value: unknown) {

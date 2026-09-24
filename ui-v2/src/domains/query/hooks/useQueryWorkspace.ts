@@ -316,15 +316,23 @@ function readInitialQueryConditions() {
   ] as QueryFilterCondition[];
 }
 
-function writeQueryToURL(query: string) {
+function writeQueryToURL(query: string, syncKeyword = false) {
   if (typeof window === "undefined") {
     return;
   }
   const url = new URL(window.location.href);
-  if (query.trim()) {
-    url.searchParams.set("query", query.trim());
+  const nextQuery = query.trim();
+  if (nextQuery) {
+    url.searchParams.set("query", nextQuery);
   } else {
     url.searchParams.delete("query");
+  }
+  if (syncKeyword) {
+    if (nextQuery) {
+      url.searchParams.set("kw", nextQuery);
+    } else {
+      url.searchParams.delete("kw");
+    }
   }
   const next = `${url.pathname}${url.search}${url.hash}`;
   const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -563,7 +571,7 @@ export function useQueryWorkspace(
   }
 ) {
   const initialConditions = useMemo(() => readInitialQueryConditions(), []);
-  const legacyV1ShareQuery = useMemo(() => readLegacyV1ShareQuery(), []);
+  const legacyV1ShareQueryRef = useRef(readLegacyV1ShareQuery());
   const [instances, setInstances] = useState<QuerySourceInstance[]>([]);
   const [databases, setDatabases] = useState<QuerySourceDatabase[]>([]);
   const [tables, setTables] = useState<QuerySourceTable[]>([]);
@@ -572,7 +580,14 @@ export function useQueryWorkspace(
   const [selectedDatabase, setSelectedDatabase] = useState("");
   const [selectedTable, setSelectedTable] = useState("");
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
-  const [queryText, setQueryText] = useState("");
+  const [queryText, setQueryTextState] = useState("");
+  function releaseLegacyV1ShareQuery() {
+    legacyV1ShareQueryRef.current = "";
+  }
+  function setQueryText(nextValue: string) {
+    releaseLegacyV1ShareQuery();
+    setQueryTextState(nextValue);
+  }
   const [conditions, setConditions] = useState<QueryFilterCondition[]>(initialConditions);
   const [activeConditionId, setActiveConditionId] = useState<string | null>(initialConditions[0]?.id ?? null);
   const [savedFilterProfiles, setSavedFilterProfiles] = useState<QueryFilterProfile[]>([]);
@@ -895,7 +910,7 @@ export function useQueryWorkspace(
       }
     }
     const nextQuery = buildCombinedQuery(queryText, generatedQuery);
-    writeQueryToURL(nextQuery);
+    writeQueryToURL(nextQuery, !legacyV1ShareQueryRef.current);
   }, [conditions, queryText]);
 
   async function runQuery(
@@ -939,7 +954,7 @@ export function useQueryWorkspace(
       analysisFields
     );
     const shouldUseStructuredRun =
-      !legacyV1ShareQuery && !effectiveQueryText.trim() && structuredConditions.length > 0;
+      !legacyV1ShareQueryRef.current && !effectiveQueryText.trim() && structuredConditions.length > 0;
     const effectivePageSize =
       overridePageSize && Number.isFinite(overridePageSize) && overridePageSize > 0
         ? Math.round(overridePageSize)
@@ -947,7 +962,7 @@ export function useQueryWorkspace(
 
     const params = {
       ...timeParams,
-      query: legacyV1ShareQuery || requestQuery,
+      query: legacyV1ShareQueryRef.current || requestQuery,
       page: nextPage,
       pageSize: effectivePageSize
     };
@@ -1129,7 +1144,7 @@ export function useQueryWorkspace(
     const requestQuery = buildCombinedQuery(queryText, generatedQuery) || undefined;
     const structuredConditions = buildStructuredConditions(conditions, analysisFields);
     const shouldUseStructuredRun =
-      !legacyV1ShareQuery && !queryText.trim() && structuredConditions.length > 0;
+      !legacyV1ShareQueryRef.current && !queryText.trim() && structuredConditions.length > 0;
     const maxRows = Math.max(1, Math.floor(limit));
     const collected: Array<Record<string, unknown>> = [];
     let total = 0;
@@ -1158,7 +1173,7 @@ export function useQueryWorkspace(
             effectiveTableId,
             {
               ...timeParams,
-              query: legacyV1ShareQuery || requestQuery,
+              query: legacyV1ShareQueryRef.current || requestQuery,
               page,
               pageSize
             },
