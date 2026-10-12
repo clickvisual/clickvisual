@@ -1,7 +1,14 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useEffect } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildStructuredConditions, useQueryWorkspace } from "../src/domains/query/hooks/useQueryWorkspace";
+import {
+  buildCombinedQuery,
+  buildQueryFieldRef,
+  buildStructuredConditions,
+  buildVisualQuery,
+  parseQueryTextConditions,
+  useQueryWorkspace
+} from "../src/domains/query/hooks/useQueryWorkspace";
 import { TimeRangeProvider } from "../src/shared/state/TimeRangeContext";
 import QueryLinkPage from "../src/domains/query/pages/QueryLinkPage";
 import QueryPage, { HistogramSelectionOverlay } from "../src/domains/query/pages/QueryPage";
@@ -452,6 +459,464 @@ describe("query page", () => {
     fireEvent.keyDown(search, { key: "Escape" });
     expect(search).toHaveValue("");
     expect(screen.getByRole("button", { name: "Table logs" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Table app_logs" })).toBeInTheDocument();
+  });
+
+  it("expands all source instances and databases by default", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if (url.pathname.endsWith("/api/v2/base/instances")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: [
+                  {
+                    id: 1,
+                    instanceName: "bigdata-pro",
+                    desc: "",
+                    databases: [
+                      {
+                        id: 11,
+                        iid: 1,
+                        databaseName: "bigdata",
+                        tables: [{ id: 101, did: 11, tableName: "track_events_all" }]
+                      }
+                    ]
+                  },
+                  {
+                    id: 2,
+                    instanceName: "shimopro",
+                    desc: "",
+                    databases: [
+                      {
+                        id: 21,
+                        iid: 2,
+                        databaseName: "pro_log",
+                        tables: [{ id: 201, did: 21, tableName: "app_stdout" }]
+                      }
+                    ]
+                  }
+                ]
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await openDatasourcePanel();
+    expect(screen.getByRole("treeitem", { name: "bigdata-pro" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("treeitem", { name: "shimopro" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Table track_events_all" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Table app_stdout" })).toBeInTheDocument();
+  });
+
+  it("highlights only the selected table when several sources share the same table name", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if (url.pathname.endsWith("/api/v2/base/instances")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: [
+                  {
+                    id: 1,
+                    instanceName: "shimoee",
+                    desc: "",
+                    databases: [
+                      {
+                        id: 11,
+                        iid: 1,
+                        databaseName: "shimoee_log",
+                        tables: [{ id: 5, did: 11, tableName: "app_stdout" }]
+                      }
+                    ]
+                  },
+                  {
+                    id: 2,
+                    instanceName: "shimodev-new",
+                    desc: "",
+                    databases: [
+                      {
+                        id: 21,
+                        iid: 2,
+                        databaseName: "dev_log",
+                        tables: [{ id: 6, did: 21, tableName: "app_stdout" }]
+                      },
+                      {
+                        id: 22,
+                        iid: 2,
+                        databaseName: "shimoee_log",
+                        tables: [{ id: 7, did: 22, tableName: "app_stdout" }]
+                      }
+                    ]
+                  }
+                ]
+              })
+          };
+        }
+        if (url.pathname.endsWith("/api/v1/table/id")) {
+          return {
+            ok: true,
+            text: async () => JSON.stringify({ code: 0, msg: "succ", data: 5 })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await openDatasourcePanel();
+    const tables = screen.getAllByRole("button", { name: "Table app_stdout" });
+    expect(tables).toHaveLength(3);
+    expect(tables.filter((item) => item.getAttribute("aria-pressed") === "true")).toHaveLength(1);
+    expect(tables[0]).toHaveAttribute("aria-pressed", "true");
+    expect(tables[1]).toHaveAttribute("aria-pressed", "false");
+    expect(tables[2]).toHaveAttribute("aria-pressed", "false");
+    vi.stubGlobal("fetch", defaultFetch);
+  });
+
+  it("scrolls the selected source table into view when the picker opens", async () => {
+    const scrollTo = vi.fn();
+    const originalScrollTo = HTMLElement.prototype.scrollTo;
+    HTMLElement.prototype.scrollTo = function (this: HTMLElement, ...args: unknown[]) {
+      if (this.classList.contains("cv-query-source-popover__body")) {
+        scrollTo(...args);
+      }
+    } as typeof HTMLElement.prototype.scrollTo;
+
+    try {
+      render(
+        <TimeRangeProvider>
+          <QueryPage />
+        </TimeRangeProvider>
+      );
+
+      await openDatasourcePanel();
+      expect(screen.getByRole("button", { name: "Table logs" })).toHaveAttribute("aria-pressed", "true");
+      await waitFor(() => {
+        expect(scrollTo).toHaveBeenCalled();
+      });
+    } finally {
+      HTMLElement.prototype.scrollTo = originalScrollTo;
+    }
+  });
+
+  it("keeps SQL per log table tab and starts a new table with empty SQL", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.change(screen.getByLabelText("SQL query"), {
+      target: { value: "hello-from-logs" }
+    });
+    await openDatasourcePanel();
+    fireEvent.click(screen.getByRole("button", { name: "Table app_logs" }));
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: "default.app_logs" })).toBeInTheDocument();
+      expect(screen.getByLabelText("SQL query")).toHaveValue("");
+    });
+    fireEvent.click(screen.getByRole("tab", { name: "default.logs" }));
+    await waitFor(() => {
+      expect(screen.getByLabelText("SQL query")).toHaveValue("hello-from-logs");
+    });
+  });
+
+  it("falls back when log field top values hit a missing ClickHouse column", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if (url.pathname.endsWith("/api/v2/storage/9527/analysis-fields")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  baseFields: [{ field: "_container_name_", orderField: "_container_name_" }],
+                  logFields: [{ field: "body_bytes_sent", orderField: "body_bytes_sent" }]
+                }
+              })
+          };
+        }
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [{ body_bytes_sent: "348", message: "ok" }]
+                }
+              })
+          };
+        }
+        if ((init?.method || "POST") === "POST" && url.pathname.endsWith("/api/v2/query/field-stats")) {
+          const payload = JSON.parse(String(init?.body || "{}")) as { field?: { source?: string; isAccelerated?: boolean } };
+          if (payload.field?.source === "column" || payload.field?.isAccelerated) {
+            return {
+              ok: false,
+              text: async () =>
+                JSON.stringify({
+                  code: 1,
+                  msg: "Missing columns: 'body_bytes_sent' while processing query"
+                })
+            };
+          }
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: { total: 1, items: [{ value: "348", count: 1, percentage: 100 }] }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const fieldsPanel = await screen.findByRole("complementary", { name: "Fields" });
+    fireEvent.click(await within(fieldsPanel).findByRole("button", { name: "Top values for body_bytes_sent" }));
+    const topValues = await within(fieldsPanel).findByRole("region", { name: "body_bytes_sent top values" });
+    expect(await within(topValues).findByRole("button", { name: "348" })).toBeInTheDocument();
+    expect(within(topValues).queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("offers token match and exclude actions for a long message", async () => {
+    const longMessage =
+      '2026/09/24 15:51:55 [error] 4273#4273: *1663201123 upstream sent too big header while reading response header from upstream, client: 120.229.180.111, server: uploader.shimo.im, request: "GET /f/sxyQ460ookgKBl2F.jpg HTTP/1.1"';
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [{ message: longMessage }]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    const messageCell = details.querySelector(".cv-query-detail__value-cell--tokens");
+    expect(messageCell?.textContent).toBe(longMessage);
+    fireEvent.click(within(details).getByRole("button", { name: "120.229.180.111" }));
+    expect(screen.queryByRole("menuitem", { name: /匹配 “/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "匹配" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "排除" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("menuitem", { name: "匹配" }));
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toMatch(/120\.229\.180\.111/);
+      expect(sql.toLowerCase()).toContain("like");
+    });
+  });
+
+  it("uses equality for log field values instead of like", async () => {
+    const methodValue = "/shimo.svc.file.FileService/GetOne";
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if (url.pathname.endsWith("/api/v2/storage/9527/analysis-fields")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  baseFields: ["_container_name_"],
+                  logFields: ["method", "msg"]
+                }
+              })
+          };
+        }
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [{ method: methodValue, msg: "access" }]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText(methodValue));
+    fireEvent.click(screen.getByRole("menuitem", { name: "添加查询条件" }));
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("`method` = ");
+      expect(sql).toContain(methodValue);
+      expect(sql.toLowerCase()).not.toContain("like");
+    });
+    vi.stubGlobal("fetch", defaultFetch);
+  });
+
+  it("treats Live as a follow-latest toggle and pauses it when stepping time", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    const liveToggle = screen.getByRole("button", { name: "Stop auto-refresh" });
+    expect(liveToggle).toHaveAttribute("aria-pressed", "true");
+    expect(liveToggle).toHaveTextContent("Live");
+    expect(liveToggle).toHaveAttribute("title", "Following latest logs every 15s · click to pause");
+    fireEvent.click(screen.getByRole("button", { name: "Previous time range" }));
+    expect(screen.getByRole("button", { name: "Start auto-refresh" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Start auto-refresh" })).toHaveAttribute(
+      "title",
+      "Follow latest logs every 15s"
+    );
+  });
+
+  it("lets the user choose the Live refresh interval", async () => {
+    const setIntervalSpy = vi.spyOn(window, "setInterval");
+    window.localStorage.removeItem("cv-query-live-refresh-ms");
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    expect(screen.getByRole("button", { name: "Refresh every 15s" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Refresh every 15s" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "5s" }));
+    expect(screen.getByRole("button", { name: "Refresh every 5s" })).toBeInTheDocument();
+    expect(window.localStorage.getItem("cv-query-live-refresh-ms")).toBe("5000");
+    await waitFor(() => {
+      expect(setIntervalSpy.mock.calls.some((call) => call[1] === 5000)).toBe(true);
+    });
+    setIntervalSpy.mockRestore();
+  });
+
+  it("requests field stats with the current SQL query", async () => {
+    const statsBodies: string[] = [];
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "POST") === "POST" && url.pathname.endsWith("/api/v2/query/field-stats")) {
+          statsBodies.push(String(init?.body || ""));
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.change(screen.getByLabelText("SQL query"), {
+      target: { value: "kdzfwFoGlYCA0VKf" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const fieldsPanel = await screen.findByRole("complementary", { name: "Fields" });
+    fireEvent.click(await within(fieldsPanel).findByRole("button", { name: "Top values for level" }));
+    await waitFor(() => {
+      expect(statsBodies.some((body) => body.includes("kdzfwFoGlYCA0VKf"))).toBe(true);
+    });
   });
 
   it("keeps the time range picker available on the share page", async () => {
@@ -631,14 +1096,14 @@ describe("query page", () => {
     await waitForQueryPageReady();
     fireEvent.change(screen.getByLabelText("SQL query"), {
       target: {
-        value: "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+        value: "url in ['/','/welcome']"
       }
     });
     fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
 
     expect(
       screen.getByRole("button", {
-        name: "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+        name: "url in ['/','/welcome']"
       })
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Disable SQL condition" }));
@@ -648,8 +1113,33 @@ describe("query page", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Enable SQL condition" }));
     await waitFor(() => {
-      expect(new URL(window.location.href).searchParams.get("query")).toContain("JSONExtractRaw");
+      expect(new URL(window.location.href).searchParams.get("query")).toContain("url in");
     });
+  });
+
+  it("turns JSONExtract SQL into builder chips when switching modes", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.change(screen.getByLabelText("SQL query"), {
+      target: {
+        value: "position(JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept'), '\"application/nd.shimo.v2+json\"') > 0"
+      }
+    });
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+    expect(
+      screen.getByRole("button", { name: "req.metadata.Accept = application/nd.shimo.v2+json" })
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "SQL" }));
+    const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+    expect(sql).toContain("JSONExtractString(_raw_log_, 'req')");
+    expect(sql).toContain("'Accept'");
+    expect(sql).toContain("= 'application/nd.shimo.v2+json'");
+    expect(sql).not.toContain("JSONExtractRaw(_raw_log_, 'req', 'metadata', 'Accept')");
   });
 
   it("keeps disabled conditions visible but excludes them from query text and URL", async () => {
@@ -1039,6 +1529,647 @@ describe("query page", () => {
     const logsRequest = requests.find((item) => item.includes("GET /api/v1/tables/9527/logs")) ?? "";
     const logsUrl = new URL(logsRequest.replace(/^GET /, ""), "http://localhost");
     expect(logsUrl.searchParams.get("query")).toBe(alarmKw);
+  });
+
+  it("uses the updated query on share pages after adding a KV exclude condition", async () => {
+    const defaultFetch = window.fetch;
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        requests.push(`${init?.method || "GET"} ${url.pathname}${url.search}`);
+        return defaultFetch(input, init);
+      })
+    );
+    const originalKw =
+      "`msg` = 'duration' and `queueUpDuration` > 80 and `_raw_log_` not like 'N2A1gKPoP9he4BqD'";
+    const originalQuery = "`msg` = 'duration' AND `queueUpDuration` > 80";
+    const params = new URLSearchParams({
+      tid: "9527",
+      start: "1789355974",
+      end: "1789356154",
+      mode: "0",
+      tab: "custom",
+      kw: originalKw,
+      query: originalQuery
+    });
+    window.history.replaceState({}, "", `/share?${params.toString()}`);
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage shareMode />
+      </TimeRangeProvider>
+    );
+
+    await waitFor(() => {
+      expect(requests.some((item) => item.includes("GET /api/v1/tables/9527/logs"))).toBe(true);
+    });
+    const initialLogs = requests.find((item) => item.includes("GET /api/v1/tables/9527/logs")) ?? "";
+    const initialLogsUrl = new URL(initialLogs.replace(/^GET /, ""), "http://localhost");
+    expect(initialLogsUrl.searchParams.get("query")).toBe(originalKw);
+
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("timeout"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "排除查询条件" }));
+
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("`message` != 'timeout'");
+      const pageQuery = new URL(window.location.href).searchParams.get("query");
+      expect(pageQuery).toBe(sql);
+      const laterLogs = requests
+        .filter((item) => item.includes("GET /api/v1/tables/9527/logs"))
+        .slice(1);
+      expect(laterLogs.length).toBeGreaterThan(0);
+      const laterLogsUrl = new URL(laterLogs[0].replace(/^GET /, ""), "http://localhost");
+      expect(laterLogsUrl.searchParams.get("query")).toBe(sql);
+      const laterCharts = requests.filter((item) => item.includes("GET /api/v1/tables/9527/charts"));
+      const laterChartsUrl = new URL(laterCharts.at(-1)!.replace(/^GET /, ""), "http://localhost");
+      expect(laterChartsUrl.searchParams.get("query")).toBe(sql);
+      const pageKw = new URL(window.location.href).searchParams.get("kw");
+      expect(pageKw === null || pageKw === sql).toBe(true);
+    });
+  });
+
+  it("shows system fields from the log JSON in the Fields tab", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      _cluster_: "shimopro-level-0-ult14-dy5ne",
+                      _container_name_: "smpro-svc-edit-worker-mosheet",
+                      _log_agent_: "16863fc1-9e37-43f8-bb21-1817f2eb6aed",
+                      _namespace_: "default",
+                      _node_ip_: "10.66.1.196",
+                      _node_name_: "10.66.1.196",
+                      _pod_name_: "smpro-svc-edit-worker-mosheet-f968847f8-4czfv",
+                      _source_: "reg.smvm.cn/cicd/shimo-saas/svc-edit:5b0629f3",
+                      _time_nanosecond_: "2026-09-23T19:17:19+08:00",
+                      _time_second_: "2026-09-23T19:17:19+08:00",
+                      _raw_log_: {
+                        lv: "warn",
+                        ts: 1790162239.436122,
+                        msg: "duration",
+                        lname: "default.log",
+                        partition: 50,
+                        offset: 130531408,
+                        type: "USER_CHANGES",
+                        fileGuid: "B1Awdlo2G1IKlD3m",
+                        fileType: -4,
+                        userId: 97902056,
+                        rev: 74671,
+                        clientId: "bd0b8628-739f-4c83-8d2e-eae7d3c7e835",
+                        newRev: 0,
+                        csLength: 233,
+                        queueUpDuration: 93.912,
+                        waitDuration: 0,
+                        processDuration: 0.007,
+                        consumeDuration: 93.919,
+                        isFallback: false,
+                        fallbackCount: 0
+                      }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    expect(details).toHaveClass("cv-query-detail--fields");
+    [
+      "_cluster_",
+      "_pod_name_",
+      "_namespace_",
+      "_node_ip_",
+      "_source_",
+      "_time_nanosecond_",
+      "ts",
+      "lname",
+      "fileGuid"
+    ].forEach((field) => {
+      expect(within(details).getByText(field)).toBeInTheDocument();
+    });
+    expect(within(details).queryByText("_raw_log_")).not.toBeInTheDocument();
+    expect(within(details).queryByText("Metadata")).not.toBeInTheDocument();
+  });
+
+  it("uses JSONExtract for KV conditions on fields that are not base or log fields", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      msg: "duration",
+                      queueUpDuration: 93.912,
+                      _raw_log_: {
+                        msg: "duration",
+                        queueUpDuration: 93.912,
+                        type: "USER_CHANGES"
+                      }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("USER_CHANGES"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "添加查询条件" }));
+
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("JSONExtractRaw(_raw_log_, 'type')");
+      expect(sql).toContain("USER_CHANGES");
+      expect(sql).not.toContain("`type` = 'USER_CHANGES'");
+    });
+  });
+
+  it("uses JSONExtract when adding a condition from Temp fields top values", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        const method = init?.method || "GET";
+        if (method === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      msg: "duration",
+                      _raw_log_: {
+                        msg: "duration",
+                        type: "USER_CHANGES"
+                      }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        if (method === "POST" && url.pathname.endsWith("/api/v2/query/field-stats")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  items: [{ value: "USER_CHANGES", count: 1, percentage: 100 }],
+                  total: 1
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const fieldsPanel = await screen.findByRole("complementary", { name: "Fields" });
+    const typeField = await within(fieldsPanel).findByRole("button", { name: "Top values for type" });
+    fireEvent.click(typeField);
+    const topValues = await within(fieldsPanel).findByRole("region", { name: "type top values" });
+    fireEvent.click(within(topValues).getByRole("button", { name: "USER_CHANGES" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("JSONExtractRaw(_raw_log_, 'type')");
+      expect(sql).toContain("USER_CHANGES");
+      expect(sql).not.toContain("`type` = 'USER_CHANGES'");
+      expect(sql).not.toContain("`_raw_log_` like '%USER_CHANGES%'");
+    });
+  });
+
+  it("parses JSONExtract predicates back into nested conditions", () => {
+    const parsed = parseQueryTextConditions(
+      "position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0 AND JSONExtractFloat(_raw_log_, 'fileType') = -4 AND JSONExtractRaw(_raw_log_, 'isFallback') = 'false'"
+    );
+    expect(parsed).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: "type", operator: "=", value: "USER_CHANGES", nestedJson: true }),
+        expect.objectContaining({ field: "fileType", operator: "=", value: -4, valueType: "number", nestedJson: true }),
+        expect.objectContaining({ field: "isFallback", operator: "=", value: "false", nestedJson: true })
+      ])
+    );
+    expect(buildVisualQuery(parsed)).toContain("JSONExtractRaw(_raw_log_, 'type')");
+    expect(buildVisualQuery(parsed)).toContain("JSONExtractFloat(_raw_log_, 'fileType') = -4");
+    expect(buildVisualQuery(parsed)).toContain("JSONExtractRaw(_raw_log_, 'isFallback') = 'false'");
+  });
+
+  it("maps container.name top values to the base column _container_name_", () => {
+    const fieldRef = buildQueryFieldRef(
+      {
+        id: "cond_container",
+        field: "container.name",
+        operator: "=",
+        value: "svc-edit",
+        valueType: "string"
+      },
+      {
+        baseFields: [{ field: "_container_name_" }],
+        logFields: []
+      }
+    );
+    expect(fieldRef.source).toBe("column");
+    expect(fieldRef.isAccelerated).toBe(true);
+    expect(fieldRef.fieldKey).toBe("_container_name_");
+    expect(
+      buildVisualQuery([
+        {
+          id: "cond_container",
+          field: fieldRef.fieldKey,
+          operator: "=",
+          value: "svc-edit",
+          valueType: "string"
+        }
+      ])
+    ).toBe("`_container_name_` = 'svc-edit'");
+  });
+
+  it("turns leftover bare search into a raw-log like when combining nested field conditions", () => {
+    const parsed = parseQueryTextConditions("f634d81393b98835e67e3d43b1206c07");
+    expect(parsed).toEqual([
+      expect.objectContaining({
+        field: "_raw_log_",
+        operator: "like",
+        value: "f634d81393b98835e67e3d43b1206c07"
+      })
+    ]);
+    const sql = buildVisualQuery([
+      parsed[0],
+      {
+        id: "cond_container",
+        field: "container.name",
+        operator: "=",
+        value: "svc-edit",
+        valueType: "string",
+        nestedJson: true
+      }
+    ]);
+    expect(sql).toContain("`_raw_log_` like '%f634d81393b98835e67e3d43b1206c07%'");
+    expect(sql).toContain("'svc-edit'");
+    expect(sql).not.toMatch(/^f634d81393b98835e67e3d43b1206c07 AND/i);
+    expect(
+      buildCombinedQuery(
+        "f634d81393b98835e67e3d43b1206c07",
+        "JSONExtractString(_raw_log_, 'container', 'name') = 'svc-edit'"
+      )
+    ).toBe(
+      "`_raw_log_` like '%f634d81393b98835e67e3d43b1206c07%' AND JSONExtractString(_raw_log_, 'container', 'name') = 'svc-edit'"
+    );
+  });
+
+  it("unwraps stringified nested JSON before excluding pq.environment", () => {
+    const sql = buildVisualQuery([
+      {
+        id: "cond_pq",
+        field: "pq.environment",
+        operator: "!=",
+        value: "shimo",
+        valueType: "string",
+        nestedJson: true
+      }
+    ]);
+    expect(sql).toContain("JSONExtractString(_raw_log_, 'pq')");
+    expect(sql).toContain("JSONExtractString(");
+    expect(sql).toContain("!= 'shimo'");
+    expect(sql).not.toContain("JSONExtractRaw(_raw_log_, 'pq', 'environment')");
+    const parsed = parseQueryTextConditions(sql);
+    expect(parsed).toEqual([
+      expect.objectContaining({
+        field: "pq.environment",
+        operator: "!=",
+        value: "shimo",
+        nestedJson: true
+      })
+    ]);
+  });
+
+  it("hides the current page row range next to Total", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 11392973,
+                  cost: 136,
+                  query: "",
+                  keys: [],
+                  logs: Array.from({ length: 50 }, (_, index) => ({
+                    _time: "2026-09-24 17:18:00",
+                    message: `row-${index}`
+                  }))
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const downloadButton = (await screen.findAllByRole("button", { name: "Download logs" }))[0];
+    expect(downloadButton).toHaveTextContent("Total 11,392,973");
+    expect(downloadButton).not.toHaveTextContent("1 - 50");
+  });
+
+  it("keeps leftover SQL in builder mode when adding another condition", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      msg: "duration",
+                      queueUpDuration: 93.912,
+                      isFallback: false,
+                      fileType: -4,
+                      _raw_log_: {
+                        msg: "duration",
+                        queueUpDuration: 93.912,
+                        type: "USER_CHANGES",
+                        isFallback: false,
+                        fileType: -4
+                      }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("USER_CHANGES"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+    await waitFor(() => {
+      expect((screen.getByLabelText("SQL query") as HTMLInputElement).value).toContain("JSONExtractRaw(_raw_log_, 'type')");
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+    expect(screen.getByRole("button", { name: "Add condition" })).toBeInTheDocument();
+
+    fireEvent.click(within(details).getByText("duration"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+
+    await waitFor(() => {
+      const sqlAfter = new URL(window.location.href).searchParams.get("query") ?? "";
+      expect(sqlAfter).toContain("JSONExtractRaw(_raw_log_, 'type')");
+      expect(sqlAfter).toContain("duration");
+      expect(sqlAfter.toLowerCase()).toContain("msg");
+    });
+    expect(screen.queryByText(/_raw_log_ like/i)).not.toBeInTheDocument();
+  });
+
+  it("adds boolean false from KV as a JSONExtract equality", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      isFallback: false,
+                      _raw_log_: { isFallback: false, msg: "duration" }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("false"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("JSONExtractRaw(_raw_log_, 'isFallback') = 'false'");
+      expect(sql).not.toContain("`_raw_log_` like");
+      expect(sql).not.toContain("\"false\"");
+    });
+  });
+
+  it("replaces type equals JSONExtract when excluding the same value in SQL mode", async () => {
+    const defaultFetch = window.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const rawUrl = typeof input === "string" ? input : input.toString();
+        const url = new URL(rawUrl, "http://localhost");
+        if ((init?.method || "GET") === "GET" && url.pathname.endsWith("/api/v1/tables/9527/logs")) {
+          return {
+            ok: true,
+            text: async () =>
+              JSON.stringify({
+                code: 0,
+                msg: "succ",
+                data: {
+                  count: 1,
+                  cost: 8,
+                  query: "",
+                  keys: [],
+                  logs: [
+                    {
+                      msg: "duration",
+                      _raw_log_: { msg: "duration", type: "USER_CHANGES" }
+                    }
+                  ]
+                }
+              })
+          };
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    const details = (await screen.findAllByLabelText("Log details"))[0];
+    fireEvent.click(within(details).getByText("USER_CHANGES"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /添加查询条件/ }));
+    await waitFor(() => {
+      expect((screen.getByLabelText("SQL query") as HTMLInputElement).value).toContain(
+        "position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0"
+      );
+    });
+    fireEvent.click(within(details).getByText("USER_CHANGES"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /排除查询条件/ }));
+    await waitFor(() => {
+      const sql = (screen.getByLabelText("SQL query") as HTMLInputElement).value;
+      expect(sql).toContain("position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') = 0");
+      expect(sql).not.toContain("position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0");
+    });
+  });
+
+  it("does not keep leftover type equals SQL when builder adds type not-equals", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await waitForQueryPageReady();
+    fireEvent.change(screen.getByLabelText("SQL query"), {
+      target: {
+        value:
+          "position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0 AND `msg` = 'duration' AND `queueUpDuration` > 80 AND position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') = 0"
+      }
+    });
+    fireEvent.click(screen.getByRole("tab", { name: "Builder" }));
+    expect(screen.getByRole("button", { name: "type != USER_CHANGES" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "type = USER_CHANGES" })).not.toBeInTheDocument();
+    await waitFor(() => {
+      const sql = new URL(window.location.href).searchParams.get("query") ?? "";
+      expect(sql).toContain("position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') = 0");
+      expect(sql).not.toContain("position(JSONExtractRaw(_raw_log_, 'type'), '\"USER_CHANGES\"') > 0");
+    });
   });
 
   it("applies compact URL query conditions and last run time to top values", async () => {
@@ -1577,6 +2708,7 @@ describe("query page", () => {
     const downloadButton = await screen.findByRole("button", { name: "Download logs" });
     expect(downloadButton).toHaveTextContent(/Total \d+/);
     expect(downloadButton).not.toHaveTextContent("1 - 1");
+    expect(downloadButton).not.toHaveTextContent("1 - 50");
     expect(screen.getAllByLabelText("Query stats")[0]).toHaveTextContent(/Time \d+ms/);
     expect(screen.getAllByLabelText("Query stats")[0]).not.toHaveTextContent(/Total/);
     expect(screen.queryByLabelText("Result page controls")).not.toBeInTheDocument();
@@ -2536,21 +3668,21 @@ describe("query page", () => {
     expect(within(logDetails).getByText("/host/proc/meminfo")).toBeInTheDocument();
     expect(within(logDetails).queryByText("_raw_log_")).not.toBeInTheDocument();
     expect(within(logDetails).queryByText("Metadata")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("_time_nanosecond_")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("_time_second_")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("container.image.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("host.ip")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("host.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.namespace.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.node.ip")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.node.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.pod.name")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("k8s.pod.uid")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("lname")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("log.file.path")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("ts")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("time")).not.toBeInTheDocument();
-    expect(within(logDetails).queryByText("pod-uid-9527")).not.toBeInTheDocument();
+    expect(within(logDetails).getByText("_time_nanosecond_")).toBeInTheDocument();
+    expect(within(logDetails).getByText("_time_second_")).toBeInTheDocument();
+    expect(within(logDetails).getByText("container.image.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("host.ip")).toBeInTheDocument();
+    expect(within(logDetails).getByText("host.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.namespace.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.node.ip")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.node.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.pod.name")).toBeInTheDocument();
+    expect(within(logDetails).getByText("k8s.pod.uid")).toBeInTheDocument();
+    expect(within(logDetails).getByText("lname")).toBeInTheDocument();
+    expect(within(logDetails).getByText("log.file.path")).toBeInTheDocument();
+    expect(within(logDetails).getByText("ts")).toBeInTheDocument();
+    expect(within(logDetails).getByText("time")).toBeInTheDocument();
+    expect(within(logDetails).getByText("pod-uid-9527")).toBeInTheDocument();
     await collapseAllLogs();
     expect(screen.getAllByRole("columnheader").some((header) => header.textContent?.includes("request_length"))).toBe(false);
     const fieldsPanel = screen.getByRole("complementary", { name: "Fields" });
@@ -2639,7 +3771,7 @@ describe("query page", () => {
     });
     expect(within(accessLogDetails).getByText("del")).toBeInTheDocument();
     expect(within(accessLogDetails).getByText("component.eredis")).toBeInTheDocument();
-    expect(within(accessLogDetails).queryByText("lname")).not.toBeInTheDocument();
+    expect(within(accessLogDetails).getByText("lname")).toBeInTheDocument();
 
     expect(screen.queryByRole("columnheader", { name: "k8s.pod.uid" })).not.toBeInTheDocument();
     const fieldsDialog = screen.getByRole("complementary", { name: "Fields" });
@@ -3922,9 +5054,17 @@ describe("query page", () => {
       });
       expect(screen.queryByText(/Relative time/i)).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Last 15 minutes" })).not.toBeInTheDocument();
-      const presetRow = screen.getByLabelText("Absolute time shortcuts");
-      expect(presetRow).toContainElement(screen.getByRole("button", { name: "Today" }));
-      expect(presetRow).toContainElement(screen.getByRole("button", { name: "Apply 15 minute absolute span" }));
+      expect(screen.getByLabelText("Absolute time shortcuts")).toContainElement(screen.getByRole("button", { name: "Today" }));
+      expect(screen.getByLabelText("Relative span presets")).toContainElement(
+        screen.getByRole("button", { name: "Apply 5 minute relative span (auto-refresh)" })
+      );
+      expect(screen.getByLabelText("Relative span presets")).toContainElement(
+        screen.getByRole("button", { name: "Apply 15 minute absolute span (auto-refresh)" })
+      );
+      expect(screen.getByLabelText("Relative span presets")).toContainElement(
+        screen.getByRole("button", { name: "Apply 30 minute relative span (auto-refresh)" })
+      );
+      expect(screen.getByRole("button", { name: "Start auto-refresh" })).toBeInTheDocument();
       expect(document.querySelector(".cv-query-time-absolute-separator")).not.toBeInTheDocument();
       act(() => {
         fireEvent.click(screen.getByLabelText("Absolute start time"));
