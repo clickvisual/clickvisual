@@ -44,6 +44,7 @@ type QueryRunRange = {
 type QueryRunSnapshot = {
   range: QueryRunRange;
   conditions: QueryConditionV2[];
+  query: string;
 };
 
 function isAbortRequestError(error: unknown) {
@@ -166,14 +167,57 @@ function buildRawLogJsonPathArgs(path: string) {
     .join(", ");
 }
 
+function quoteJsonKey(segment: string) {
+  return `'${escapeClickHouseString(segment)}'`;
+}
+
+function unwrapJsonField(base: string, segment: string) {
+  const key = quoteJsonKey(segment);
+  return `if(substring(JSONExtractRaw(${base}, ${key}), 1, 1) = '"', JSONExtractString(${base}, ${key}), JSONExtractRaw(${base}, ${key}))`;
+}
+
+function unwrapJsonPath(segments: string[]) {
+  return segments.reduce((expr, segment) => unwrapJsonField(expr, segment), "_raw_log_");
+}
+
 function buildNestedRawLogPredicate(
   field: string,
-  value: string | number,
+  value: string | number | boolean,
   valueType: QueryFilterValueType,
   operator: string
 ) {
-  const args = buildRawLogJsonPathArgs(field);
+  const segments = field.split(".").filter(Boolean);
   const negated = operator === "!=" || operator === "<>" || operator === "not like";
+  if (operator === "like" || operator === "not like") {
+    const needle = unwrapLikeValue(String(value));
+    const expr =
+      segments.length >= 2
+        ? `JSONExtractString(${unwrapJsonPath(segments.slice(0, -1))}, ${quoteJsonKey(segments[segments.length - 1])})`
+        : `JSONExtractString(_raw_log_, ${buildRawLogJsonPathArgs(field)})`;
+    const cmp = operator === "not like" ? "=" : ">";
+    return `position(${expr}, '${escapeClickHouseString(needle)}') ${cmp} 0`;
+  }
+  if (segments.length >= 2) {
+    const parent = unwrapJsonPath(segments.slice(0, -1));
+    const last = quoteJsonKey(segments[segments.length - 1]);
+    if (value === true || value === false || value === "true" || value === "false") {
+      const asBool = value === true || value === "true";
+      const cmp = negated ? "!=" : "=";
+      return `JSONExtractRaw(${parent}, ${last}) ${cmp} '${asBool}'`;
+    }
+    if (valueType === "number") {
+      const cmp = negated ? "!=" : "=";
+      return `JSONExtractFloat(${parent}, ${last}) ${cmp} ${normalizeNumberValue(value, field)}`;
+    }
+    const cmp = negated ? "!=" : "=";
+    return `JSONExtractString(${parent}, ${last}) ${cmp} '${escapeClickHouseString(String(value))}'`;
+  }
+  const args = buildRawLogJsonPathArgs(field);
+  if (value === true || value === false || value === "true" || value === "false") {
+    const asBool = value === true || value === "true";
+    const cmp = negated ? "!=" : "=";
+    return `JSONExtractRaw(_raw_log_, ${args}) ${cmp} '${asBool}'`;
+  }
   if (valueType === "number") {
     const cmp = negated ? "!=" : "=";
     return `JSONExtractFloat(_raw_log_, ${args}) ${cmp} ${normalizeNumberValue(value, field)}`;
@@ -181,6 +225,138 @@ function buildNestedRawLogPredicate(
   const jsonToken = JSON.stringify(String(value));
   const cmp = negated ? "=" : ">";
   return `position(JSONExtractRaw(_raw_log_, ${args}), '${escapeClickHouseString(jsonToken)}') ${cmp} 0`;
+}
+
+function parseJsonExtractPathArgs(args: string) {
+  const parts: string[] = [];
+  const matcher = /'((?:\\'|[^'])*)'/g;
+  let match: RegExpExecArray | null = matcher.exec(args);
+  while (match) {
+    parts.push(match[1].replaceAll("\\'", "'"));
+    match = matcher.exec(args);
+  }
+  return parts.length > 0 ? parts.join(".") : null;
+}
+
+function parseNestedRawLogToken(token: string, index: number): QueryFilterCondition | null {
+  const trimmed = token.trim();
+  const floatMatch = trimmed.match(/^JSONExtractFloat\(\s*_raw_log_\s*,\s*(.+)\s*\)\s*(!=|=)\s*(.+)$/i);
+  if (floatMatch) {
+    const field = parseJsonExtractPathArgs(floatMatch[1]);
+    const numeric = Number(floatMatch[3].trim());
+    if (!field || !Number.isFinite(numeric)) {
+      return null;
+    }
+    return {
+      id: `cond_url_${index}`,
+      field,
+      operator: floatMatch[2] as "=" | "!=",
+      value: numeric,
+      valueType: "number",
+      nestedJson: true
+    };
+  }
+  const boolMatch = trimmed.match(/^JSONExtractRaw\(\s*_raw_log_\s*,\s*(.+)\s*\)\s*(!=|=)\s*'(true|false)'$/i);
+  if (boolMatch) {
+    const field = parseJsonExtractPathArgs(boolMatch[1]);
+    if (!field) {
+      return null;
+    }
+    return {
+      id: `cond_url_${index}`,
+      field,
+      operator: boolMatch[2] as "=" | "!=",
+      value: boolMatch[3].toLowerCase(),
+      valueType: "string",
+      nestedJson: true
+    };
+  }
+  const unwrappedStringMatch = trimmed.match(
+    /^JSONExtractString\((if\(substring\(JSONExtractRaw\(.+)\)\s*(!=|=)\s*'((?:\\'|[^'])*)'$/s
+  );
+  if (unwrappedStringMatch) {
+    const inner = unwrappedStringMatch[1];
+    const keys = [...inner.matchAll(/JSONExtract(?:Raw|String)\([^,()]+,\s*'((?:\\'|[^'])*)'\)/g)].map(
+      (item) => item[1]
+    );
+    const path: string[] = [];
+    keys.forEach((key) => {
+      if (path[path.length - 1] !== key) {
+        path.push(key);
+      }
+    });
+    const lastKey = inner.match(/,\s*'((?:\\'|[^'])*)'\s*$/);
+    if (lastKey && path[path.length - 1] !== lastKey[1]) {
+      path.push(lastKey[1]);
+    }
+    if (path.length > 0) {
+      return {
+        id: `cond_url_${index}`,
+        field: path.join("."),
+        operator: unwrappedStringMatch[2] as "=" | "!=",
+        value: unwrappedStringMatch[3].replaceAll("\\'", "'"),
+        valueType: "string",
+        nestedJson: true
+      };
+    }
+  }
+  const unwrappedFloatMatch = trimmed.match(
+    /^JSONExtractFloat\((if\(substring\(JSONExtractRaw\(.+)\)\s*(!=|=)\s*(.+)$/s
+  );
+  if (unwrappedFloatMatch) {
+    const inner = unwrappedFloatMatch[1];
+    const keys = [...inner.matchAll(/JSONExtract(?:Raw|String)\([^,()]+,\s*'((?:\\'|[^'])*)'\)/g)].map(
+      (item) => item[1]
+    );
+    const path: string[] = [];
+    keys.forEach((key) => {
+      if (path[path.length - 1] !== key) {
+        path.push(key);
+      }
+    });
+    const lastKey = inner.match(/,\s*'((?:\\'|[^'])*)'\s*$/);
+    if (lastKey && path[path.length - 1] !== lastKey[1]) {
+      path.push(lastKey[1]);
+    }
+    const numeric = Number(unwrappedFloatMatch[3].trim());
+    if (path.length > 0 && Number.isFinite(numeric)) {
+      return {
+        id: `cond_url_${index}`,
+        field: path.join("."),
+        operator: unwrappedFloatMatch[2] as "=" | "!=",
+        value: numeric,
+        valueType: "number",
+        nestedJson: true
+      };
+    }
+  }
+  const posMatch = trimmed.match(
+    /^position\(\s*JSONExtractRaw\(\s*_raw_log_\s*,\s*(.+)\s*\)\s*,\s*'((?:\\'|[^'])*)'\s*\)\s*(>|=)\s*0$/i
+  );
+  if (posMatch) {
+    const field = parseJsonExtractPathArgs(posMatch[1]);
+    if (!field) {
+      return null;
+    }
+    let value: string | number = posMatch[2].replaceAll("\\'", "'");
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      if (typeof parsed === "string" || typeof parsed === "number") {
+        value = parsed;
+      }
+    } catch {
+      // keep raw token text
+    }
+    return {
+      id: `cond_url_${index}`,
+      field,
+      operator: posMatch[3] === "=" ? "!=" : "=",
+      value,
+      valueType: typeof value === "number" ? "number" : "string",
+      nestedJson: true
+    };
+  }
+  return null;
 }
 
 function isGlobalMatchField(field: string) {
@@ -211,10 +387,31 @@ function unwrapLikeValue(value: string) {
   return value.startsWith("%") && value.endsWith("%") && value.length >= 2 ? value.slice(1, -1) : value;
 }
 
+function isBareSearchTerm(query: string) {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return false;
+  }
+  return /^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(trimmed);
+}
+
 function createConditionFromQueryToken(token: string, index: number): QueryFilterCondition | null {
   const trimmed = token.trim();
   if (!trimmed) {
     return null;
+  }
+  const nested = parseNestedRawLogToken(trimmed, index);
+  if (nested) {
+    return nested;
+  }
+  if (isBareSearchTerm(trimmed)) {
+    return {
+      id: `cond_url_${index}`,
+      field: GLOBAL_MATCH_COLUMN,
+      operator: "like",
+      value: trimmed,
+      valueType: "string"
+    };
   }
   const match = trimmed.match(/^(.+?)\s*(not\s+like|like|!=|>=|<=|=|>|<)\s*(.+)$/i);
   if (!match) {
@@ -316,15 +513,23 @@ function readInitialQueryConditions() {
   ] as QueryFilterCondition[];
 }
 
-function writeQueryToURL(query: string) {
+function writeQueryToURL(query: string, syncKeyword = false) {
   if (typeof window === "undefined") {
     return;
   }
   const url = new URL(window.location.href);
-  if (query.trim()) {
-    url.searchParams.set("query", query.trim());
+  const nextQuery = query.trim();
+  if (nextQuery) {
+    url.searchParams.set("query", nextQuery);
   } else {
     url.searchParams.delete("query");
+  }
+  if (syncKeyword) {
+    if (nextQuery) {
+      url.searchParams.set("kw", nextQuery);
+    } else {
+      url.searchParams.delete("kw");
+    }
   }
   const next = `${url.pathname}${url.search}${url.hash}`;
   const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -379,13 +584,32 @@ export function buildVisualQuery(conditions: QueryFilterCondition[]) {
     .join(" AND ");
 }
 
-function buildCombinedQuery(rawQuery: string, visualQuery: string) {
+export function buildCombinedQuery(rawQuery: string, visualQuery: string) {
   const raw = rawQuery.trim();
   const visual = visualQuery.trim();
-  if (raw && visual) {
-    return `${raw} AND ${visual}`;
+  const left =
+    raw && isBareSearchTerm(raw)
+      ? `${quoteQueryField(GLOBAL_MATCH_COLUMN)} like '%${escapeClickHouseString(raw)}%'`
+      : raw;
+  if (left && visual) {
+    return `${left} AND ${visual}`;
   }
-  return raw || visual;
+  return left || visual;
+}
+
+function normalizeStorageFieldKey(field: string) {
+  const normalized = String(field || "")
+    .replace(/`/g, "")
+    .trim()
+    .toLowerCase();
+  if (
+    normalized === "container.name" ||
+    normalized === "_container_name_" ||
+    normalized === "container_name"
+  ) {
+    return "_container_name_";
+  }
+  return normalized;
 }
 
 function storageFieldName(field: QueryStorageAnalysisField) {
@@ -400,7 +624,15 @@ function findStorageField(
   fields: QueryStorageAnalysisField[],
   fieldKey: string
 ) {
-  return fields.find((item) => storageFieldName(item) === fieldKey || item.field === fieldKey);
+  const wanted = normalizeStorageFieldKey(fieldKey);
+  if (!wanted) {
+    return undefined;
+  }
+  return fields.find(
+    (item) =>
+      normalizeStorageFieldKey(storageFieldName(item)) === wanted ||
+      normalizeStorageFieldKey(item.field) === wanted
+  );
 }
 
 function findParentStorageField(
@@ -563,7 +795,7 @@ export function useQueryWorkspace(
   }
 ) {
   const initialConditions = useMemo(() => readInitialQueryConditions(), []);
-  const legacyV1ShareQuery = useMemo(() => readLegacyV1ShareQuery(), []);
+  const legacyV1ShareQueryRef = useRef(readLegacyV1ShareQuery());
   const [instances, setInstances] = useState<QuerySourceInstance[]>([]);
   const [databases, setDatabases] = useState<QuerySourceDatabase[]>([]);
   const [tables, setTables] = useState<QuerySourceTable[]>([]);
@@ -572,7 +804,14 @@ export function useQueryWorkspace(
   const [selectedDatabase, setSelectedDatabase] = useState("");
   const [selectedTable, setSelectedTable] = useState("");
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
-  const [queryText, setQueryText] = useState("");
+  const [queryText, setQueryTextState] = useState("");
+  function releaseLegacyV1ShareQuery() {
+    legacyV1ShareQueryRef.current = "";
+  }
+  function setQueryText(nextValue: string) {
+    releaseLegacyV1ShareQuery();
+    setQueryTextState(nextValue);
+  }
   const [conditions, setConditions] = useState<QueryFilterCondition[]>(initialConditions);
   const [activeConditionId, setActiveConditionId] = useState<string | null>(initialConditions[0]?.id ?? null);
   const [savedFilterProfiles, setSavedFilterProfiles] = useState<QueryFilterProfile[]>([]);
@@ -895,7 +1134,7 @@ export function useQueryWorkspace(
       }
     }
     const nextQuery = buildCombinedQuery(queryText, generatedQuery);
-    writeQueryToURL(nextQuery);
+    writeQueryToURL(nextQuery, !legacyV1ShareQueryRef.current);
   }, [conditions, queryText]);
 
   async function runQuery(
@@ -939,7 +1178,7 @@ export function useQueryWorkspace(
       analysisFields
     );
     const shouldUseStructuredRun =
-      !legacyV1ShareQuery && !effectiveQueryText.trim() && structuredConditions.length > 0;
+      !legacyV1ShareQueryRef.current && !effectiveQueryText.trim() && structuredConditions.length > 0;
     const effectivePageSize =
       overridePageSize && Number.isFinite(overridePageSize) && overridePageSize > 0
         ? Math.round(overridePageSize)
@@ -947,7 +1186,7 @@ export function useQueryWorkspace(
 
     const params = {
       ...timeParams,
-      query: legacyV1ShareQuery || requestQuery,
+      query: legacyV1ShareQueryRef.current || requestQuery,
       page: nextPage,
       pageSize: effectivePageSize
     };
@@ -999,7 +1238,8 @@ export function useQueryWorkspace(
       setLogs(logsResult.value);
       setLastRunSnapshot({
         range: timeParams,
-        conditions: effectiveStructuredConditions
+        conditions: effectiveStructuredConditions,
+        query: requestQuery ?? ""
       });
       setPage(nextPage);
       if (nextPage === 1 && requestQuery) {
@@ -1129,7 +1369,7 @@ export function useQueryWorkspace(
     const requestQuery = buildCombinedQuery(queryText, generatedQuery) || undefined;
     const structuredConditions = buildStructuredConditions(conditions, analysisFields);
     const shouldUseStructuredRun =
-      !legacyV1ShareQuery && !queryText.trim() && structuredConditions.length > 0;
+      !legacyV1ShareQueryRef.current && !queryText.trim() && structuredConditions.length > 0;
     const maxRows = Math.max(1, Math.floor(limit));
     const collected: Array<Record<string, unknown>> = [];
     let total = 0;
@@ -1158,7 +1398,7 @@ export function useQueryWorkspace(
             effectiveTableId,
             {
               ...timeParams,
-              query: legacyV1ShareQuery || requestQuery,
+              query: legacyV1ShareQueryRef.current || requestQuery,
               page,
               pageSize
             },

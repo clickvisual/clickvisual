@@ -37,6 +37,7 @@ import {
   getQueryFieldStats
 } from "../api/query";
 import {
+  buildCombinedQuery,
   buildQueryFieldRef,
   buildStructuredConditions,
   buildVisualQuery,
@@ -180,6 +181,7 @@ type TableAutoQueryRequest = {
   tableId: number;
   tableName: string;
   conditions: QueryFilterCondition[];
+  queryText: string;
   range: {
     st: number;
     et: number;
@@ -489,13 +491,57 @@ const ABSOLUTE_DAY_PRESET_RANGES = [
   { label: "Today", dayOffset: 0 },
   { label: "Yesterday", dayOffset: 1 }
 ] as const;
+const LIVE_RELATIVE_MAX_MINUTES = 60;
+const LIVE_REFRESH_STORAGE_KEY = "cv-query-live-refresh-ms";
+const DEFAULT_LIVE_REFRESH_MS = 15_000;
+const LIVE_REFRESH_INTERVALS = [
+  { label: "5s", ms: 5_000 },
+  { label: "10s", ms: 10_000 },
+  { label: "15s", ms: 15_000 },
+  { label: "30s", ms: 30_000 },
+  { label: "1m", ms: 60_000 }
+] as const;
 const ABSOLUTE_SPAN_PRESETS = [
+  { label: "Apply 5 minute relative span", shortLabel: "5m", minutes: 5 },
   { label: "Apply 15 minute absolute span", shortLabel: "15m", minutes: 15 },
+  { label: "Apply 30 minute relative span", shortLabel: "30m", minutes: 30 },
   { label: "Apply 1 hour absolute span", shortLabel: "1h", minutes: 60 },
+  { label: "Apply 3 hour relative span", shortLabel: "3h", minutes: 3 * 60 },
   { label: "Apply 6 hour absolute span", shortLabel: "6h", minutes: 6 * 60 },
+  { label: "Apply 12 hour relative span", shortLabel: "12h", minutes: 12 * 60 },
   { label: "Apply 24 hour absolute span", shortLabel: "24h", minutes: 24 * 60 },
   { label: "Apply 7 day absolute span", shortLabel: "7d", minutes: 7 * 24 * 60 }
 ] as const;
+
+function isLiveRelativeMinutes(minutes: number) {
+  return minutes > 0 && minutes <= LIVE_RELATIVE_MAX_MINUTES;
+}
+
+function readLiveRefreshIntervalMs() {
+  const parsed = Number(window.localStorage.getItem(LIVE_REFRESH_STORAGE_KEY));
+  return LIVE_REFRESH_INTERVALS.some((item) => item.ms === parsed) ? parsed : DEFAULT_LIVE_REFRESH_MS;
+}
+
+function writeLiveRefreshIntervalMs(ms: number) {
+  window.localStorage.setItem(LIVE_REFRESH_STORAGE_KEY, String(ms));
+}
+
+function liveRefreshIntervalLabel(ms: number) {
+  return LIVE_REFRESH_INTERVALS.find((item) => item.ms === ms)?.label ?? "15s";
+}
+
+function relativeSpanButtonLabel(minutes: number) {
+  if (minutes < 60) {
+    return `Last ${minutes}m`;
+  }
+  if (minutes % (24 * 60) === 0) {
+    return `Last ${minutes / (24 * 60)}d`;
+  }
+  if (minutes % 60 === 0) {
+    return `Last ${minutes / 60}h`;
+  }
+  return `Last ${minutes}m`;
+}
 const DATE_PICKER_WEEKDAY_LABELS: Record<string, string> = {
   Sunday: "S",
   Sun: "S",
@@ -1276,11 +1322,15 @@ function isSameSecondDateRange(left: QueryDateRange, right: QueryDateRange) {
 function TimeRangeAbsolutePicker({
   value,
   onChange,
-  isLoading
+  isLoading,
+  liveRelativeMinutes,
+  onLiveRelativeMinutesChange
 }: {
   value: QueryAbsolutePickerRange;
   onChange: (pickerRange: QueryAbsolutePickerRange, dateRange: QueryDateRange) => void;
   isLoading?: boolean;
+  liveRelativeMinutes: number | null;
+  onLiveRelativeMinutesChange: (minutes: number | null) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [rangeError, setRangeError] = useState("");
@@ -1299,8 +1349,21 @@ function TimeRangeAbsolutePicker({
     };
   });
   const [activeAbsoluteField, setActiveAbsoluteField] = useState<TimeRangeAbsoluteField | null>(null);
+  const [liveRefreshMs, setLiveRefreshMs] = useState(readLiveRefreshIntervalMs);
+  const [liveIntervalOpen, setLiveIntervalOpen] = useState(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
   const parsedRange = useMemo(() => parseAbsolutePickerRange(value), [value.start, value.end]);
-  const buttonLabel = useMemo(() => getTimeRangeButtonLabel(parsedRange), [parsedRange]);
+  const buttonLabel = useMemo(() => {
+    if (liveRelativeMinutes) {
+      return relativeSpanButtonLabel(liveRelativeMinutes);
+    }
+    const matched = ABSOLUTE_SPAN_PRESETS.find((item) => isAbsoluteSpanSelected(item.minutes));
+    if (matched) {
+      return relativeSpanButtonLabel(matched.minutes);
+    }
+    return getTimeRangeButtonLabel(parsedRange);
+  }, [liveRelativeMinutes, parsedRange, value.end, value.start]);
   const draftDurationLabel = useMemo(() => {
     const nextStart = parseAbsoluteTimeInput(absoluteInputDraft.start);
     const nextEnd = parseAbsoluteTimeInput(absoluteInputDraft.end);
@@ -1333,6 +1396,47 @@ function TimeRangeAbsolutePicker({
     setIsOpen(false);
   }
 
+  useEffect(() => {
+    if (!liveRelativeMinutes || isOpen) {
+      return;
+    }
+    const minutes = liveRelativeMinutes;
+    const id = window.setInterval(() => {
+      if (document.hidden) {
+        return;
+      }
+      const nextDateRange = buildEndingNowTimeRange(minutes);
+      onChangeRef.current(buildAbsolutePickerRange(nextDateRange), nextDateRange);
+    }, liveRefreshMs);
+    return () => window.clearInterval(id);
+  }, [isOpen, liveRefreshMs, liveRelativeMinutes]);
+
+  function startLiveRelative() {
+    const matched = ABSOLUTE_SPAN_PRESETS.find(
+      (item) => isLiveRelativeMinutes(item.minutes) && isAbsoluteSpanSelected(item.minutes)
+    );
+    const minutes = matched?.minutes ?? DEFAULT_TIME_RANGE_MINUTES;
+    onLiveRelativeMinutesChange(minutes);
+    applyDateRange(buildEndingNowTimeRange(minutes), false);
+  }
+
+  function toggleLiveRelative() {
+    if (liveRelativeMinutes) {
+      onLiveRelativeMinutesChange(null);
+      return;
+    }
+    startLiveRelative();
+  }
+
+  function selectLiveRefreshInterval(ms: number) {
+    setLiveRefreshMs(ms);
+    writeLiveRefreshIntervalMs(ms);
+    setLiveIntervalOpen(false);
+    if (!liveRelativeMinutes) {
+      startLiveRelative();
+    }
+  }
+
   function applyDateRange(nextDateRange: [Date, Date], closeAfterApply = true) {
     const nextPickerRange = buildAbsolutePickerRange(nextDateRange);
     setRangeError("");
@@ -1361,6 +1465,7 @@ function TimeRangeAbsolutePicker({
       setRangeError("End time must be after start time");
       return;
     }
+    onLiveRelativeMinutesChange(null);
     setAbsoluteDraft({ start: nextStart, end: nextEnd });
     setAbsoluteInputDraft({
       start: formatAbsoluteTimeInput(nextStart),
@@ -1412,6 +1517,9 @@ function TimeRangeAbsolutePicker({
       setRangeError("Cannot shift an invalid time range");
       return;
     }
+    if (liveRelativeMinutes) {
+      onLiveRelativeMinutesChange(null);
+    }
     const wholeDaySpanDays = getWholeDaySpanDays(parsedRange);
     if (wholeDaySpanDays) {
       const nextStart = moment(parsedRange[0]).add(direction * wholeDaySpanDays, "days").startOf("day");
@@ -1454,6 +1562,31 @@ function TimeRangeAbsolutePicker({
 
   const absoluteControls = (
     <div className="cv-query-time-absolute-block">
+      <div className="cv-query-time-preset-row" aria-label="Relative time shortcuts">
+        <span className="cv-query-time-preset-label">Last</span>
+        <div className="cv-query-time-quick-grid" aria-label="Relative span presets">
+          {ABSOLUTE_SPAN_PRESETS.map((item) => {
+            const selected = isAbsoluteSpanSelected(item.minutes);
+            const live = isLiveRelativeMinutes(item.minutes);
+            return (
+              <button
+                key={item.minutes}
+                type="button"
+                className={selected ? "cv-query-time-quick cv-query-time-quick--active" : "cv-query-time-quick"}
+                onClick={() => {
+                  onLiveRelativeMinutesChange(live ? item.minutes : null);
+                  applyDateRange(buildEndingNowTimeRange(item.minutes));
+                }}
+                aria-label={live ? `${item.label} (auto-refresh)` : item.label}
+                title={live ? `${item.label} · auto-refresh` : item.label}
+                aria-pressed={selected}
+              >
+                {item.shortLabel ?? item.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <div className="cv-query-time-preset-row" aria-label="Absolute time shortcuts">
         <div className="cv-query-time-absolute-presets" aria-label="Absolute day presets">
           {ABSOLUTE_DAY_PRESET_RANGES.map((item) => {
@@ -1467,30 +1600,14 @@ function TimeRangeAbsolutePicker({
                     ? "cv-query-time-absolute-preset cv-query-time-absolute-preset--active"
                     : "cv-query-time-absolute-preset"
                 }
-                onClick={() => applyDateRange(buildDayOffsetTimeRange(item.dayOffset))}
+                onClick={() => {
+                  onLiveRelativeMinutesChange(null);
+                  applyDateRange(buildDayOffsetTimeRange(item.dayOffset));
+                }}
                 aria-label={item.label}
                 aria-pressed={selected}
               >
                 {item.label}
-              </button>
-            );
-          })}
-        </div>
-        <span className="cv-query-time-preset-row__separator" aria-hidden="true" />
-        <div className="cv-query-time-quick-grid" aria-label="Absolute span presets">
-          {ABSOLUTE_SPAN_PRESETS.map((item) => {
-            const selected = isAbsoluteSpanSelected(item.minutes);
-            return (
-              <button
-                key={item.minutes}
-                type="button"
-                className={selected ? "cv-query-time-quick cv-query-time-quick--active" : "cv-query-time-quick"}
-                onClick={() => applyDateRange(buildEndingNowTimeRange(item.minutes))}
-                aria-label={item.label}
-                title={item.label}
-                aria-pressed={selected}
-              >
-                {item.shortLabel ?? item.label}
               </button>
             );
           })}
@@ -1573,7 +1690,7 @@ function TimeRangeAbsolutePicker({
         onClick={() => shiftTimeWindow(-1)}
         disabled={!parsedRange || isLoading}
         aria-label="Previous time range"
-        title="Previous time range"
+        title={liveRelativeMinutes ? "Pause live and go to the previous range" : "Previous time range"}
       >
         <EuiIcon type="chevronSingleLeft" size="s" aria-hidden="true" />
       </button>
@@ -1582,7 +1699,15 @@ function TimeRangeAbsolutePicker({
         button={
           <button
             type="button"
-            className={isLoading ? "cv-query-time-button cv-query-time-button--loading" : "cv-query-time-button"}
+            className={
+              [
+                "cv-query-time-button",
+                isLoading ? "cv-query-time-button--loading" : "",
+                liveRelativeMinutes ? "cv-query-time-button--live" : ""
+              ]
+                .filter(Boolean)
+                .join(" ")
+            }
             onClick={() => (isOpen ? closePicker() : openPicker())}
             aria-label={`Time range: ${buttonLabel}`}
             aria-expanded={isOpen}
@@ -1590,6 +1715,7 @@ function TimeRangeAbsolutePicker({
           >
             <EuiIcon type="calendar" size="s" aria-hidden="true" className="cv-query-time-button__icon" />
             <span className="cv-query-time-button__label">{buttonLabel}</span>
+            {liveRelativeMinutes ? <span className="cv-query-time-live-dot" aria-hidden="true" /> : null}
           </button>
         }
         closePopover={closePicker}
@@ -1670,10 +1796,86 @@ function TimeRangeAbsolutePicker({
         onClick={() => shiftTimeWindow(1)}
         disabled={!parsedRange || isLoading}
         aria-label="Next time range"
-        title="Next time range"
+        title={liveRelativeMinutes ? "Pause live and go to the next range" : "Next time range"}
       >
         <EuiIcon type="chevronSingleRight" size="s" aria-hidden="true" />
       </button>
+      <div className="cv-query-time-live-group">
+        <EuiToolTip
+          content={
+            liveRelativeMinutes
+              ? `Following latest logs every ${liveRefreshIntervalLabel(liveRefreshMs)} · click to pause`
+              : `Follow latest logs every ${liveRefreshIntervalLabel(liveRefreshMs)}`
+          }
+          delay="regular"
+          position="bottom"
+          display="inlineBlock"
+        >
+          <button
+            type="button"
+            className={
+              liveRelativeMinutes
+                ? "cv-query-time-live-toggle cv-query-time-live-toggle--on"
+                : "cv-query-time-live-toggle"
+            }
+            onClick={toggleLiveRelative}
+            aria-pressed={Boolean(liveRelativeMinutes)}
+            aria-label={liveRelativeMinutes ? "Stop auto-refresh" : "Start auto-refresh"}
+            title={
+              liveRelativeMinutes
+                ? `Following latest logs every ${liveRefreshIntervalLabel(liveRefreshMs)} · click to pause`
+                : `Follow latest logs every ${liveRefreshIntervalLabel(liveRefreshMs)}`
+            }
+          >
+            <span className="cv-query-time-live-dot" aria-hidden="true" />
+            Live
+          </button>
+        </EuiToolTip>
+        <EuiPopover
+          anchorPosition="downRight"
+          isOpen={liveIntervalOpen}
+          closePopover={() => setLiveIntervalOpen(false)}
+          button={
+            <button
+              type="button"
+              className={
+                liveRelativeMinutes
+                  ? "cv-query-time-live-interval cv-query-time-live-interval--on"
+                  : "cv-query-time-live-interval"
+              }
+              onClick={() => setLiveIntervalOpen((open) => !open)}
+              aria-label={`Refresh every ${liveRefreshIntervalLabel(liveRefreshMs)}`}
+              aria-expanded={liveIntervalOpen}
+              aria-haspopup="menu"
+              title="Choose how often Live refreshes"
+            >
+              {liveRefreshIntervalLabel(liveRefreshMs)}
+              <EuiIcon type="arrowDown" size="s" aria-hidden="true" />
+            </button>
+          }
+          panelClassName="cv-query-time-live-interval-panel"
+          panelPaddingSize="none"
+        >
+          <div className="cv-query-time-live-interval-menu" role="menu" aria-label="Live refresh interval">
+            {LIVE_REFRESH_INTERVALS.map((item) => (
+              <button
+                key={item.ms}
+                type="button"
+                role="menuitem"
+                className={
+                  item.ms === liveRefreshMs
+                    ? "cv-query-time-live-interval-option cv-query-time-live-interval-option--active"
+                    : "cv-query-time-live-interval-option"
+                }
+                onClick={() => selectLiveRefreshInterval(item.ms)}
+                aria-checked={item.ms === liveRefreshMs}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </EuiPopover>
+      </div>
       {rangeError ? (
         <div className="cv-query-time-error" role="alert">
           {rangeError}
@@ -2431,7 +2633,24 @@ function formatPrettyLogDetailValue(value: unknown) {
 }
 
 function isHiddenLogDetailField(key: string) {
-  return isRawLogDetailParent(key) || isLowPriorityResultField(key);
+  return isRawLogDetailParent(key);
+}
+
+function shouldUseRawLogJsonCondition(field: string, fieldRef: QueryFieldRef) {
+  if (fieldRef.source === "column" && fieldRef.isAccelerated) {
+    return false;
+  }
+  if (field.includes(".") || fieldRef.source === "tag_path") {
+    return true;
+  }
+  const normalized = field.trim();
+  if (/^_/.test(normalized) && /_$/.test(normalized)) {
+    return false;
+  }
+  if (normalized === "time" || normalized === "timestamp") {
+    return false;
+  }
+  return fieldRef.source === "json_path";
 }
 
 function isStructuredColumnSample(value: unknown) {
@@ -2617,6 +2836,60 @@ function isUnsupportedLogContentQueryError(message: string) {
   );
 }
 
+function isRecoverableFieldStatsError(message: string) {
+  return isUnsupportedLogContentQueryError(message) || /Missing columns:/i.test(message);
+}
+
+const LOG_VALUE_SEPARATORS = new Set([" ", "|", ",", '"', "[", "]", "{", "}", "'", "\u001b"]);
+const LOG_VALUE_UNPARSED_MAX_LENGTH = 5120;
+
+function splitLogValueTokens(text: string) {
+  if (text.length > LOG_VALUE_UNPARSED_MAX_LENGTH) {
+    return [text];
+  }
+  const result: string[] = [];
+  const isSep = (value: string) => value.length > 0 && LOG_VALUE_SEPARATORS.has(value[0]);
+  const pushChar = (char: string) => {
+    const last = result.pop() || "";
+    if (last === "") {
+      result.push(char);
+      return;
+    }
+    if (isSep(last)) {
+      result.push(last, char);
+      return;
+    }
+    result.push(last + char);
+  };
+  const pushSeparator = (sep: string) => {
+    const last = result.pop() || "";
+    if (last === "") {
+      result.push(sep);
+      return;
+    }
+    if (!isSep(last)) {
+      result.push(last, sep);
+      return;
+    }
+    result.push(last + sep);
+  };
+  for (const char of text) {
+    if (LOG_VALUE_SEPARATORS.has(char)) {
+      pushSeparator(char);
+    } else {
+      pushChar(char);
+    }
+  }
+  return result;
+}
+
+function isClickableLogToken(token: string) {
+  if (token.length < 2) {
+    return false;
+  }
+  return token.split("").some((char) => !LOG_VALUE_SEPARATORS.has(char));
+}
+
 function createDetailConditionValue(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
     return {
@@ -2645,6 +2918,33 @@ function createTypedDetailConditionValue(value: unknown, valueType: QueryFilterV
 
 const RAW_LOG_DETAIL_KEYS = ["_raw_log_", "_raw_log", "_raw", "raw_log", "raw", "rawLogJson"];
 const LOG_DETAIL_MESSAGE_FIELD_KEYS = ["message", "msg", "content", "body"] as const;
+
+function normalizeQueryFieldKey(field: string) {
+  return field.replace(/`/g, "").trim();
+}
+
+function isMessageLikeQueryField(field: string) {
+  const key = normalizeQueryFieldKey(field).toLowerCase();
+  return (
+    LOG_DETAIL_MESSAGE_FIELD_KEYS.includes(key as (typeof LOG_DETAIL_MESSAGE_FIELD_KEYS)[number]) ||
+    RAW_LOG_DETAIL_KEYS.some((item) => item.toLowerCase() === key)
+  );
+}
+
+function isCatalogAnalysisField(
+  field: string,
+  analysisFields: { baseFields: QueryStorageAnalysisField[]; logFields: QueryStorageAnalysisField[] }
+) {
+  const key = normalizeFieldCatalogKey(field);
+  if (!key) {
+    return false;
+  }
+  return [...analysisFields.baseFields, ...analysisFields.logFields].some(
+    (item) =>
+      normalizeFieldCatalogKey(item.field) === key ||
+      normalizeFieldCatalogKey(getStorageAnalysisFieldName(item)) === key
+  );
+}
 
 function isRawLogDetailParent(parentKey: string) {
   const normalized = parentKey.trim().toLowerCase();
@@ -3383,6 +3683,14 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const [absolutePickerRange, setAbsolutePickerRange] = useState<QueryAbsolutePickerRange>(() =>
     buildInitialAbsolutePickerRange(initialSearchParams, defaultRange)
   );
+  const [liveRelativeMinutes, setLiveRelativeMinutes] = useState<number | null>(() => {
+    const hasURLRange = Boolean(
+      (initialSearchParams.get("start") && initialSearchParams.get("end")) ||
+        (initialSearchParams.get("st") && initialSearchParams.get("et")) ||
+        (initialSearchParams.get("startTime") && initialSearchParams.get("endTime"))
+    );
+    return hasURLRange ? null : DEFAULT_TIME_RANGE_MINUTES;
+  });
   const [timeRangeHistory, setTimeRangeHistory] = useState<Array<[Date, Date]>>([]);
   const startTime = timeRange ? formatDateTimeLocalValue(timeRange[0]) : "";
   const endTime = timeRange ? formatDateTimeLocalValue(timeRange[1]) : "";
@@ -3439,6 +3747,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const [tableAutoQueryRequest, setTableAutoQueryRequest] = useState<TableAutoQueryRequest | null>(null);
   const [openLogTabs, setOpenLogTabs] = useState<OpenLogTab[]>([]);
   const [conditionsByLogTab, setConditionsByLogTab] = useState<Record<number, QueryFilterCondition[]>>({});
+  const [queryTextByLogTab, setQueryTextByLogTab] = useState<Record<number, string>>({});
+  const [queryInputModeByLogTab, setQueryInputModeByLogTab] = useState<Record<number, "sql" | "interactive">>({});
   const [fieldStatsState, setFieldStatsState] = useState<QueryFieldStatsState | null>(null);
   const [inlineFieldStatsByKey, setInlineFieldStatsByKey] = useState<Record<string, QueryFieldStatsState>>({});
   const [expandedInlineFieldStatsKeys, setExpandedInlineFieldStatsKeys] = useState<Set<string>>(() => new Set());
@@ -3478,6 +3788,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   >(null);
   const initialQueryStartedRef = useRef(false);
   const conditionRestoreTargetRef = useRef<number | null>(null);
+  const queryRestoreTargetRef = useRef<number | null>(null);
   const openLogTabsRestoredRef = useRef(false);
   const openLogTabsHydratingRef = useRef(false);
   const resultStackRef = useRef<HTMLDivElement | null>(null);
@@ -3499,6 +3810,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const sqlInputRef = useRef<HTMLInputElement | null>(null);
   const savedQuerySearchInputRef = useRef<HTMLInputElement | null>(null);
   const sourceSearchInputRef = useRef<HTMLInputElement | null>(null);
+  const sourceTreeBodyRef = useRef<HTMLDivElement | null>(null);
   const sourcePickerRef = useRef<HTMLDivElement | null>(null);
   const sourcePickerHoverCloseTimerRef = useRef<number | null>(null);
   const inlineFieldPickerRef = useRef<HTMLLabelElement | null>(null);
@@ -3948,6 +4260,29 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }, [workspace.conditions, workspace.selectedTableId]);
 
   useEffect(() => {
+    if (!workspace.selectedTableId) {
+      return;
+    }
+    if (
+      queryRestoreTargetRef.current !== null &&
+      queryRestoreTargetRef.current !== workspace.selectedTableId
+    ) {
+      return;
+    }
+    setQueryTextByLogTab((current) => ({
+      ...current,
+      [workspace.selectedTableId as number]: workspace.queryText
+    }));
+    setQueryInputModeByLogTab((current) => ({
+      ...current,
+      [workspace.selectedTableId as number]: queryInputMode
+    }));
+    if (queryRestoreTargetRef.current === workspace.selectedTableId) {
+      queryRestoreTargetRef.current = null;
+    }
+  }, [queryInputMode, workspace.queryText, workspace.selectedTableId]);
+
+  useEffect(() => {
     if (!workspace.selectedTableId || !workspace.selectedDatabase || !workspace.selectedTable) {
       return;
     }
@@ -4011,9 +4346,21 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }
     const focusTimer = window.setTimeout(() => {
       sourceSearchInputRef.current?.focus();
+      const container = sourceTreeBodyRef.current;
+      const active = container?.querySelector<HTMLElement>(".cv-query-tree__table--active");
+      if (!container || !active) {
+        return;
+      }
+      const containerRect = container.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const nextTop =
+        container.scrollTop +
+        (activeRect.top - containerRect.top) -
+        Math.max(12, (container.clientHeight - activeRect.height) / 3);
+      container.scrollTo({ top: Math.max(0, nextTop) });
     }, 0);
     return () => window.clearTimeout(focusTimer);
-  }, [sourcePickerOpen]);
+  }, [sourcePickerOpen, workspace.selectedTableId]);
 
   useEffect(() => {
     return () => {
@@ -4065,7 +4412,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }
     const request = tableAutoQueryRequest;
     setTableAutoQueryRequest(null);
-    void workspace.runQuery(1, request.range, request.conditions);
+    void workspace.runQuery(1, request.range, request.conditions, request.queryText);
   }, [
     tableAutoQueryRequest,
     workspace.selectedDatabase,
@@ -4353,6 +4700,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }
 
   function applyHistogramTimeRange(range: [Date, Date]) {
+    setLiveRelativeMinutes(null);
     const previousRange = cloneDateRange(timeRange);
     if (previousRange && !isSameSecondDateRange(previousRange, range)) {
       setTimeRangeHistory((current) => [...current, previousRange].slice(-8));
@@ -5125,11 +5473,21 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         },
         workspace.analysisFields
       );
-    const fieldRef =
-      explicitFieldRef ??
-      (preferRawLog && !(catalogFieldRef.source === "column" && catalogFieldRef.isAccelerated)
-        ? buildRawLogFieldStatsRef(field, sampleValue)
-        : catalogFieldRef);
+    const fieldRef = preferRawLog
+      ? buildRawLogFieldStatsRef(field, sampleValue)
+      : explicitFieldRef ?? catalogFieldRef;
+    let visualQuery = "";
+    try {
+      visualQuery = buildVisualQuery(workspace.conditions);
+    } catch {
+      visualQuery = "";
+    }
+    const lastQuery = (
+      workspace.lastRunSnapshot?.query ?? buildCombinedQuery(workspace.queryText, visualQuery)
+    ).trim();
+    const lastConditions =
+      workspace.lastRunSnapshot?.conditions ??
+      buildStructuredConditions(workspace.conditions, workspace.analysisFields);
     return {
       field,
       fieldRef,
@@ -5139,9 +5497,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         et: fieldStatsRange.et,
         page: 1,
         pageSize: workspace.pageSize,
-        conditions:
-          workspace.lastRunSnapshot?.conditions ??
-          buildStructuredConditions(workspace.conditions, workspace.analysisFields),
+        query: lastQuery || undefined,
+        conditions: lastQuery ? [] : lastConditions,
         sorts: [],
         displayFields: [],
         field: fieldRef,
@@ -5251,8 +5608,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       if (inlineFieldStatsAbortControllersRef.current.get(item.key) !== abortController) {
         return;
       }
-      inlineFieldStatsAbortControllersRef.current.delete(item.key);
       if (abortController.signal.aborted || isAbortRequestError(error)) {
+        inlineFieldStatsAbortControllersRef.current.delete(item.key);
         setInlineFieldStatsByKey((current) => {
           const next = { ...current };
           delete next[item.key];
@@ -5266,15 +5623,47 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         return;
       }
       const message = error instanceof Error ? error.message : "Failed to load field stats";
+      if (isRecoverableFieldStatsError(message) && context.fieldRef.isAccelerated) {
+        const retryContext = buildFieldStatsRequestContext(item.label, item.sampleValue, true);
+        if (retryContext) {
+          try {
+            const retryData = await getQueryFieldStats(retryContext.request, { signal: abortController.signal });
+            if (inlineFieldStatsAbortControllersRef.current.get(item.key) !== abortController) {
+              return;
+            }
+            inlineFieldStatsAbortControllersRef.current.delete(item.key);
+            setInlineFieldStatsByKey((current) => ({
+              ...current,
+              [item.key]: {
+                field: retryContext.field,
+                fieldRef: retryContext.fieldRef,
+                loading: false,
+                data: retryData,
+                error: "",
+                fromTempFields: true
+              }
+            }));
+            return;
+          } catch {
+            // fall through to current-page stats
+          }
+        }
+      }
+      if (inlineFieldStatsAbortControllersRef.current.get(item.key) !== abortController) {
+        return;
+      }
+      inlineFieldStatsAbortControllersRef.current.delete(item.key);
       setInlineFieldStatsByKey((current) => ({
         ...current,
         [item.key]: {
           field: context.field,
-          fieldRef: context.fieldRef,
+          fieldRef: isRecoverableFieldStatsError(message)
+            ? buildRawLogFieldStatsRef(item.label, item.sampleValue)
+            : context.fieldRef,
           loading: false,
           data: null,
           error: message,
-          fromTempFields: item.group === "temp"
+          fromTempFields: item.group === "temp" || isRecoverableFieldStatsError(message)
         }
       }));
     }
@@ -5344,24 +5733,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     };
   }
 
-  function applyConditionsAndRun(nextConditions: QueryFilterCondition[], activeConditionId: string | null) {
-    if (queryInputMode === "sql") {
-      const added = nextConditions.filter((condition) => !workspace.conditions.some((item) => item.id === condition.id));
-      const extra = buildVisualQuery(added);
-      const baseSql = workspace.queryText.trim() || buildVisualQuery(workspace.conditions);
-      const merged = [baseSql, extra].filter(Boolean).join(" AND ");
-      workspace.setQueryText(merged);
-      workspace.setConditions([]);
-      workspace.setActiveConditionId(null);
-      void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, [], merged);
-      return;
-    }
-    workspace.setQueryText("");
-    workspace.setConditions(nextConditions);
-    workspace.setActiveConditionId(activeConditionId);
-    void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, nextConditions, "");
-  }
-
   function splitSqlForInteractiveMode(sql: string) {
     const tokens = sql
       .split(/\s+AND\s+/i)
@@ -5380,17 +5751,71 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     return { parsed, remainder: leftover.join(" AND ") };
   }
 
+  function absorbLeftoverSql(nextConditions: QueryFilterCondition[], leftoverSql: string) {
+    if (!leftoverSql.trim()) {
+      return { conditions: nextConditions, remainder: "" };
+    }
+    const { parsed, remainder } = splitSqlForInteractiveMode(leftoverSql);
+    const claimedFields = new Set(nextConditions.map((condition) => condition.field));
+    const absorbedByField = new Map<string, QueryFilterCondition>();
+    parsed.forEach((condition) => {
+      if (claimedFields.has(condition.field)) {
+        return;
+      }
+      absorbedByField.set(condition.field, condition);
+    });
+    return {
+      conditions: [...nextConditions, ...absorbedByField.values()],
+      remainder
+    };
+  }
+
+  function replaceSqlClausesForFields(sql: string, fields: string[], extraSql: string) {
+    const fieldSet = new Set(fields);
+    const { parsed, remainder } = splitSqlForInteractiveMode(sql);
+    const kept = parsed.filter((condition) => !fieldSet.has(condition.field));
+    return [remainder, buildVisualQuery(kept), extraSql].filter(Boolean).join(" AND ");
+  }
+
+  function applyConditionsAndRun(nextConditions: QueryFilterCondition[], activeConditionId: string | null) {
+    if (queryInputMode === "sql") {
+      const added = nextConditions.filter((condition) => !workspace.conditions.some((item) => item.id === condition.id));
+      const extra = buildVisualQuery(added);
+      const baseSql = workspace.queryText.trim() || buildVisualQuery(workspace.conditions);
+      const merged = replaceSqlClausesForFields(
+        baseSql,
+        added.map((condition) => condition.field),
+        extra
+      );
+      workspace.setQueryText(merged);
+      workspace.setConditions([]);
+      workspace.setActiveConditionId(null);
+      void workspace.runQuery(1, timeRange ? toSecondRange(timeRange) : undefined, [], merged);
+      return;
+    }
+    const leftoverSql = leftoverSqlDisabled() ? "" : workspace.queryText.trim();
+    const absorbed = absorbLeftoverSql(nextConditions, leftoverSql);
+    workspace.setConditions(absorbed.conditions);
+    workspace.setQueryText(absorbed.remainder);
+    workspace.setActiveConditionId(activeConditionId);
+    void workspace.runQuery(
+      1,
+      timeRange ? toSecondRange(timeRange) : undefined,
+      absorbed.conditions,
+      leftoverSqlDisabled() ? "" : absorbed.remainder
+    );
+  }
+
   function switchQueryInputMode(nextMode: "sql" | "interactive") {
     if (nextMode === queryInputMode) {
       return;
     }
     if (nextMode === "interactive") {
-      if (workspace.conditions.length === 0 && workspace.queryText.trim()) {
-        const { parsed, remainder } = splitSqlForInteractiveMode(workspace.queryText);
-        if (parsed.length > 0) {
-          workspace.setConditions(parsed);
-          workspace.setQueryText(remainder);
-        }
+      const sourceSql = workspace.queryText.trim();
+      if (sourceSql) {
+        const absorbed = absorbLeftoverSql(workspace.conditions, sourceSql);
+        workspace.setConditions(absorbed.conditions);
+        workspace.setQueryText(absorbed.remainder);
       }
       setDisabledQueryText("");
       setQueryInputMode("interactive");
@@ -5441,9 +5866,13 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         return;
       }
     }
-    const nestedJsonField = field.includes(".");
+    const nestedJsonField = shouldUseRawLogJsonCondition(field, fieldRef);
+    const conditionField =
+      !nestedJsonField && fieldRef.source === "column" && fieldRef.isAccelerated ? fieldRef.fieldKey : field;
     const conditionValue = nestedJsonField
-      ? typeof value === "number" && Number.isFinite(value)
+      ? typeof value === "boolean"
+        ? { value: value ? "true" : "false", valueType: "string" as const }
+        : typeof value === "number" && Number.isFinite(value)
         ? { value, valueType: "number" as const }
         : { value: String(value), valueType: "string" as const }
       : createTypedDetailConditionValue(
@@ -5456,22 +5885,54 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }
     const existingCondition = workspace.conditions.find(
       (condition) =>
-        condition.field === field &&
+        (condition.field === field || condition.field === conditionField) &&
         condition.operator === operator &&
         condition.valueType === conditionValue.valueType &&
         String(condition.value) === String(conditionValue.value)
     );
     if (existingCondition) {
       workspace.setActiveConditionId(existingCondition.id);
-      setFeedbackMessage(`Condition already exists: ${field} ${operator} ${conditionValue.value}`);
+      setFeedbackMessage(`Condition already exists: ${conditionField} ${operator} ${conditionValue.value}`);
       return;
     }
     const nextCondition: QueryFilterCondition = {
       id: `cond_detail_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-      field,
+      field: conditionField,
       operator,
       value: conditionValue.value,
       valueType: conditionValue.valueType,
+      nestedJson: nestedJsonField
+    };
+    const withoutSameField = workspace.conditions.filter(
+      (condition) => condition.field !== field && condition.field !== conditionField
+    );
+    applyConditionsAndRun([...withoutSameField, nextCondition], nextCondition.id);
+    setFeedbackMessage("");
+  }
+
+  function addLikeConditionFromLogDetail(field: string, token: string, operator: "like" | "not like") {
+    const text = token.trim();
+    if (!field.trim() || !text) {
+      return;
+    }
+    const fieldRef = buildDetailFieldRef(field, text);
+    const nestedJsonField = shouldUseRawLogJsonCondition(field, fieldRef);
+    const existingCondition = workspace.conditions.find(
+      (condition) =>
+        condition.field === field &&
+        condition.operator === operator &&
+        String(condition.value) === text
+    );
+    if (existingCondition) {
+      workspace.setActiveConditionId(existingCondition.id);
+      return;
+    }
+    const nextCondition: QueryFilterCondition = {
+      id: `cond_token_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+      field,
+      operator,
+      value: text,
+      valueType: "string",
       nestedJson: nestedJsonField
     };
     applyConditionsAndRun([...workspace.conditions, nextCondition], nextCondition.id);
@@ -5511,11 +5972,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     operator: "=" | "!=" = "=",
     conditionField?: string
   ) {
-    const directConditionField =
-      conditionField ??
-      (fieldRef.source === "tag_path" || (fieldRef.source === "column" && fieldRef.isAccelerated)
-        ? fieldRef.fieldKey
-        : "");
+    const canUseFieldKey =
+      fieldRef.source === "tag_path" ||
+      fieldRef.source === "json_path" ||
+      (fieldRef.source === "column" && fieldRef.isAccelerated);
+    const directConditionField = conditionField || (canUseFieldKey ? fieldRef.fieldKey : "");
     if (directConditionField) {
       addConditionFromLogDetail(directConditionField, value, operator);
       closeAllFieldStats();
@@ -5743,6 +6204,53 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     setLogDetailMenu({ x: event.clientX, y: event.clientY, items });
   }
 
+  function openLogDetailTokenMenu(
+    event: { clientX: number; clientY: number; preventDefault(): void; stopPropagation(): void },
+    field: string,
+    token: string,
+    fullValue: string
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+    const text = token.trim();
+    if (!text) {
+      return;
+    }
+    const useLike =
+      text !== String(fullValue).trim() &&
+      (isMessageLikeQueryField(field) || !isCatalogAnalysisField(field, workspace.analysisFields));
+    setLogDetailMenu({
+      x: event.clientX,
+      y: event.clientY,
+      items: [
+        {
+          key: "token-add",
+          label: "匹配",
+          onSelect: () =>
+            useLike
+              ? addLikeConditionFromLogDetail(field, text, "like")
+              : addConditionFromLogDetail(field, text, "=")
+        },
+        {
+          key: "token-exclude",
+          label: "排除",
+          onSelect: () =>
+            useLike
+              ? addLikeConditionFromLogDetail(field, text, "not like")
+              : addConditionFromLogDetail(field, text, "!=")
+        },
+        {
+          key: "token-copy",
+          label: "复制值",
+          separatorBefore: true,
+          onSelect: () => {
+            void copyLogDetailValue(field, text);
+          }
+        }
+      ]
+    });
+  }
+
   function renderJsonTokenTree(value: unknown, path: string, row: NormalizedLogRow, indent = 0): ReactNode {
     const pad = "  ".repeat(indent);
     const padInner = "  ".repeat(indent + 1);
@@ -5823,6 +6331,40 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       );
     }
     const displayValue = formatLogDetailValue(value);
+    const conditionField = options.conditionField ?? displayField;
+    const tokenizeValue =
+      isMessageLikeQueryField(conditionField) ||
+      !isCatalogAnalysisField(conditionField, workspace.analysisFields);
+    const tokens = tokenizeValue ? splitLogValueTokens(displayValue) : [displayValue];
+    const hasClickableTokens = tokenizeValue && tokens.some(isClickableLogToken);
+    if (hasClickableTokens) {
+      return (
+        <span className="cv-query-detail__value-cell cv-query-detail__value-cell--tokens">
+          {tokens.map((token, index) =>
+            isClickableLogToken(token) ? (
+              <span
+                key={`${token}-${index}`}
+                role="button"
+                tabIndex={0}
+                className="cv-query-detail__token"
+                title={token}
+                onClick={(event) => openLogDetailTokenMenu(event, conditionField, token, displayValue)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openLogDetailTokenMenu(event, conditionField, token, displayValue);
+                  }
+                }}
+              >
+                {token}
+              </span>
+            ) : (
+              <span key={`${token}-${index}`}>{token}</span>
+            )
+          )}
+        </span>
+      );
+    }
     return (
       <span
         className="cv-query-detail__value-cell cv-query-detail__value-cell--action"
@@ -5877,17 +6419,54 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     database: QuerySourceDatabase,
     table: QuerySourceTable
   ) {
-    const nextConditions =
-      table.id === workspace.selectedTableId ? workspace.conditions : conditionsByLogTab[table.id] ?? [];
+    const currentTableId = workspace.selectedTableId;
+    const switching = currentTableId !== null && currentTableId !== table.id;
+    if (switching && currentTableId) {
+      setQueryTextByLogTab((current) => ({
+        ...current,
+        [currentTableId]: workspace.queryText
+      }));
+      setConditionsByLogTab((current) => ({
+        ...current,
+        [currentTableId]: workspace.conditions
+      }));
+      setQueryInputModeByLogTab((current) => ({
+        ...current,
+        [currentTableId]: queryInputMode
+      }));
+    }
+    const isNewTab = switching && queryTextByLogTab[table.id] === undefined && conditionsByLogTab[table.id] === undefined;
+    const nextConditions = switching
+      ? isNewTab
+        ? []
+        : conditionsByLogTab[table.id] ?? []
+      : workspace.conditions;
+    const nextQueryText = switching
+      ? isNewTab
+        ? ""
+        : queryTextByLogTab[table.id] ?? ""
+      : workspace.queryText;
+    const nextQueryInputMode = switching
+      ? isNewTab
+        ? "sql"
+        : queryInputModeByLogTab[table.id] ?? "sql"
+      : queryInputMode;
     conditionRestoreTargetRef.current = table.id;
+    queryRestoreTargetRef.current = table.id;
     workspace.setConditions(nextConditions);
+    workspace.setQueryText(nextQueryText);
     workspace.setActiveConditionId(nextConditions[0]?.id ?? null);
+    setQueryInputMode(nextQueryInputMode);
+    if (nextQueryInputMode === "sql" && nextQueryText.trim()) {
+      setDisabledQueryText("");
+    }
     setOpenLogTabs((current) =>
       current.some((item) => item.id === table.id)
         ? current
         : [...current, { id: table.id, databaseName: database.name, tableName: table.name }]
     );
     const range = buildEndingNowTimeRange(DEFAULT_TIME_RANGE_MINUTES);
+    setLiveRelativeMinutes(DEFAULT_TIME_RANGE_MINUTES);
     applyTimeRange(range, buildAbsolutePickerRange(range));
     workspace.setSelectedInstanceId(instance.id);
     workspace.setSelectedDatabase(database.name);
@@ -5900,6 +6479,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       tableId: table.id,
       tableName: table.name,
       conditions: nextConditions,
+      queryText: nextQueryText,
       range: toSecondRange(range)
     });
   }
@@ -5922,6 +6502,16 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
 
   function closeLogTab(tab: OpenLogTab) {
     setConditionsByLogTab((current) => {
+      const next = { ...current };
+      delete next[tab.id];
+      return next;
+    });
+    setQueryTextByLogTab((current) => {
+      const next = { ...current };
+      delete next[tab.id];
+      return next;
+    });
+    setQueryInputModeByLogTab((current) => {
       const next = { ...current };
       delete next[tab.id];
       return next;
@@ -6343,7 +6933,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }
 
   function buildFieldStatsView(statsState: QueryFieldStatsState): QueryFieldStatsView {
-    const unsupportedError = isUnsupportedLogContentQueryError(statsState.error);
+    const unsupportedError = isRecoverableFieldStatsError(statsState.error);
     const loadedStats = buildLoadedFieldStatsItems(normalizedLogRows, statsState.field, statsState.fieldRef);
     const shouldUseLoaded =
       !statsState.loading &&
@@ -6384,7 +6974,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       key: "add",
       label: "添加查询条件",
       hint: statsState.fromTempFields
-        ? "该字段未配置索引，查询走模糊匹配，可能会命中更多全局数据"
+        ? "该字段未配置索引，从 _raw_log_ 抽取，可能比索引字段慢"
         : undefined,
       onSelect: () => addConditionFromFieldStatsValue(statsState.fieldRef, value, "=", conditionField || undefined)
     });
@@ -6430,12 +7020,13 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
           <div className="cv-query-empty-text">No data</div>
         ) : null}
         {statsView.items.map((item) => {
-          const conditionField = statsView.shouldUseLoaded
-            ? statsState.fieldRef.fieldKey
-            : statsState.fieldRef.source === "tag_path" ||
-              (statsState.fieldRef.source === "column" && statsState.fieldRef.isAccelerated)
-            ? statsState.fieldRef.fieldKey
-            : "";
+          const conditionField =
+            statsView.shouldUseLoaded ||
+            statsState.fieldRef.source === "tag_path" ||
+            statsState.fieldRef.source === "json_path" ||
+            (statsState.fieldRef.source === "column" && statsState.fieldRef.isAccelerated)
+              ? statsState.fieldRef.fieldKey
+              : "";
           return (
             <div key={`${item.value}-${item.count}`} className="cv-query-field-stats__item">
               <EuiToolTip
@@ -6458,7 +7049,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               </EuiToolTip>
               <EuiToolTip
                 anchorClassName="cv-query-field-stats__bar-anchor"
-                content={formatPercentage(item.percentage)}
+                content={`${formatCount(item.count)} · ${formatPercentage(item.percentage)}`}
                 position="top"
               >
                 <span className="cv-query-field-stats__bar" aria-hidden="true">
@@ -6467,7 +7058,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               </EuiToolTip>
               <EuiToolTip
                 anchorClassName="cv-query-field-stats__meta-anchor"
-                content={formatPercentage(item.percentage)}
+                content={formatCount(item.count)}
                 position="top"
               >
                 <span className="cv-query-field-stats__meta">
@@ -6488,14 +7079,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }
     if (expandedInlineFieldStatsKeys.has(item.key)) {
       collapseInlineFieldStats(item.key);
-      return;
-    }
-    if (inlineFieldStatsByKey[item.key]) {
-      setExpandedInlineFieldStatsKeys((current) => {
-        const next = new Set(current);
-        next.add(item.key);
-        return next;
-      });
       return;
     }
     void openInlineFieldStats(item);
@@ -6537,6 +7120,16 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             title={item.label}
             onClick={() => openFieldCatalogTopValues(item)}
           >
+            {item.canShowTopValues ? (
+              <EuiIcon
+                type={isTopValuesOpen ? "arrowDown" : "arrowRight"}
+                size="s"
+                className="cv-query-fields-panel__field-caret"
+                aria-hidden="true"
+              />
+            ) : (
+              <span className="cv-query-fields-panel__field-caret cv-query-fields-panel__field-caret--empty" />
+            )}
             <span className="cv-query-fields-panel__field-name">{item.label}</span>
           </button>
           <span className="cv-query-fields-panel__actions" aria-label={`${item.label} actions`}>
@@ -6631,7 +7224,10 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                   ? !expandedEmptyFieldGroups.includes(group.key)
                   : collapsedFieldCatalogGroups.includes(group.key);
               return (
-                <section key={group.key} className="cv-query-fields-panel__section">
+                <section
+                  key={group.key}
+                  className={`cv-query-fields-panel__section cv-query-fields-panel__section--${group.key}`}
+                >
                   <div className="cv-query-fields-panel__section-toolbar">
                     <button
                       type="button"
@@ -6858,7 +7454,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
 
   const resultLoadedCount = workspace.logs?.logs.length ?? 0;
   const currentResultPage = Math.max(1, workspace.page);
-  const resultRangeStart = resultLoadedCount > 0 ? (currentResultPage - 1) * workspace.pageSize + 1 : 0;
   const resultRangeEnd =
     resultLoadedCount > 0
       ? (currentResultPage - 1) * workspace.pageSize + resultLoadedCount
@@ -6890,9 +7485,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     workspace.logs !== null &&
     resultLoadedCount > 0 &&
     (resultHasPreviousPage || resultHasNextPage || (resultTotalPages ?? 1) > 1);
-  const shouldShowResultRangeSummary =
-    resultLoadedCount > 0 &&
-    (shouldShowResultPager || currentResultPage > 1);
   const resultTotalDisplayCount = hasResultKnownTotal ? resultTotalCount : resultLoadedCount;
   const resultCountControl =
     resultLoadedCount > 0 ? (
@@ -6911,11 +7503,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         ) : (
           <EuiIcon type="download" size="s" aria-hidden="true" />
         )}
-        {shouldShowResultRangeSummary ? (
-          <span className="cv-query-result-bar__range">
-            {formatCount(resultRangeStart)} - {formatCount(resultRangeEnd)}
-          </span>
-        ) : null}
         <span>Total {formatCount(resultTotalDisplayCount)}</span>
       </button>
     ) : (
@@ -7161,7 +7748,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               database,
               databaseTables,
               isActiveDatabase,
-              isExpandedDatabase: hasSourceSearch || isActiveDatabase
+              isExpandedDatabase: true
             };
           })
           .filter(Boolean) as Array<{
@@ -7176,7 +7763,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         return {
           item,
           isActiveInstance,
-          isExpandedInstance: hasSourceSearch || isActiveInstance,
+          isExpandedInstance: true,
           databaseGroups
         };
       })
@@ -7225,7 +7812,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             }}
           />
         </div>
-        <div className="cv-query-source-popover__body">
+        <div className="cv-query-source-popover__body" ref={sourceTreeBodyRef}>
           <section role="tree" aria-label="Instances, databases, and log tables" className="cv-query-tree">
             {sourceGroups.map(({ item, isActiveInstance, isExpandedInstance, databaseGroups }) => {
               return (
@@ -7303,7 +7890,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                             {isExpandedDatabase ? (
                               <div role="group" aria-label={`${database.name} log tables`} className="cv-query-tree__tables">
                                 {databaseTables.map((table) => {
-                                  const isActiveTable = workspace.selectedTable === table.name;
+                                  const isActiveTable = workspace.selectedTableId === table.id;
                                   return (
                                     <button
                                       key={table.name}
@@ -8023,6 +8610,8 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                 value={absolutePickerRange}
                 onChange={applyAbsolutePickerRange}
                 isLoading={workspace.loading || workspace.chartLoading}
+                liveRelativeMinutes={liveRelativeMinutes}
+                onLiveRelativeMinutesChange={setLiveRelativeMinutes}
               />
               <div className="cv-query-command-row__actions">
                 <EuiToolTip content="Run" delay="regular" position="bottom" display="inlineBlock">

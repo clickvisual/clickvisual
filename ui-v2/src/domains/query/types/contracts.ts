@@ -221,6 +221,7 @@ export interface QueryRequestV2 {
   et: number;
   page: number;
   pageSize: number;
+  query?: string;
   conditions: QueryConditionV2[];
   sorts: QuerySort[];
   displayFields: string[];
