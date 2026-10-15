@@ -3,8 +3,6 @@ package pusher
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
@@ -12,7 +10,7 @@ import (
 
 var _ IPusher = (*WeChat)(nil)
 
-type WeChat struct{}
+type WeChat struct{ requestContext }
 
 type MentionedOption struct {
 	userIdList []string
@@ -35,15 +33,19 @@ func NewMentionMobileOption(mobileList ...string) *MentionedOption {
 // oneTheLogs one of the logs, detail info
 func (d *WeChat) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	typeStr := "markdown"
-	b1, _ := json.Marshal(nil)
-	b2, _ := json.Marshal(nil)
 	msg.Text = strings.ReplaceAll(msg.Text, "#####", "")
-	dataJsonStr := fmt.Sprintf(`{"msgtype": "%s", "%s": {"content": "%s", "mentioned_list": %s, "mentioned_mobile_list": %s}}`, typeStr, typeStr, msg.Text, string(b1), string(b2))
+	data, err := json.Marshal(map[string]any{"msgtype": typeStr, typeStr: map[string]any{"content": msg.Text}})
+	if err != nil {
+		return err
+	}
 	// 默认markdown 可以制作格式
-	resp, err := http.Post(
+	resp, err := d.httpClient().Post(
 		channel.Key,
 		"application/json",
-		bytes.NewBuffer([]byte(dataJsonStr)))
+		bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()

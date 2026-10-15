@@ -13,11 +13,14 @@ describe("login home destination", () => {
     ["full", "", "/v2/ask"],
     ["private-lite", "", "/v2/query"],
     ["full", "?redirect=%2Fv2%2Fask%3FsessionId%3D37", "/v2/ask?sessionId=37"],
-    ["full", "?redirect=https%3A%2F%2Fexample.com", "/v2/ask"]
-  ])("redirects %s login with %s to %s", async (edition, search, expected) => {
+    ["full", "?redirect=https%3A%2F%2Fexample.com", "/v2/ask"],
+    ["full", "?redirect=%2Fv2%2Fask%3FalertAnalysis%3Dabc", "/v2/ask?alertAnalysis=abc"],
+    ["full", "?redirect=%2Fclickvisual%2Fv2%2Fask%3FalertAnalysis%3Dabc", "/clickvisual/v2/ask?alertAnalysis=abc", "/clickvisual/v2/login"],
+    ["full", "?redirect=%2Fv2%2F%5C%5Cexample.com", "/v2/ask"]
+  ])("redirects %s login with %s to %s", async (edition, search, expected, pathname) => {
     window.__CLICKVISUAL_V2_CONFIG__ = { edition };
     const assign = vi.fn();
-    vi.stubGlobal("location", { assign, pathname: "/v2/login" });
+    vi.stubGlobal("location", { assign, pathname: pathname || "/v2/login" });
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ code: 0, data: "" })));
     const router = createMemoryRouter([{ path: "/v2/login", element: <LoginPage /> }], {
       initialEntries: [`/v2/login${search}`]

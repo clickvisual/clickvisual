@@ -120,6 +120,7 @@ func v2Full(r *gin.RouterGroup) {
 		r.POST("/troubleshoot/sessions/:session-id/confirm", core.Handle(tsv2.Confirm))
 		r.POST("/troubleshoot/sessions/:session-id/share", core.Handle(tsv2.Share))
 		r.GET("/troubleshoot/share/:token", core.Handle(tsv2.Shared))
+		r.POST("/troubleshoot/alert-analyses/:token/sessions", core.Handle(tsv2.FromAlert))
 	}
 	// The query module - query
 	{

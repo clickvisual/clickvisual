@@ -17687,6 +17687,22 @@ body.cv-query-resizing-column * {
   text-decoration: none;
 }
 
+.cv-troubleshoot-response {
+  min-width: 0;
+}
+
+.cv-troubleshoot-message-actions {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.cv-troubleshoot-message-actions .cv-troubleshoot-icon-button {
+  color: var(--cv-ask-text-secondary);
+}
+
 .cv-troubleshoot-composer {
   display: flex;
   flex-wrap: wrap;
@@ -17801,7 +17817,7 @@ body.cv-query-resizing-column * {
 .cv-troubleshoot-toast {
   position: fixed;
   right: 16px;
-  bottom: 16px;
+  bottom: 84px;
   z-index: 30;
   max-width: 280px;
   margin: 0;

@@ -199,7 +199,7 @@ func TestPreviewLogsBoundsSamplesAndMarksTruncation(t *testing.T) {
 	require.Less(t, len([]rune(preview)), 6100)
 }
 
-func TestSwitchingTableRequiresConfirm(t *testing.T) {
+func TestSwitchingTableRequiresConfirmForLongerWindows(t *testing.T) {
 	useSQLite(t)
 	runner := &fakeRunner{}
 	tables = testCatalog()
@@ -207,7 +207,7 @@ func TestSwitchingTableRequiresConfirm(t *testing.T) {
 	completeFn = scripted(
 		`{"action":"tool","name":"run_query","args":{"tid":7,"st":1000,"et":1900,"query":"level = 'error'"}}`,
 		`{"action":"final","text":"这张表里有 3 条。"}`,
-		`{"action":"tool","name":"run_query","args":{"tid":8,"st":1000,"et":1900,"query":"level = 'error'"}}`,
+		`{"action":"tool","name":"run_query","args":{"tid":8,"st":1000,"et":1901,"query":"level = 'error'"}}`,
 	)
 
 	session, err := Start(context.Background(), 3, "先看 stdout")
@@ -223,6 +223,35 @@ func TestSwitchingTableRequiresConfirm(t *testing.T) {
 
 	_, err = Reply(context.Background(), 3, session.ID, "继续")
 	require.ErrorIs(t, err, ErrWaiting)
+}
+
+func TestShortCrossTableQueryRunsOnlyWithPermission(t *testing.T) {
+	for _, allowed := range []bool{true, false} {
+		t.Run(fmt.Sprintf("allowed_%t", allowed), func(t *testing.T) {
+			useSQLite(t)
+			runner := &fakeRunner{}
+			queries = runner
+			tables = userCatalog{testCatalog(), map[int]map[int]bool{3: {7: true, 8: allowed}}}
+			completeFn = scripted(
+				`{"action":"tool","name":"run_query","args":{"tid":7,"st":1000,"et":1900}}`,
+				`{"action":"final","text":"第一张表的查询完成"}`,
+				`{"action":"tool","name":"run_query","args":{"tid":8,"st":1000,"et":1900}}`,
+				`{"action":"final","text":"查询结束"}`,
+			)
+			session, err := Start(context.Background(), 3, "先查第一张表")
+			require.NoError(t, err)
+			session, err = Reply(context.Background(), 3, session.ID, "再查另一张表最近15分钟")
+			require.NoError(t, err)
+			require.Equal(t, dbmodel.TroubleshootStatusIdle, session.Status)
+			require.Nil(t, session.Pending)
+			if allowed {
+				require.Equal(t, 2, runner.calls)
+			} else {
+				require.Equal(t, 1, runner.calls)
+				require.Contains(t, session.Messages[len(session.Messages)-2].Detail, ErrPermission.Error())
+			}
+		})
+	}
 }
 
 func TestRejectConfirmDoesNotRunQuery(t *testing.T) {
@@ -258,6 +287,10 @@ func TestNeedsConfirm(t *testing.T) {
 	require.False(t, wait)
 
 	wait, reason = needsConfirm(7, 7*3600, 8, 15*60)
+	require.False(t, wait)
+	require.Empty(t, reason)
+
+	wait, reason = needsConfirm(7, 7*3600, 8, 15*60+1)
 	require.True(t, wait)
 	require.Contains(t, reason, "切换日志表")
 }

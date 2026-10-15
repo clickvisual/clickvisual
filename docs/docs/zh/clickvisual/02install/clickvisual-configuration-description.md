@@ -193,6 +193,18 @@ writeTimeout = "3s"
 password = "**"
 ```
 
+## AI 告警分析
+
+完整版本可通过以下配置开启异步告警分析。默认关闭，省略冷却时间时使用 900 秒。规则的 `aiCooldownSeconds = 0` 继承全局配置。
+
+```toml
+[alarm.ai]
+enabled = false
+cooldownSeconds = 900
+```
+
+需先配置可用模型。`app.rootURL` 应包含完整部署子路径，用于生成 Ask 继续排查链接。分析使用规则负责人的日志权限；链接访问者需通过全部证据表的权限检查，并获得独立个人会话。去重和发送重试说明见[日志告警](../03funcintro/alarm-function-configuration-description.md#ai-告警分析)。
+
 ## prometheus 代理配置
 ```toml
 [prom2click]

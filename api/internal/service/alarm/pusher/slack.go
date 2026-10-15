@@ -20,7 +20,7 @@ const (
 
 var _ IPusher = (*Slack)(nil)
 
-type Slack struct{}
+type Slack struct{ requestContext }
 
 func (s *Slack) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	err = s.sendMessage(channel.Key, msg.Title, msg.Text)
@@ -53,7 +53,7 @@ func (s *Slack) sendMessage(url string, title, text string) (err error) {
 	msg := slack.WebhookMessage{
 		Attachments: []slack.Attachment{attachment},
 	}
-	err = slack.PostWebhook(url, &msg)
+	err = slack.PostWebhookCustomHTTP(url, s.httpClient(), &msg)
 	if err != nil {
 		return err
 	}

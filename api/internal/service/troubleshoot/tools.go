@@ -77,6 +77,9 @@ type toolOutcome struct {
 }
 
 func needsConfirm(lastTid int, lastWindow int64, tid int, window int64) (bool, string) {
+	if window > 0 && window <= defaultWindowSeconds {
+		return false, ""
+	}
 	reasons := make([]string, 0, 2)
 	if lastTid > 0 && tid != lastTid {
 		reasons = append(reasons, "将切换日志表")

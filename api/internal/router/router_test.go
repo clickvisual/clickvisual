@@ -170,6 +170,7 @@ func TestV2RoutesDefaultToFullEdition(t *testing.T) {
 		{method: http.MethodPost, path: "/api/v2/query/run"},
 		{method: http.MethodPost, path: "/api/v2/query/ingestion/publish"},
 		{method: http.MethodPost, path: "/api/v2/reports"},
+		{method: http.MethodPost, path: "/api/v2/troubleshoot/alert-analyses/:token/sessions"},
 		{method: http.MethodGet, path: "/api/v2/alert/settings"},
 		{method: http.MethodGet, path: "/api/v2/pandas/workers"},
 		{method: http.MethodGet, path: "/api/v2/base/users"},
@@ -239,6 +240,7 @@ func TestV2RoutesPrivateLiteEdition(t *testing.T) {
 	}
 	for _, item := range []routeKey{
 		{method: http.MethodPost, path: "/api/v2/query/ingestion/publish"},
+		{method: http.MethodPost, path: "/api/v2/troubleshoot/alert-analyses/:token/sessions"},
 		{method: http.MethodPost, path: "/api/v2/storage"},
 		{method: http.MethodPost, path: "/api/v2/reports"},
 		{method: http.MethodGet, path: "/api/v2/alert/settings"},

@@ -16,6 +16,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/router"
 	"github.com/clickvisual/clickvisual/api/internal/service"
+	"github.com/clickvisual/clickvisual/api/internal/service/alarmai"
 	"github.com/clickvisual/clickvisual/api/internal/service/install"
 	"github.com/clickvisual/clickvisual/api/internal/service/pandas/worker"
 )
@@ -46,16 +47,23 @@ func CmdFunc(cmd *cobra.Command, args []string) {
 	app := ego.New(ego.WithBeforeStopClean(service.Close)).
 		Invoker(invoker.Init, service.Init)
 	if !config.IsPrivateLiteMode() {
-		service.SetDBBackedWorkerStarter(worker.Init)
+		startWorkers := func() error {
+			if err := worker.Init(); err != nil {
+				return err
+			}
+			return alarmai.Init()
+		}
+		service.SetDBBackedWorkerStarter(startWorkers)
 		app = ego.New(
 			ego.WithBeforeStopClean(
+				alarmai.Close,
 				worker.Close,
 				service.Close,
 			)).
 			Invoker(
 				invoker.Init,
 				service.Init,
-				worker.Init,
+				startWorkers,
 			)
 	}
 

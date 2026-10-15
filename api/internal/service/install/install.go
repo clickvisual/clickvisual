@@ -35,6 +35,10 @@ var models = []interface{}{
 	db.BaseHiddenField{},
 
 	db.Alarm{},
+	db.AlarmAIGroup{},
+	db.AlarmAIAnalysis{},
+	db.AlarmAIDelivery{},
+	db.AlarmAIFork{},
 	db.AlarmCondition{},
 	db.AlarmChannel{},
 	db.Report{},
@@ -145,6 +149,25 @@ func migrateModels(d *gorm.DB) error {
 				continue
 			}
 			if err := d.Migrator().CreateTable(model); err != nil {
+				return err
+			}
+		}
+		// Keep SQLite upgrades additive: historical metadata tables are not rebuilt.
+		for _, addition := range []struct {
+			model  any
+			column string
+		}{
+			{&db.Alarm{}, "AICooldownSeconds"},
+			{&db.TroubleshootSession{}, "Source"},
+		} {
+			if d.Migrator().HasTable(addition.model) && !d.Migrator().HasColumn(addition.model, addition.column) {
+				if err := d.Migrator().AddColumn(addition.model, addition.column); err != nil {
+					return err
+				}
+			}
+		}
+		if d.Migrator().HasTable(&db.TroubleshootSession{}) && !d.Migrator().HasIndex(&db.TroubleshootSession{}, "Source") {
+			if err := d.Migrator().CreateIndex(&db.TroubleshootSession{}, "Source"); err != nil {
 				return err
 			}
 		}

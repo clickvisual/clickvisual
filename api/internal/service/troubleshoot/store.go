@@ -45,7 +45,7 @@ func ownedSession(uid int, id int) (*dbmodel.TroubleshootSession, error) {
 	if err != nil {
 		return nil, err
 	}
-	if row.UID != uid {
+	if row.UID != uid || row.Source != "" {
 		return nil, ErrNotFound
 	}
 	return &row, nil

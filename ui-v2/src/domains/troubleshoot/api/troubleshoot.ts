@@ -88,3 +88,7 @@ export function shareTroubleshoot(id: number) {
 export function getSharedTroubleshoot(token: string) {
   return client.get<TroubleshootSession>(`/api/v2/troubleshoot/share/${encodeURIComponent(token)}`).then(asTroubleshootSession);
 }
+
+export function startFromAlertAnalysis(token: string, requestId: string) {
+  return client.post<TroubleshootSession>(`/api/v2/troubleshoot/alert-analyses/${encodeURIComponent(token)}/sessions`, { requestId }).then(asTroubleshootSession);
+}

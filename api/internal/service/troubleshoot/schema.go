@@ -26,7 +26,7 @@ func ensureSchema() error {
 	if db.Dialector.Name() == "mysql" {
 		db = db.Set("gorm:table_options", "ENGINE=InnoDB")
 	}
-	if err := db.AutoMigrate(&dbmodel.TroubleshootSession{}, &dbmodel.TroubleshootMessage{}); err != nil {
+	if err := db.AutoMigrate(&dbmodel.TroubleshootSession{}, &dbmodel.TroubleshootMessage{}, &dbmodel.AlarmAIAnalysis{}, &dbmodel.AlarmAIFork{}); err != nil {
 		return err
 	}
 	schemaReady = true

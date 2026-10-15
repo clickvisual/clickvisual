@@ -89,6 +89,18 @@ func Shared(c *core.Context) {
 	writeSession(c, session, err)
 }
 
+func FromAlert(c *core.Context) {
+	var req struct {
+		RequestID string `json:"requestId"`
+	}
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	session, err := tsvc.StartFromAlert(c.Request.Context(), c.Uid(), c.Param("token"), req.RequestID)
+	writeSession(c, session, err)
+}
+
 func sessionID(c *core.Context) (int, bool) {
 	id, err := strconv.Atoi(c.Param("session-id"))
 	if err != nil || id <= 0 {

@@ -1,14 +1,14 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { loginWithPassword } from "../api/login";
-import { buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
+import { buildV2RouteHref, getV2BasePath } from "../../../shared/layout/VersionSwitcher";
 import { isPrivateLiteEdition } from "../../../shared/config/runtime";
 
 function normalizeRedirect(value: string | null) {
-  if (!value || /^https?:\/\//i.test(value)) {
+  if (!value || value.includes("\\") || /[\u0000-\u0020]/.test(value)) {
     return buildV2RouteHref(isPrivateLiteEdition() ? "query" : "ask");
   }
-  if (value.startsWith("/v2")) {
+  if (value.startsWith(`${getV2BasePath()}/v2/`)) {
     return value;
   }
   return buildV2RouteHref(isPrivateLiteEdition() ? "query" : "ask");

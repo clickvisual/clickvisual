@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import TroubleshootPage from "../src/domains/troubleshoot/pages/TroubleshootPage";
+import { StrictMode } from "react";
 
 function renderTroubleshoot(path = "/troubleshoot") {
   const router = createMemoryRouter(
@@ -15,6 +16,42 @@ function renderTroubleshoot(path = "/troubleshoot") {
 }
 
 describe("troubleshoot conversation", () => {
+  it("creates independent imports for separate visits to the same alert link", async () => {
+    vi.mocked(fetch).mockImplementation(async (input) => new Response(JSON.stringify({ code: 0, data: String(input).includes("/alert-analyses/") ? { id: 92, title: "告警", status: "idle", messages: [{ id: 1, role: "assistant", kind: "final", text: "初始证据" }] } : [] })));
+    const first = renderTroubleshoot("/troubleshoot?alertAnalysis=abc");
+    await screen.findByText("初始证据");
+    first.unmount();
+    renderTroubleshoot("/troubleshoot?alertAnalysis=abc");
+    await screen.findByText("初始证据");
+    const requests = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(requests).toHaveLength(2);
+    expect(JSON.parse(String(requests[0][1]?.body)).requestId).not.toBe(JSON.parse(String(requests[1][1]?.body)).requestId);
+  });
+
+  it("keeps the alert URL and hides evidence when import permission is denied", async () => {
+    vi.mocked(fetch).mockImplementation(async (input) => new Response(JSON.stringify(String(input).includes("/alert-analyses/") ? { code: 1, msg: "没有日志查询权限" } : { code: 0, data: [] })));
+    const { router } = renderTroubleshoot("/troubleshoot?alertAnalysis=abc");
+    expect(await screen.findByRole("status")).toHaveTextContent("没有日志查询权限");
+    expect(router.state.location.search).toBe("?alertAnalysis=abc");
+    expect(screen.queryByText("初始证据")).not.toBeInTheDocument();
+  });
+
+  it("imports an alert once under StrictMode, replaces the URL, and restores the personal session", async () => {
+    const imported = { id: 91, title: "API 告警", status: "idle", messages: [{ id: 1, role: "assistant", kind: "final", text: "告警分析及日志证据" }] };
+    vi.mocked(fetch).mockImplementation(async (input) => new Response(JSON.stringify({ code: 0, data: String(input).endsWith("/sessions/91") || String(input).includes("/alert-analyses/") ? imported : [] })));
+    const router = createMemoryRouter([{ path: "/troubleshoot", element: <TroubleshootPage /> }], { initialEntries: ["/troubleshoot?alertAnalysis=abc"] });
+    const mounted = render(<StrictMode><RouterProvider router={router} /></StrictMode>);
+    expect(await screen.findByText("告警分析及日志证据")).toBeInTheDocument();
+    await waitFor(() => expect(router.state.location.search).toBe("?sessionId=91"));
+    const imports = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(imports).toHaveLength(1);
+    expect(JSON.parse(String(imports[0][1]?.body)).requestId).toMatch(/^[A-Za-z0-9_-]{16,64}$/);
+    mounted.unmount();
+    renderTroubleshoot("/troubleshoot?sessionId=91");
+    expect(await screen.findByText("告警分析及日志证据")).toBeInTheDocument();
+    expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+  });
+
   it("shows history on the left by default without a conversation toolbar", async () => {
     renderTroubleshoot();
     await screen.findByText("有什么日志问题？");
@@ -22,6 +59,7 @@ describe("troubleshoot conversation", () => {
     expect(within(side).getByRole("button", { name: "新对话" })).toBeInTheDocument();
     expect(within(side).getByRole("searchbox", { name: "搜索历史记录" })).toBeInTheDocument();
     expect(within(side).getByRole("button", { name: "复制分享链接" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "复制排查上下文" })).not.toBeInTheDocument();
     expect(document.querySelector(".cv-troubleshoot-header")).toBeNull();
     expect(side.compareDocumentPosition(screen.getByLabelText("现象")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(within(side).getByRole("searchbox")).not.toHaveFocus();
@@ -310,8 +348,73 @@ describe("troubleshoot conversation", () => {
     expect(screen.queryByRole("button", { name: "新对话" })).not.toBeInTheDocument();
   });
 
+  it("copies the active conversation directly without creating a share link", async () => {
+    renderTroubleshoot();
+    await screen.findByText("有什么日志问题？");
+    fireEvent.change(screen.getByLabelText("现象"), { target: { value: "gateway timeout abc" } });
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await screen.findByText("最近 15 分钟没有匹配日志。");
+    const requestCount = vi.mocked(fetch).mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: "复制排查上下文" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("排查上下文已复制");
+    const copied = vi.mocked(navigator.clipboard.writeText).mock.calls.at(-1)![0];
+    expect(copied).toContain("gateway timeout abc");
+    expect(copied).toContain("最近 15 分钟没有匹配日志。");
+    expect(copied).toContain("pro_log.ego_stdout");
+    expect(copied).toContain("trace_id = 'abc'");
+    expect(vi.mocked(fetch).mock.calls).toHaveLength(requestCount);
+    const copyButton = screen.getByRole("button", { name: "复制排查上下文" });
+    expect(copyButton.closest(".cv-troubleshoot-response")).toContainElement(screen.getByText("最近 15 分钟没有匹配日志。"));
+    expect(copyButton.closest("form")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "新对话" }));
+    expect(screen.queryByRole("button", { name: "复制排查上下文" })).not.toBeInTheDocument();
+  });
+
+  it("copies context up to the selected AI reply, excluding later turns and evidence", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ code: 0, data: {
+      id: 9, title: "分轮排查", status: "waiting_confirm", pending: { tool: "query", summary: "后续待确认" },
+      messages: [
+        { id: 1, role: "user", kind: "text", text: "第一轮问题" },
+        { id: 2, role: "tool", kind: "tool", result: { count: 1, preview: "第一轮证据" } },
+        { id: 3, role: "assistant", kind: "final", text: "第一轮结论" },
+        { id: 4, role: "user", kind: "text", text: "第二轮问题" },
+        { id: 5, role: "tool", kind: "tool", result: { count: 1, preview: "第二轮证据" } },
+        { id: 6, role: "assistant", kind: "final", text: "第二轮结论" }
+      ]
+    } })));
+    renderTroubleshoot("/troubleshoot/share/demo");
+    await screen.findByText("第二轮结论");
+    const buttons = screen.getAllByRole("button", { name: "复制排查上下文" });
+    expect(buttons).toHaveLength(2);
+    fireEvent.click(buttons[0]);
+    await waitFor(() => expect(vi.mocked(navigator.clipboard.writeText)).toHaveBeenCalled());
+    let copied = vi.mocked(navigator.clipboard.writeText).mock.calls.at(-1)![0];
+    expect(copied).toContain("第一轮问题");
+    expect(copied).toContain("第一轮结论");
+    expect(copied).toContain("第一轮证据");
+    expect(copied).not.toContain("第二轮");
+    expect(copied).not.toContain("后续待确认");
+    fireEvent.click(buttons[1]);
+    await waitFor(() => expect(vi.mocked(navigator.clipboard.writeText).mock.calls.at(-1)![0]).toContain("第二轮结论"));
+    copied = vi.mocked(navigator.clipboard.writeText).mock.calls.at(-1)![0];
+    expect(copied).toContain("第二轮问题");
+    expect(copied).toContain("第二轮结论");
+    expect(copied).toContain("第二轮证据");
+    expect(copied).toContain("后续待确认");
+  });
+
+  it("reports clipboard failures and allows retrying", async () => {
+    renderTroubleshoot("/troubleshoot/share/demo");
+    await screen.findByText("最近 15 分钟有 3 条超时。");
+    vi.mocked(navigator.clipboard.writeText).mockRejectedValueOnce(new Error("denied"));
+    fireEvent.click(screen.getByRole("button", { name: "复制排查上下文" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("复制失败，请检查浏览器剪贴板权限后重试");
+    fireEvent.click(screen.getByRole("button", { name: "复制排查上下文" }));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("排查上下文已复制"));
+  });
+
   it("hides tool results and internal actions in shared conversations without duplicating links", async () => {
-    const link = { tid: 7, query: "level = 'error'", st: 100, et: 200 };
+    const link = { tid: 7, instanceId: 1, database: "pro_log", table: "ego_stdout", query: "level = 'error'", st: 100, et: 200 };
     vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({
       code: 0,
       data: {
@@ -335,12 +438,32 @@ describe("troubleshoot conversation", () => {
     expect(screen.queryByText("internal SQL result")).not.toBeInTheDocument();
     expect(screen.queryByText('{"action":"tool"}')).not.toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "在查询页打开" })).toHaveLength(1);
-    const logs = screen.getByRole("region", { name: "日志内容" });
-    expect(logs).toHaveTextContent("upstream timeout after 3000ms");
-    expect(logs).toHaveTextContent("trace-123");
-    expect(answer.closest("article")).toContainElement(logs);
+    expect(screen.queryByRole("region", { name: "日志内容" })).not.toBeInTheDocument();
+    expect(screen.queryByText("日志样本")).not.toBeInTheDocument();
+    expect(screen.queryByText(/upstream timeout after 3000ms/)).not.toBeInTheDocument();
     expect(within(answer.closest("article")!).getByRole("link", { name: "在查询页打开" })).toHaveAttribute(
-      "href", "/v2/query?tableId=7&query=level+%3D+%27error%27&st=100&et=200"
+      "href", "/v2/query?instanceId=1&database=pro_log&table=ego_stdout&tableId=7&query=level+%3D+%27error%27&st=100&et=200"
     );
+    const originalPath = window.location.href;
+    window.history.replaceState({}, "", "/clickvisual/v2/ask/share/demo");
+    try {
+      fireEvent.click(screen.getByRole("button", { name: "复制排查上下文" }));
+      expect(await screen.findByRole("status")).toHaveTextContent("排查上下文已复制");
+      const copied = vi.mocked(navigator.clipboard.writeText).mock.calls.at(-1)![0];
+      expect(copied).toContain("查一下超时");
+      expect(copied).toContain("发现 3 条超时。");
+      expect(copied).toContain("pro_log.ego_stdout");
+      expect(copied).toContain("level = 'error'");
+      expect(copied).toContain("1970-01-01T00:01:40.000Z");
+      expect(copied).toContain("1970-01-01T00:03:20.000Z");
+      expect(copied).toContain(`${window.location.origin}/clickvisual/v2/query?`);
+      expect(copied).toContain("返回条数：3");
+      expect(copied).toContain('"trace_id":"trace-123"');
+      expect(copied).not.toContain('"action":"tool"');
+      expect(copied).not.toContain("internal SQL result");
+      expect(vi.mocked(fetch).mock.calls).toHaveLength(1);
+    } finally {
+      window.history.replaceState({}, "", originalPath);
+    }
   });
 });

@@ -22,6 +22,10 @@ level = "debug"
 writer = "stderr"
 name = "clickvisual.log"
 
+[alarm.ai]
+enabled = false
+cooldownSeconds = 900
+
 [report.summary.ai]
 enabled = false
 baseURL = "https://api.openai.com"

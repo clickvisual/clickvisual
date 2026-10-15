@@ -16,20 +16,22 @@ function buildApiUrl(path: string) {
 }
 
 function getLoginHref(payload?: string) {
+  const loginParams = new URLSearchParams({ redirect: window.location.pathname + (window.location.search || "") });
+  const localLogin = `${getV2BasePath()}/v2/login?${loginParams}`;
   if (payload) {
     try {
       const url = new URL(payload, window.location.origin);
       if (url.pathname.endsWith("/user/login")) {
-        return `${getV2BasePath()}/v2/login`;
+        return localLogin;
       }
     } catch {
       if (payload.endsWith("/user/login")) {
-        return `${getV2BasePath()}/v2/login`;
+        return localLogin;
       }
     }
     return payload;
   }
-  return `${getV2BasePath()}/v2/login`;
+  return localLogin;
 }
 
 function redirectToLogin(payload?: string) {

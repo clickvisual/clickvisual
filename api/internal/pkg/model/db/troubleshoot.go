@@ -10,6 +10,7 @@ type TroubleshootSession struct {
 	BaseModel
 
 	UID        int    `gorm:"column:uid;type:int(11);index" json:"uid"`
+	Source     string `gorm:"column:source;type:varchar(32);not null;default:'';index" json:"-"`
 	Title      string `gorm:"column:title;type:varchar(64);not null;default:''" json:"title"`
 	Status     string `gorm:"column:status;type:varchar(32);not null;default:'idle'" json:"status"`
 	ShareToken string `gorm:"column:share_token;type:varchar(64);not null;default:'';index" json:"shareToken"`

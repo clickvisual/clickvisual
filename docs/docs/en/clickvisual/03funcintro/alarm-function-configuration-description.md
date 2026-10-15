@@ -2,6 +2,34 @@
 
 `Available version >= 0.2.1`
 
+## AI Alert Analysis
+
+For an existing deployment, run the metadata migration (`/api/v1/migration`) as part of the upgrade before enabling this feature. It creates analysis and delivery tables and adds rule cooldown and session source columns.
+
+The full edition can generate an asynchronous AI analysis after a normal alert and send a separate message to the channels captured for that alert. Normal alerts do not wait for the model. Configure a working model in model settings, then enable the worker:
+
+```toml
+[alarm.ai]
+enabled = true
+cooldownSeconds = 900
+```
+
+Analysis is disabled when omitted, and the default cooldown is 900 seconds. The rule API accepts `aiCooldownSeconds`; `0` inherits the global value. Analysis runs with the rule owner's log permissions. It queries actual logs before producing a conclusion. Related-table queries must pass the same permission checks and remain within the alert time window. A model or initial evidence query failure does not produce a successful conclusion.
+
+The default empty condition `1=1` becomes an empty filter. Legacy aggregation SQL and other expressions that cannot be safely converted are never executed directly. Analysis instead uses samples from the same table and time window, with an explicit caveat that sample counts are not original-rule match counts and aggregation metrics were not recomputed.
+
+Consecutive alerts with the same rule, condition, log table, and labels are merged while analysis is queued or running, and during the cooldown following a successful analysis. Reanalysis after cooldown uses a recent time window. A firing after recovery starts a new incident. Deduplication and leases are persisted in the metadata database for multiple instances. Failed analysis and individual channel deliveries have at most three attempts each. Confirmed successful channels are skipped on retries. A network timeout may occur after a receiver accepted a message, so strictly exactly-once external delivery cannot be guaranteed.
+
+The analysis includes an Ask continuation link. Set `app.rootURL` to the user-facing deployment URL, including any subpath, such as `https://example.com/clickvisual`. The link contains only an opaque analysis identifier. Opening it requires login and current access to every evidence table; insufficient access prevents evidence import. Each authorized visit creates a personal conversation seeded with alert context, log evidence, and the AI conclusion. The URL is replaced with its `sessionId`, so refresh reopens that conversation. Different users and later visits by the same user get independent editable conversations.
+
+Background analysis sessions do not appear in personal history. Channel messages contain a bounded analysis summary rather than full log samples. Authorized users can inspect evidence and continue the investigation in Ask.
+
+The query-page link in Ask opens the corresponding log query in a new tab, keeping the current conversation open.
+
+Conversations show conclusions and key evidence without automatically appending a log-sample block. Raw logs remain available through the query-page link. Queries covering up to 15 minutes run immediately when the user has permission, including queries on a different table. Longer cross-table queries and expanding the time range beyond six hours still require confirmation.
+
+The “复制排查上下文” (Copy investigation context) icon is always visible below each AI reply. It copies the conversation, query filters, time ranges, and available log evidence up to that reply for pasting into a local AI. The icon briefly changes to a checkmark after copying. Copying does not create a share link or send data to an external AI. The action is also available in shared read-only conversations.
+
 ## Architecture 
 
 ![img.png](../../../images/alarm-arch.png)
