@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
+import SettingsSubnav from "../components/SettingsSubnav";
 import { listQuerySourceInstances } from "../../query/api/query";
 import type { QuerySourceInstance } from "../../query/types/contracts";
 import {
@@ -99,18 +99,6 @@ function formExpireAt(form: TokenFormState) {
   return dateTimeLocalToUnix(form.expireAtLocal);
 }
 
-function SettingsSubnav() {
-  return (
-    <nav className="cv-settings-subnav" aria-label="配置中心导航">
-      <NavLink to="/v2/settings/datasource" className={({ isActive }) => `cv-settings-subnav__item${isActive ? " cv-settings-subnav__item--active" : ""}`}>
-        数据源配置
-      </NavLink>
-      <NavLink to="/v2/settings/query-tokens" className={({ isActive }) => `cv-settings-subnav__item${isActive ? " cv-settings-subnav__item--active" : ""}`}>
-        查询 Token
-      </NavLink>
-    </nav>
-  );
-}
 
 export default function SettingsQueryTokensPage() {
   const [tokens, setTokens] = useState<SettingsQueryToken[]>([]);

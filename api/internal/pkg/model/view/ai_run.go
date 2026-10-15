@@ -7,6 +7,7 @@ const (
 	AIScenarioQueryIngestionFieldRecommend = "query.ingestion.field_recommend"
 	AIScenarioQueryIngestionPublishSummary = "query.ingestion.publish_summary"
 	AIScenarioQueryLinkAnalyze             = "query.link.analyze"
+	AIScenarioTroubleshootAnswer           = "troubleshoot.answer"
 )
 
 type AIRunOptions struct {
@@ -18,6 +19,24 @@ type ReqAIRun struct {
 	Scenario string          `json:"scenario" binding:"required"`
 	Input    json.RawMessage `json:"input" binding:"required"`
 	Options  AIRunOptions    `json:"options"`
+}
+
+type AIConversationMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type AITroubleshootAnswerInput struct {
+	Question   string                  `json:"question"`
+	History    []AIConversationMessage `json:"history"`
+	Database   string                  `json:"database"`
+	Table      string                  `json:"table"`
+	Query      string                  `json:"query"`
+	ST         int64                   `json:"st"`
+	ET         int64                   `json:"et"`
+	Count      uint64                  `json:"count"`
+	Logs       []map[string]any        `json:"logs"`
+	SampleOnly bool                    `json:"sampleOnly"`
 }
 
 type AIIngestionDetectExplainInput struct {

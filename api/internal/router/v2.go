@@ -17,6 +17,7 @@ import (
 	queryv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/query"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/report"
 	"github.com/clickvisual/clickvisual/api/internal/api/apiv2/storage"
+	tsv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/troubleshoot"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
@@ -74,6 +75,9 @@ func v2Full(r *gin.RouterGroup) {
 		r.GET("/base/settings/ai", core.Handle(base.SettingsAIInfo))
 		r.PATCH("/base/settings/ai", core.Handle(base.SettingsAIUpdate))
 		r.POST("/base/settings/ai/test", core.Handle(base.SettingsAITest))
+		r.GET("/base/settings/ai/providers", core.Handle(base.SettingsAIProviderList))
+		r.PUT("/base/settings/ai/providers", core.Handle(base.SettingsAIProviderSave))
+		r.POST("/base/settings/ai/providers/test", core.Handle(base.SettingsAIProviderTest))
 		r.GET("/base/settings/alarm-channels", core.Handle(base.SettingsAlarmChannelList))
 		r.GET("/base/settings/alarm-channels/:channel-id", core.Handle(base.SettingsAlarmChannelInfo))
 		r.POST("/base/settings/alarm-channels", core.Handle(base.SettingsAlarmChannelCreate))
@@ -108,6 +112,13 @@ func v2Full(r *gin.RouterGroup) {
 	// The query module - query
 	{
 		r.POST("/ai/run", core.Handle(aiv2.Run))
+		r.GET("/troubleshoot/sessions", core.Handle(tsv2.List))
+		r.POST("/troubleshoot/sessions", core.Handle(tsv2.Create))
+		r.GET("/troubleshoot/sessions/:session-id", core.Handle(tsv2.Get))
+		r.POST("/troubleshoot/sessions/:session-id/messages", core.Handle(tsv2.Reply))
+		r.POST("/troubleshoot/sessions/:session-id/confirm", core.Handle(tsv2.Confirm))
+		r.POST("/troubleshoot/sessions/:session-id/share", core.Handle(tsv2.Share))
+		r.GET("/troubleshoot/share/:token", core.Handle(tsv2.Shared))
 	}
 	// The query module - query
 	{

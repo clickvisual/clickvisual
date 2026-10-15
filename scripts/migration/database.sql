@@ -116,10 +116,61 @@ CREATE TABLE IF NOT EXISTS `cv_ai_setting` (
   `max_input_bytes` int(11) NOT NULL DEFAULT 32768,
   `default_temperature` decimal(4,2) NOT NULL DEFAULT 0.20,
   `default_max_tokens` int(11) NOT NULL DEFAULT 800,
+  `providers_imported` tinyint(1) NOT NULL DEFAULT 0,
   `creator_uid` int(11) NOT NULL DEFAULT 0,
   `updater_uid` int(11) NOT NULL DEFAULT 0,
   `ctime` bigint DEFAULT NULL COMMENT '创建时间',
   `utime` bigint DEFAULT NULL COMMENT '更新时间',
   `dtime` bigint DEFAULT 0 COMMENT '删除时间',
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `cv_ai_provider` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+  `provider_key` varchar(32) NOT NULL DEFAULT '',
+  `name` varchar(64) NOT NULL DEFAULT '',
+  `kind` varchar(16) NOT NULL DEFAULT 'openai',
+  `base_url` varchar(255) NOT NULL DEFAULT '',
+  `model` varchar(128) NOT NULL DEFAULT '',
+  `reasoning_effort` varchar(16) NOT NULL DEFAULT '',
+  `api_key_encrypted` text,
+  `enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `sort` int(11) NOT NULL DEFAULT 0,
+  `creator_uid` int(11) NOT NULL DEFAULT 0,
+  `updater_uid` int(11) NOT NULL DEFAULT 0,
+  `ctime` bigint DEFAULT NULL COMMENT '创建时间',
+  `utime` bigint DEFAULT NULL COMMENT '更新时间',
+  `dtime` bigint DEFAULT 0 COMMENT '删除时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `cv_troubleshoot_session` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+  `uid` int(11) NOT NULL DEFAULT 0,
+  `title` varchar(64) NOT NULL DEFAULT '',
+  `status` varchar(32) NOT NULL DEFAULT 'idle',
+  `share_token` varchar(64) NOT NULL DEFAULT '',
+  `last_tid` int(11) NOT NULL DEFAULT 0,
+  `last_window` bigint NOT NULL DEFAULT 0,
+  `pending` text,
+  `ctime` bigint DEFAULT NULL COMMENT '创建时间',
+  `utime` bigint DEFAULT NULL COMMENT '更新时间',
+  `dtime` bigint DEFAULT 0 COMMENT '删除时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_troubleshoot_session_uid` (`uid`),
+  KEY `idx_troubleshoot_session_share` (`share_token`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `cv_troubleshoot_message` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+  `session_id` int(11) NOT NULL DEFAULT 0,
+  `role` varchar(16) NOT NULL DEFAULT '',
+  `kind` varchar(16) NOT NULL DEFAULT '',
+  `content` text,
+  `payload` text,
+  `ctime` bigint DEFAULT NULL COMMENT '创建时间',
+  `utime` bigint DEFAULT NULL COMMENT '更新时间',
+  `dtime` bigint DEFAULT 0 COMMENT '删除时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_troubleshoot_message_session` (`session_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom/vitest";
+import { transferableAbortController } from "node:util";
 import { afterEach, beforeEach, vi } from "vitest";
 import {
   buildReportWorkspaceMock,
@@ -14,13 +15,21 @@ class TestResizeObserver {
 
 const originalElementQuerySelector = Element.prototype.querySelector;
 const originalElementQuerySelectorAll = Element.prototype.querySelectorAll;
+const nativeController = transferableAbortController();
+const nodeAbortController = nativeController.constructor as typeof AbortController;
+const nodeAbortSignal = nativeController.signal.constructor as typeof AbortSignal;
 
 function isUnsupportedBrowserPseudoSelector(error: unknown, selector: string) {
   return error instanceof DOMException && selector.includes(":autofill");
 }
 
 beforeEach(() => {
+  // React Router uses Node's Request, which requires signals from the same realm.
+  vi.stubGlobal("AbortController", nodeAbortController);
+  vi.stubGlobal("AbortSignal", nodeAbortSignal);
   const queryFilterProfiles: Array<Record<string, unknown>> = [];
+  const troubleshootSessions: Array<Record<string, unknown>> = [];
+  let troubleshootSeq = 1;
 
   Object.defineProperty(window, "matchMedia", {
     writable: true,
@@ -411,6 +420,98 @@ beforeEach(() => {
         };
       }
 
+      const aiProviders: Array<Record<string, unknown>> = [
+        {
+          id: "grok",
+          name: "Grok",
+          kind: "openai",
+          baseURL: "https://api.x.ai/v1",
+          model: "grok-4",
+          reasoningEffort: "low",
+          enabled: true,
+          keySet: true,
+          keyHint: "3456"
+        },
+        {
+          id: "claude",
+          name: "Claude",
+          kind: "anthropic",
+          baseURL: "https://api.anthropic.com",
+          model: "claude-haiku",
+          reasoningEffort: "",
+          enabled: false,
+          keySet: true,
+          keyHint: "abcd"
+        }
+      ];
+      const aiProviderPayload = () => ({
+        providers: aiProviders,
+        chain: aiProviders.filter((item) => item.enabled).map((item) => item.id),
+        max: 10
+      });
+
+      if (method === "GET" && url.pathname.endsWith("/api/v2/base/settings/ai/providers")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: aiProviderPayload()
+            })
+        };
+      }
+
+      if (method === "PUT" && url.pathname.endsWith("/api/v2/base/settings/ai/providers")) {
+        const payload = JSON.parse(String(init?.body || "{}"));
+        const next = Array.isArray(payload.providers) ? payload.providers : [];
+        aiProviders.splice(
+          0,
+          aiProviders.length,
+          ...next.map((item: Record<string, unknown>) => {
+            const previous = aiProviders.find((provider) => provider.id === item.id);
+            const apiKey = String(item.apiKey || "");
+            return {
+              id: String(item.id || ""),
+              name: String(item.name || item.id || ""),
+              kind: String(item.kind || "openai"),
+              baseURL: String(item.baseURL || ""),
+              model: String(item.model || ""),
+              reasoningEffort: String(item.reasoningEffort || ""),
+              enabled: Boolean(item.enabled),
+              keySet: Boolean(apiKey) || Boolean(previous?.keySet),
+              keyHint: apiKey ? apiKey.slice(-4) : String(previous?.keyHint || "")
+            };
+          })
+        );
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: aiProviderPayload()
+            })
+        };
+      }
+
+      if (method === "POST" && url.pathname.endsWith("/api/v2/base/settings/ai/providers/test")) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: {
+                ok: true,
+                latencyMs: 320,
+                reply: "OK",
+                error: ""
+              }
+            })
+        };
+      }
+
       if (method === "GET" && url.pathname.endsWith("/api/v2/base/settings/ai")) {
         return {
           ok: true,
@@ -674,6 +775,199 @@ beforeEach(() => {
                 sortRule: []
               }
             })
+        };
+      }
+
+      if (method === "GET" && url.pathname === "/api/v2/troubleshoot/sessions") {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: troubleshootSessions.map(({ messages: _messages, ...item }) => item)
+            })
+        };
+      }
+
+      if (method === "GET" && url.pathname === "/api/v2/troubleshoot/share/demo") {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: {
+                id: 9,
+                title: "分享的超时",
+                status: "idle",
+                messages: [
+                  { id: 1, role: "user", kind: "text", text: "gateway timeout", createdAt: 1 },
+                  {
+                    id: 2,
+                    role: "assistant",
+                    kind: "final",
+                    text: "最近 15 分钟有 3 条超时。",
+                    createdAt: 2,
+                    link: {
+                      tid: 7,
+                      instanceId: 1,
+                      database: "pro_log",
+                      table: "ego_stdout",
+                      query: "level = 'error'",
+                      st: 100,
+                      et: 200
+                    }
+                  }
+                ]
+              }
+            })
+        };
+      }
+
+      const troubleshootSessionMatch = url.pathname.match(/^\/api\/v2\/troubleshoot\/sessions\/(\d+)$/);
+      if (method === "GET" && troubleshootSessionMatch) {
+        const session = troubleshootSessions.find((item) => item.id === Number(troubleshootSessionMatch[1]));
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: session ? 0 : 1,
+              msg: session ? "succ" : "对话不存在",
+              data: session || null
+            })
+        };
+      }
+
+      if (method === "POST" && url.pathname === "/api/v2/troubleshoot/sessions") {
+        const body = JSON.parse(String(init?.body || "{}")) as { text?: string };
+        const text = body.text || "";
+        if (text === "坏响应") {
+          return {
+            ok: true,
+            text: async () => JSON.stringify({ code: 0, msg: "succ", data: [] })
+          };
+        }
+        const wide = text.includes("12");
+        const session = {
+          id: troubleshootSeq++,
+          title: text.slice(0, 32),
+          status: wide ? "waiting_confirm" : "idle",
+          updatedAt: troubleshootSeq,
+          pending: wide
+            ? {
+                tool: "run_query",
+                summary: "将查询 pro_log.ego_stdout，时间范围 12 小时（时间范围超过 6 小时）"
+              }
+            : undefined,
+          messages: wide
+            ? [
+                { id: 1, role: "user", kind: "text", text, createdAt: 1 },
+                {
+                  id: 2,
+                  role: "tool",
+                  kind: "tool",
+                  tool: "run_query",
+                  summary: "将查询 pro_log.ego_stdout，时间范围 12 小时（时间范围超过 6 小时）",
+                  status: "waiting",
+                  createdAt: 2
+                }
+              ]
+            : [
+                { id: 1, role: "user", kind: "text", text, createdAt: 1 },
+                {
+                  id: 2,
+                  role: "tool",
+                  kind: "tool",
+                  tool: "list_tables",
+                  summary: "找到 1 张日志表",
+                  detail: '[{"database":"pro_log","table":"ego_stdout"}]',
+                  status: "done",
+                  createdAt: 2
+                },
+                {
+                  id: 3,
+                  role: "assistant",
+                  kind: "final",
+                  text: "最近 15 分钟没有匹配日志。",
+                  createdAt: 3,
+                  link: {
+                    tid: 7,
+                    instanceId: 1,
+                    database: "pro_log",
+                    table: "ego_stdout",
+                    query: "trace_id = 'abc'",
+                    st: 100,
+                    et: 200
+                  }
+                }
+              ]
+        };
+        troubleshootSessions.unshift(session);
+        return {
+          ok: true,
+          text: async () => JSON.stringify({ code: 0, msg: "succ", data: session })
+        };
+      }
+
+      const troubleshootConfirmMatch = url.pathname.match(/^\/api\/v2\/troubleshoot\/sessions\/(\d+)\/confirm$/);
+      if (method === "POST" && troubleshootConfirmMatch) {
+        const session = troubleshootSessions.find((item) => item.id === Number(troubleshootConfirmMatch[1]));
+        const body = JSON.parse(String(init?.body || "{}")) as { accept?: boolean };
+        if (session) {
+          session.status = "idle";
+          session.pending = undefined;
+          const messages = Array.isArray(session.messages) ? session.messages : [];
+          session.messages = body.accept
+            ? [
+                messages[0],
+                {
+                  id: 2,
+                  role: "tool",
+                  kind: "tool",
+                  tool: "run_query",
+                  summary: "查询 pro_log.ego_stdout，时间范围 12 小时，3 条",
+                  status: "done",
+                  createdAt: 2
+                },
+                {
+                  id: 3,
+                  role: "assistant",
+                  kind: "final",
+                  text: "这 12 小时里有 3 条错误。",
+                  createdAt: 3,
+                  link: {
+                    tid: 7,
+                    instanceId: 1,
+                    database: "pro_log",
+                    table: "ego_stdout",
+                    query: "level = 'error'",
+                    st: 1,
+                    et: 2
+                  }
+                }
+              ]
+            : [
+                ...messages,
+                { id: 9, role: "tool", kind: "tool", tool: "run_query", summary: "已取消这次查询", status: "canceled", createdAt: 9 }
+              ];
+        }
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: session ? 0 : 1,
+              msg: session ? "succ" : "对话不存在",
+              data: session || null
+            })
+        };
+      }
+
+      const troubleshootShareMatch = url.pathname.match(/^\/api\/v2\/troubleshoot\/sessions\/(\d+)\/share$/);
+      if (method === "POST" && troubleshootShareMatch) {
+        return {
+          ok: true,
+          text: async () => JSON.stringify({ code: 0, msg: "succ", data: { token: "demo" } })
         };
       }
 

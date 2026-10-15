@@ -28,8 +28,12 @@ type AISetting struct {
 	MaxInputBytes      int     `gorm:"column:max_input_bytes;type:int(11);default:32768" json:"maxInputBytes"`
 	DefaultTemperature float64 `gorm:"column:default_temperature;type:decimal(4,2);default:0.2" json:"defaultTemperature"`
 	DefaultMaxTokens   int     `gorm:"column:default_max_tokens;type:int(11);default:800" json:"defaultMaxTokens"`
-	CreatorUid         int     `gorm:"column:creator_uid;type:int(11)" json:"creatorUid"`
-	UpdaterUid         int     `gorm:"column:updater_uid;type:int(11)" json:"updaterUid"`
+	// ProvidersImported is set once the legacy single-model fields have been
+	// copied into cv_ai_provider, so deleting every provider does not bring
+	// the legacy model back.
+	ProvidersImported int `gorm:"column:providers_imported;type:tinyint(1);default:0" json:"providersImported"`
+	CreatorUid        int `gorm:"column:creator_uid;type:int(11)" json:"creatorUid"`
+	UpdaterUid        int `gorm:"column:updater_uid;type:int(11)" json:"updaterUid"`
 }
 
 func (a *AISetting) TableName() string {
@@ -37,26 +41,42 @@ func (a *AISetting) TableName() string {
 }
 
 func (a *AISetting) GetAPIKey() string {
-	if a.APIKeyEncrypted == "" {
+	return DecryptAIKey(a.APIKeyEncrypted)
+}
+
+func (a *AISetting) SetAPIKey(apiKey string) string {
+	return EncryptAIKey(apiKey)
+}
+
+func aiEncryptionKey() string {
+	aesKey := econf.GetString("app.encryptionKey")
+	if len(aesKey) == 16 || len(aesKey) == 24 || len(aesKey) == 32 {
+		return aesKey
+	}
+	return ""
+}
+
+func DecryptAIKey(encrypted string) string {
+	if encrypted == "" {
 		return ""
 	}
-	aesKey := econf.GetString("app.encryptionKey")
-	if aesKey == "" || !(len(aesKey) == 16 || len(aesKey) == 24 || len(aesKey) == 32) {
-		return a.APIKeyEncrypted
+	aesKey := aiEncryptionKey()
+	if aesKey == "" {
+		return encrypted
 	}
-	res, err := x.AESDecrypt(a.APIKeyEncrypted, aesKey)
+	res, err := x.AESDecrypt(encrypted, aesKey)
 	if err != nil {
 		elog.Panic("aes decrypt error", zap.Error(err))
 	}
 	return res
 }
 
-func (a *AISetting) SetAPIKey(apiKey string) string {
+func EncryptAIKey(apiKey string) string {
 	if strings.TrimSpace(apiKey) == "" {
 		return ""
 	}
-	aesKey := econf.GetString("app.encryptionKey")
-	if aesKey == "" || !(len(aesKey) == 16 || len(aesKey) == 24 || len(aesKey) == 32) {
+	aesKey := aiEncryptionKey()
+	if aesKey == "" {
 		return apiKey
 	}
 	res, err := x.AESEncrypt(apiKey, aesKey)
@@ -67,7 +87,11 @@ func (a *AISetting) SetAPIKey(apiKey string) string {
 }
 
 func AISettingInfo(db *gorm.DB) (resp AISetting, err error) {
-	if err = db.Model(AISetting{}).Where("id = ?", DefaultAISettingID).First(&resp).Error; err != nil && !stderrors.Is(err, gorm.ErrRecordNotFound) {
+	err = db.Model(AISetting{}).Where("id = ?", DefaultAISettingID).First(&resp).Error
+	if stderrors.Is(err, gorm.ErrRecordNotFound) {
+		return resp, nil
+	}
+	if err != nil {
 		return resp, errors.Wrap(err, "load ai setting")
 	}
 	return

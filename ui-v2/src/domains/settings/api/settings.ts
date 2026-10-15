@@ -80,6 +80,44 @@ export interface SettingsAIConfigTestResult {
   model: string;
 }
 
+export type SettingsAIProviderKind = "openai" | "openai-responses" | "anthropic";
+
+export interface SettingsAIProvider {
+  id: string;
+  name: string;
+  kind: SettingsAIProviderKind;
+  baseURL: string;
+  model: string;
+  reasoningEffort: string;
+  enabled: boolean;
+  keySet: boolean;
+  keyHint: string;
+}
+
+export interface SettingsAIProviderDraft {
+  id: string;
+  name: string;
+  kind: SettingsAIProviderKind;
+  baseURL: string;
+  model: string;
+  reasoningEffort: string;
+  enabled: boolean;
+  apiKey: string;
+}
+
+export interface SettingsAIProviderList {
+  providers: SettingsAIProvider[];
+  chain: string[];
+  max: number;
+}
+
+export interface SettingsAIProviderTestResult {
+  ok: boolean;
+  latencyMs: number;
+  reply: string;
+  error: string;
+}
+
 export interface SettingsQueryToken {
   id: number;
   name: string;
@@ -226,6 +264,22 @@ export async function updateSettingsAIConfig(
 
 export async function testSettingsAIConfig(): Promise<SettingsAIConfigTestResult> {
   return client.post<SettingsAIConfigTestResult>("/api/v2/base/settings/ai/test", {});
+}
+
+export async function listSettingsAIProviders(): Promise<SettingsAIProviderList> {
+  return client.get<SettingsAIProviderList>("/api/v2/base/settings/ai/providers");
+}
+
+export async function saveSettingsAIProviders(
+  providers: SettingsAIProviderDraft[]
+): Promise<SettingsAIProviderList> {
+  return client.put<SettingsAIProviderList>("/api/v2/base/settings/ai/providers", { providers });
+}
+
+export async function testSettingsAIProvider(
+  provider: SettingsAIProviderDraft
+): Promise<SettingsAIProviderTestResult> {
+  return client.post<SettingsAIProviderTestResult>("/api/v2/base/settings/ai/providers/test", { provider });
 }
 
 export async function listSettingsQueryTokens(): Promise<SettingsQueryToken[]> {

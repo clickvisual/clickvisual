@@ -314,6 +314,55 @@ func SettingsAITest(c *core.Context) {
 	c.JSONOK(resp)
 }
 
+func SettingsAIProviderList(c *core.Context) {
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	resp, err := aisvc.ListProviders()
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONOK(resp)
+}
+
+func SettingsAIProviderSave(c *core.Context) {
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	var req view.ReqSaveAIProviders
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	resp, err := aisvc.SaveProviders(c.Uid(), req)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONOK(resp)
+}
+
+func SettingsAIProviderTest(c *core.Context) {
+	if err := permission.Manager.IsRootUser(c.Uid()); err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	var req view.ReqTestAIProvider
+	if err := c.Bind(&req); err != nil {
+		c.JSONE(1, "invalid parameter: "+err.Error(), nil)
+		return
+	}
+	resp, err := aisvc.TestProvider(req)
+	if err != nil {
+		c.JSONE(1, err.Error(), nil)
+		return
+	}
+	c.JSONOK(resp)
+}
+
 func SettingsAlarmChannelList(c *core.Context) {
 	res, err := db2.AlarmChannelList(egorm.Conds{})
 	if err != nil {

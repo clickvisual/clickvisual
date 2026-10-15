@@ -114,6 +114,9 @@ func TestMigrationSQLContainsReportTables(t *testing.T) {
 		dbmodel.TableNameReportAcceleration,
 		dbmodel.TableNameQueryFilterProfile,
 		dbmodel.TableNameAISetting,
+		dbmodel.TableNameAIProvider,
+		dbmodel.TableNameTroubleshootSession,
+		dbmodel.TableNameTroubleshootMessage,
 	} {
 		if !strings.Contains(sqlText, tableName) {
 			t.Fatalf("migration sql missing table %s", tableName)

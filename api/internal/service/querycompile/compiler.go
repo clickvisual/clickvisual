@@ -120,6 +120,13 @@ func buildWherePlan(req view.QueryRequestV2, ctx CompileContext) (whereParts []s
 			})
 		}
 	}
+	extra, err := extraWhereFromQuery(req.Query, ctx.RawJSONColumn)
+	if err != nil {
+		return nil, view.QueryPlan{}, err
+	}
+	if extra != "" {
+		whereParts = append(whereParts, extra)
+	}
 
 	plan = view.QueryPlan{
 		Table:             ctx.TableName,
@@ -127,6 +134,46 @@ func buildWherePlan(req view.QueryRequestV2, ctx CompileContext) (whereParts []s
 		Warnings:          warnings,
 	}
 	return whereParts, plan, nil
+}
+
+func extraWhereFromQuery(query, rawJSONColumn string) (string, error) {
+	q := strings.TrimSpace(query)
+	if q == "" || q == "*" {
+		return "", nil
+	}
+	if isBareSearchTerm(q) {
+		col := rawJSONColumn
+		if col == "" {
+			col = "_raw_log_"
+		}
+		return fmt.Sprintf("%s LIKE '%%%s%%'", col, strings.ReplaceAll(q, "'", "\\'")), nil
+	}
+	if !queryFilterPattern.MatchString(q) {
+		return "", fmt.Errorf("query must contain only single-table comparisons joined with AND or OR; functions and subqueries are not allowed")
+	}
+	return "(" + q + ")", nil
+}
+
+func isBareSearchTerm(q string) bool {
+	if q == "" {
+		return false
+	}
+	for _, r := range q {
+		if r >= 'a' && r <= 'z' {
+			continue
+		}
+		if r >= 'A' && r <= 'Z' {
+			continue
+		}
+		if r >= '0' && r <= '9' {
+			continue
+		}
+		if r == '_' || r == '-' || r == '.' {
+			continue
+		}
+		return false
+	}
+	return true
 }
 
 func normalizedTimeField(ctx CompileContext) string {

@@ -495,6 +495,64 @@ func TestCompileFieldStatsUsesCurrentFilters(t *testing.T) {
 	assert.Equal(t, "container.name", plan.PlannedConditions[1].FieldKey)
 }
 
+func TestCompileFieldStatsUsesRawQuery(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid:   1,
+			ST:    1710000000,
+			ET:    1710003600,
+			Query: "kdzfwFoGlYCA0VKf",
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:       "_container_name_",
+			DisplayName:    "_container_name_",
+			Source:         view.QueryFieldSourceColumn,
+			Path:           "_container_name_",
+			ValueType:      view.QueryValueTypeString,
+			IsAccelerated:  true,
+			AcceleratedCol: "_container_name_",
+		},
+		Limit: 10,
+	}
+	statsSQL, totalSQL, _, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`pro_log`.`app_stdout`",
+		TimeField:     "_time_second_",
+		RawJSONColumn: "_raw_log_",
+	})
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "_raw_log_ LIKE '%kdzfwFoGlYCA0VKf%'")
+	assert.Contains(t, totalSQL, "_raw_log_ LIKE '%kdzfwFoGlYCA0VKf%'")
+	assert.Contains(t, statsSQL, "`_container_name_`")
+}
+
+func TestCompileFieldStatsUsesSQLQueryFragment(t *testing.T) {
+	req := view.QueryFieldStatsRequest{
+		QueryRequestV2: view.QueryRequestV2{
+			Tid:   1,
+			ST:    1710000000,
+			ET:    1710003600,
+			Query: "`msg` = 'duration' AND `queueUpDuration` > 80",
+		},
+		Field: view.QueryFieldRef{
+			FieldKey:       "_container_name_",
+			DisplayName:    "_container_name_",
+			Source:         view.QueryFieldSourceColumn,
+			Path:           "_container_name_",
+			ValueType:      view.QueryValueTypeString,
+			IsAccelerated:  true,
+			AcceleratedCol: "_container_name_",
+		},
+		Limit: 10,
+	}
+	statsSQL, _, _, err := CompileFieldStats(req, CompileContext{
+		TableName:     "`pro_log`.`app_stdout`",
+		TimeField:     "_time_second_",
+		RawJSONColumn: "_raw_log_",
+	})
+	require.NoError(t, err)
+	assert.Contains(t, statsSQL, "(`msg` = 'duration' AND `queueUpDuration` > 80)")
+}
+
 func TestCompileFieldStatsSupportsRawLogJSONKey(t *testing.T) {
 	req := view.QueryFieldStatsRequest{
 		QueryRequestV2: view.QueryRequestV2{
