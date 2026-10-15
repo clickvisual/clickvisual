@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter, useLocation } from "react-router-dom";
 import App from "./App";
 import LoginPage from "../domains/auth/pages/LoginPage";
 import AnalysisWorkbenchPage from "../domains/analysis/pages/AnalysisWorkbenchPage";
@@ -7,6 +7,7 @@ import OverviewPage from "../domains/overview/pages/OverviewPage";
 import IngestionWorkbenchPage from "../domains/query/pages/IngestionWorkbenchPage";
 import QueryLinkPage from "../domains/query/pages/QueryLinkPage";
 import QueryPage from "../domains/query/pages/QueryPage";
+import TroubleshootPage from "../domains/troubleshoot/pages/TroubleshootPage";
 import PermissionResourcesPage from "../domains/permission/pages/PermissionResourcesPage";
 import PermissionRootPage from "../domains/permission/pages/PermissionRootPage";
 import PermissionRolesPage from "../domains/permission/pages/PermissionRolesPage";
@@ -14,10 +15,16 @@ import PermissionUsersPage from "../domains/permission/pages/PermissionUsersPage
 import ReportResultPage from "../domains/report/pages/ReportResultPage";
 import ReportSchedulePage from "../domains/report/pages/ReportSchedulePage";
 import SettingsDatasourcePage from "../domains/settings/pages/SettingsDatasourcePage";
+import SettingsModelsPage from "../domains/settings/pages/SettingsModelsPage";
 import SettingsQueryTokensPage from "../domains/settings/pages/SettingsQueryTokensPage";
 import LogLibraryManagementPage from "../domains/logLibrary/pages/LogLibraryManagementPage";
 import { isPrivateLiteEdition } from "../shared/config/runtime";
 import { getV2BasePath } from "../shared/layout/VersionSwitcher";
+
+function HomeRedirect({ privateLite }: { privateLite: boolean }) {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: privateLite ? "/v2/query" : "/v2/ask", search }} replace />;
+}
 
 export function createV2Routes(privateLite = isPrivateLiteEdition()) {
   const children = privateLite
@@ -38,7 +45,7 @@ export function createV2Routes(privateLite = isPrivateLiteEdition()) {
     : [
         {
           index: true,
-          element: <QueryPage />
+          element: <HomeRedirect privateLite={privateLite} />
         },
         {
           path: "reports",
@@ -61,6 +68,22 @@ export function createV2Routes(privateLite = isPrivateLiteEdition()) {
           element: <QueryPage />
         },
         {
+          path: "ask",
+          element: <TroubleshootPage />
+        },
+        {
+          path: "ask/share/:token",
+          element: <TroubleshootPage />
+        },
+        {
+          path: "troubleshoot",
+          element: <TroubleshootPage />
+        },
+        {
+          path: "troubleshoot/share/:token",
+          element: <TroubleshootPage />
+        },
+        {
           path: "query/link",
           element: <QueryLinkPage />
         },
@@ -79,6 +102,10 @@ export function createV2Routes(privateLite = isPrivateLiteEdition()) {
         {
           path: "settings/datasource",
           element: <SettingsDatasourcePage />
+        },
+        {
+          path: "settings/models",
+          element: <SettingsModelsPage />
         },
         {
           path: "settings/query-tokens",
@@ -106,6 +133,10 @@ export function createV2Routes(privateLite = isPrivateLiteEdition()) {
         }
       ];
   return [
+    {
+      path: "/",
+      element: <HomeRedirect privateLite={privateLite} />
+    },
     {
       path: "/share",
       element: <QueryPage shareMode />

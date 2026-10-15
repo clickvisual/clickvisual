@@ -98,15 +98,18 @@ const (
 	TableNameBigDataDepend      = "cv_bd_depend"
 	TableNameBigDataCrontab     = "cv_bd_crontab"
 
-	TableNameReport             = "cv_report"
-	TableNameReportSchedule     = "cv_report_schedule"
-	TableNameReportExecution    = "cv_report_execution"
-	TableNameReportAcceleration = "cv_report_acceleration"
-	TableNameQueryFilterProfile = "cv_query_filter_profile"
-	TableNameAISetting          = "cv_ai_setting"
-	TableNameQueryToken         = "cv_query_token"
-	TableNameQueryTokenGrant    = "cv_query_token_grant"
-	TableNameQueryTokenAudit    = "cv_query_token_audit"
+	TableNameReport              = "cv_report"
+	TableNameReportSchedule      = "cv_report_schedule"
+	TableNameReportExecution     = "cv_report_execution"
+	TableNameReportAcceleration  = "cv_report_acceleration"
+	TableNameQueryFilterProfile  = "cv_query_filter_profile"
+	TableNameAISetting           = "cv_ai_setting"
+	TableNameAIProvider          = "cv_ai_provider"
+	TableNameTroubleshootSession = "cv_troubleshoot_session"
+	TableNameTroubleshootMessage = "cv_troubleshoot_message"
+	TableNameQueryToken          = "cv_query_token"
+	TableNameQueryTokenGrant     = "cv_query_token_grant"
+	TableNameQueryTokenAudit     = "cv_query_token_audit"
 )
 
 type BaseModel struct {

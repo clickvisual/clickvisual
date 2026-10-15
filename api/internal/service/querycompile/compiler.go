@@ -120,7 +120,11 @@ func buildWherePlan(req view.QueryRequestV2, ctx CompileContext) (whereParts []s
 			})
 		}
 	}
-	if extra := extraWhereFromQuery(req.Query, ctx.RawJSONColumn); extra != "" {
+	extra, err := extraWhereFromQuery(req.Query, ctx.RawJSONColumn)
+	if err != nil {
+		return nil, view.QueryPlan{}, err
+	}
+	if extra != "" {
 		whereParts = append(whereParts, extra)
 	}
 
@@ -132,19 +136,22 @@ func buildWherePlan(req view.QueryRequestV2, ctx CompileContext) (whereParts []s
 	return whereParts, plan, nil
 }
 
-func extraWhereFromQuery(query, rawJSONColumn string) string {
+func extraWhereFromQuery(query, rawJSONColumn string) (string, error) {
 	q := strings.TrimSpace(query)
 	if q == "" || q == "*" {
-		return ""
+		return "", nil
 	}
 	if isBareSearchTerm(q) {
 		col := rawJSONColumn
 		if col == "" {
 			col = "_raw_log_"
 		}
-		return fmt.Sprintf("%s LIKE '%%%s%%'", col, strings.ReplaceAll(q, "'", "\\'"))
+		return fmt.Sprintf("%s LIKE '%%%s%%'", col, strings.ReplaceAll(q, "'", "\\'")), nil
 	}
-	return "(" + q + ")"
+	if !queryFilterPattern.MatchString(q) {
+		return "", fmt.Errorf("query must contain only single-table comparisons joined with AND or OR; functions and subqueries are not allowed")
+	}
+	return "(" + q + ")", nil
 }
 
 func isBareSearchTerm(q string) bool {

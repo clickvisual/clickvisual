@@ -61,23 +61,31 @@ func TestShouldRedirectDefaultV2Entry(t *testing.T) {
 	}
 }
 
-func TestBuildDefaultV2QueryRedirectURL(t *testing.T) {
+func TestBuildDefaultV2RedirectURL(t *testing.T) {
 	cases := []struct {
 		name      string
 		appSubURL string
+		path      string
+		edition   string
 		rawQuery  string
 		want      string
 	}{
-		{name: "root", want: "/v2/query"},
-		{name: "subpath", appSubURL: "/clickvisual", want: "/clickvisual/v2/query"},
-		{name: "preserve query", appSubURL: "/clickvisual", rawQuery: "instanceId=1&database=default", want: "/clickvisual/v2/query?database=default&instanceId=1"},
-		{name: "drop ui bypass", appSubURL: "/clickvisual", rawQuery: "ui=v1&instanceId=1", want: "/clickvisual/v2/query?instanceId=1"},
+		{name: "root", path: "/", want: "/v2/ask"},
+		{name: "subpath", path: "/", appSubURL: "/clickvisual", want: "/clickvisual/v2/ask"},
+		{name: "preserve session", path: "/", appSubURL: "/clickvisual", rawQuery: "sessionId=37", want: "/clickvisual/v2/ask?sessionId=37"},
+		{name: "preserve legacy query", path: "/query", appSubURL: "/clickvisual", rawQuery: "instanceId=1&database=default", want: "/clickvisual/v2/query?database=default&instanceId=1"},
+		{name: "legacy query slash", path: "/query/", want: "/v2/query"},
+		{name: "drop ui bypass", path: "/", appSubURL: "/clickvisual", rawQuery: "ui=v1&sessionId=37", want: "/clickvisual/v2/ask?sessionId=37"},
+		{name: "private lite", path: "/", edition: "private-lite", want: "/v2/query"},
 	}
 
+	previousEdition := econf.GetString("app.v2Edition")
+	t.Cleanup(func() { econf.Set("app.v2Edition", previousEdition) })
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := buildDefaultV2QueryRedirectURL(tc.appSubURL, tc.rawQuery); got != tc.want {
-				t.Fatalf("buildDefaultV2QueryRedirectURL(%q, %q) = %q, want %q", tc.appSubURL, tc.rawQuery, got, tc.want)
+			econf.Set("app.v2Edition", tc.edition)
+			if got := buildDefaultV2RedirectURL(tc.appSubURL, tc.path, tc.rawQuery); got != tc.want {
+				t.Fatalf("buildDefaultV2RedirectURL(%q, %q, %q) = %q, want %q", tc.appSubURL, tc.path, tc.rawQuery, got, tc.want)
 			}
 		})
 	}

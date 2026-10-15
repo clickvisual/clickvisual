@@ -2,15 +2,16 @@ import { FormEvent, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { loginWithPassword } from "../api/login";
 import { buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
+import { isPrivateLiteEdition } from "../../../shared/config/runtime";
 
 function normalizeRedirect(value: string | null) {
   if (!value || /^https?:\/\//i.test(value)) {
-    return buildV2RouteHref("query");
+    return buildV2RouteHref(isPrivateLiteEdition() ? "query" : "ask");
   }
   if (value.startsWith("/v2")) {
     return value;
   }
-  return buildV2RouteHref("query");
+  return buildV2RouteHref(isPrivateLiteEdition() ? "query" : "ask");
 }
 
 export default function LoginPage() {
