@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { EuiIcon } from "@elastic/eui";
 import { Modal } from "rsuite";
+import { useSearchParams } from "react-router-dom";
 import AlertSubnav from "../components/AlertSubnav";
 import {
   createSettingsAlarmChannel, deleteSettingsAlarmChannel, getSettingsAlarmChannel,
@@ -42,6 +43,7 @@ function errorMessage(error: unknown) {
 }
 
 export default function AlertChannelsPage() {
+  const [search] = useSearchParams();
   const [channels, setChannels] = useState<SettingsAlarmChannel[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -49,7 +51,7 @@ export default function AlertChannelsPage() {
   const [typ, setTyp] = useState(0);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [editor, setEditor] = useState<{ id?: number; draft: SettingsAlarmChannelPayload } | null>(null);
+  const [editor, setEditor] = useState<{ id?: number; draft: SettingsAlarmChannelPayload } | null>(() => search.get("create") === "1" ? { draft: draftOf() } : null);
   const [formError, setFormError] = useState("");
   const [pendingDelete, setPendingDelete] = useState<SettingsAlarmChannel | null>(null);
   const [deleteError, setDeleteError] = useState("");

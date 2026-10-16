@@ -2,6 +2,14 @@
 
 `Available version >= 0.2.1`
 
+## v2 Alert Rules
+
+“Alert Center → Alert Rules” (`/v2/alerts/rules`) uses the same stored rules and APIs as v1; no migration or copying is needed. Filter by instance, database, log table, status, name, or alert ID and paginate results. Refresh requests a Prometheus configuration reload, as in v1. Server-side user permissions still apply to creating, editing, pausing, enabling, deleting, and previewing rules.
+
+The editor supports multiple log tables, normal filters or aggregate SQL, multiple AND/OR thresholds, check intervals, no-data handling, channels, duty officers, and disabling recovery notifications. Preview new or changed queries before saving. Aggregate mode requires both data and alert indicator previews. An AI analysis cooldown of `0` inherits the global server setting. Editing preserves existing tags and unchanged configuration.
+
+Click a rule name to inspect real alert history with time filtering, pagination, trigger counts, successful pushes, and success rates. Generated materialized views and Prometheus rules can be viewed and copied. Log query links in the detail view open in a new tab.
+
 ## AI Alert Analysis
 
 For an existing deployment, run the metadata migration (`/api/v1/migration`) as part of the upgrade before enabling this feature. It creates analysis and delivery tables and adds rule cooldown, channel AI switch, and session source columns.
