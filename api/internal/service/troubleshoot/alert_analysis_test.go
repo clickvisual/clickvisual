@@ -11,6 +11,7 @@ import (
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	dbmodel "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 	"github.com/clickvisual/clickvisual/api/internal/service/ai"
 )
 
@@ -71,6 +72,75 @@ func TestAnalyzeAlertAllowsAuthorizedBoundedRelatedQueries(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, runner.calls)
 	require.Contains(t, result.Summary, "关联日志")
+}
+
+type alertQueryFunc func(context.Context, int, view.QueryRequestV2) (queryHit, error)
+
+func (f alertQueryFunc) Run(ctx context.Context, uid int, req view.QueryRequestV2) (queryHit, error) {
+	return f(ctx, uid, req)
+}
+
+func TestAnalyzeAlertInvestigatesDependencyApplicationLogs(t *testing.T) {
+	useSQLite(t)
+	tables = testCatalog()
+	var requests []view.QueryRequestV2
+	queries = alertQueryFunc(func(_ context.Context, uid int, req view.QueryRequestV2) (queryHit, error) {
+		require.Equal(t, 3, uid)
+		require.Equal(t, int64(1000), req.ST)
+		require.Equal(t, int64(1900), req.ET)
+		requests = append(requests, req)
+		if req.Tid == 7 {
+			return queryHit{Count: 1, Preview: "svc-edit -> svc-file GetOne: DeadlineExceeded, tid=trace-1"}, nil
+		}
+		require.Equal(t, 8, req.Tid)
+		if req.Query == "tid = 'trace-1' AND _container_name_ = 'svc-file'" {
+			return queryHit{Preview: "没有匹配日志"}, nil
+		}
+		require.Equal(t, "_raw_log_ like '%trace-1%' AND _container_name_ = 'svc-file'", req.Query)
+		return queryHit{Count: 1, Preview: "svc-file GetOne tid=trace-1: connection_pool_wait_ms=1950; pool_exhausted=true"}, nil
+	})
+	calls := 0
+	completeFn = func(_ context.Context, transcript []ai.Message, _ ai.CompletionOptions) (string, error) {
+		calls++
+		require.Contains(t, transcript[0].Content, "先排查再摘要")
+		switch calls {
+		case 1:
+			require.Contains(t, transcript[len(transcript)-1].Content, "GetOne: DeadlineExceeded")
+			return `{"action":"tool","name":"list_tables","args":{}}`, nil
+		case 2:
+			return `{"action":"tool","name":"describe_table","args":{"tid":8}}`, nil
+		case 3:
+			return `{"action":"tool","name":"run_query","args":{"tid":8,"query":"tid = 'trace-1' AND _container_name_ = 'svc-file'"}}`, nil
+		case 4:
+			require.Contains(t, transcript[len(transcript)-1].Content, "count: 0")
+			return `{"action":"tool","name":"run_query","args":{"tid":8,"query":"_raw_log_ like '%trace-1%' AND _container_name_ = 'svc-file'"}}`, nil
+		default:
+			require.Equal(t, 5, calls)
+			require.Contains(t, transcript[len(transcript)-1].Content, "connection_pool_wait_ms=1950")
+			return `{"action":"final","text":"GetOne 样本中连接池等待 1950ms，是该链路的主要耗时环节；其他请求影响仍待确认。"}`, nil
+		}
+	}
+	result, err := AnalyzeAlert(context.Background(), 3, alertSeed())
+	require.NoError(t, err)
+	require.Len(t, requests, 3)
+	require.Equal(t, 5, calls)
+	require.Contains(t, result.Summary, "连接池等待 1950ms")
+	require.Contains(t, result.Snapshot, "pool_exhausted=true")
+}
+
+func TestAnalyzeAlertDependencyQueriesRespectOwnerPermissions(t *testing.T) {
+	useSQLite(t)
+	tables = userCatalog{testCatalog(), map[int]map[int]bool{3: {7: true}}}
+	runner := &fakeRunner{}
+	queries = runner
+	completeFn = scripted(
+		`{"action":"tool","name":"run_query","args":{"tid":8,"query":"tid = 'trace-1'"}}`,
+		`{"action":"final","text":"已定位 GetOne 超时，但没有业务日志权限，无法确认内部原因。"}`,
+	)
+	result, err := AnalyzeAlert(context.Background(), 3, alertSeed())
+	require.NoError(t, err)
+	require.Equal(t, 1, runner.calls)
+	require.Contains(t, result.Summary, "没有业务日志权限")
 }
 
 func TestAnalyzeAlertRejectsWindowExpansionAndModelFailure(t *testing.T) {
