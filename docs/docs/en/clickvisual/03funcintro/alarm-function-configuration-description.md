@@ -22,7 +22,7 @@ Consecutive alerts with the same rule, condition, log table, and labels are merg
 
 The analysis includes an Ask continuation link. Set `app.rootURL` to the user-facing deployment URL, including any subpath, such as `https://example.com/clickvisual`. The link contains only an opaque analysis identifier. Opening it requires login and current access to every evidence table; insufficient access prevents evidence import. Each authorized visit creates a personal conversation seeded with alert context, log evidence, and the AI conclusion. The URL is replaced with its `sessionId`, so refresh reopens that conversation. Different users and later visits by the same user get independent editable conversations.
 
-Background analysis sessions do not appear in personal history. Channel messages contain a bounded analysis summary rather than full log samples. Authorized users can inspect evidence and continue the investigation in Ask.
+Background analysis sessions do not appear in personal history. Notifications have a separate AI analysis title with the alert name, a readable analysis window (UTC+8), and sections for conclusion, key evidence, uncertainties, and recommended actions. A labeled Ask continuation link appears at the bottom. Channel messages contain a bounded summary rather than full log samples; long sections are shortened individually so later caveats and actions remain present. Authorized users can read the complete conclusion, inspect evidence, and continue the investigation in Ask.
 
 The query-page link in Ask opens the corresponding log query in a new tab, keeping the current conversation open.
 

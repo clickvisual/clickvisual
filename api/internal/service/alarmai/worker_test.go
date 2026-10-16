@@ -126,6 +126,9 @@ func TestClaimsRetriesAndFailedChannelsOnly(t *testing.T) {
 		return Result{Summary: "password=secret token:abc Bearer xyz", Snapshot: "immutable"}, nil
 	}, func(_ context.Context, id int, msg *db.PushMsg) error {
 		sends[id]++
+		if msg.Title != "【AI 告警分析】Errors" {
+			t.Fatalf("unexpected notification title %s", msg.Title)
+		}
 		if strings.Contains(msg.Text, "secret") || !strings.Contains(msg.Text, "https://cv.test/sub/v2/ask?alertAnalysis=") {
 			t.Fatalf("unsafe message %s", msg.Text)
 		}

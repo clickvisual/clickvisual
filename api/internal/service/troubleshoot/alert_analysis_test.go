@@ -38,6 +38,26 @@ func TestAnalyzeAlertSeedsEvidenceAndHidesMachineSession(t *testing.T) {
 	require.ErrorIs(t, err, ErrNotFound)
 }
 
+func TestAnalyzeAlertRequestsReadableNotificationSections(t *testing.T) {
+	useSQLite(t)
+	queries = &fakeRunner{}
+	tables = testCatalog()
+	completeFn = func(_ context.Context, messages []ai.Message, options ai.CompletionOptions) (string, error) {
+		for _, heading := range []string{"**结论**", "**关键证据**", "**待确认**", "**建议**"} {
+			require.Contains(t, messages[0].Content, heading)
+		}
+		require.Contains(t, messages[0].Content, "Markdown 和换行放在 text 字符串内")
+		require.Equal(t, 1800, options.MaxTokens)
+		return `{"action":"final","text":"**结论**\n发现慢请求。\n\n**关键证据**\n- 有三条日志。\n\n**待确认**\n影响范围未知。\n\n**建议**\n- 检查下游。"}`, nil
+	}
+	result, err := AnalyzeAlert(context.Background(), 3, alertSeed())
+	require.NoError(t, err)
+	require.Contains(t, result.Summary, "**关键证据**\n- 有三条日志。")
+	var snapshot alertSnapshot
+	require.NoError(t, json.Unmarshal([]byte(result.Snapshot), &snapshot))
+	require.Equal(t, result.Summary, snapshot.Messages[len(snapshot.Messages)-1].Content)
+}
+
 func TestAnalyzeAlertAllowsAuthorizedBoundedRelatedQueries(t *testing.T) {
 	useSQLite(t)
 	runner := &fakeRunner{}

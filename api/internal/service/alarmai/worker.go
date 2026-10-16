@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -122,7 +121,7 @@ func (w *Worker) ProcessOne(ctx context.Context) error {
 		if claimed.RowsAffected != 1 {
 			continue
 		}
-		msg := message(job.Summary, job.Token, w.rootURL)
+		msg := message(job, w.rootURL)
 		err := w.send(workCtx, delivery.ChannelID, msg)
 		status := "pending"
 		if err == nil {
@@ -153,14 +152,5 @@ func (w *Worker) finish(job db.AlarmAIAnalysis, status string) error {
 var secrets = regexp.MustCompile(`(?i)bearer\s+[^\s"'<>]+|(?:password|passwd|secret|token|api[_-]?key|authorization)["']?\s*[=:]\s*(?:"[^"]*"|'[^']*'|(?:bearer\s+)?[^\s,;<>]+)|sk-[A-Za-z0-9_-]{8,}`)
 
 func redact(text string) string {
-	text = secrets.ReplaceAllString(text, "[REDACTED]")
-	runes := []rune(text)
-	if len(runes) > 900 {
-		text = string(runes[:900]) + "..."
-	}
-	return text
-}
-func message(summary, token, root string) *db.PushMsg {
-	text := "AI alert analysis\n" + redact(summary) + "\n" + strings.TrimRight(root, "/") + "/v2/ask?alertAnalysis=" + token
-	return &db.PushMsg{Title: text, Text: text}
+	return secrets.ReplaceAllString(text, "[REDACTED]")
 }
