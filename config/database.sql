@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS `cv_alarm_channel` (
     `utime` bigint DEFAULT NULL COMMENT '更新时间',
     `dtime` bigint unsigned DEFAULT NULL COMMENT '删除时间',
     `name` varchar(128) NOT NULL DEFAULT '',
+    `ai_analysis_enabled` tinyint(1) DEFAULT 1,
     `key` text,
     `typ` int DEFAULT NULL,
     `uid` int DEFAULT NULL,

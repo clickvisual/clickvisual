@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import AlertSubnav from "../components/AlertSubnav";
 import AiActionPanel from "../../../shared/components/AiActionPanel";
 import ModuleRuntimeGate, {
   useModuleRuntimeState
@@ -123,7 +124,7 @@ export default function AlertRulesPage() {
   const activeRule = activeName ? rules.find((rule) => rule.name === activeName) : undefined;
 
   return (
-    <section className="cv-section-stack cv-alert-page">
+    <section className="cv-page cv-section-stack cv-alert-page">
       <header className="cv-page-toolbar">
         <div className="cv-page-toolbar__main">
           <div className="cv-breadcrumb" aria-label="页面路径">
@@ -132,6 +133,7 @@ export default function AlertRulesPage() {
             <span className="cv-breadcrumb__current">告警中心</span>
           </div>
           <h1 className="cv-page-title cv-sr-only">告警中心</h1>
+          <AlertSubnav />
         </div>
         <div className="cv-header-actions">
           <button type="button" className="cv-secondary-button">

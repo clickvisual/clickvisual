@@ -67,7 +67,7 @@ describe("v2 domain routes", () => {
 
   it("renders the alert route with rules and events", async () => {
     const memoryRouter = createMemoryRouter(routes, {
-      initialEntries: ["/v2/alerts/rules"]
+      initialEntries: ["/v2/alerts/"]
     });
 
     render(<RouterProvider router={memoryRouter} />);
@@ -77,6 +77,14 @@ describe("v2 domain routes", () => {
     expect(screen.getByRole("heading", { name: "告警事件" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "AI 规则建议" })).toBeInTheDocument();
     expect(screen.getByText("svc-auth 错误率过高")).toBeInTheDocument();
+    expect(memoryRouter.state.location.pathname).toBe("/v2/alerts/rules");
+    expect(screen.getByRole("navigation", { name: "告警中心导航" })).toHaveTextContent("告警渠道");
+  });
+
+  it("renders the alert channels route with saved channel data", async () => {
+    render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ["/v2/alerts/channels"] })} />);
+    expect(await screen.findByRole("switch", { name: "告警群通知 AI 分析" })).toBeChecked();
+    expect(screen.getByRole("heading", { name: "告警渠道" })).toBeInTheDocument();
   });
 
   it("renders the settings route with configuration sections", async () => {

@@ -58,6 +58,9 @@ func ChannelUpdate(c *core.Context) {
 	ups["typ"] = req.Typ
 	ups["key"] = req.Key
 	ups["uid"] = c.Uid()
+	if req.AIAnalysisEnabled != nil {
+		ups["ai_analysis_enabled"] = *req.AIAnalysisEnabled
+	}
 	if err := db2.AlarmChannelUpdate(invoker.Db, id, ups); err != nil {
 		c.JSONE(1, "update failed: "+err.Error(), err)
 		return

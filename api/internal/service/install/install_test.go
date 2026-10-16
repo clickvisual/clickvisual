@@ -140,7 +140,7 @@ func TestSQLiteMigrationAddsAlertColumnsToExistingTables(t *testing.T) {
 	econf.Reset()
 	t.Cleanup(econf.Reset)
 	oldModels := models
-	models = []interface{}{dbmodel.Alarm{}, dbmodel.TroubleshootSession{}, dbmodel.AlarmAIGroup{}, dbmodel.AlarmAIAnalysis{}, dbmodel.AlarmAIDelivery{}, dbmodel.AlarmAIFork{}}
+	models = []interface{}{dbmodel.Alarm{}, dbmodel.AlarmChannel{}, dbmodel.TroubleshootSession{}, dbmodel.AlarmAIGroup{}, dbmodel.AlarmAIAnalysis{}, dbmodel.AlarmAIDelivery{}, dbmodel.AlarmAIFork{}}
 	t.Cleanup(func() { models = oldModels })
 	econf.Set("metadata.driver", "sqlite")
 	econf.Set("metadata.dsn", filepath.Join(t.TempDir(), "existing.db"))
@@ -157,6 +157,12 @@ func TestSQLiteMigrationAddsAlertColumnsToExistingTables(t *testing.T) {
 	if err := d.Exec("CREATE TABLE cv_troubleshoot_session (id INTEGER PRIMARY KEY)").Error; err != nil {
 		t.Fatal(err)
 	}
+	if err := d.Exec("CREATE TABLE cv_alarm_channel (id INTEGER PRIMARY KEY, name TEXT)").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Exec("INSERT INTO cv_alarm_channel (id,name) VALUES (1,'existing')").Error; err != nil {
+		t.Fatal(err)
+	}
 	if err := migrateModels(d); err != nil {
 		t.Fatal(err)
 	}
@@ -165,6 +171,10 @@ func TestSQLiteMigrationAddsAlertColumnsToExistingTables(t *testing.T) {
 	}
 	if !d.Migrator().HasColumn(&dbmodel.TroubleshootSession{}, "Source") {
 		t.Fatal("existing session missing source column")
+	}
+	var enabled bool
+	if err := d.Raw("SELECT ai_analysis_enabled FROM cv_alarm_channel WHERE id=1").Scan(&enabled).Error; err != nil || !enabled {
+		t.Fatalf("existing channel must keep AI enabled: enabled=%v err=%v", enabled, err)
 	}
 	var name string
 	if err := d.Raw("SELECT name FROM cv_alarm WHERE id=1").Scan(&name).Error; err != nil || name != "existing" {

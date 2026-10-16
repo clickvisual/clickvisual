@@ -50,12 +50,14 @@ export interface SettingsAlarmChannel {
   key: string;
   typ: number;
   uid: number;
+  aiAnalysisEnabled?: boolean | null;
 }
 
 export interface SettingsAlarmChannelPayload {
   name: string;
   key: string;
   typ: number;
+  aiAnalysisEnabled?: boolean;
 }
 
 export interface SettingsAIConfig {

@@ -3,6 +3,7 @@ import App from "./App";
 import LoginPage from "../domains/auth/pages/LoginPage";
 import AnalysisWorkbenchPage from "../domains/analysis/pages/AnalysisWorkbenchPage";
 import AlertRulesPage from "../domains/alert/pages/AlertRulesPage";
+import AlertChannelsPage from "../domains/alert/pages/AlertChannelsPage";
 import OverviewPage from "../domains/overview/pages/OverviewPage";
 import IngestionWorkbenchPage from "../domains/query/pages/IngestionWorkbenchPage";
 import QueryLinkPage from "../domains/query/pages/QueryLinkPage";
@@ -96,8 +97,16 @@ export function createV2Routes(privateLite = isPrivateLiteEdition()) {
           element: <AnalysisWorkbenchPage />
         },
         {
+          path: "alerts",
+          element: <Navigate to="/v2/alerts/rules" replace />
+        },
+        {
           path: "alerts/rules",
           element: <AlertRulesPage />
+        },
+        {
+          path: "alerts/channels",
+          element: <AlertChannelsPage />
         },
         {
           path: "settings/datasource",

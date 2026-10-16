@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -55,6 +56,14 @@ func (w *Worker) ProcessOne(ctx context.Context) error {
 		return w.finish(job, "cancelled")
 	}
 	if job.Snapshot == "" {
+		// Recheck switches after queuing, before spending a model call.
+		eligible, err := enabledChannelIDs(s.db.WithContext(workCtx), alarm.ChannelIds)
+		if err != nil {
+			return err
+		}
+		if !slices.ContainsFunc(job.ChannelIDs, func(id int) bool { return slices.Contains(eligible, id) }) {
+			return w.finish(job, "cancelled")
+		}
 		result, err := w.analyze(workCtx, job.Uid, Seed{Title: job.Title, Description: job.Description, Tid: job.Tid, Query: job.Query, Start: job.WindowStart, End: job.WindowEnd})
 		if err != nil || result.Snapshot == "" {
 			status := "queued"
@@ -109,6 +118,16 @@ func (w *Worker) ProcessOne(ctx context.Context) error {
 			}
 			return w.finish(job, "cancelled")
 		}
+		eligible, err := enabledChannelIDs(s.db.WithContext(workCtx), db.Ints{delivery.ChannelID})
+		if err != nil {
+			return err
+		}
+		if len(eligible) == 0 || !slices.Contains(alarm.ChannelIds, delivery.ChannelID) {
+			if err := s.db.WithContext(workCtx).Model(&db.AlarmAIDelivery{}).Where("id = ? AND status = ?", delivery.ID, "pending").Update("status", "cancelled").Error; err != nil {
+				return err
+			}
+			continue
+		}
 		if w.checkAccess != nil {
 			if err := w.checkAccess(workCtx, job.Uid, job.Snapshot); err != nil {
 				return w.finish(job, "cancelled")
@@ -122,7 +141,7 @@ func (w *Worker) ProcessOne(ctx context.Context) error {
 			continue
 		}
 		msg := message(job, w.rootURL)
-		err := w.send(workCtx, delivery.ChannelID, msg)
+		err = w.send(workCtx, delivery.ChannelID, msg)
 		status := "pending"
 		if err == nil {
 			status = "sent"

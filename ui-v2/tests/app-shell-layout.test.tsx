@@ -79,8 +79,10 @@ describe("v2 app shell", () => {
     );
     expect(screen.getByRole("link", { name: "告警中心" })).toHaveAttribute(
       "href",
-      "/v2/alerts/rules",
+      "/v2/alerts",
     );
+    expect(screen.getByRole("link", { name: "告警中心" })).not.toHaveAttribute("aria-haspopup");
+    expect(screen.queryByRole("link", { name: "告警渠道" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "配置中心" })).toHaveAttribute(
       "href",
       "/v2/settings/datasource",

@@ -35,9 +35,9 @@ const primaryNavigation: NavigationGroup[] = [
   },
   {
     key: "alerts",
-    label: "报警",
+    label: "告警中心",
     icon: "!",
-    items: [{ to: "/v2/alerts/rules", label: "告警中心" }],
+    items: [{ to: "/v2/alerts", label: "告警中心" }],
   },
   {
     key: "analysis",
@@ -141,6 +141,16 @@ function ShellFrame({ children }: { children: ReactNode }) {
               const groupActive = group.items.some((item) =>
                 isNavigationActive(location.pathname, item.to),
               );
+              if (group.key === "alerts") {
+                return (
+                  <div key={group.key} className={`cv-shell__nav-group${groupActive ? " cv-shell__nav-group--active" : ""}`}>
+                    <NavLink to="/v2/alerts" className="cv-shell__nav-group-button">
+                      <span className="cv-shell__nav-icon" aria-hidden="true">{group.icon}</span>
+                      <span className="cv-shell__nav-label">{group.label}</span>
+                    </NavLink>
+                  </div>
+                );
+              }
               const groupOpen = openGroup === group.key;
               return (
                 <div

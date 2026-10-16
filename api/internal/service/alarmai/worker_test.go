@@ -28,8 +28,13 @@ func testStore(t *testing.T) (*Store, db.Alarm, db.AlarmFilter, db.BaseTable) {
 	}
 	sqlDB.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = sqlDB.Close() })
-	if err := d.AutoMigrate(&db.Alarm{}, &db.AlarmAIGroup{}, &db.AlarmAIAnalysis{}, &db.AlarmAIDelivery{}); err != nil {
+	if err := d.AutoMigrate(&db.Alarm{}, &db.AlarmChannel{}, &db.AlarmAIGroup{}, &db.AlarmAIAnalysis{}, &db.AlarmAIDelivery{}); err != nil {
 		t.Fatal(err)
+	}
+	for _, id := range []int{1, 2} {
+		if err := db.AlarmChannelCreate(d, &db.AlarmChannel{BaseModel: db.BaseModel{ID: id}, Name: fmt.Sprintf("channel-%d", id)}); err != nil {
+			t.Fatal(err)
+		}
 	}
 	a := db.Alarm{Uid: 4, Name: "Errors", Status: db.AlarmStatusFiring, ChannelIds: db.Ints{1, 2}}
 	if err := d.Create(&a).Error; err != nil {
@@ -58,6 +63,126 @@ func countJobs(t *testing.T, s *Store, want int64) {
 	s.db.Model(&db.AlarmAIAnalysis{}).Count(&n)
 	if n != want {
 		t.Fatalf("jobs=%d want %d", n, want)
+	}
+}
+
+func TestChannelSwitchFiltersQueuedAnalysis(t *testing.T) {
+	s, a, f, table := testStore(t)
+	ctx := context.Background()
+	if err := s.db.Model(&db.AlarmChannel{}).Where("id IN ?", []int(a.ChannelIds)).Update("ai_analysis_enabled", false).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Enqueue(ctx, a, f, table, notice("firing", 1900, 0)); err != nil {
+		t.Fatal(err)
+	}
+	countJobs(t, s, 0)
+	if err := s.db.Model(&db.AlarmChannel{}).Where("id = ?", 2).Update("ai_analysis_enabled", true).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Enqueue(ctx, a, f, table, notice("firing", 1900, 0)); err != nil {
+		t.Fatal(err)
+	}
+	var job db.AlarmAIAnalysis
+	if err := s.db.First(&job).Error; err != nil {
+		t.Fatal(err)
+	}
+	if len(job.ChannelIDs) != 1 || job.ChannelIDs[0] != 2 {
+		t.Fatalf("unexpected AI channels %v", job.ChannelIDs)
+	}
+	// Recovery must still cancel queued work after all switches are disabled.
+	s.db.Model(&db.AlarmChannel{}).Where("id = ?", 2).Update("ai_analysis_enabled", false)
+	if err := s.Enqueue(ctx, a, f, table, notice("resolved", 1900, 2050)); err != nil {
+		t.Fatal(err)
+	}
+	s.db.First(&job, job.ID)
+	if job.Status != "cancelled" {
+		t.Fatalf("recovery did not cancel analysis: %s", job.Status)
+	}
+}
+
+func TestChannelCreationPreservesExplicitFalse(t *testing.T) {
+	s, _, _, _ := testStore(t)
+	for _, value := range []bool{false, true} {
+		channel := db.AlarmChannel{Name: "new", AIAnalysisEnabled: &value}
+		if err := db.AlarmChannelCreate(s.db, &channel); err != nil {
+			t.Fatal(err)
+		}
+		if err := db.AlarmChannelUpdate(s.db, channel.ID, map[string]any{"name": "renamed"}); err != nil {
+			t.Fatal(err)
+		}
+		saved, err := db.AlarmChannelInfo(s.db, channel.ID)
+		if err != nil || saved.AIAnalysisEnabled == nil || *saved.AIAnalysisEnabled != value {
+			t.Fatalf("explicit AI flag lost: channel=%+v err=%v", saved, err)
+		}
+	}
+}
+
+func TestChannelChangesPreventAnalysisAndDelivery(t *testing.T) {
+	for _, stage := range []string{"queued", "analysis", "delivery", "retry", "removed", "deleted"} {
+		t.Run(stage, func(t *testing.T) {
+			s, a, f, table := testStore(t)
+			ctx := context.Background()
+			if err := s.Enqueue(ctx, a, f, table, notice("firing", 1900, 0)); err != nil {
+				t.Fatal(err)
+			}
+			disable := func() {
+				t.Helper()
+				if err := s.db.Model(&db.AlarmChannel{}).Where("id = ?", 2).Update("ai_analysis_enabled", false).Error; err != nil {
+					t.Fatal(err)
+				}
+			}
+			if stage == "queued" {
+				s.db.Model(&db.AlarmChannel{}).Where("id IN ?", []int(a.ChannelIds)).Update("ai_analysis_enabled", false)
+			}
+			analyses := 0
+			sends := map[int]int{}
+			w := NewWorker(s, func(context.Context, int, Seed) (Result, error) {
+				analyses++
+				switch stage {
+				case "analysis":
+					disable()
+				case "removed":
+					s.db.Model(&a).Update("channel_ids", db.Ints{1})
+				case "deleted":
+					db.AlarmChannelDelete(s.db, 2)
+				}
+				return Result{Summary: "confirmed abnormal stage", Snapshot: "evidence"}, nil
+			}, func(_ context.Context, id int, _ *db.PushMsg) error {
+				sends[id]++
+				if stage == "delivery" && id == 1 {
+					disable()
+				}
+				if stage == "retry" && id == 2 {
+					return errors.New("try later")
+				}
+				return nil
+			}, "https://cv.test/")
+			if err := w.ProcessOne(ctx); err != nil {
+				t.Fatal(err)
+			}
+			if stage == "retry" {
+				disable()
+				s.now = func() time.Time { return time.Unix(2300, 0) }
+				if err := w.ProcessOne(ctx); err != nil {
+					t.Fatal(err)
+				}
+			}
+			var job db.AlarmAIAnalysis
+			s.db.First(&job)
+			if stage == "queued" {
+				if analyses != 0 || len(sends) != 0 || job.Status != "cancelled" {
+					t.Fatalf("disabled channels still analyzed: calls=%d sends=%v status=%s", analyses, sends, job.Status)
+				}
+			} else {
+				wantSecond := 0
+				if stage == "retry" {
+					wantSecond = 1
+				}
+				if analyses != 1 || sends[1] != 1 || sends[2] != wantSecond || job.Status != "done" {
+					t.Fatalf("channel changes ignored: calls=%d sends=%v status=%s", analyses, sends, job.Status)
+				}
+			}
+		})
 	}
 }
 

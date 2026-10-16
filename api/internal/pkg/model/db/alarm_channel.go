@@ -31,10 +31,11 @@ const (
 type AlarmChannel struct {
 	BaseModel
 
-	Name string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // 告警渠道名称
-	Key  string `gorm:"column:key;type:text" json:"key"`                    // 关键信息
-	Typ  int    `gorm:"column:typ;type:int(11)" json:"typ"`                 // 告警类型：0 dd
-	Uid  int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
+	Name              string `gorm:"column:name;type:varchar(128);NOT NULL" json:"name"` // 告警渠道名称
+	Key               string `gorm:"column:key;type:text" json:"key"`                    // 关键信息
+	Typ               int    `gorm:"column:typ;type:int(11)" json:"typ"`                 // 告警类型：0 dd
+	Uid               int    `gorm:"column:uid;type:int(11)" json:"uid"`                 // 操作人
+	AIAnalysisEnabled *bool  `gorm:"column:ai_analysis_enabled;default:true" json:"aiAnalysisEnabled"`
 }
 
 type ReqAlarmWebhook struct {

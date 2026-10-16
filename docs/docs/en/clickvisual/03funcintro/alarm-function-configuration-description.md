@@ -4,7 +4,13 @@
 
 ## AI Alert Analysis
 
-For an existing deployment, run the metadata migration (`/api/v1/migration`) as part of the upgrade before enabling this feature. It creates analysis and delivery tables and adds rule cooldown and session source columns.
+For an existing deployment, run the metadata migration (`/api/v1/migration`) as part of the upgrade before enabling this feature. It creates analysis and delivery tables and adds rule cooldown, channel AI switch, and session source columns.
+
+### Alert Channel Configuration
+
+Manage channels under “Alert Center → Alert Channels” in v2 (`/v2/alerts/channels`). The page supports the same DingTalk, WeCom, Feishu, Slack, Webhook, and Telegram channels as v1. Create, edit, delete, filter by name and type, and send test messages. Testing immediately sends a normal test message to the configured destination.
+
+Each channel has an independent AI analysis switch. New channels and channels upgraded from earlier versions default to enabled. Omitting `aiAnalysisEnabled` in a create request defaults to enabled; omitting it in an update preserves the saved value. The global `alarm.ai.enabled` setting and a working model are still required. An analysis job is created only if the rule has an AI-enabled channel, and results go only to its original AI-enabled channels. Disabling or deleting a channel, or removing it from the rule, cancels unstarted analysis or unsent messages at the next check; messages already sent are not recalled. Normal alerts and test messages are unaffected.
 
 The full edition can generate an asynchronous AI analysis after a normal alert and send a separate message to the channels captured for that alert. Normal alerts do not wait for the model. Configure a working model in model settings, then enable the worker:
 

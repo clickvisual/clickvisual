@@ -158,6 +158,7 @@ func migrateModels(d *gorm.DB) error {
 			column string
 		}{
 			{&db.Alarm{}, "AICooldownSeconds"},
+			{&db.AlarmChannel{}, "AIAnalysisEnabled"},
 			{&db.TroubleshootSession{}, "Source"},
 		} {
 			if d.Migrator().HasTable(addition.model) && !d.Migrator().HasColumn(addition.model, addition.column) {

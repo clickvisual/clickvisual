@@ -103,6 +103,13 @@ func (s *Store) enqueueEvent(ctx context.Context, alarm db.Alarm, filter db.Alar
 		if group.ResolvedAt > 0 && start <= group.ResolvedAt {
 			return nil
 		}
+		channelIDs, err := enabledChannelIDs(tx, alarm.ChannelIds)
+		if err != nil {
+			return err
+		}
+		if len(channelIDs) == 0 {
+			return nil
+		}
 		same := start == group.StartsAt
 		if same && group.JobID != 0 {
 			var previous db.AlarmAIAnalysis
@@ -125,7 +132,7 @@ func (s *Store) enqueueEvent(ctx context.Context, alarm db.Alarm, filter db.Alar
 		if same {
 			trigger = s.now()
 		}
-		job := db.AlarmAIAnalysis{GroupID: group.ID, Token: uuid.NewString(), AlarmID: alarm.ID, FilterID: filter.ID, Uid: alarm.Uid, Tid: filter.Tid, StartsAt: start, WindowStart: trigger.Add(-15 * time.Minute).Unix(), WindowEnd: trigger.Add(time.Minute).Unix(), Title: alarm.Name, Description: alarm.Desc, Query: filter.When, ChannelIDs: alarm.ChannelIds, CooldownSeconds: cooldown, EventCount: 1, Status: "queued"}
+		job := db.AlarmAIAnalysis{GroupID: group.ID, Token: uuid.NewString(), AlarmID: alarm.ID, FilterID: filter.ID, Uid: alarm.Uid, Tid: filter.Tid, StartsAt: start, WindowStart: trigger.Add(-15 * time.Minute).Unix(), WindowEnd: trigger.Add(time.Minute).Unix(), Title: alarm.Name, Description: alarm.Desc, Query: filter.When, ChannelIDs: channelIDs, CooldownSeconds: cooldown, EventCount: 1, Status: "queued"}
 		if err := tx.Create(&job).Error; err != nil {
 			return err
 		}
@@ -141,6 +148,15 @@ func (s *Store) enqueueEvent(ctx context.Context, alarm db.Alarm, filter db.Alar
 		}
 		return nil
 	})
+}
+
+func enabledChannelIDs(d *gorm.DB, ids db.Ints) (db.Ints, error) {
+	var enabled db.Ints
+	if len(ids) == 0 {
+		return enabled, nil
+	}
+	err := d.Model(&db.AlarmChannel{}).Where("id IN ? AND (ai_analysis_enabled = ? OR ai_analysis_enabled IS NULL)", []int(ids), true).Order("id").Pluck("id", &enabled).Error
+	return enabled, err
 }
 
 func (s *Store) claim(ctx context.Context, owner string) (db.AlarmAIAnalysis, bool, error) {
