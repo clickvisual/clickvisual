@@ -61,6 +61,12 @@ func TestMessageDoesNotShortenEvidenceThatFits(t *testing.T) {
 	require.NotContains(t, msg.Text, "...")
 }
 
+func TestMessagePreservesConciseNextStep(t *testing.T) {
+	msg := message(db.AlarmAIAnalysis{Summary: "**结论**\neditor.js 加载失败，原因未确定。\n\n**关键证据**\n- staging 环境记录 1 次加载失败。\n\n**下一步**\n核对该资源请求的 HTTP 状态码。"}, "https://cv.test")
+	require.Contains(t, msg.Text, "**关键证据**\n- staging 环境记录 1 次加载失败。\n\n**下一步**\n核对该资源请求的 HTTP 状态码。")
+	require.NotContains(t, msg.Text, "**待确认**")
+}
+
 func TestRedactDoesNotDiscardLaterSections(t *testing.T) {
 	text := strings.Repeat("证据。", 400) + "\n建议：检查连接池。"
 	require.Contains(t, redact(text), "建议：检查连接池。")

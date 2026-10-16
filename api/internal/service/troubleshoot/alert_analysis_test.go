@@ -44,7 +44,7 @@ func TestAnalyzeAlertRequestsReadableNotificationSections(t *testing.T) {
 	queries = &fakeRunner{}
 	tables = testCatalog()
 	completeFn = func(_ context.Context, messages []ai.Message, options ai.CompletionOptions) (string, error) {
-		for _, heading := range []string{"**结论**", "**关键证据**", "**待确认**", "**建议**"} {
+		for _, heading := range []string{"**结论**", "**关键证据**", "**下一步**"} {
 			require.Contains(t, messages[0].Content, heading)
 		}
 		require.Contains(t, messages[0].Content, "Markdown 和换行放在 text 字符串内")
@@ -72,6 +72,27 @@ func TestAnalyzeAlertAllowsAuthorizedBoundedRelatedQueries(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, runner.calls)
 	require.Contains(t, result.Summary, "关联日志")
+}
+
+func TestAnalyzeAlertPreservesResourceFailureAndNamespaceFilters(t *testing.T) {
+	useSQLite(t)
+	tables = testCatalog()
+	seed := alertSeed()
+	seed.Title = "静态资源加载失败"
+	seed.Query = "`msg` like '%Resource failed to%' AND `k8s.namespace.name` = 'staging'"
+	queries = alertQueryFunc(func(_ context.Context, uid int, req view.QueryRequestV2) (queryHit, error) {
+		require.Equal(t, 3, uid)
+		require.Equal(t, seed.Tid, req.Tid)
+		require.Equal(t, seed.Query, req.Query)
+		return queryHit{Count: 1, Preview: "Resource failed to load: https://cdn.test/editor.js; k8s.namespace.name=staging"}, nil
+	})
+	completeFn = func(_ context.Context, transcript []ai.Message, _ ai.CompletionOptions) (string, error) {
+		require.Contains(t, transcript[len(transcript)-1].Content, "https://cdn.test/editor.js")
+		return `{"action":"final","text":"**结论**\n已确认一条 editor.js 加载失败日志；缺少 HTTP 状态码，原因未确定。"}`, nil
+	}
+	result, err := AnalyzeAlert(context.Background(), 3, seed)
+	require.NoError(t, err)
+	require.NotContains(t, result.Summary, "原告警表达式不支持")
 }
 
 type alertQueryFunc func(context.Context, int, view.QueryRequestV2) (queryHit, error)
@@ -222,7 +243,8 @@ func TestAnalyzeAlertNormalizesLegacyEvidenceFilters(t *testing.T) {
 			require.NoError(t, json.Unmarshal([]byte(snapshot.Messages[2].Payload), &payload))
 			require.Empty(t, payload.Link.Query)
 			if filter != "1=1" {
-				require.Contains(t, result.Summary, "时间窗口样本")
+				require.Contains(t, snapshot.Messages[2].Content, "时间窗口样本")
+				require.NotContains(t, result.Summary, "原告警表达式不支持")
 			}
 		})
 	}

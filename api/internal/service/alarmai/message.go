@@ -10,7 +10,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
-var summaryHeading = regexp.MustCompile(`(?m)(?:^|\s)(?:#{1,6}[ \t]+)?(?:\*\*)?(结论|关键证据|查询发现|关联证据|判断与边界|待确认|建议|证据范围)(?:\*\*)?(?:[：:](?:\*\*)?[ \t]*|\r?\n)`)
+var summaryHeading = regexp.MustCompile(`(?m)(?:^|\s)(?:#{1,6}[ \t]+)?(?:\*\*)?(结论|关键证据|查询发现|关联证据|判断与边界|待确认|建议|下一步|证据范围)(?:\*\*)?(?:[：:](?:\*\*)?[ \t]*|\r?\n)`)
 
 func message(job db.AlarmAIAnalysis, root string) *db.PushMsg {
 	name := limitMessageText(strings.Join(strings.Fields(redact(job.Title)), " "), 160)

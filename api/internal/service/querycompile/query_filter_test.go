@@ -38,10 +38,24 @@ func TestQueryFiltersPreserveSafeSingleTableConditions(t *testing.T) {
 		"trace_id IN ('a', 'b') AND status NOT IN (200, 201)",
 		"message IS NOT NULL AND retry = true",
 		"message = 'SELECT secret FROM private_logs; -- literal content'",
+		"`msg` like '%Resource failed to%' AND `k8s.namespace.name` = 'staging'",
+		"`service.name` = 'lizard-logger'",
 	} {
 		t.Run(query, func(t *testing.T) {
 			_, _, err := Compile(view.QueryRequestV2{Query: query}, CompileContext{TableName: "`public_logs`"})
 			require.NoError(t, err)
 		})
+	}
+}
+
+func TestQueryFiltersRejectUnsafeQuotedIdentifiers(t *testing.T) {
+	for _, query := range []string{
+		"`k8s.namespace.name`; SELECT * FROM private_logs",
+		"`k8s.namespace.name` = 'staging' UNION SELECT * FROM private_logs",
+		"`k8s.namespace.name --` = 'staging'",
+		"`k8s.namespace.name()` = 'staging'",
+	} {
+		_, _, err := Compile(view.QueryRequestV2{Query: query}, CompileContext{TableName: "logs"})
+		require.Error(t, err, query)
 	}
 }

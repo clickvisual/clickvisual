@@ -80,6 +80,9 @@ func AnalyzeAlert(ctx context.Context, uid int, seed AlertSeed) (AlertAnalysisRe
 	if outcome.Status != "done" {
 		return result, fmt.Errorf("告警证据查询失败: %s", outcome.Detail)
 	}
+	if note != "" {
+		outcome.Detail = note + "\n\n" + outcome.Detail
+	}
 	if _, err = addMessage(session.ID, "tool", "tool", outcome.Detail, mustPayload(messagePayload{Tool: toolRunQuery, Summary: outcome.Summary, Status: outcome.Status, Link: outcome.Link, Result: outcome.Result})); err != nil {
 		return result, err
 	}
@@ -95,12 +98,6 @@ func AnalyzeAlert(ctx context.Context, uid int, seed AlertSeed) (AlertAnalysisRe
 	}
 	for i := len(rows) - 1; i >= 0; i-- {
 		if rows[i].Role == "assistant" && rows[i].Kind == "final" {
-			if note != "" {
-				rows[i].Content = note + "\n\n" + rows[i].Content
-				if err := updateMessage(rows[i].ID, rows[i].Content, rows[i].Payload); err != nil {
-					return result, err
-				}
-			}
 			result.Summary = rows[i].Content
 			break
 		}
