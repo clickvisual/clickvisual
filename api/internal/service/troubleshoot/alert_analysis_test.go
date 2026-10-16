@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -162,6 +163,44 @@ func TestAnalyzeAlertDependencyQueriesRespectOwnerPermissions(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, runner.calls)
 	require.Contains(t, result.Summary, "没有业务日志权限")
+}
+
+func TestAnalyzeAlertConcludesAfterToolBudget(t *testing.T) {
+	for _, valid := range []bool{true, false} {
+		t.Run(fmt.Sprintf("valid_%t", valid), func(t *testing.T) {
+			useSQLite(t)
+			tables = testCatalog()
+			runner := &fakeRunner{}
+			queries = runner
+			calls := 0
+			completeFn = func(_ context.Context, transcript []ai.Message, options ai.CompletionOptions) (string, error) {
+				calls++
+				if calls <= maxSteps {
+					return fmt.Sprintf(`{"action":"tool","name":"run_query","args":{"tid":7,"query":"request_id = '%d'"}}`, calls), nil
+				}
+				require.Equal(t, 1800, options.MaxTokens)
+				require.Contains(t, transcript[0].Content, "自动告警分析")
+				require.Contains(t, transcript[len(transcript)-1].Content, "只输出 final")
+				require.Contains(t, fmt.Sprint(transcript), "5XX threshold")
+				if !valid {
+					return `{"action":"tool","name":"list_tables","args":{}}`, nil
+				}
+				return `{"action":"final","text":"已查到错误日志，内部原因尚未确认。"}`, nil
+			}
+			result, err := AnalyzeAlert(context.Background(), 3, alertSeed())
+			require.Equal(t, maxSteps+1, calls)
+			require.Equal(t, maxSteps+1, runner.calls)
+			if !valid {
+				require.Error(t, err)
+				require.Empty(t, result.Snapshot)
+				require.Empty(t, result.Summary)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, "已查到错误日志，内部原因尚未确认。", result.Summary)
+			require.NotEmpty(t, result.Snapshot)
+		})
+	}
 }
 
 func TestAnalyzeAlertRejectsWindowExpansionAndModelFailure(t *testing.T) {

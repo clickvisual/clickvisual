@@ -235,12 +235,7 @@ func runLoop(ctx context.Context, session *dbmodel.TroubleshootSession) error {
 		if err != nil {
 			return err
 		}
-		transcript := modelTranscript(rows)
-		options := ai.CompletionOptions{MaxTokens: 900}
-		if bounds, ok := ctx.Value(alertBoundsKey{}).(alertBounds); ok {
-			transcript = append([]ai.Message{{Role: "system", Content: fmt.Sprintf(alertAnalysisPrompt, bounds.Start, bounds.End, bounds.EvidenceNote)}}, transcript...)
-			options.MaxTokens = 1800
-		}
+		transcript, options := completionInput(ctx, rows)
 		raw, err := completeFn(ctx, transcript, options)
 		if err != nil {
 			return err
@@ -262,7 +257,7 @@ func runLoop(ctx context.Context, session *dbmodel.TroubleshootSession) error {
 		}
 		key := action.Name + string(action.Args)
 		if seen[key] >= 1 {
-			return saveFinal(ctx, session, "同一查询重复了，先停下来看已有结果。", nil, lastLink, lastResult)
+			return concludeInvestigation(ctx, session, lastLink, lastResult)
 		}
 		seen[key]++
 		if _, err = addMessage(session.ID, "assistant", "tool", strings.TrimSpace(raw), ""); err != nil {
@@ -302,7 +297,45 @@ func runLoop(ctx context.Context, session *dbmodel.TroubleshootSession) error {
 			return err
 		}
 	}
-	return saveFinal(ctx, session, "已排查 8 步，先停在这里。可以把范围再收窄一点。", nil, lastLink, lastResult)
+	return concludeInvestigation(ctx, session, lastLink, lastResult)
+}
+
+func completionInput(ctx context.Context, rows []dbmodel.TroubleshootMessage) ([]ai.Message, ai.CompletionOptions) {
+	transcript := modelTranscript(rows)
+	options := ai.CompletionOptions{MaxTokens: 900}
+	if bounds, ok := ctx.Value(alertBoundsKey{}).(alertBounds); ok {
+		transcript = append([]ai.Message{{Role: "system", Content: fmt.Sprintf(alertAnalysisPrompt, bounds.Start, bounds.End, bounds.EvidenceNote)}}, transcript...)
+		options.MaxTokens = 1800
+	}
+	return transcript, options
+}
+
+func concludeInvestigation(ctx context.Context, session *dbmodel.TroubleshootSession, link *view.TroubleshootLink, result *view.TroubleshootResult) error {
+	rows, err := listMessages(session.ID)
+	if err != nil {
+		return err
+	}
+	transcript, options := completionInput(ctx, rows)
+	transcript = append(transcript, ai.Message{Role: "system", Content: conclusionPrompt})
+	raw, err := completeFn(ctx, transcript, options)
+	var action modelAction
+	if err == nil {
+		err = json.Unmarshal([]byte(extractJSON(raw)), &action)
+		if err == nil && action.Action == "final" && strings.TrimSpace(action.Text) != "" {
+			return saveFinal(ctx, session, strings.TrimSpace(action.Text), nil, link, result)
+		}
+		if err == nil {
+			err = errors.New("模型没有返回有效结论")
+		}
+	}
+	if _, automated := ctx.Value(alertBoundsKey{}).(alertBounds); automated {
+		return fmt.Errorf("告警结论整理失败: %w", err)
+	}
+	text := "本轮未取得可用日志证据，现有信息尚不足以确认问题原因。结论整理暂不可用。"
+	if result != nil {
+		text = "本轮已完成日志查询，但结论整理未成功，现有信息尚不足以确认问题原因。查询结果已保留，可继续排查。"
+	}
+	return saveFinal(ctx, session, text, nil, link, result)
 }
 
 func saveFinal(ctx context.Context, session *dbmodel.TroubleshootSession, text string, query *queryArgs, fallback *view.TroubleshootLink, result *view.TroubleshootResult) error {
@@ -335,6 +368,7 @@ func saveFinal(ctx context.Context, session *dbmodel.TroubleshootSession, text s
 
 func modelTranscript(rows []dbmodel.TroubleshootMessage) []ai.Message {
 	out := []ai.Message{{Role: "system", Content: systemPrompt(nowFn())}}
+	lastUser := 0
 	for _, row := range rows {
 		switch row.Role {
 		case "assistant":
@@ -344,11 +378,20 @@ func modelTranscript(rows []dbmodel.TroubleshootMessage) []ai.Message {
 		default:
 			out = append(out, ai.Message{Role: "user", Content: row.Content})
 		}
+		if row.Role == "user" {
+			lastUser = len(out) - 1
+		}
 	}
 	if len(out) <= 17 {
 		return out
 	}
-	return append([]ai.Message{out[0]}, out[len(out)-16:]...)
+	start := len(out) - 16
+	kept := []ai.Message{out[0]}
+	// Keep the current question when a full tool budget fills the transcript.
+	if lastUser > 0 && lastUser < start {
+		kept = append(kept, out[lastUser])
+	}
+	return append(kept, out[start:]...)
 }
 
 func applyTool(ctx context.Context, session *dbmodel.TroubleshootSession, name string, raw json.RawMessage, force bool) toolOutcome {

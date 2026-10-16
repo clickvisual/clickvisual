@@ -2,6 +2,7 @@ package troubleshoot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -97,6 +98,85 @@ func TestStartFinalizesWithoutQuery(t *testing.T) {
 	require.Equal(t, dbmodel.TroubleshootStatusIdle, session.Status)
 	require.Len(t, session.Messages, 2)
 	require.Equal(t, "先补充 trace id。", session.Messages[1].Text)
+}
+
+func TestStepLimitSummarizesEvidenceWithoutMoreQueries(t *testing.T) {
+	useSQLite(t)
+	tables = testCatalog()
+	runner := &fakeRunner{}
+	queries = runner
+	calls := 0
+	completeFn = func(_ context.Context, messages []ai.Message, _ ai.CompletionOptions) (string, error) {
+		calls++
+		if calls <= maxSteps {
+			return fmt.Sprintf(`{"action":"tool","name":"run_query","args":{"tid":7,"st":1000,"et":1900,"query":"request_id = '%d'"}}`, calls), nil
+		}
+		require.Equal(t, maxSteps+1, calls)
+		require.Contains(t, messages[len(messages)-1].Content, "只输出 final")
+		transcript := fmt.Sprint(messages)
+		require.Contains(t, transcript, "导出接口返回 3613，请排查")
+		require.Contains(t, transcript, "level=error")
+		return `{"action":"final","text":"已查到相关错误日志，但现有证据还不能确认导出失败的内部原因。"}`, nil
+	}
+	session, err := Start(context.Background(), 3, "导出接口返回 3613，请排查")
+	require.NoError(t, err)
+	require.Equal(t, maxSteps, runner.calls)
+	require.Equal(t, maxSteps+1, calls)
+	answer := session.Messages[len(session.Messages)-1]
+	require.Equal(t, "已查到相关错误日志，但现有证据还不能确认导出失败的内部原因。", answer.Text)
+	require.NotNil(t, answer.Link)
+	require.NotNil(t, answer.Result)
+	require.Equal(t, dbmodel.TroubleshootStatusIdle, session.Status)
+}
+
+func TestRepeatedQuerySummarizesExistingEvidence(t *testing.T) {
+	useSQLite(t)
+	tables = testCatalog()
+	runner := &fakeRunner{}
+	queries = runner
+	completeFn = scripted(
+		`{"action":"tool","name":"run_query","args":{"tid":7,"st":1000,"et":1900}}`,
+		`{"action":"tool","name":"run_query","args":{"tid":7,"st":1000,"et":1900}}`,
+		`{"action":"final","text":"已找到错误日志，尚不能确定内部原因。"}`,
+	)
+	session, err := Start(context.Background(), 3, "排查错误")
+	require.NoError(t, err)
+	require.Equal(t, 1, runner.calls)
+	require.Equal(t, "已找到错误日志，尚不能确定内部原因。", session.Messages[len(session.Messages)-1].Text)
+}
+
+func TestSummaryCannotExecuteToolsAndHandlesUnavailableModel(t *testing.T) {
+	for _, mode := range []string{"tool", "empty", "error"} {
+		t.Run(mode, func(t *testing.T) {
+			useSQLite(t)
+			tables = testCatalog()
+			runner := &fakeRunner{}
+			queries = runner
+			calls := 0
+			completeFn = func(context.Context, []ai.Message, ai.CompletionOptions) (string, error) {
+				calls++
+				if calls <= maxSteps {
+					return fmt.Sprintf(`{"action":"tool","name":"run_query","args":{"tid":7,"st":1000,"et":1900,"query":"request_id = '%d'"}}`, calls), nil
+				}
+				switch mode {
+				case "error":
+					return "", errors.New("model unavailable")
+				case "empty":
+					return `{"action":"final","text":""}`, nil
+				default:
+					return `{"action":"tool","name":"run_query","args":{"tid":8,"st":1000,"et":1900}}`, nil
+				}
+			}
+			session, err := Start(context.Background(), 3, "排查错误")
+			require.NoError(t, err)
+			require.Equal(t, maxSteps, runner.calls)
+			answer := session.Messages[len(session.Messages)-1]
+			require.Contains(t, answer.Text, "尚不足以确认")
+			require.NotContains(t, answer.Text, "8 步")
+			require.NotContains(t, answer.Text, "model unavailable")
+			require.NotNil(t, answer.Result)
+		})
+	}
 }
 
 func TestLargeWindowWaitsUntilConfirmed(t *testing.T) {
