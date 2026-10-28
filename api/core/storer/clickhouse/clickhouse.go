@@ -102,7 +102,7 @@ func (ch *Storer) mergeTreeTable() (name string, sql string) {
 PARTITION BY toYYYYMMDD(_time_second_)
 ORDER BY _time_second_
 TTL toDateTime(_time_second_) + INTERVAL %d DAY
-SETTINGS index_granularity = 8192;
+SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 `, tableNameWithCluster, ch.fields, "`_headers_name`", "`_headers_value`", engine, ch.ttl)
 	}
 	return tableName, fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
@@ -117,7 +117,7 @@ SETTINGS index_granularity = 8192;
 PARTITION BY toYYYYMMDD(_time_second_)
 ORDER BY _time_second_
 TTL toDateTime(_time_second_) + INTERVAL %d DAY
-SETTINGS index_granularity = 8192;
+SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 `, tableNameWithCluster, ch.fields, engine, ch.ttl)
 }
 
