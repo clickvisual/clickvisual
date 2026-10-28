@@ -140,8 +140,10 @@ CREATE MATERIALIZED VIEW logger.ingress_stdout_view TO logger.ingress_stdout AS 
 
 - 结果表：存储最终的数据
 ```
-create table logger.ingress_stdout ( _time_second_ DateTime, _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'), _source_ String, _cluster_ String, _log_agent_ String, _namespace_ String, _node_name_ String, _node_ip_ String, _container_name_ String, _pod_name_ String, _raw_log_ String, status Nullable(Int64), url Nullable(String), ) engine = MergeTree PARTITION BY toYYYYMMDD(_time_second_) ORDER BY _time_second_ TTL toDateTime(_time_second_) + INTERVAL 7 DAY SETTINGS index_granularity = 8192;
+create table logger.ingress_stdout ( _time_second_ DateTime, _time_nanosecond_ DateTime64(9, 'Asia/Shanghai'), _source_ String, _cluster_ String, _log_agent_ String, _namespace_ String, _node_name_ String, _node_ip_ String, _container_name_ String, _pod_name_ String, _raw_log_ String, status Nullable(Int64), url Nullable(String), ) engine = MergeTree PARTITION BY toYYYYMMDD(_time_second_) ORDER BY _time_second_ TTL toDateTime(_time_second_) + INTERVAL 7 DAY SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 ```
+
+When ClickVisual creates a new log result table, it enables `ttl_only_drop_parts = 1` by default. TTL waits until every row in a data part has expired before dropping the whole part, avoiding a large merge just to remove partially expired rows. The configured retention period is unchanged.
 
 
 6.总结流程

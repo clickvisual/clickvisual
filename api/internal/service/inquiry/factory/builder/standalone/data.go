@@ -42,7 +42,7 @@ func (b *DataBuilder) BuilderTTL() {
 }
 
 func (b *DataBuilder) BuilderSetting() {
-	b.QueryAssembly.Result += "SETTINGS index_granularity = 8192\n\n"
+	b.QueryAssembly.Result += "SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1\n\n"
 }
 
 func (b *DataBuilder) GetResult() interface{} { return b.QueryAssembly }

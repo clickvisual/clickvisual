@@ -90,7 +90,7 @@ func (b *DataBuilder) BuilderSetting() {
 	switch b.QueryAssembly.Params.Data.DataType {
 	case bumo.DataTypeDistributed:
 	default:
-		b.QueryAssembly.Result += "SETTINGS index_granularity = 8192\n\n"
+		b.QueryAssembly.Result += "SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1\n\n"
 	}
 }
 

@@ -84,7 +84,7 @@ func (t *BufferNullDataPipe) sqlDataTable() (name string, sql string) {
 PARTITION BY toYYYYMMDD(_time_second_)
 ORDER BY _time_second_
 TTL toDateTime(_time_second_) + INTERVAL %d DAY
-SETTINGS index_granularity = 8192;
+SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
 `, tableNameWithCluster, engine, t.ttl)
 }
 
