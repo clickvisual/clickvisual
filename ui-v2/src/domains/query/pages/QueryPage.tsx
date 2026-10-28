@@ -56,7 +56,6 @@ import type {
   QuerySourceTreeTarget
 } from "../types/contracts";
 import ContextMenu, { type ContextMenuItem } from "../../../shared/components/ContextMenu";
-import { isPrivateLiteEdition } from "../../../shared/config/runtime";
 import { buildShareRouteHref, buildV2RouteHref } from "../../../shared/layout/VersionSwitcher";
 
 type QueryDateRange = [Date, Date] | null;
@@ -493,6 +492,8 @@ const ABSOLUTE_DAY_PRESET_RANGES = [
 ] as const;
 const LIVE_RELATIVE_MAX_MINUTES = 60;
 const LIVE_REFRESH_STORAGE_KEY = "cv-query-live-refresh-ms";
+const SOURCE_SIDEBAR_STORAGE_KEY = "cv-query-source-sidebar-open";
+const SOURCE_SIDEBAR_COMPACT_MEDIA = "(max-width: 900px)";
 const DEFAULT_LIVE_REFRESH_MS = 15_000;
 const LIVE_REFRESH_INTERVALS = [
   { label: "5s", ms: 5_000 },
@@ -524,6 +525,26 @@ function readLiveRefreshIntervalMs() {
 
 function writeLiveRefreshIntervalMs(ms: number) {
   window.localStorage.setItem(LIVE_REFRESH_STORAGE_KEY, String(ms));
+}
+
+function readSourceSidebarOpen() {
+  try {
+    const stored = window.localStorage.getItem(SOURCE_SIDEBAR_STORAGE_KEY);
+    if (stored === "true" || stored === "false") {
+      return stored === "true";
+    }
+  } catch {
+    // Storage can be unavailable; fall back to the viewport default.
+  }
+  return !window.matchMedia?.(SOURCE_SIDEBAR_COMPACT_MEDIA).matches;
+}
+
+function writeSourceSidebarOpen(open: boolean) {
+  try {
+    window.localStorage.setItem(SOURCE_SIDEBAR_STORAGE_KEY, String(open));
+  } catch {
+    // Ignore storage failures; the sidebar still toggles for this visit.
+  }
 }
 
 function liveRefreshIntervalLabel(ms: number) {
@@ -3649,7 +3670,6 @@ function TraceTimeline({ groups }: { groups: TraceGroup[] }) {
 }
 
 export default function QueryPage({ shareMode = false }: { shareMode?: boolean }) {
-  const privateLite = isPrivateLiteEdition();
   const initialSearchParams = useMemo(
     () => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search),
     []
@@ -3733,8 +3753,9 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const [savedQuerySearch, setSavedQuerySearch] = useState("");
   const [queryHistoryMenuOpen, setQueryHistoryMenuOpen] = useState(false);
   const [queryHistorySearch, setQueryHistorySearch] = useState("");
-  const [sourcePickerOpen, setSourcePickerOpen] = useState(false);
+  const [sourceSidebarOpen, setSourceSidebarOpen] = useState(readSourceSidebarOpen);
   const [sourceSearch, setSourceSearch] = useState("");
+  const [collapsedSourceNodes, setCollapsedSourceNodes] = useState<Set<string>>(() => new Set());
   const [queryInputFocused, setQueryInputFocused] = useState(false);
   const [queryInputMode, setQueryInputMode] = useState<"sql" | "interactive">("sql");
   const [disabledQueryText, setDisabledQueryText] = useState("");
@@ -3811,8 +3832,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   const savedQuerySearchInputRef = useRef<HTMLInputElement | null>(null);
   const sourceSearchInputRef = useRef<HTMLInputElement | null>(null);
   const sourceTreeBodyRef = useRef<HTMLDivElement | null>(null);
-  const sourcePickerRef = useRef<HTMLDivElement | null>(null);
-  const sourcePickerHoverCloseTimerRef = useRef<number | null>(null);
+  const sourceSidebarFocusSearchRef = useRef(false);
   const inlineFieldPickerRef = useRef<HTMLLabelElement | null>(null);
   const histogramSelectionOverlayRef = useRef<HTMLDivElement | null>(null);
   const histogramSelectionRef = useRef<HistogramSelection | null>(null);
@@ -3843,7 +3863,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       !queryHistoryMenuOpen &&
       !savedQueryMenuOpen &&
       !fieldCatalogOpen &&
-      !sourcePickerOpen &&
       !filterComposerOpen &&
       !inlineFieldPickerOpen &&
       !fieldStatsState &&
@@ -3862,16 +3881,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       ) {
         setQueryHistoryMenuOpen(false);
         setSavedQueryMenuOpen(false);
-      }
-      if (
-        sourcePickerOpen &&
-        target instanceof Element &&
-        !sourcePickerRef.current?.contains(target) &&
-        !target.closest(".cv-query-source-popover-panel") &&
-        !target.closest(".cv-context-menu")
-      ) {
-        setSourcePickerOpen(false);
-        closeInstanceContextMenu();
       }
       if (inlineFieldPickerOpen && target instanceof Element && !inlineFieldPickerRef.current?.contains(target)) {
         setInlineFieldPickerOpen(false);
@@ -3900,7 +3909,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       setQueryHistoryMenuOpen(false);
       setSavedQueryMenuOpen(false);
       closeFieldCatalogPanel();
-      setSourcePickerOpen(false);
       if (filterComposerOpen) {
         cancelInlineCondition();
       }
@@ -3922,8 +3930,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     inlineFieldPickerOpen,
     linkQueryAnchor,
     queryHistoryMenuOpen,
-    savedQueryMenuOpen,
-    sourcePickerOpen
+    savedQueryMenuOpen
   ]);
 
   useEffect(() => {
@@ -4340,12 +4347,17 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
   }, [savedQueryMenuOpen]);
 
   useEffect(() => {
-    if (!sourcePickerOpen) {
+    if (!sourceSidebarOpen) {
       setSourceSearch("");
       return;
     }
     const focusTimer = window.setTimeout(() => {
-      sourceSearchInputRef.current?.focus();
+      if (sourceSidebarFocusSearchRef.current) {
+        sourceSidebarFocusSearchRef.current = false;
+        if (!window.matchMedia?.(SOURCE_SIDEBAR_COMPACT_MEDIA).matches) {
+          sourceSearchInputRef.current?.focus();
+        }
+      }
       const container = sourceTreeBodyRef.current;
       const active = container?.querySelector<HTMLElement>(".cv-query-tree__table--active");
       if (!container || !active) {
@@ -4353,49 +4365,61 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
       }
       const containerRect = container.getBoundingClientRect();
       const activeRect = active.getBoundingClientRect();
+      if (activeRect.top >= containerRect.top && activeRect.bottom <= containerRect.bottom && containerRect.height > 0) {
+        return;
+      }
       const nextTop =
         container.scrollTop +
         (activeRect.top - containerRect.top) -
         Math.max(12, (container.clientHeight - activeRect.height) / 3);
-      container.scrollTo({ top: Math.max(0, nextTop) });
+      if (typeof container.scrollTo === "function") {
+        container.scrollTo({ top: Math.max(0, nextTop) });
+      } else {
+        container.scrollTop = Math.max(0, nextTop);
+      }
     }, 0);
     return () => window.clearTimeout(focusTimer);
-  }, [sourcePickerOpen, workspace.selectedTableId]);
+  }, [sourceSidebarOpen, workspace.instances, workspace.selectedTableId]);
 
   useEffect(() => {
-    return () => {
-      if (sourcePickerHoverCloseTimerRef.current != null) {
-        window.clearTimeout(sourcePickerHoverCloseTimerRef.current);
-      }
-    };
-  }, []);
-
-  function clearSourcePickerHoverCloseTimer() {
-    if (sourcePickerHoverCloseTimerRef.current == null) {
+    const instanceId = workspace.selectedInstanceId;
+    const databaseName = workspace.selectedDatabase;
+    if (instanceId == null || !databaseName) {
       return;
     }
-    window.clearTimeout(sourcePickerHoverCloseTimerRef.current);
-    sourcePickerHoverCloseTimerRef.current = null;
-  }
-
-  function openSourcePickerFromHover() {
-    clearSourcePickerHoverCloseTimer();
-    setSourcePickerOpen(true);
-  }
-
-  function scheduleCloseSourcePickerFromHover() {
-    clearSourcePickerHoverCloseTimer();
-    sourcePickerHoverCloseTimerRef.current = window.setTimeout(() => {
-      sourcePickerHoverCloseTimerRef.current = null;
-      const hoveringAnchor = Boolean(sourcePickerRef.current?.matches(":hover"));
-      const hoveringPanel = Boolean(document.querySelector(".cv-query-source-popover-panel:hover"));
-      const hoveringContextMenu = Boolean(document.querySelector(".cv-context-menu:hover"));
-      if (hoveringAnchor || hoveringPanel || hoveringContextMenu) {
-        return;
+    const instanceKey = `instance:${instanceId}`;
+    const databaseKey = `database:${instanceId}:${databaseName}`;
+    setCollapsedSourceNodes((current) => {
+      if (!current.has(instanceKey) && !current.has(databaseKey)) {
+        return current;
       }
-      setSourcePickerOpen(false);
+      const next = new Set(current);
+      next.delete(instanceKey);
+      next.delete(databaseKey);
+      return next;
+    });
+    // Only reveal parents when the active table changes, so users can still fold the active branch.
+  }, [workspace.selectedTableId]);
+
+  function toggleSourceNode(key: string) {
+    setCollapsedSourceNodes((current) => {
+      const next = new Set(current);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
+  function toggleSourceSidebar(open: boolean) {
+    sourceSidebarFocusSearchRef.current = open;
+    if (!open) {
       closeInstanceContextMenu();
-    }, 160);
+    }
+    setSourceSidebarOpen(open);
+    writeSourceSidebarOpen(open);
   }
 
   useEffect(() => {
@@ -6471,8 +6495,6 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     workspace.setSelectedInstanceId(instance.id);
     workspace.setSelectedDatabase(database.name);
     workspace.setSelectedTable(table.name);
-    setSourcePickerOpen(false);
-    setSourceSearch("");
     setTableAutoQueryRequest({
       instanceId: instance.id,
       databaseName: database.name,
@@ -7722,7 +7744,24 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     setFeedbackMessage("");
   }
 
-  function renderSourcePickerContent() {
+  function renderSourceSidebar() {
+    if (!sourceSidebarOpen) {
+      return (
+        <aside className="cv-query-source-sidebar cv-query-source-sidebar--collapsed" aria-label="Sources">
+          <button
+            type="button"
+            className="cv-query-source-sidebar__rail"
+            onClick={() => toggleSourceSidebar(true)}
+            aria-expanded={false}
+            aria-label="Expand sources"
+            title="Expand sources"
+          >
+            <EuiIcon type="menuRight" size="s" aria-hidden="true" />
+            <span>Sources</span>
+          </button>
+        </aside>
+      );
+    }
     const sourceSearchKeyword = sourceSearch.trim().toLowerCase();
     const hasSourceSearch = sourceSearchKeyword.length > 0;
     const matchesSourceSearch = (...values: Array<string | undefined>) =>
@@ -7748,7 +7787,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
               database,
               databaseTables,
               isActiveDatabase,
-              isExpandedDatabase: true
+              isExpandedDatabase: hasSourceSearch || !collapsedSourceNodes.has(`database:${item.id}:${database.name}`)
             };
           })
           .filter(Boolean) as Array<{
@@ -7763,7 +7802,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
         return {
           item,
           isActiveInstance,
-          isExpandedInstance: true,
+          isExpandedInstance: hasSourceSearch || !collapsedSourceNodes.has(`instance:${item.id}`),
           databaseGroups
         };
       })
@@ -7780,19 +7819,27 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     }>;
 
     return (
-      <div className="cv-query-source-popover" role="dialog" aria-label="Select data source">
-        <div className="cv-query-source-popover__header">
+      <aside className="cv-query-source-sidebar" aria-label="Sources">
+        <div className="cv-query-source-sidebar__header">
           <div>
             <strong>Sources</strong>
             {workspace.contextLoading ? <span>Loading</span> : null}
           </div>
-          {privateLite ? null : (
-            <a className="cv-secondary-button" href={buildV2RouteHref("query/ingestion")}>
-              Create log library
-            </a>
-          )}
+          <div className="cv-query-source-sidebar__actions">
+            <button
+              type="button"
+              className="cv-query-source-sidebar__collapse"
+              onClick={() => toggleSourceSidebar(false)}
+              aria-controls="cv-query-source-sidebar-body"
+              aria-expanded={true}
+              aria-label="Collapse sources"
+              title="Collapse sources"
+            >
+              <EuiIcon type="menuLeft" size="s" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-        <div className="cv-query-source-popover__search">
+        <div className="cv-query-source-sidebar__search">
           <EuiFieldSearch
             compressed
             fullWidth
@@ -7812,7 +7859,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             }}
           />
         </div>
-        <div className="cv-query-source-popover__body" ref={sourceTreeBodyRef}>
+        <div className="cv-query-source-sidebar__body" id="cv-query-source-sidebar-body" ref={sourceTreeBodyRef}>
           <section role="tree" aria-label="Instances, databases, and log tables" className="cv-query-tree">
             {sourceGroups.map(({ item, isActiveInstance, isExpandedInstance, databaseGroups }) => {
               return (
@@ -7827,7 +7874,11 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                     <button
                       type="button"
                       className={`cv-query-tree__instance${isActiveInstance ? " cv-query-tree__instance--active" : ""}`}
-                      onClick={() => workspace.setSelectedInstanceId(item.id)}
+                      onClick={() => {
+                        if (!hasSourceSearch) {
+                          toggleSourceNode(`instance:${item.id}`);
+                        }
+                      }}
                       onContextMenu={(event) => {
                         event.preventDefault();
                         workspace.setSelectedInstanceId(item.id);
@@ -7839,11 +7890,16 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                           }
                         ]);
                       }}
-                      aria-haspopup="menu"
-                      aria-expanded={treeContextMenu.items.length > 0}
+                      aria-expanded={isExpandedInstance}
                     >
                       <span className="cv-query-tree__instance-mark" aria-hidden="true" />
-                      <span className="cv-query-tree__instance-name">{item.name}</span>
+                      <span className="cv-query-tree__instance-name" title={item.name}>{item.name}</span>
+                      <EuiIcon
+                        type={isExpandedInstance ? "arrowDown" : "arrowRight"}
+                        size="s"
+                        aria-hidden="true"
+                        className="cv-query-tree__chevron"
+                      />
                     </button>
                   </div>
                   {isExpandedInstance ? (
@@ -7853,12 +7909,13 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                           <div key={database.name} className="cv-query-tree__database-group">
                             <button
                               type="button"
-                              aria-pressed={isActiveDatabase}
+                              aria-expanded={isExpandedDatabase}
                               aria-label={`Database ${database.name}`}
                               className={`cv-query-tree__database${isActiveDatabase ? " cv-query-tree__database--active" : ""}`}
                               onClick={() => {
-                                workspace.setSelectedInstanceId(item.id);
-                                workspace.setSelectedDatabase(database.name);
+                                if (!hasSourceSearch) {
+                                  toggleSourceNode(`database:${item.id}:${database.name}`);
+                                }
                               }}
                               onContextMenu={(event) => {
                                 event.preventDefault();
@@ -7885,7 +7942,13 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                             >
                               <span className="cv-query-tree__database-rail" aria-hidden="true" />
                               <span className="cv-query-tree__database-dot" aria-hidden="true" />
-                              {database.name}
+                              <span className="cv-query-tree__database-name" title={database.name}>{database.name}</span>
+                              <EuiIcon
+                                type={isExpandedDatabase ? "arrowDown" : "arrowRight"}
+                                size="s"
+                                aria-hidden="true"
+                                className="cv-query-tree__chevron"
+                              />
                             </button>
                             {isExpandedDatabase ? (
                               <div role="group" aria-label={`${database.name} log tables`} className="cv-query-tree__tables">
@@ -7915,7 +7978,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
                                     >
                                       <span className="cv-query-tree__table-rail" aria-hidden="true" />
                                       <span className="cv-query-tree__table-dot" aria-hidden="true" />
-                                      {table.name}
+                                      <span className="cv-query-tree__table-name" title={table.name}>{table.name}</span>
                                     </button>
                                   );
                                 })}
@@ -7940,7 +8003,7 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
             ) : null}
           </section>
         </div>
-      </div>
+      </aside>
     );
   }
 
@@ -8127,65 +8190,19 @@ export default function QueryPage({ shareMode = false }: { shareMode?: boolean }
     <section className={shareMode ? "cv-section-stack cv-query-page cv-query-page--share" : "cv-section-stack cv-query-page"}>
       <h1 className="cv-page-title cv-sr-only">{shareMode ? "Shared results" : "Log query"}</h1>
 
-      <div className="cv-query-shell">
+      <div
+        className={
+          shareMode
+            ? "cv-query-shell"
+            : sourceSidebarOpen
+              ? "cv-query-shell cv-query-shell--with-sources"
+              : "cv-query-shell cv-query-shell--with-sources cv-query-shell--sources-collapsed"
+        }
+      >
+        {shareMode ? null : renderSourceSidebar()}
         <div className="cv-query-main">
           {!shareMode ? (
             <div className="cv-query-log-tabs" aria-label="Log table workspace">
-              <div
-                className="cv-query-source-anchor"
-                ref={sourcePickerRef}
-                onMouseEnter={openSourcePickerFromHover}
-                onMouseLeave={scheduleCloseSourcePickerFromHover}
-              >
-                <EuiPopover
-                  anchorPosition="downLeft"
-                  button={
-                    <button
-                      type="button"
-                      className={sourcePickerOpen ? "cv-query-source-trigger cv-query-source-trigger--open" : "cv-query-source-trigger"}
-                      onClick={() =>
-                        setSourcePickerOpen((current) => {
-                          if (current) {
-                            closeInstanceContextMenu();
-                          }
-                          return !current;
-                        })
-                      }
-                      aria-expanded={sourcePickerOpen}
-                      aria-haspopup="dialog"
-                      aria-label="Sources"
-                      title="Select data source"
-                    >
-                      <EuiIcon type="table" size="s" aria-hidden="true" />
-                      <span>Sources</span>
-                      <EuiIcon
-                        type={sourcePickerOpen ? "arrowUp" : "arrowDown"}
-                        size="s"
-                        aria-hidden="true"
-                        className="cv-query-source-trigger__chevron"
-                      />
-                    </button>
-                  }
-                  closePopover={() => {
-                    clearSourcePickerHoverCloseTimer();
-                    setSourcePickerOpen(false);
-                    closeInstanceContextMenu();
-                  }}
-                  display="inlineBlock"
-                  isOpen={sourcePickerOpen}
-                  ownFocus={false}
-                  panelClassName="cv-query-source-popover-panel"
-                  panelPaddingSize="none"
-                  panelProps={{
-                    onMouseEnter: openSourcePickerFromHover,
-                    onMouseLeave: scheduleCloseSourcePickerFromHover
-                  }}
-                  repositionToCrossAxis={false}
-                  repositionOnScroll
-                >
-                  {renderSourcePickerContent()}
-                </EuiPopover>
-              </div>
               <div className="cv-query-log-tab-list" role="tablist" aria-label="Log table tabs">
                 {validOpenLogTabs.map((tab) => {
                   const active = tab.id === workspace.selectedTableId;

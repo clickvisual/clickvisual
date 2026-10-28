@@ -120,6 +120,9 @@ func buildWherePlan(req view.QueryRequestV2, ctx CompileContext) (whereParts []s
 			})
 		}
 	}
+	if extra := extraWhereFromQuery(req.Query, ctx.RawJSONColumn); extra != "" {
+		whereParts = append(whereParts, extra)
+	}
 
 	plan = view.QueryPlan{
 		Table:             ctx.TableName,
@@ -127,6 +130,43 @@ func buildWherePlan(req view.QueryRequestV2, ctx CompileContext) (whereParts []s
 		Warnings:          warnings,
 	}
 	return whereParts, plan, nil
+}
+
+func extraWhereFromQuery(query, rawJSONColumn string) string {
+	q := strings.TrimSpace(query)
+	if q == "" || q == "*" {
+		return ""
+	}
+	if isBareSearchTerm(q) {
+		col := rawJSONColumn
+		if col == "" {
+			col = "_raw_log_"
+		}
+		return fmt.Sprintf("%s LIKE '%%%s%%'", col, strings.ReplaceAll(q, "'", "\\'"))
+	}
+	return "(" + q + ")"
+}
+
+func isBareSearchTerm(q string) bool {
+	if q == "" {
+		return false
+	}
+	for _, r := range q {
+		if r >= 'a' && r <= 'z' {
+			continue
+		}
+		if r >= 'A' && r <= 'Z' {
+			continue
+		}
+		if r >= '0' && r <= '9' {
+			continue
+		}
+		if r == '_' || r == '-' || r == '.' {
+			continue
+		}
+		return false
+	}
+	return true
 }
 
 func normalizedTimeField(ctx CompileContext) string {

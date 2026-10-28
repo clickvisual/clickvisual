@@ -32,7 +32,7 @@ const HistogramSwitch = ({ oldPane }: { oldPane: PaneType | undefined }) => {
   return (
     <>
       <Switch
-        checked={oldPane?.histogramChecked ?? false}
+        checked={oldPane?.histogramChecked ?? true}
         onChange={handleChangeHistogramChecked}
         size={"small"}
       />

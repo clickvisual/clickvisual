@@ -66,6 +66,7 @@ type QueryRequestV2 struct {
 	ET            int64              `json:"et" form:"et"`
 	Page          uint32             `json:"page" form:"page"`
 	PageSize      uint32             `json:"pageSize" form:"pageSize"`
+	Query         string             `json:"query,omitempty" form:"query"`
 	Conditions    []QueryConditionV2 `json:"conditions" form:"conditions"`
 	Sorts         []QuerySort        `json:"sorts" form:"sorts"`
 	DisplayFields []string           `json:"displayFields" form:"displayFields"`

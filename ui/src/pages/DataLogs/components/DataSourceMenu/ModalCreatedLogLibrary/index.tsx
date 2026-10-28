@@ -86,6 +86,7 @@ const ModalCreatedLogLibrary = (props: {
             ).run("ego", {
               brokers: field.brokers,
               databaseId: addLogToDatabase?.id as number,
+              days: field.days,
               topicsApp: field.topicsApp,
               topicsEgo: field.topicsEgo,
               topicsIngressStderr: field.topicsIngressStderr,

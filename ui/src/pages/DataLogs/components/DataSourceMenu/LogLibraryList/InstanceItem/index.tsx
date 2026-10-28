@@ -9,7 +9,12 @@ const InstanceItem = (props: { instanceItem: any }) => {
     onChangeCreatedDatabaseModal,
     onChangeCreateDatabaseCurrentInstance,
   } = useModel("database");
-  const { resizeMenuWidth } = useModel("dataLogs");
+  const {
+    onChangeIsAccessLogLibrary,
+    onChangeLogLibraryCreatedModalVisible,
+    onChangeIsLogLibraryAllDatabase,
+    resizeMenuWidth,
+  } = useModel("dataLogs");
   const { instanceItem } = props;
   const i18n = useIntl();
 
@@ -41,6 +46,16 @@ const InstanceItem = (props: { instanceItem: any }) => {
       icon: (
         <PlusSquareOutlined style={{ color: "#000", marginRight: "8px" }} />
       ),
+    },
+    {
+      label: i18n.formatMessage({ id: "datasource.draw.logLibraryButton" }),
+      key: "loglibrary-Access",
+      onClick: () => {
+        onChangeIsAccessLogLibrary(true);
+        onChangeLogLibraryCreatedModalVisible(true);
+        onChangeIsLogLibraryAllDatabase(true);
+      },
+      icon: <IconFont type={"icon-addLogLibrary"} />,
     },
   ];
 
