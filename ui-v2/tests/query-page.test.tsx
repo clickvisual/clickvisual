@@ -34,9 +34,9 @@ describe("query page", () => {
 
   async function openDatasourcePanel() {
     await waitForQueryPageReady();
-    const sourceButton = screen.getByRole("button", { name: "Sources" });
-    if (sourceButton.getAttribute("aria-expanded") !== "true") {
-      fireEvent.mouseEnter(sourceButton.closest(".cv-query-source-anchor") ?? sourceButton);
+    const expandButton = screen.queryByRole("button", { name: "Expand sources" });
+    if (expandButton) {
+      fireEvent.click(expandButton);
     }
     return screen.findByRole("tree", { name: "Instances, databases, and log tables" });
   }
@@ -402,7 +402,7 @@ describe("query page", () => {
     expect(screen.getByRole("button", { name: "Add condition" })).toBeInTheDocument();
   });
 
-  it("opens the datasource panel on Sources hover", async () => {
+  it("shows the datasource tree as a sidebar by default", async () => {
     render(
       <TimeRangeProvider>
         <QueryPage />
@@ -410,13 +410,153 @@ describe("query page", () => {
     );
 
     await waitForQueryPageReady();
-    const sourceAnchor = screen.getByRole("button", { name: "Sources" }).closest(".cv-query-source-anchor");
-    expect(sourceAnchor).toBeTruthy();
-    fireEvent.mouseEnter(sourceAnchor!);
-    expect(await screen.findByRole("tree", { name: "Instances, databases, and log tables" })).toBeInTheDocument();
+    const sidebar = screen.getByRole("complementary", { name: "Sources" });
+    expect(await within(sidebar).findByRole("tree", { name: "Instances, databases, and log tables" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sources" })).not.toBeInTheDocument();
+    expect(within(screen.getByRole("tablist", { name: "Log table tabs" }).parentElement!).queryByText("Sources")).toBeNull();
+    expect(screen.getByRole("searchbox", { name: "Search sources" })).not.toHaveFocus();
+
+    fireEvent.click(await within(sidebar).findByRole("button", { name: "Table app_logs" }));
+    expect(await screen.findByRole("tab", { name: "default.app_logs" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tree", { name: "Instances, databases, and log tables" })).toBeInTheDocument();
+
+    fireEvent.pointerDown(document.body);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByRole("tree", { name: "Instances, databases, and log tables" })).toBeInTheDocument();
   });
 
-  it("shows a quick log library creation entry from the datasource panel", async () => {
+  it("collapses and expands the datasource sidebar and remembers the choice", async () => {
+    const view = render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await openDatasourcePanel();
+    fireEvent.click(screen.getByRole("button", { name: "Collapse sources" }));
+    expect(screen.queryByRole("tree", { name: "Instances, databases, and log tables" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Expand sources" })).toHaveAttribute("aria-expanded", "false");
+    expect(window.localStorage.getItem("cv-query-source-sidebar-open")).toBe("false");
+
+    view.unmount();
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+    await waitForQueryPageReady();
+    expect(screen.queryByRole("tree", { name: "Instances, databases, and log tables" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand sources" }));
+    expect(await screen.findByRole("tree", { name: "Instances, databases, and log tables" })).toBeInTheDocument();
+    expect(window.localStorage.getItem("cv-query-source-sidebar-open")).toBe("true");
+    await waitFor(() => {
+      expect(screen.getByRole("searchbox", { name: "Search sources" })).toHaveFocus();
+    });
+  });
+
+  it("collapses source instances and databases on click and expands them for search", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await openDatasourcePanel();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Table logs" })).toHaveAttribute("aria-pressed", "true");
+    });
+    const instance = screen.getByRole("treeitem", { name: "生产 ClickHouse" });
+    const database = screen.getByRole("button", { name: "Database default" });
+    expect(database).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(database);
+    expect(screen.getByRole("button", { name: "Database default" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Table app_logs" })).not.toBeInTheDocument();
+
+    const logTabs = screen.getByRole("tablist", { name: "Log table tabs" });
+    const activeTab = within(logTabs).getByRole("tab", { selected: true });
+    fireEvent.click(within(instance).getByRole("button", { name: "生产 ClickHouse" }));
+    expect(instance).toHaveAttribute("aria-expanded", "false");
+    expect(within(instance).getByRole("button", { name: "生产 ClickHouse" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Database default" })).not.toBeInTheDocument();
+    expect(within(logTabs).getByRole("tab", { selected: true })).toBe(activeTab);
+
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search sources" }), { target: { value: "app" } });
+    expect(instance).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Table app_logs" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search sources" }), { target: { value: "" } });
+    expect(instance).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(within(instance).getByRole("button", { name: "生产 ClickHouse" }));
+    expect(screen.getByRole("button", { name: "Database default" })).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(screen.getByRole("button", { name: "Database default" }));
+    expect(screen.getByRole("button", { name: "Table app_logs" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Database default" }));
+    expect(screen.queryByRole("button", { name: "Table app_logs" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "default.logs" }));
+    fireEvent.click(within(instance).getByRole("button", { name: "生产 ClickHouse" }));
+    expect(instance).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("reopens collapsed parents when the active table changes", async () => {
+    render(
+      <TimeRangeProvider>
+        <QueryPage />
+      </TimeRangeProvider>
+    );
+
+    await openDatasourcePanel();
+    fireEvent.click(screen.getByRole("button", { name: "Table app_logs" }));
+    expect(await screen.findByRole("tab", { name: "default.app_logs" })).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Database default" }));
+    expect(screen.queryByRole("button", { name: "Table logs" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "default.logs" }));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Table logs" })).toHaveAttribute("aria-pressed", "true");
+    });
+    expect(screen.getByRole("button", { name: "Database default" })).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("keeps the datasource sidebar usable when storage is unavailable", async () => {
+    const originalGetItem = Storage.prototype.getItem;
+    const originalSetItem = Storage.prototype.setItem;
+    const getItem = vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key: string) {
+      if (key === "cv-query-source-sidebar-open") {
+        throw new Error("blocked");
+      }
+      return originalGetItem.call(this, key);
+    });
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string
+    ) {
+      if (key === "cv-query-source-sidebar-open") {
+        throw new Error("blocked");
+      }
+      originalSetItem.call(this, key, value);
+    });
+    try {
+      render(
+        <TimeRangeProvider>
+          <QueryPage />
+        </TimeRangeProvider>
+      );
+      expect(await screen.findByRole("tree", { name: "Instances, databases, and log tables" })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Collapse sources" }));
+      expect(screen.getByRole("button", { name: "Expand sources" })).toBeInTheDocument();
+      expect(getItem).toHaveBeenCalledWith("cv-query-source-sidebar-open");
+      expect(setItem).toHaveBeenCalledWith("cv-query-source-sidebar-open", "false");
+    } finally {
+      getItem.mockRestore();
+      setItem.mockRestore();
+    }
+  });
+
+  it("keeps the datasource sidebar header free of the log library creation link", async () => {
     render(
       <TimeRangeProvider>
         <QueryPage />
@@ -425,10 +565,8 @@ describe("query page", () => {
 
     await openDatasourcePanel();
 
-    expect(screen.getByRole("link", { name: "Create log library" })).toHaveAttribute(
-      "href",
-      "/v2/query/ingestion"
-    );
+    expect(screen.queryByRole("link", { name: "Create log library" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Collapse sources" })).toBeInTheDocument();
   });
 
   it("filters sources by instance, database, and table names", async () => {
@@ -440,9 +578,6 @@ describe("query page", () => {
 
     await openDatasourcePanel();
     const search = screen.getByRole("searchbox", { name: "Search sources" });
-    await waitFor(() => {
-      expect(search).toHaveFocus();
-    });
 
     fireEvent.change(search, { target: { value: "app" } });
     expect(screen.getByRole("button", { name: "Table app_logs" })).toBeInTheDocument();
@@ -592,20 +727,24 @@ describe("query page", () => {
     );
 
     await openDatasourcePanel();
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole("button", { name: "Table app_stdout" }).filter((item) => item.getAttribute("aria-pressed") === "true")
+      ).toHaveLength(1);
+    });
     const tables = screen.getAllByRole("button", { name: "Table app_stdout" });
     expect(tables).toHaveLength(3);
-    expect(tables.filter((item) => item.getAttribute("aria-pressed") === "true")).toHaveLength(1);
     expect(tables[0]).toHaveAttribute("aria-pressed", "true");
     expect(tables[1]).toHaveAttribute("aria-pressed", "false");
     expect(tables[2]).toHaveAttribute("aria-pressed", "false");
     vi.stubGlobal("fetch", defaultFetch);
   });
 
-  it("scrolls the selected source table into view when the picker opens", async () => {
+  it("scrolls the selected source table into view in the sidebar", async () => {
     const scrollTo = vi.fn();
     const originalScrollTo = HTMLElement.prototype.scrollTo;
     HTMLElement.prototype.scrollTo = function (this: HTMLElement, ...args: unknown[]) {
-      if (this.classList.contains("cv-query-source-popover__body")) {
+      if (this.classList.contains("cv-query-source-sidebar__body")) {
         scrollTo(...args);
       }
     } as typeof HTMLElement.prototype.scrollTo;
@@ -4439,7 +4578,7 @@ describe("query page", () => {
     expect(screen.getByText(/已抽样/)).toBeInTheDocument();
   });
 
-  it("shows an instance/database tree and refreshes table options after selecting a database", async () => {
+  it("folds databases in the instance tree and queries a table picked from it", async () => {
     const nowSpy = vi.spyOn(Date, "now").mockReturnValue(new Date("2026-04-21T09:30:00").getTime());
     const requestPaths: string[] = [];
     const expectedRecentStart = Math.floor(new Date("2026-04-21T09:15:00").getTime() / 1000);
@@ -4573,6 +4712,9 @@ describe("query page", () => {
     expect(screen.getByRole("button", { name: "Database default" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Database archive" })).toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole("button", { name: "Database archive" }));
+    expect(screen.getByRole("button", { name: "Database archive" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Table audit_logs" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Database archive" }));
 
     await waitFor(() => {

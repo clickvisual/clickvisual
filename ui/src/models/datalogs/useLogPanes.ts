@@ -22,7 +22,7 @@ export const DefaultPane = {
   activeTabKey: TimeRangeType.Relative,
   highCharts: undefined,
   logs: undefined,
-  histogramChecked: false,
+  histogramChecked: true,
   foldingChecked: false,
   baseFieldsIndexList: undefined,
   logFieldsIndexList: undefined,

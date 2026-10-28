@@ -1,7 +1,7 @@
 import { DefaultPane } from "./useLogPanes";
 
 describe("DefaultPane", () => {
-  it("disables histogram queries by default", () => {
-    expect(DefaultPane.histogramChecked).toBe(false);
+  it("enables histogram queries by default", () => {
+    expect(DefaultPane.histogramChecked).toBe(true);
   });
 });

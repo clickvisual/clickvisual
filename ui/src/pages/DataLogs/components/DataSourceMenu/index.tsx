@@ -1,5 +1,6 @@
 import dataSourceMenuStyles from "@/pages/DataLogs/components/DataSourceMenu/index.less";
 import LoggingLibrary from "@/pages/DataLogs/components/DataSourceMenu/LoggingLibrary";
+import ModalCreatedLogLibrary from "@/pages/DataLogs/components/DataSourceMenu/ModalCreatedLogLibrary";
 import ResizeWidth from "@/pages/DataLogs/components/DataSourceMenu/ResizeWidth";
 import { useModel } from "@umijs/max";
 import classNames from "classnames";
@@ -131,6 +132,7 @@ const DataSourceMenu = () => {
         onGetList={getList}
         allInstancesData={allInstancesData}
       />
+      <ModalCreatedLogLibrary onGetList={getList} />
     </div>
   );
 };

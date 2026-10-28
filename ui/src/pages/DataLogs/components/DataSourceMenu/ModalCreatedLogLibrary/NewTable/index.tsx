@@ -1,6 +1,6 @@
 import { Form, Input, InputNumber } from "antd";
-import { useIntl } from "umi";
 import TextArea from "antd/lib/input/TextArea";
+import { useIntl } from "umi";
 import JsonAsString from "./JsonAsString";
 import JsonEachRow from "./JsonEachRow";
 
