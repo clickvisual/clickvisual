@@ -64,8 +64,15 @@ const InstanceTable = (props: InstanceTableProps) => {
       dataIndex: "clusterInfo",
       align: "center" as AlignType,
       width: 300,
-      render: (clusterInfo: string[]) => (
+      render: (clusterInfo: string[], record: InstanceType) => record.runtimeLoading ? (
+        <Tag>{i18n.formatMessage({ id: "instance.runtime.loading" })}</Tag>
+      ) : record.error ? (
+        <Tooltip title={record.error}>
+          <Tag color="error">{i18n.formatMessage({ id: "instance.runtime.failed" })}</Tag>
+        </Tooltip>
+      ) : (
         <div>
+          {!clusterInfo?.length && "-"}
           {clusterInfo?.map((item: string, index: number) => {
             return (
               <Tag color="lime" key={index}>

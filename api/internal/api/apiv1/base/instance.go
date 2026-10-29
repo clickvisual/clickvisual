@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/ego-component/egorm"
-	"github.com/gotomicro/cetus/l"
-	"github.com/gotomicro/ego/core/elog"
 	"github.com/spf13/cast"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -118,39 +116,13 @@ func InstanceList(c *core.Context) {
 	for _, row := range tmp {
 		if service.InstanceViewIsPermission(c.Uid(), row.ID) {
 			ins := view.RespInstance{
-				Id:   row.ID,
-				Name: row.Name,
-				Desc: row.Desc,
+				Id:          row.ID,
+				Name:        row.Name,
+				Desc:        row.Desc,
+				Mode:        row.Mode,
+				Clusters:    []string{},
+				ClusterInfo: []string{},
 			}
-			op, err := service.InstanceManager.Load(row.ID)
-			if err != nil {
-				elog.Error("InstanceList", l.S("step", "InstanceManager"), l.E(err))
-				ins.Error = err.Error()
-				ins.Desc += ins.Error
-				res = append(res, ins)
-				continue
-			}
-			clusterInfo, err := op.ClusterInfo()
-			if err != nil {
-				elog.Error("InstanceList", l.S("step", "ClusterInfo"), l.E(err))
-				ins.Error = err.Error()
-				ins.Desc += ins.Error
-				res = append(res, ins)
-				continue
-			}
-			cis := make([]string, 0)
-			cs := make([]string, 0)
-			isCluster := 0
-			for _, ci := range clusterInfo {
-				cis = append(cis, ci.Info())
-				cs = append(cs, ci.Name)
-				if ci.MaxShardNum > 1 || ci.MaxReplicaNum > 1 {
-					isCluster = 1
-				}
-			}
-			ins.Clusters = cs
-			ins.ClusterInfo = cis
-			ins.Mode = isCluster
 			res = append(res, ins)
 		}
 	}

@@ -18,6 +18,8 @@ After submission, it can be used for the distribution of LogAgent configuration.
 
 In the top nav bar,select **Setting -> Instances：**
 
+The v1 instance manager and v2 settings page display the data source list first, then load live cluster information asynchronously for each instance. Instances show a checking state while loading. A slow or failed check does not block other instances; the failure reason appears with that instance's status. When creating or editing a database in v1, wait for the selected instance's check to succeed before submitting so that all cluster options are available.
+
 ![img.png](../../../images/instance-list.png)
 
 By default, no data source instance is configured, so this is blank,click **+Add instance**, add a new ClickHouse instance as datasource.

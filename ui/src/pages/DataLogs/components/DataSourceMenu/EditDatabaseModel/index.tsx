@@ -17,6 +17,7 @@ const EditDatabaseModel = (props: {
   const editDatabaseFormRef = useRef<FormInstance>(null);
   const [clustersList, steClustersList] = useState<any>([]);
   const [iName, setIName] = useState<string>("");
+  const selectedInstance = instanceList.find((item) => item.id === currentEditDatabase?.iid);
 
   useEffect(() => {
     if (isEditDatabase) {
@@ -46,6 +47,7 @@ const EditDatabaseModel = (props: {
 
   const handleSubmit = (val: any) => {
     if (!currentEditDatabase?.id) return;
+    if (!selectedInstance || selectedInstance.runtimeLoading || selectedInstance.error) return;
     doUpdatedDatabase.run(currentEditDatabase.id, val).then((res: any) => {
       if (res.code != 0) {
         message.error(res.msg);
@@ -77,6 +79,7 @@ const EditDatabaseModel = (props: {
       open={isEditDatabase}
       onCancel={() => onChangeIsEditDatabase(false)}
       onOk={() => editDatabaseFormRef.current?.submit()}
+      okButtonProps={{ disabled: !selectedInstance || selectedInstance.runtimeLoading || !!selectedInstance.error }}
       width={"45%"}
     >
       <Form
@@ -98,7 +101,9 @@ const EditDatabaseModel = (props: {
         <Form.Item
           label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
           name={"cluster"}
-          hidden={!clustersList.length}
+          hidden={!clustersList.length && !selectedInstance?.runtimeLoading && !selectedInstance?.error}
+          validateStatus={selectedInstance?.error ? "error" : undefined}
+          help={selectedInstance?.error}
           rules={
             !clustersList.length
               ? []
@@ -114,7 +119,8 @@ const EditDatabaseModel = (props: {
         >
           <Select
             style={{ width: "100%" }}
-            disabled={!!currentEditDatabase?.cluster}
+            loading={selectedInstance?.runtimeLoading}
+            disabled={!!currentEditDatabase?.cluster || selectedInstance?.runtimeLoading || !!selectedInstance?.error}
             placeholder={`${i18n.formatMessage({
               id: "config.selectedBar.cluster",
             })}`}

@@ -1,14 +1,21 @@
 import type { InstanceType } from "@/services/systemSetting";
 import api from "@/services/systemSetting";
 import useRequest from "@/hooks/useRequest/useRequest";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatMessage } from "@@/plugin-locale/localeExports";
 import { message } from "antd";
 import { cloneDeep } from "lodash";
+import { loadInstanceList } from "../services/instanceRuntime";
 
 const Instances = () => {
   // 实例列表
   const [instanceList, setInstanceList] = useState<InstanceType[]>([]);
+  const listVersion = useRef(0);
+
+  useEffect(() => () => {
+    listVersion.current += 1;
+  }, []);
+
   // 当前选中实例，用于数据库筛选
   // const [selectedInstance, setSelectedInstance] = useState<
   //   number | undefined
@@ -49,10 +56,15 @@ const Instances = () => {
     loadingText: false,
   });
 
-  const getInstanceList = useRequest(api.getInstances, {
-    loadingText: false,
-    onSuccess: (res) => setInstanceList(res.data),
-  });
+  const getInstanceList = useRequest(async () => {
+    const version = ++listVersion.current;
+    return loadInstanceList(
+      api,
+      setInstanceList,
+      () => listVersion.current === version,
+      formatMessage({ id: "instance.runtime.failed" })
+    );
+  }, { loadingText: false });
 
   const doGetInstanceInfo = useRequest(api.getInstancesInfo, {
     loadingText: false,

@@ -1,22 +1,18 @@
 import {request} from "umi";
+import type { InstanceListItem, InstanceRuntime } from "./instanceRuntime";
 
 export interface TimeBaseType {
   utime?: number;
   ctime?: number;
   dtime?: number;
 }
-export interface InstanceType extends TimeBaseType {
-  mode: number;
-  id?: number;
+export interface InstanceType extends TimeBaseType, InstanceListItem {
   datasource: string;
   dsn: string;
-  name: string;
   clusterId?: number;
   configmap?: string;
   namespace?: string;
   prometheusTarget?: string;
-  clusters?: string[];
-  desc?: string;
 }
 
 export interface TestInstanceRequest {
@@ -57,6 +53,14 @@ export default {
       {
         method: "GET",
       }
+    );
+  },
+
+  // Load live cluster information without blocking the instance list.
+  async getInstanceRuntime(id: number) {
+    return request<API.Res<InstanceRuntime>>(
+      process.env.PUBLIC_PATH + `api/v2/base/settings/instances/${id}/runtime`,
+      { method: "GET" }
     );
   },
 

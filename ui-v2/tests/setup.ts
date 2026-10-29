@@ -343,6 +343,23 @@ beforeEach(() => {
         };
       }
 
+      if (method === "GET" && /\/api\/v2\/base\/settings\/instances\/\d+\/runtime$/.test(url.pathname)) {
+        return {
+          ok: true,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: {
+                clusters: ["cluster-main"],
+                clusterInfo: [],
+                mode: 1,
+                error: ""
+              }
+            })
+        };
+      }
+
       if (method === "GET" && url.pathname.endsWith("/api/v1/instances/1/databases-exist")) {
         return {
           ok: true,

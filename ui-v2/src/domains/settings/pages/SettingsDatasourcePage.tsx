@@ -11,6 +11,7 @@ import {
   getSettingsAlarmChannel,
   getSettingsAIConfig,
   getSettingsDatasource,
+  getSettingsDatasourceRuntime,
   listSettingsAlarmChannels,
   listSettingsDatasources,
   sendSettingsAlarmChannelTest,
@@ -164,6 +165,7 @@ export default function SettingsDatasourcePage() {
   const { viewState } = useModuleRuntimeState();
   const [loading, setLoading] = useState(true);
   const [datasources, setDatasources] = useState<SettingsDatasourceItem[]>([]);
+  const [runtimeLoading, setRuntimeLoading] = useState<Record<number, boolean>>({});
   const [channels, setChannels] = useState<SettingsAlarmChannel[]>([]);
   const [aiConfig, setAIConfig] = useState<SettingsAIConfig | null>(null);
   const [syncStatus, setSyncStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
@@ -183,6 +185,42 @@ export default function SettingsDatasourcePage() {
   const [savingAI, setSavingAI] = useState(false);
   const [testingAI, setTestingAI] = useState(false);
 
+  async function loadDatasourceRuntime(items: SettingsDatasourceItem[]) {
+    setRuntimeLoading(Object.fromEntries(items.map((item) => [item.id, true])));
+    await Promise.all(
+      items.map(async (item) => {
+        try {
+          const runtime = await getSettingsDatasourceRuntime(item.id);
+          setDatasources((current) =>
+            current.map((currentItem) =>
+              currentItem.id === item.id
+                ? {
+                    ...currentItem,
+                    ...runtime,
+                    clusters: Array.isArray(runtime.clusters) ? runtime.clusters : [],
+                    clusterInfo: Array.isArray(runtime.clusterInfo) ? runtime.clusterInfo : []
+                  }
+                : currentItem
+            )
+          );
+        } catch (error) {
+          setDatasources((current) =>
+            current.map((currentItem) =>
+              currentItem.id === item.id
+                ? {
+                    ...currentItem,
+                    error: error instanceof Error ? error.message : "实时状态获取失败"
+                  }
+                : currentItem
+            )
+          );
+        } finally {
+          setRuntimeLoading((current) => ({ ...current, [item.id]: false }));
+        }
+      })
+    );
+  }
+
   async function loadSettings() {
     setLoading(true);
     try {
@@ -191,7 +229,13 @@ export default function SettingsDatasourcePage() {
         listSettingsAlarmChannels(),
         getSettingsAIConfig().catch(() => null)
       ]);
-      setDatasources(nextDatasources);
+      const normalizedDatasources = nextDatasources.map((item) => ({
+        ...item,
+        clusters: Array.isArray(item.clusters) ? item.clusters : [],
+        clusterInfo: Array.isArray(item.clusterInfo) ? item.clusterInfo : []
+      }));
+      setDatasources(normalizedDatasources);
+      void loadDatasourceRuntime(normalizedDatasources);
       setChannels(nextChannels);
       setAIConfig(nextAIConfig);
       if (nextAIConfig) {
@@ -615,12 +659,18 @@ export default function SettingsDatasourcePage() {
                           <td>
                             <span
                               className={`cv-settings-status ${
-                                item.error ? "cv-settings-status--error" : "cv-settings-status--ok"
+                                item.error
+                                  ? "cv-settings-status--error"
+                                  : runtimeLoading[item.id]
+                                    ? "cv-settings-status--muted"
+                                    : "cv-settings-status--ok"
                               }`}
                             >
-                              {item.error ? "异常" : "正常"}
+                              {item.error ? "异常" : runtimeLoading[item.id] ? "探测中" : "正常"}
                             </span>
-                            <div className="cv-muted">{item.error || "连接可用"}</div>
+                            <div className="cv-muted">
+                              {item.error || (runtimeLoading[item.id] ? "正在获取集群信息..." : "连接可用")}
+                            </div>
                           </td>
                           <td>
                             <div className="cv-settings-table-actions">

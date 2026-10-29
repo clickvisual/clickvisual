@@ -170,6 +170,8 @@ export default {
   "instance.role.tip": "修改权限",
   "instance.button.add": "新增实例",
   "instance.name": "实例名称",
+  "instance.runtime.loading": "探测中",
+  "instance.runtime.failed": "探测失败",
   "instance.datasource": "数据源",
   "instance.storagePah": "存储路径",
   "instance.delete.confirmTip": "确认删除实例：{name} 吗？",
