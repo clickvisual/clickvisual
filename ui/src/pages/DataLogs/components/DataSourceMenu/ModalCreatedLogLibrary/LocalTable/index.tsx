@@ -406,6 +406,7 @@ const LocalTable = ({
                                   placeholder={`${i18n.formatMessage({
                                     id: "config.selectedBar.cluster",
                                   })}`}
+                                  loading={currentInstance?.runtimeLoading}
                                   disabled={
                                     currentInstance?.runtimeLoading ||
                                     !!currentInstance?.error

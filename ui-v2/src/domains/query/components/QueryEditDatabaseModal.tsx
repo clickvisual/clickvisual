@@ -60,6 +60,7 @@ export default function QueryEditDatabaseModal({
         if (active) {
           setClusterOptions([]);
           setRuntimeError("实时集群信息获取失败");
+          setErrorMessage("实时集群信息获取失败");
         }
       });
     return () => {
