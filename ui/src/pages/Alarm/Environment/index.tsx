@@ -31,9 +31,9 @@ export enum RuleStoreType {
 const Environment = () => {
   const {
     doGetAlarmConfigList,
-    doGetInstanceList,
     doCreateMetricsSamplesTable,
   } = useModel("alarms.useAlarmEnvironment");
+  const { instanceList, doGetInstanceList } = useModel("instances");
   const i18n = useIntl();
   const [visibleEnvironment, setVisibleEnvironment] = useState<boolean>(false);
   const [visibleMetricsSamples, setVisibleMetricsSamples] =
@@ -45,7 +45,6 @@ const Environment = () => {
   const [editEnvironmentId, setEditEnvironmentId] = useState<number>(0);
   const [currentClusters, setCurrentClusters] = useState<string[]>([]);
   const [alarmConfigList, setAlarmConfigList] = useState<any[]>([]);
-  const [instanceList, setInstanceList] = useState<InstanceType[]>([]);
 
   const column: any[] = [
     {
@@ -220,6 +219,15 @@ const Environment = () => {
                     iid: record.instanceId,
                   };
 
+                  if (currentIid.length > 0 && currentIid[0].runtimeLoading) {
+                    message.warning("正在获取实例实时状态，请稍后重试");
+                    return;
+                  }
+                  if (currentIid.length > 0 && currentIid[0].error) {
+                    message.error(currentIid[0].error);
+                    return;
+                  }
+
                   const isHaveClusters =
                     currentIid.length > 0 &&
                     currentIid[0].clusters &&
@@ -253,16 +261,9 @@ const Environment = () => {
     });
   };
 
-  const getInstanceList = () => {
-    doGetInstanceList.run().then((res: any) => {
-      if (res.code != 0) return;
-      setInstanceList(res.data || []);
-    });
-  };
-
   useEffect(() => {
     gitList();
-    getInstanceList();
+    doGetInstanceList();
   }, []);
 
   return (

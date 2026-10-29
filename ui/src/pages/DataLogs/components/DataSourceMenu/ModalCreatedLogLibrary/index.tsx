@@ -51,6 +51,19 @@ const ModalCreatedLogLibrary = (props: {
 
   const onSubmitHandle = useDebounceFn(
     (field: any) => {
+      if (field.mode === 1) {
+        const selectedInstance = instanceList.find(
+          (item: any) => item.id === field.instance
+        );
+        if (selectedInstance?.runtimeLoading) {
+          message.warning("正在获取实例实时状态，请稍后重试");
+          return;
+        }
+        if (selectedInstance?.error) {
+          message.error(selectedInstance.error);
+          return;
+        }
+      }
       // delete field.source;
       field.isKafkaTimestamp = Number(field.isKafkaTimestamp);
       field.v3TableType = Number(field.v3TableType);

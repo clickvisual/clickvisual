@@ -12,7 +12,7 @@ import {
   Select,
   Table,
 } from "antd";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useIntl } from "umi";
 
 const { Option } = Select;
@@ -38,7 +38,11 @@ const LocalTable = ({
   const { instanceList } = useModel("instances");
   const [options, setOptions] = useState<any[]>([]);
   const [columnsItemList, setColumnsItemList] = useState<any[]>([]);
-  const [currentInstance, setCurrentInstance] = useState<any>();
+  const [currentInstanceId, setCurrentInstanceId] = useState<number>();
+  const currentInstance = useMemo(
+    () => instanceList.find((item: InstanceType) => item.id === currentInstanceId),
+    [currentInstanceId, instanceList]
+  );
 
   const { Panel } = Collapse;
 
@@ -128,11 +132,14 @@ const LocalTable = ({
             onChangeIsCluster(false);
             instanceList.map((item: any) => {
               if (item.id == val && item.mode == 1) {
-                setCurrentInstance(item);
+                setCurrentInstanceId(item.id);
                 onChangeIsCluster(true);
                 return;
               }
             });
+            if (!instanceList.some((item: any) => item.id == val && item.mode == 1)) {
+              setCurrentInstanceId(undefined);
+            }
             formRef?.resetFields(["localTables"]);
             getLocalTables.run(val as number).then((res) => {
               if (res?.code !== 0) return;
@@ -399,6 +406,10 @@ const LocalTable = ({
                                   placeholder={`${i18n.formatMessage({
                                     id: "config.selectedBar.cluster",
                                   })}`}
+                                  disabled={
+                                    currentInstance?.runtimeLoading ||
+                                    !!currentInstance?.error
+                                  }
                                 >
                                   <Option key="" value="">
                                     非集群

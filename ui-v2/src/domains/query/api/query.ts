@@ -79,6 +79,12 @@ interface SettingsInstanceItem {
   mode: number;
 }
 
+interface SettingsInstanceRuntime {
+  clusters?: string[];
+  mode?: number;
+  error?: string;
+}
+
 interface ExistingDatabaseItem {
   name?: string;
 }
@@ -145,12 +151,33 @@ export async function listQueryManageInstances(): Promise<QueryManageInstance[]>
   if (!Array.isArray(data)) {
     return [];
   }
-  return data.map((item) => ({
-    id: item.id,
-    name: item.name,
-    clusters: Array.isArray(item.clusters) ? item.clusters : [],
-    mode: item.mode ?? 0
-  }));
+  return Promise.all(
+    data.map(async (item) => {
+      const metadata = {
+        id: item.id,
+        name: item.name,
+        clusters: Array.isArray(item.clusters) ? item.clusters : [],
+        mode: item.mode ?? 0
+      };
+      try {
+        const runtime = await client.get<SettingsInstanceRuntime>(
+          `/api/v2/base/settings/instances/${item.id}/runtime`
+        );
+        return {
+          ...metadata,
+          clusters: Array.isArray(runtime?.clusters) ? runtime.clusters : [],
+          mode: runtime?.mode ?? metadata.mode,
+          ...(runtime?.error ? { error: runtime.error } : {})
+        };
+      } catch (error) {
+        return {
+          ...metadata,
+          clusters: [],
+          error: error instanceof Error ? error.message : "实时集群信息获取失败"
+        };
+      }
+    })
+  );
 }
 
 export async function listQueryExistingDatabases(instanceId: number): Promise<string[]> {

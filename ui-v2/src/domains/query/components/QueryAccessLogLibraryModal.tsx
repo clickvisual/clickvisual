@@ -38,6 +38,7 @@ export function QueryAccessLogLibraryModal({
   const [databaseOptions, setDatabaseOptions] = useState<string[]>([]);
   const [tableOptions, setTableOptions] = useState<string[]>([]);
   const [clusterOptions, setClusterOptions] = useState<string[]>([]);
+  const [runtimeError, setRuntimeError] = useState("");
   const [tableLoading, setTableLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -48,6 +49,7 @@ export function QueryAccessLogLibraryModal({
       setDatabaseOptions([]);
       setTableOptions([]);
       setClusterOptions([]);
+      setRuntimeError("");
       setTableLoading(false);
       setErrorMessage("");
       return;
@@ -56,7 +58,7 @@ export function QueryAccessLogLibraryModal({
     setFormState(buildInitialState(initialDatabaseName));
     setErrorMessage("");
     void Promise.all([
-      listQueryManageInstances().catch(() => []),
+      listQueryManageInstances(),
       listQueryExistingDatabases(instance.id).catch(() => [])
     ]).then(([instances, databases]) => {
       if (!active) {
@@ -64,7 +66,14 @@ export function QueryAccessLogLibraryModal({
       }
       const current = instances.find((item) => item.id === instance.id);
       setClusterOptions(Array.isArray(current?.clusters) ? current.clusters : []);
+      setRuntimeError(current?.error ?? "");
+      setErrorMessage(current?.error ?? "");
       setDatabaseOptions(Array.isArray(databases) ? databases : []);
+    }).catch(() => {
+      if (active) {
+        setRuntimeError("实时集群信息获取失败");
+        setErrorMessage("实时集群信息获取失败");
+      }
     });
     return () => {
       active = false;
@@ -111,6 +120,10 @@ export function QueryAccessLogLibraryModal({
     const databaseName = formState.databaseName.trim();
     const tableName = formState.tableName.trim();
     const desc = formState.desc.trim();
+    if (runtimeError) {
+      setErrorMessage(runtimeError);
+      return;
+    }
     if (!databaseName) {
       setErrorMessage("请输入数据库名");
       return;

@@ -281,7 +281,20 @@ describe("query api", () => {
         body: typeof init?.body === "string" ? init.body : undefined
       });
 
-      if (method === "GET" && url.includes("/api/v2/base/settings/instances")) {
+      if (method === "GET" && url.includes("/api/v2/base/settings/instances/1/runtime")) {
+        return {
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              code: 0,
+              msg: "succ",
+              data: { clusters: ["cluster-main"], mode: 1, error: "" }
+            })
+        };
+      }
+
+      if (method === "GET" && url.endsWith("/api/v2/base/settings/instances")) {
         return {
           ok: true,
           status: 200,
@@ -336,6 +349,9 @@ describe("query api", () => {
     expect(await listQueryManageInstances()).toEqual([
       { id: 1, name: "生产 ClickHouse", clusters: ["cluster-main"], mode: 1 }
     ]);
+    expect(
+      requests.some((item) => item.method === "GET" && item.url.includes("/api/v2/base/settings/instances/1/runtime"))
+    ).toBe(true);
     expect(await listQueryExistingDatabases(1)).toEqual(["default", "archive"]);
     expect(await listQueryExistingTables(1, "analytics")).toEqual(["app_logs", "audit_logs"]);
 
