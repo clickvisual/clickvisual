@@ -1,6 +1,9 @@
 package session
 
 import (
+	"crypto/rand"
+	"fmt"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-contrib/sessions/redis"
@@ -42,14 +45,23 @@ func (c *Container) Build(options ...Option) gin.HandlerFunc {
 
 	var store sessions.Store
 	var err error
+	keypairs := c.config.Keypairs
+	if keypairs == "" || keypairs == "secret" {
+		key := make([]byte, 32)
+		if _, err = rand.Read(key); err != nil {
+			c.logger.Panic("generate session key panic", elog.FieldErr(err))
+		}
+		keypairs = fmt.Sprintf("%x", key)
+		c.logger.Warn("session keypairs is unset or uses the insecure default; generated a random key for this process")
+	}
 	switch c.config.Mode {
 	case "redis":
-		store, err = redis.NewStore(c.config.RedisSize, c.config.RedisNetwork, c.config.RedisAddr, c.config.RedisPassword, []byte(c.config.Keypairs))
+		store, err = redis.NewStore(c.config.RedisSize, c.config.RedisNetwork, c.config.RedisAddr, c.config.RedisPassword, []byte(keypairs))
 		if err != nil {
 			c.logger.Panic("config new store panic", elog.FieldErr(err))
 		}
 	case "memstore":
-		store = memstore.NewStore([]byte(c.config.Keypairs))
+		store = memstore.NewStore([]byte(keypairs))
 	}
 	return sessions.Sessions(c.config.Name, store)
 }
