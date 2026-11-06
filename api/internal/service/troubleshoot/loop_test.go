@@ -100,6 +100,17 @@ func TestStartFinalizesWithoutQuery(t *testing.T) {
 	require.Equal(t, "先补充 trace id。", session.Messages[1].Text)
 }
 
+func TestParseActionUsesFirstJSONObjectWhenModelRepeatsToolCall(t *testing.T) {
+	raw := `{"action":"tool","name":"describe_table","args":{"tid":155}}
+{"action":"tool","name":"describe_table","args":{"tid":155}}`
+
+	action := parseAction(raw)
+
+	require.Equal(t, "tool", action.Action)
+	require.Equal(t, toolDescribeTable, action.Name)
+	require.JSONEq(t, `{"tid":155}`, string(action.Args))
+}
+
 func TestStepLimitSummarizesEvidenceWithoutMoreQueries(t *testing.T) {
 	useSQLite(t)
 	tables = testCatalog()

@@ -48,7 +48,7 @@ func UpdateSetting(uid int, req view.ReqUpdateAISetting) (view.RespAISetting, er
 		item.APIKeyEncrypted = item.SetAPIKey(strings.TrimSpace(req.APIKey))
 	}
 	if item.TimeoutSeconds <= 0 {
-		item.TimeoutSeconds = 5
+		item.TimeoutSeconds = defaultProviderTimeoutSeconds
 	}
 	if item.MaxInputBytes <= 0 {
 		item.MaxInputBytes = 32768

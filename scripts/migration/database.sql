@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `cv_ai_setting` (
   `base_url` varchar(255) NOT NULL DEFAULT '',
   `api_key_encrypted` text,
   `model` varchar(128) NOT NULL DEFAULT '',
-  `timeout_seconds` int(11) NOT NULL DEFAULT 5,
+  `timeout_seconds` int(11) NOT NULL DEFAULT 30,
   `max_input_bytes` int(11) NOT NULL DEFAULT 32768,
   `default_temperature` decimal(4,2) NOT NULL DEFAULT 0.20,
   `default_max_tokens` int(11) NOT NULL DEFAULT 800,

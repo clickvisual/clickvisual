@@ -7,8 +7,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAnthropicProviderCompleteText(t *testing.T) {
@@ -52,6 +54,33 @@ func TestAnthropicProviderCompleteText(t *testing.T) {
 	if out != "OK" {
 		t.Fatalf("expected OK, got %q", out)
 	}
+}
+
+func TestResolveCompletionParamsUsesThirtySecondDefaultTimeout(t *testing.T) {
+	timeout, _, _ := resolveCompletionParams(ProviderConfig{}, CompletionOptions{})
+	require.Equal(t, 30*time.Second, timeout)
+}
+
+func TestOpenAICompatibleProviderRetriesRateLimitOnce(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if attempts == 1 {
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		_, _ = w.Write([]byte(`{"choices":[{"message":{"content":"OK"}}]}`))
+	}))
+	defer server.Close()
+
+	out, err := OpenAICompatibleProvider{}.CompleteText(context.Background(), ProviderConfig{
+		BaseURL: server.URL, APIKey: "secret", Model: "test", TimeoutSeconds: 1,
+	}, []Message{{Role: "user", Content: "hi"}}, CompletionOptions{})
+
+	require.NoError(t, err)
+	require.Equal(t, "OK", out)
+	require.Equal(t, 2, attempts)
 }
 
 func TestOpenAICompatibleProviderSendsReasoningEffortAndTrimsVersion(t *testing.T) {

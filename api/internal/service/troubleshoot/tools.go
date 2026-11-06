@@ -156,6 +156,9 @@ func parseAction(raw string) modelAction {
 }
 
 func extractJSON(raw string) string {
+	// Models occasionally repeat a tool object. Extract the first complete
+	// object instead of joining multiple objects into invalid JSON and showing
+	// the raw tool call to the user as a final answer.
 	text := strings.TrimSpace(raw)
 	if inner, ok := strings.CutPrefix(text, "```"); ok {
 		text = strings.TrimSpace(inner)
@@ -165,11 +168,42 @@ func extractJSON(raw string) string {
 		text = strings.TrimSpace(text)
 	}
 	start := strings.IndexByte(text, '{')
-	end := strings.LastIndexByte(text, '}')
-	if start < 0 || end <= start {
+	if start < 0 {
 		return ""
 	}
-	return text[start : end+1]
+
+	depth := 0
+	inString := false
+	escaped := false
+	for index := start; index < len(text); index++ {
+		char := text[index]
+		if inString {
+			if escaped {
+				escaped = false
+				continue
+			}
+			if char == '\\' {
+				escaped = true
+				continue
+			}
+			if char == '"' {
+				inString = false
+			}
+			continue
+		}
+		switch char {
+		case '"':
+			inString = true
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return text[start : index+1]
+			}
+		}
+	}
+	return ""
 }
 
 func trimRunes(value string, limit int) string {

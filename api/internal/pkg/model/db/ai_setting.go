@@ -24,7 +24,7 @@ type AISetting struct {
 	BaseURL            string  `gorm:"column:base_url;type:varchar(255)" json:"baseURL"`
 	APIKeyEncrypted    string  `gorm:"column:api_key_encrypted;type:text" json:"-"`
 	Model              string  `gorm:"column:model;type:varchar(128)" json:"model"`
-	TimeoutSeconds     int     `gorm:"column:timeout_seconds;type:int(11);default:5" json:"timeoutSeconds"`
+	TimeoutSeconds     int     `gorm:"column:timeout_seconds;type:int(11);default:30" json:"timeoutSeconds"`
 	MaxInputBytes      int     `gorm:"column:max_input_bytes;type:int(11);default:32768" json:"maxInputBytes"`
 	DefaultTemperature float64 `gorm:"column:default_temperature;type:decimal(4,2);default:0.2" json:"defaultTemperature"`
 	DefaultMaxTokens   int     `gorm:"column:default_max_tokens;type:int(11);default:800" json:"defaultMaxTokens"`

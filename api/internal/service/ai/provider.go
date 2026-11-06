@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -16,8 +17,12 @@ const (
 	ProviderKindOpenAIResponses = "openai-responses"
 	ProviderKindAnthropic       = "anthropic"
 
-	anthropicVersion          = "2023-06-01"
-	anthropicDefaultMaxTokens = 1024
+	anthropicVersion              = "2023-06-01"
+	anthropicDefaultMaxTokens     = 1024
+	defaultProviderTimeoutSeconds = 30
+	providerMaxAttempts           = 2
+	providerRetryDelay            = 100 * time.Millisecond
+	providerMaxRetryDelay         = 2 * time.Second
 )
 
 type ProviderConfig struct {
@@ -67,7 +72,7 @@ func trimAPIVersion(baseURL string) string {
 func resolveCompletionParams(cfg ProviderConfig, options CompletionOptions) (timeout time.Duration, temperature float64, maxTokens int) {
 	timeoutSeconds := cfg.TimeoutSeconds
 	if timeoutSeconds <= 0 {
-		timeoutSeconds = 5
+		timeoutSeconds = defaultProviderTimeoutSeconds
 	}
 	temperature = cfg.DefaultTemperature
 	if options.Temperature != nil {
@@ -95,30 +100,63 @@ func postJSON(ctx context.Context, timeout time.Duration, url string, headers ma
 	if err != nil {
 		return err
 	}
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(data))
-	if err != nil {
-		return err
-	}
-	request.Header.Set("Content-Type", "application/json")
-	for key, value := range headers {
-		request.Header.Set(key, value)
-	}
-
 	client := &http.Client{Timeout: timeout}
-	resp, err := client.Do(request)
-	if err != nil {
+	for attempt := 0; attempt < providerMaxAttempts; attempt++ {
+		request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(data))
+		if err != nil {
+			return err
+		}
+		request.Header.Set("Content-Type", "application/json")
+		for key, value := range headers {
+			request.Header.Set(key, value)
+		}
+
+		resp, err := client.Do(request)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode >= http.StatusBadRequest {
+			rawBody, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+			_ = resp.Body.Close()
+			if attempt+1 < providerMaxAttempts && retryableStatus(resp.StatusCode) {
+				if err := waitBeforeRetry(ctx, resp.Header.Get("Retry-After")); err != nil {
+					return err
+				}
+				continue
+			}
+			bodyText := strings.TrimSpace(string(rawBody))
+			if bodyText != "" {
+				return fmt.Errorf("ai request failed: %s: %s", resp.Status, bodyText)
+			}
+			return fmt.Errorf("ai request failed: %s", resp.Status)
+		}
+		err = json.NewDecoder(resp.Body).Decode(out)
+		_ = resp.Body.Close()
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode >= http.StatusBadRequest {
-		rawBody, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		bodyText := strings.TrimSpace(string(rawBody))
-		if bodyText != "" {
-			return fmt.Errorf("ai request failed: %s: %s", resp.Status, bodyText)
-		}
-		return fmt.Errorf("ai request failed: %s", resp.Status)
+	return fmt.Errorf("ai request failed after %d attempts", providerMaxAttempts)
+}
+
+func retryableStatus(status int) bool {
+	return status == http.StatusRequestTimeout || status == http.StatusTooManyRequests || status >= http.StatusInternalServerError
+}
+
+func waitBeforeRetry(ctx context.Context, retryAfter string) error {
+	delay := providerRetryDelay
+	if seconds, err := strconv.Atoi(strings.TrimSpace(retryAfter)); err == nil && seconds >= 0 {
+		delay = time.Duration(seconds) * time.Second
 	}
-	return json.NewDecoder(resp.Body).Decode(out)
+	if delay > providerMaxRetryDelay {
+		delay = providerMaxRetryDelay
+	}
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 type OpenAICompatibleProvider struct{}
