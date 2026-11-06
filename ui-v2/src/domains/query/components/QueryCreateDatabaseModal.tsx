@@ -34,6 +34,7 @@ export function QueryCreateDatabaseModal({
   const [formState, setFormState] = useState(buildInitialState);
   const [databaseOptions, setDatabaseOptions] = useState<string[]>([]);
   const [clusterOptions, setClusterOptions] = useState<string[]>([]);
+  const [runtimeError, setRuntimeError] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -42,6 +43,7 @@ export function QueryCreateDatabaseModal({
       setFormState(buildInitialState());
       setDatabaseOptions([]);
       setClusterOptions([]);
+      setRuntimeError("");
       setErrorMessage("");
       return;
     }
@@ -49,7 +51,7 @@ export function QueryCreateDatabaseModal({
     setFormState(buildInitialState());
     setErrorMessage("");
     void Promise.all([
-      listQueryManageInstances().catch(() => []),
+      listQueryManageInstances(),
       listQueryExistingDatabases(instance.id).catch(() => [])
     ]).then(([instances, databases]) => {
       if (!active) {
@@ -57,7 +59,14 @@ export function QueryCreateDatabaseModal({
       }
       const current = instances.find((item) => item.id === instance.id);
       setClusterOptions(Array.isArray(current?.clusters) ? current.clusters : []);
+      setRuntimeError(current?.error ?? "");
+      setErrorMessage(current?.error ?? "");
       setDatabaseOptions(Array.isArray(databases) ? databases : []);
+    }).catch(() => {
+      if (active) {
+        setRuntimeError("实时集群信息获取失败");
+        setErrorMessage("实时集群信息获取失败");
+      }
     });
     return () => {
       active = false;
@@ -77,6 +86,10 @@ export function QueryCreateDatabaseModal({
     }
     const databaseName = formState.databaseName.trim();
     const desc = formState.desc.trim();
+    if (runtimeError) {
+      setErrorMessage(runtimeError);
+      return;
+    }
     if (!databaseName) {
       setErrorMessage("请输入数据库名");
       return;

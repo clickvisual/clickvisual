@@ -172,6 +172,8 @@ export default {
   "instance.role.tip": "Modify the permissions",
   "instance.button.add": "Add instance",
   "instance.name": "Instance Name",
+  "instance.runtime.loading": "Checking",
+  "instance.runtime.failed": "Check failed",
   "instance.datasource": "Datasource",
   "instance.storagePah": "Storage Path",
   "instance.delete.confirmTip": "Confirm deleting instance: {name} ?",

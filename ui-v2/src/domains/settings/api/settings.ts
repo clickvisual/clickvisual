@@ -13,6 +13,13 @@ export interface SettingsDatasourceItem {
   error: string;
 }
 
+export interface SettingsDatasourceRuntime {
+  clusters: string[];
+  clusterInfo: string[];
+  mode: number;
+  error: string;
+}
+
 export interface SettingsDatasourceDetail {
   id: number;
   name: string;
@@ -140,6 +147,14 @@ export async function syncSystemSchema(): Promise<string> {
 
 export async function listSettingsDatasources(): Promise<SettingsDatasourceItem[]> {
   return client.get<SettingsDatasourceItem[]>("/api/v2/base/settings/instances");
+}
+
+export async function getSettingsDatasourceRuntime(
+  instanceId: number
+): Promise<SettingsDatasourceRuntime> {
+  return client.get<SettingsDatasourceRuntime>(
+    `/api/v2/base/settings/instances/${instanceId}/runtime`
+  );
 }
 
 export async function getSettingsDatasource(

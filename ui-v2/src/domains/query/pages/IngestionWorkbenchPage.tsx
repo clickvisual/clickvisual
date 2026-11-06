@@ -194,6 +194,9 @@ export default function IngestionWorkbenchPage() {
   const requiresCluster = Boolean(selectedInstance?.clusters.length);
 
   async function handleConfirmPublish() {
+    if (selectedInstance?.error || (requiresCluster && !workspace.publishTarget.cluster?.trim())) {
+      return;
+    }
     const targetName =
       workspace.publishTarget.databaseName && workspace.publishTarget.tableName
         ? `${workspace.publishTarget.databaseName}.${workspace.publishTarget.tableName}`
@@ -483,7 +486,16 @@ export default function IngestionWorkbenchPage() {
                 onDiscard={() => workspace.discardAIDraft("publishSummary")}
               />
               <div className="cv-inline-actions">
-                <button type="button" className="cv-action-button" onClick={() => void handleConfirmPublish()} disabled={workspace.loading}>
+                <button
+                  type="button"
+                  className="cv-action-button"
+                  onClick={() => void handleConfirmPublish()}
+                  disabled={
+                    workspace.loading ||
+                    !!selectedInstance?.error ||
+                    (requiresCluster && !workspace.publishTarget.cluster?.trim())
+                  }
+                >
                   {workspace.loading ? "创建中..." : "确认并创建"}
                 </button>
               </div>
@@ -585,6 +597,11 @@ export default function IngestionWorkbenchPage() {
                     ))}
                   </select>
                 </label>
+              ) : null}
+              {selectedInstance?.error ? (
+                <div role="alert" className="cv-query-alert">
+                  {selectedInstance.error}
+                </div>
               ) : null}
               <label className="cv-form-row">
                 <span className="cv-label">接入描述</span>

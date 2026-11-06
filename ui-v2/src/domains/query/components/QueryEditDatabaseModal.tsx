@@ -31,6 +31,7 @@ export default function QueryEditDatabaseModal({
 }: QueryEditDatabaseModalProps) {
   const [formState, setFormState] = useState(() => buildInitialState(database));
   const [clusterOptions, setClusterOptions] = useState<string[]>([]);
+  const [runtimeError, setRuntimeError] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -38,6 +39,7 @@ export default function QueryEditDatabaseModal({
     if (!open || !instance || !database) {
       setFormState(buildInitialState(database));
       setClusterOptions([]);
+      setRuntimeError("");
       setErrorMessage("");
       return;
     }
@@ -51,10 +53,14 @@ export default function QueryEditDatabaseModal({
         }
         const current = instances.find((item) => item.id === instance.id);
         setClusterOptions(Array.isArray(current?.clusters) ? current.clusters : []);
+        setRuntimeError(current?.error ?? "");
+        setErrorMessage(current?.error ?? "");
       })
       .catch(() => {
         if (active) {
           setClusterOptions([]);
+          setRuntimeError("实时集群信息获取失败");
+          setErrorMessage("实时集群信息获取失败");
         }
       });
     return () => {
@@ -70,6 +76,10 @@ export default function QueryEditDatabaseModal({
       return;
     }
     const desc = formState.desc.trim();
+    if (runtimeError) {
+      setErrorMessage(runtimeError);
+      return;
+    }
     if (requiresCluster && !formState.cluster.trim()) {
       setErrorMessage("请选择 cluster");
       return;

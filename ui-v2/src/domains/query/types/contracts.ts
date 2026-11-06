@@ -33,6 +33,7 @@ export interface QueryManageInstance {
   name: string;
   clusters: string[];
   mode: number;
+  error?: string;
 }
 
 export interface QueryCreateDatabasePayload {

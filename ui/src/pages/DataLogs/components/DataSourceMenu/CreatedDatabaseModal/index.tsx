@@ -36,6 +36,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
   const databaseFormRef = useRef<FormInstance>(null);
 
   const [clustersList, setClustersList] = useState<any>([]);
+  const [selectedInstance, setSelectedInstance] = useState<InstanceType>();
   const [localTables, setLocalTables] = useState<any>([]);
 
   const i18n = useIntl();
@@ -46,6 +47,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
 
   const onOk = useDebounceFn(
     (field) => {
+      if (!selectedInstance || selectedInstance.runtimeLoading || selectedInstance.error) return;
       createdDatabase.run(field.iid, field).then((res) => {
         if (res?.code === 0) {
           onChangeCreatedDatabaseModal(false);
@@ -58,6 +60,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
 
   const fillCluster = (iid: number) => {
     const dataList = instanceList.filter((item) => item.id == iid);
+    setSelectedInstance(dataList[0]);
 
     if (dataList[0]?.mode == 1) {
       setClustersList(dataList[0].clusters);
@@ -69,6 +72,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
   useEffect(() => {
     if (!visibleCreatedDatabaseModal) {
       databaseFormRef.current?.resetFields();
+      setSelectedInstance(undefined);
       return;
     }
     if (instanceList?.length == 0) {
@@ -94,6 +98,11 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
       onChangeCreateDatabaseCurrentInstance(undefined);
       return;
     }
+  }, [visibleCreatedDatabaseModal, instanceList]);
+
+  useEffect(() => {
+    const iid = databaseFormRef.current?.getFieldValue("iid");
+    if (visibleCreatedDatabaseModal && iid) fillCluster(iid);
   }, [visibleCreatedDatabaseModal, instanceList]);
 
   return (
@@ -153,7 +162,9 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
         <Form.Item
           label={i18n.formatMessage({ id: "instance.form.title.cluster" })}
           name={"cluster"}
-          hidden={!clustersList.length}
+          hidden={!clustersList.length && !selectedInstance?.runtimeLoading && !selectedInstance?.error}
+          validateStatus={selectedInstance?.error ? "error" : undefined}
+          help={selectedInstance?.error}
           rules={
             !clustersList.length
               ? []
@@ -169,6 +180,8 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
         >
           <Select
             style={{ width: "100%" }}
+            loading={selectedInstance?.runtimeLoading}
+            disabled={selectedInstance?.runtimeLoading || !!selectedInstance?.error}
             placeholder={`${i18n.formatMessage({
               id: "config.selectedBar.cluster",
             })}`}
@@ -268,6 +281,7 @@ const CreatedDatabaseModal = (props: { onGetList: any }) => {
           <div className={databaseModalStyles.submitBtn}>
             <Button
               loading={createdDatabase.loading}
+              disabled={!selectedInstance || selectedInstance.runtimeLoading || !!selectedInstance.error}
               type={"primary"}
               htmlType={"submit"}
               icon={<SaveOutlined />}

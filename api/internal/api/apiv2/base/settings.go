@@ -33,6 +33,13 @@ type settingsInstanceListItem struct {
 	Error       string   `json:"error"`
 }
 
+type settingsInstanceRuntime struct {
+	Clusters    []string `json:"clusters"`
+	ClusterInfo []string `json:"clusterInfo"`
+	Mode        int      `json:"mode"`
+	Error       string   `json:"error"`
+}
+
 func SettingsInstanceList(c *core.Context) {
 	res := make([]settingsInstanceListItem, 0)
 	tmp, err := db2.InstanceList(egorm.Conds{})
@@ -45,44 +52,81 @@ func SettingsInstanceList(c *core.Context) {
 			continue
 		}
 		ins := settingsInstanceListItem{
-			Id:         row.ID,
-			Name:       row.Name,
-			Datasource: row.Datasource,
-			Desc:       row.Desc,
-			Mode:       row.Mode,
+			Id:          row.ID,
+			Name:        row.Name,
+			Datasource:  row.Datasource,
+			Desc:        row.Desc,
+			Clusters:    []string{},
+			ClusterInfo: []string{},
+			Mode:        row.Mode,
 		}
-		fillSettingsInstanceRuntime(&ins)
 		res = append(res, ins)
 	}
 	c.JSONOK(res)
+}
+
+func SettingsInstanceRuntime(c *core.Context) {
+	id := cast.ToInt(c.Param("instance-id"))
+	if id == 0 {
+		c.JSONE(1, "invalid parameter", nil)
+		return
+	}
+	if !service.InstanceViewIsPermission(c.Uid(), id) {
+		c.JSONE(1, "authentication failed", nil)
+		return
+	}
+
+	instance, err := db2.InstanceInfo(invoker.Db, id)
+	if err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	runtime := settingsInstanceRuntime{
+		Clusters:    []string{},
+		ClusterInfo: []string{},
+		Mode:        instance.Mode,
+	}
+	ins := settingsInstanceListItem{
+		Id:          instance.ID,
+		Datasource:  instance.Datasource,
+		Clusters:    runtime.Clusters,
+		ClusterInfo: runtime.ClusterInfo,
+		Mode:        runtime.Mode,
+	}
+	fillSettingsInstanceRuntime(&ins)
+	runtime.Clusters = ins.Clusters
+	runtime.ClusterInfo = ins.ClusterInfo
+	runtime.Mode = ins.Mode
+	runtime.Error = ins.Error
+	c.JSONOK(runtime)
 }
 
 func fillSettingsInstanceRuntime(ins *settingsInstanceListItem) {
 	if ins == nil {
 		return
 	}
+	ins.Clusters = []string{}
+	ins.ClusterInfo = []string{}
 	if ins.Datasource != db2.DatasourceClickHouse && ins.Datasource != db2.DatasourceDatabend {
 		return
 	}
 
 	defer func() {
 		if recovered := recover(); recovered != nil {
-			elog.Error("SettingsInstanceList", l.S("step", "recover"), elog.Any("panic", recovered), elog.Any("instanceId", ins.Id))
+			elog.Error("SettingsInstanceRuntime", l.S("step", "recover"), elog.Any("panic", recovered), elog.Any("instanceId", ins.Id))
 			ins.Error = fmt.Sprintf("load runtime info failed: %v", recovered)
-			ins.Clusters = nil
-			ins.ClusterInfo = nil
 		}
 	}()
 
 	op, err := service.InstanceManager.Load(ins.Id)
 	if err != nil {
-		elog.Error("SettingsInstanceList", l.S("step", "InstanceManager"), l.E(err))
+		elog.Error("SettingsInstanceRuntime", l.S("step", "InstanceManager"), l.E(err))
 		ins.Error = err.Error()
 		return
 	}
 	clusterInfo, err := op.ClusterInfo()
 	if err != nil {
-		elog.Error("SettingsInstanceList", l.S("step", "ClusterInfo"), l.E(err))
+		elog.Error("SettingsInstanceRuntime", l.S("step", "ClusterInfo"), l.E(err))
 		ins.Error = err.Error()
 		return
 	}

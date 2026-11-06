@@ -66,6 +66,7 @@ func v2Full(r *gin.RouterGroup) {
 		r.GET("/base/instances", core.Handle(base.InstanceList))
 		r.POST("/base/system/schema-sync", core.Handle(base.SystemSchemaSync))
 		r.GET("/base/settings/instances", core.Handle(base.SettingsInstanceList))
+		r.GET("/base/settings/instances/:instance-id/runtime", core.Handle(base.SettingsInstanceRuntime))
 		r.GET("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceInfo))
 		r.POST("/base/settings/instances", core.Handle(base.SettingsInstanceCreate))
 		r.PATCH("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceUpdate))
@@ -186,6 +187,7 @@ func v2PrivateLite(r *gin.RouterGroup) {
 	{
 		r.GET("/base/instances", core.Handle(base.InstanceList))
 		r.GET("/base/settings/instances", core.Handle(base.SettingsInstanceList))
+		r.GET("/base/settings/instances/:instance-id/runtime", core.Handle(base.SettingsInstanceRuntime))
 		r.GET("/base/settings/instances/:instance-id", core.Handle(base.SettingsInstanceInfo))
 		r.POST("/base/shorturls", core.Handle(base.ShortURLCreate))
 	}
