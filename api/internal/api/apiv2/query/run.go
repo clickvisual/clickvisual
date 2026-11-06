@@ -123,6 +123,52 @@ func Run(c *core.Context) {
 	})
 }
 
+// ExecuteForUser runs the same structured query as Run, including the table
+// permission check. Page size is capped so an agent cannot pull a full scan
+// into the conversation.
+func ExecuteForUser(ctx context.Context, uid int, req view.QueryRequestV2) (RunResponse, error) {
+	startedAt := time.Now()
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 20
+	}
+	req.PageSize = min(req.PageSize, 30)
+	compileCtx, tableInfo, err := buildRunContext(req.Tid)
+	if err != nil {
+		return RunResponse{}, err
+	}
+	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		UserId:      uid,
+		ObjectType:  pmsplugin.PrefixInstance,
+		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
+		SubResource: pmsplugin.Log,
+		Acts:        []string{pmsplugin.ActView},
+		DomainType:  pmsplugin.PrefixTable,
+		DomainId:    strconv.Itoa(tableInfo.ID),
+	}); err != nil {
+		return RunResponse{}, fmt.Errorf("permission verification failed")
+	}
+	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	if err != nil {
+		return RunResponse{}, err
+	}
+	result, err := runStructuredQueryWithFallback(ctx, op, req, compileCtx)
+	if err != nil {
+		return RunResponse{}, err
+	}
+	return RunResponse{
+		Count: result.Count,
+		Cost:  time.Since(startedAt).Milliseconds(),
+		Keys:  buildQueryLogFields(result.Logs),
+		Logs:  result.Logs,
+		Query: result.SQL,
+		SQL:   result.SQL,
+		Plan:  result.Plan,
+	}, nil
+}
+
 func runStructuredQueryWithFallback(reqCtx context.Context, op sqlExecutor, req view.QueryRequestV2, ctx querycompile.CompileContext) (queryRunResult, error) {
 	result, err := runStructuredQueryOnce(reqCtx, op, req, ctx)
 	if err != nil {

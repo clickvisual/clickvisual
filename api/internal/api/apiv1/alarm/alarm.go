@@ -69,6 +69,9 @@ func Create(c *core.Context) {
 		DutyOfficers:     db2.Ints(req.DutyOfficers),
 		IsDisableResolve: req.IsDisableResolve,
 	}
+	if req.AICooldownSeconds != nil {
+		obj.AICooldownSeconds = *req.AICooldownSeconds
+	}
 	if err := db2.AlarmCreate(tx, obj); err != nil {
 		tx.Rollback()
 		c.JSONE(1, "alarm create failed 01", err)

@@ -50,6 +50,10 @@ func TestInstallModelsDefaultToFull(t *testing.T) {
 	assertModelSetContains(t, installModels(),
 		dbmodel.Report{},
 		dbmodel.Alarm{},
+		dbmodel.AlarmAIGroup{},
+		dbmodel.AlarmAIAnalysis{},
+		dbmodel.AlarmAIDelivery{},
+		dbmodel.AlarmAIFork{},
 		dbmodel.BigdataNode{},
 		dbmodel.PmsRole{},
 	)
@@ -82,6 +86,10 @@ func TestInstallModelsPrivateLiteUsesMinimalMetadataTables(t *testing.T) {
 		dbmodel.ReportSchedule{},
 		dbmodel.Alarm{},
 		dbmodel.AlarmChannel{},
+		dbmodel.AlarmAIGroup{},
+		dbmodel.AlarmAIAnalysis{},
+		dbmodel.AlarmAIDelivery{},
+		dbmodel.AlarmAIFork{},
 		dbmodel.BigdataNode{},
 		dbmodel.BigdataCrontab{},
 		dbmodel.Collect{},
@@ -114,10 +122,66 @@ func TestMigrationSQLContainsReportTables(t *testing.T) {
 		dbmodel.TableNameReportAcceleration,
 		dbmodel.TableNameQueryFilterProfile,
 		dbmodel.TableNameAISetting,
+		dbmodel.TableNameAIProvider,
+		dbmodel.TableNameTroubleshootSession,
+		dbmodel.TableNameTroubleshootMessage,
+		"cv_alarm_ai_group",
+		"cv_alarm_ai_analysis",
+		"cv_alarm_ai_delivery",
+		"cv_alarm_ai_fork",
 	} {
 		if !strings.Contains(sqlText, tableName) {
 			t.Fatalf("migration sql missing table %s", tableName)
 		}
+	}
+}
+
+func TestSQLiteMigrationAddsAlertColumnsToExistingTables(t *testing.T) {
+	econf.Reset()
+	t.Cleanup(econf.Reset)
+	oldModels := models
+	models = []interface{}{dbmodel.Alarm{}, dbmodel.AlarmChannel{}, dbmodel.TroubleshootSession{}, dbmodel.AlarmAIGroup{}, dbmodel.AlarmAIAnalysis{}, dbmodel.AlarmAIDelivery{}, dbmodel.AlarmAIFork{}}
+	t.Cleanup(func() { models = oldModels })
+	econf.Set("metadata.driver", "sqlite")
+	econf.Set("metadata.dsn", filepath.Join(t.TempDir(), "existing.db"))
+	d, err := openInstallDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Exec("CREATE TABLE cv_alarm (id INTEGER PRIMARY KEY, name TEXT)").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Exec("INSERT INTO cv_alarm (id,name) VALUES (1,'existing')").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Exec("CREATE TABLE cv_troubleshoot_session (id INTEGER PRIMARY KEY)").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Exec("CREATE TABLE cv_alarm_channel (id INTEGER PRIMARY KEY, name TEXT)").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Exec("INSERT INTO cv_alarm_channel (id,name) VALUES (1,'existing')").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := migrateModels(d); err != nil {
+		t.Fatal(err)
+	}
+	if !d.Migrator().HasColumn(&dbmodel.Alarm{}, "AICooldownSeconds") {
+		t.Fatal("existing alarm missing AI cooldown column")
+	}
+	if !d.Migrator().HasColumn(&dbmodel.TroubleshootSession{}, "Source") {
+		t.Fatal("existing session missing source column")
+	}
+	var enabled bool
+	if err := d.Raw("SELECT ai_analysis_enabled FROM cv_alarm_channel WHERE id=1").Scan(&enabled).Error; err != nil || !enabled {
+		t.Fatalf("existing channel must keep AI enabled: enabled=%v err=%v", enabled, err)
+	}
+	var name string
+	if err := d.Raw("SELECT name FROM cv_alarm WHERE id=1").Scan(&name).Error; err != nil || name != "existing" {
+		t.Fatalf("existing data changed %q %v", name, err)
+	}
+	if err := migrateModels(d); err != nil {
+		t.Fatalf("repeated migration failed: %v", err)
 	}
 }
 

@@ -2,6 +2,18 @@
 
 This article mainly describes the configuration items of ClickVisual startup in detail.
 
+## AI Alert Analysis
+
+The full edition supports asynchronous alert analysis with the following configuration. It is disabled by default; the default cooldown is 900 seconds. A rule's `aiCooldownSeconds = 0` inherits the global value.
+
+```toml
+[alarm.ai]
+enabled = false
+cooldownSeconds = 900
+```
+
+Configure a working model first. Include the deployment subpath in `app.rootURL` so Ask continuation links resolve correctly. Analysis uses the rule owner's log permissions. Link visitors need access to every evidence table and receive independent personal conversations. See [AI alert analysis](./alarm-function-configuration-description.md#ai-alert-analysis) for deduplication and delivery retry behavior.
+
 Description of app segment configuration:
 ```toml
 [app]

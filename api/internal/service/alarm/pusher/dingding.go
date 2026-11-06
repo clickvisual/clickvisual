@@ -13,7 +13,7 @@ import (
 
 var _ IPusher = (*DingDing)(nil)
 
-type DingDing struct{}
+type DingDing struct{ requestContext }
 
 func (d *DingDing) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	markdown := &view.DingTalkMarkdown{
@@ -39,7 +39,7 @@ func (d *DingDing) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 		return errors.Wrap(err, "new request failed")
 	}
 	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
+	client := d.httpClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return errors.Wrap(err, "client do failed")

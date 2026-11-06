@@ -65,18 +65,26 @@ describe("v2 domain routes", () => {
     );
   });
 
-  it("renders the alert route with rules and events", async () => {
+  it("renders the real alert rules route", async () => {
     const memoryRouter = createMemoryRouter(routes, {
-      initialEntries: ["/v2/alerts/rules"]
+      initialEntries: ["/v2/alerts/"]
     });
 
     render(<RouterProvider router={memoryRouter} />);
 
-    expect(await screen.findByRole("heading", { name: "告警中心" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "告警规则列表" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "告警事件" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "AI 规则建议" })).toBeInTheDocument();
-    expect(screen.getByText("svc-auth 错误率过高")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "告警规则" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "告警规则列表" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "告警事件" })).not.toBeInTheDocument();
+    expect(screen.queryByText("svc-auth 错误率过高")).not.toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/api/v1/alarms?"), expect.objectContaining({ method: "GET" }));
+    expect(memoryRouter.state.location.pathname).toBe("/v2/alerts/rules");
+    expect(screen.getByRole("navigation", { name: "告警中心导航" })).toHaveTextContent("告警渠道");
+  });
+
+  it("renders the alert channels route with saved channel data", async () => {
+    render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ["/v2/alerts/channels"] })} />);
+    expect(await screen.findByRole("switch", { name: "告警群通知 AI 分析" })).toBeChecked();
+    expect(screen.getByRole("heading", { name: "告警渠道" })).toBeInTheDocument();
   });
 
   it("renders the settings route with configuration sections", async () => {

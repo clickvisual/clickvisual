@@ -104,7 +104,7 @@ describe("v2 version switcher", () => {
     expect(window.localStorage.getItem(VERSION_STORAGE_KEY)).toBe("v2");
   });
 
-  it("uses the query page as the v2 default entry", async () => {
+  it("uses Ask as the v2 default entry", async () => {
     window.localStorage.clear();
 
     const memoryRouter = createMemoryRouter(routes, {
@@ -113,7 +113,8 @@ describe("v2 version switcher", () => {
 
     render(<RouterProvider router={memoryRouter} />);
 
-    await screen.findByRole("heading", { name: "日志查询" });
+    await screen.findByText("有什么日志问题？");
+    expect(memoryRouter.state.location.pathname).toBe("/v2/ask");
     expect(window.localStorage.getItem(VERSION_STORAGE_KEY)).toBe("v2");
   });
 

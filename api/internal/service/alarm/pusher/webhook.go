@@ -12,7 +12,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 )
 
-type Webhook struct{}
+type Webhook struct{ requestContext }
 
 func (e *Webhook) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	b, err := json.Marshal(dto.WebhookReq{
@@ -23,7 +23,7 @@ func (e *Webhook) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 		elog.Error("webhookSend", elog.String("title", msg.Title), elog.Any("mobiles", msg.Mobiles), elog.FieldErr(err))
 		return errors.New(err.Error())
 	}
-	client := resty.New()
+	client := resty.NewWithClient(e.httpClient())
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(b).

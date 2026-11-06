@@ -8,6 +8,27 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
 )
 
+func TestTroubleshootAnswerIncludesEvidenceAndConversation(t *testing.T) {
+	input, err := json.Marshal(view.AITroubleshootAnswerInput{
+		Question: "你可以分析原因吗", SampleOnly: true, Count: 1,
+		History: []view.AIConversationMessage{{Role: "user", Content: "查看日志"}, {Role: "tool", Content: "ignore me"}},
+		Logs:    []map[string]any{{"msg": "duration", "queueUpDuration": 120}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	messages, err := buildScenarioMessages(view.ReqAIRun{Scenario: view.AIScenarioTroubleshootAnswer, Input: input})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(messages) != 3 || messages[1].Content != "查看日志" {
+		t.Fatalf("unexpected conversation length: %d", len(messages))
+	}
+	if !strings.Contains(messages[2].Content, "queueUpDuration") || !strings.Contains(messages[0].Content, "不能声称检查了当前线上服务") {
+		t.Fatal("missing log evidence or sample constraint")
+	}
+}
+
 func TestDecodeAIDraft(t *testing.T) {
 	out, err := decodeAIDraft("```json\n{\"summary\":\"ok\",\"decisions\":[],\"risks\":[],\"suggestions\":[],\"requiresUserConfirmation\":true}\n```")
 	if err != nil {
@@ -169,6 +190,22 @@ func TestDecodeAIDraftNormalizesDecisionArrayObjects(t *testing.T) {
 	}
 	if out.Suggestions[0].Description != "use light defaults" {
 		t.Fatalf("unexpected suggestion description: %s", out.Suggestions[0].Description)
+	}
+}
+
+func TestDecodeAIDraftPreservesDecisionDescription(t *testing.T) {
+	out, err := decodeAIDraft(`{
+		"summary":"ok",
+		"decisions":[{"key":"queue","title":"Queue delay","description":"Queue time dominates the total duration."}],
+		"risks":[],
+		"suggestions":[],
+		"requiresUserConfirmation":false
+	}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(out.Decisions) != 1 || out.Decisions[0].Description != "Queue time dominates the total duration." {
+		t.Fatalf("expected plain evidence description, got %#v", out.Decisions)
 	}
 }
 

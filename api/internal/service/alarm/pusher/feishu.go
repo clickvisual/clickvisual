@@ -1,7 +1,7 @@
 package pusher
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/service/alarm/pusher/feishu"
@@ -9,7 +9,7 @@ import (
 
 var _ IPusher = (*FeiShu)(nil)
 
-type FeiShu struct{}
+type FeiShu struct{ requestContext }
 
 func (s *FeiShu) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	err = s.sendMessage(channel.Key, msg.Title, msg.Text)
@@ -30,7 +30,7 @@ func (s *FeiShu) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 func (s *FeiShu) sendMessage(url string, title, text string) (err error) {
 	msg := feishu.NewCardMsg(title, feishu.WARNING)
 	msg.AddElement(text)
-	sendMsg, errflag, err := feishu.SendMsg(url, msg)
+	sendMsg, errflag, err := feishu.SendMsgWithClient(s.httpClient(), url, msg)
 	// err 不为空基本为本地问题
 	// err is not empty is basically a local problem
 	if err != nil {
@@ -39,7 +39,7 @@ func (s *FeiShu) sendMessage(url string, title, text string) (err error) {
 	// errflag 为true 基本为远端报错
 	// If the error flag is true, it is basically a remote error
 	if errflag {
-		err = errors.New(sendMsg.(string))
+		err = fmt.Errorf("feishu rejected notification: %v", sendMsg)
 		return
 	}
 	return

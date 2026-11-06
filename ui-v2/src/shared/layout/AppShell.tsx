@@ -30,13 +30,14 @@ const primaryNavigation: NavigationGroup[] = [
     items: [
       { to: "/v2/overview", label: "总览大盘" },
       { to: "/v2/query", label: "日志查询" },
+      { to: "/v2/ask", label: "Ask" },
     ],
   },
   {
     key: "alerts",
-    label: "报警",
+    label: "告警中心",
     icon: "!",
-    items: [{ to: "/v2/alerts/rules", label: "告警中心" }],
+    items: [{ to: "/v2/alerts", label: "告警中心" }],
   },
   {
     key: "analysis",
@@ -53,6 +54,7 @@ const primaryNavigation: NavigationGroup[] = [
     icon: "⚙",
     items: [
       { to: "/v2/settings/datasource", label: "配置中心" },
+      { to: "/v2/settings/models", label: "模型配置" },
       { to: "/v2/settings/query-tokens", label: "查询 Token" },
       { to: "/v2/settings/log-libraries", label: "日志管理" },
       { to: "/v2/permission/users", label: "权限中心" },
@@ -64,6 +66,7 @@ const primaryNavigation: NavigationGroup[] = [
 ];
 
 function isNavigationActive(pathname: string, to: string) {
+  pathname = pathname.replace(/^\/v2\/troubleshoot(?=\/|$)/, "/v2/ask");
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
@@ -115,7 +118,11 @@ function ShellFrame({ children }: { children: ReactNode }) {
     <div className="cv-shell">
       <header className="cv-shell__topbar" data-testid="app-shell-topbar">
         <div className="cv-shell__topbar-inner">
-          <div className="cv-shell__brand">
+          <NavLink
+            to={isPrivateLiteEdition() ? "/v2/query" : "/v2/ask"}
+            className="cv-shell__brand"
+            aria-label="首页"
+          >
             <div className="cv-shell__brand-mark" aria-hidden="true">
               CV
             </div>
@@ -123,7 +130,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
               <span className="cv-shell__brand-title">ClickVisual</span>
               <span className="cv-shell__brand-subtitle">Log Console</span>
             </div>
-          </div>
+          </NavLink>
 
           <nav
             aria-label="v2 主导航"
@@ -134,6 +141,16 @@ function ShellFrame({ children }: { children: ReactNode }) {
               const groupActive = group.items.some((item) =>
                 isNavigationActive(location.pathname, item.to),
               );
+              if (group.key === "alerts") {
+                return (
+                  <div key={group.key} className={`cv-shell__nav-group${groupActive ? " cv-shell__nav-group--active" : ""}`}>
+                    <NavLink to="/v2/alerts" className="cv-shell__nav-group-button">
+                      <span className="cv-shell__nav-icon" aria-hidden="true">{group.icon}</span>
+                      <span className="cv-shell__nav-label">{group.label}</span>
+                    </NavLink>
+                  </div>
+                );
+              }
               const groupOpen = openGroup === group.key;
               return (
                 <div
@@ -142,25 +159,42 @@ function ShellFrame({ children }: { children: ReactNode }) {
                   onMouseEnter={() => setOpenGroup(group.key)}
                   onMouseLeave={() => setOpenGroup(null)}
                 >
-                  <button
-                    type="button"
-                    className="cv-shell__nav-group-button"
-                    aria-expanded={groupOpen}
-                    aria-haspopup="menu"
-                    onClick={() =>
-                      setOpenGroup((current) =>
-                        current === group.key ? null : group.key,
-                      )
-                    }
-                  >
-                    <span className="cv-shell__nav-icon" aria-hidden="true">
-                      {group.icon}
-                    </span>
-                    <span className="cv-shell__nav-label">{group.label}</span>
-                    <span className="cv-shell__nav-caret" aria-hidden="true">
-                      ▾
-                    </span>
-                  </button>
+                  {group.key === "logs" ? (
+                    <NavLink
+                      to="/v2/query"
+                      className="cv-shell__nav-group-button"
+                      aria-expanded={groupOpen}
+                      aria-haspopup="menu"
+                    >
+                      <span className="cv-shell__nav-icon" aria-hidden="true">
+                        {group.icon}
+                      </span>
+                      <span className="cv-shell__nav-label">{group.label}</span>
+                      <span className="cv-shell__nav-caret" aria-hidden="true">
+                        ▾
+                      </span>
+                    </NavLink>
+                  ) : (
+                    <button
+                      type="button"
+                      className="cv-shell__nav-group-button"
+                      aria-expanded={groupOpen}
+                      aria-haspopup="menu"
+                      onClick={() =>
+                        setOpenGroup((current) =>
+                          current === group.key ? null : group.key,
+                        )
+                      }
+                    >
+                      <span className="cv-shell__nav-icon" aria-hidden="true">
+                        {group.icon}
+                      </span>
+                      <span className="cv-shell__nav-label">{group.label}</span>
+                      <span className="cv-shell__nav-caret" aria-hidden="true">
+                        ▾
+                      </span>
+                    </button>
+                  )}
                   <div className="cv-shell__nav-menu" role="menu">
                     {group.items.map((item) => (
                       <NavLink

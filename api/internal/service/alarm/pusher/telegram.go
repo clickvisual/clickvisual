@@ -15,7 +15,7 @@ import (
 
 var _ IPusher = (*Telegram)(nil)
 
-type Telegram struct{}
+type Telegram struct{ requestContext }
 
 // TODO 偶现超时机器人的情况，暂时不使用
 // Occasionally there is a situation where the robot times out, and it will not be used for the time being
@@ -28,7 +28,7 @@ func (t *Telegram) Send(channel *db.AlarmChannel, msg *db.PushMsg) (err error) {
 	return nil
 }
 func (t *Telegram) sendMessage(url string, title, text string) (err error) {
-	tbot, err := NewTelegram(url)
+	tbot, err := t.newTelegram(url)
 	if err != nil {
 		return err
 	}
@@ -52,8 +52,13 @@ type TelegramBot struct {
 }
 
 func NewTelegram(token string) (*TelegramBot, error) {
+	return (&Telegram{}).newTelegram(token)
+}
+
+func (t *Telegram) newTelegram(token string) (*TelegramBot, error) {
 	bot, err := tb.NewBot(tb.Settings{
 		Token:  token,
+		Client: t.httpClient(),
 		Poller: &tb.LongPoller{Timeout: 15 * time.Second},
 	})
 	if err != nil {

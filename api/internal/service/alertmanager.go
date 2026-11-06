@@ -1,10 +1,12 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ego-component/egorm"
@@ -19,25 +21,55 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 )
 
+var alertObserver struct {
+	sync.RWMutex
+	fn func(context.Context, db.Alarm, int, db.Notification) error
+}
+
+// SetAlertObserver connects optional durable consumers without an import cycle.
+func SetAlertObserver(fn func(context.Context, db.Alarm, int, db.Notification) error) {
+	alertObserver.Lock()
+	defer alertObserver.Unlock()
+	alertObserver.fn = fn
+}
+
+func observeAlert(alarm db.Alarm, filterID int, notification db.Notification) {
+	alertObserver.RLock()
+	fn := alertObserver.fn
+	alertObserver.RUnlock()
+	if fn == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := fn(ctx, alarm, filterID, notification); err != nil {
+		elog.Warn("alert AI enqueue failed", elog.FieldErr(err))
+	}
+}
+
 // HandlerAlertManager Processing Alarms
 func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notification db.Notification) (err error) {
 	log := elog.With(l.A("alarmUUID", alarmUUID), l.A("filterIdStr", filterIdStr), l.A("notification", notification), elog.FieldMethod("HandlerAlertManager"))
 	alarmUUID = strings.ReplaceAll(alarmUUID, "\u0000", "")
 	filterIdStr = strings.ReplaceAll(filterIdStr, "\u0000", "")
 	// Getting Alarm Information
-	tx := invoker.Db.Begin()
 	conds := egorm.Conds{}
 	conds["uuid"] = alarmUUID
-	alarm, err := db.AlarmInfoX(tx, conds)
+	alarm, err := db.AlarmInfoX(invoker.Db, conds)
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("AlarmInfoX %s, error: %w", alarmUUID, err)
 	}
 	if alarm.Status == db.AlarmStatusClose {
 		log.Warn("AlarmStatusClose")
-		tx.Commit()
 		return
 	}
+	filterId, err := strconv.Atoi(filterIdStr)
+	if err != nil {
+		return fmt.Errorf("strconv.Atoi %s, error: %w", filterIdStr, err)
+	}
+	// Observe before normal notification suppression, including recovery events.
+	observeAlert(alarm, filterId, notification)
+	tx := invoker.Db.Begin()
 	notificationStatus := notification.GetStatus() // 当前需要推送的状态
 	if alarm.IsDisableResolve == 1 && notificationStatus == db.AlarmStatusNormal {
 		log.Warn("AlarmIsDisableResolve", l.A("alarm", alarm))
@@ -45,11 +77,6 @@ func (i *alert) HandlerAlertManager(alarmUUID string, filterIdStr string, notifi
 		return
 	}
 	// create history
-	filterId, err := strconv.Atoi(filterIdStr)
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("strconv.Atoi %s, error: %w", filterIdStr, err)
-	}
 	alarmHistory := db.AlarmHistory{AlarmId: alarm.ID, FilterId: filterId, FilterStatus: notificationStatus, IsPushed: db.PushedStatusRepeat}
 	if err = db.AlarmHistoryCreate(tx, &alarmHistory); err != nil {
 		tx.Rollback()

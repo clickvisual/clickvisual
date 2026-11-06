@@ -4,7 +4,11 @@ interface ApiEnvelope<T> {
   code: number;
   msg: string;
   data: T;
+  pagination?: Pagination;
 }
+
+export interface Pagination { current: number; pageSize: number; total: number }
+export interface PageResult<T> { data: T; pagination: Pagination }
 
 export interface RequestOptions {
   signal?: AbortSignal;
@@ -16,20 +20,22 @@ function buildApiUrl(path: string) {
 }
 
 function getLoginHref(payload?: string) {
+  const loginParams = new URLSearchParams({ redirect: window.location.pathname + (window.location.search || "") });
+  const localLogin = `${getV2BasePath()}/v2/login?${loginParams}`;
   if (payload) {
     try {
       const url = new URL(payload, window.location.origin);
       if (url.pathname.endsWith("/user/login")) {
-        return `${getV2BasePath()}/v2/login`;
+        return localLogin;
       }
     } catch {
       if (payload.endsWith("/user/login")) {
-        return `${getV2BasePath()}/v2/login`;
+        return localLogin;
       }
     }
     return payload;
   }
-  return `${getV2BasePath()}/v2/login`;
+  return localLogin;
 }
 
 function redirectToLogin(payload?: string) {
@@ -40,7 +46,7 @@ function redirectToLogin(payload?: string) {
   throw new Error("需要重新登录");
 }
 
-async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
+async function requestEnvelope<T>(path: string, init: RequestInit): Promise<ApiEnvelope<T>> {
   const response = await fetch(buildApiUrl(path), {
     credentials: "same-origin",
     headers: {
@@ -83,10 +89,19 @@ async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
     throw new Error(body.msg || `request failed (HTTP ${response.status})`);
   }
 
-  return body.data;
+  return body;
+}
+
+async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
+  return (await requestEnvelope<T>(path, init)).data;
 }
 
 export const client = {
+  async getPage<T>(path: string, options?: RequestOptions): Promise<PageResult<T>> {
+    const body = await requestEnvelope<T>(path, { method: "GET", signal: options?.signal });
+    if (!body.pagination) throw new Error("接口未返回分页信息");
+    return { data: body.data, pagination: body.pagination };
+  },
   get<T>(path: string, options?: RequestOptions) {
     return requestJson<T>(path, {
       method: "GET",

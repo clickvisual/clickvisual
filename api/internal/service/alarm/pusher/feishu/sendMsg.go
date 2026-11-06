@@ -24,6 +24,10 @@ func GenSign(secret, timestamp string) string {
 }
 
 func SendMsg(webhook string, v interface{}) (response interface{}, isErrResponse bool, err error) {
+	return SendMsgWithClient(http.DefaultClient, webhook, v)
+}
+
+func SendMsgWithClient(client *http.Client, webhook string, v interface{}) (response interface{}, isErrResponse bool, err error) {
 	if webhook == "" {
 		return nil, false, errors.New("no specified webhook")
 	}
@@ -33,7 +37,7 @@ func SendMsg(webhook string, v interface{}) (response interface{}, isErrResponse
 		return nil, false, errors.New("marshal data error")
 	}
 
-	resp, err := http.Post(webhook, "application/json", bytes.NewReader(data))
+	resp, err := client.Post(webhook, "application/json", bytes.NewReader(data))
 	if err != nil {
 		return nil, false, err
 	}
@@ -60,5 +64,5 @@ func SendMsg(webhook string, v interface{}) (response interface{}, isErrResponse
 	if err != nil {
 		return nil, true, err
 	}
-	return res2, true, nil
+	return res2, res2.Code != 0, nil
 }

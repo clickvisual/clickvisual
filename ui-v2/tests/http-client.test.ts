@@ -2,6 +2,13 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 import { client } from "../src/shared/http/client";
 
 describe("http client", () => {
+  it("preserves the alert source query across login at a deployment subpath", async () => {
+    const assign = vi.fn();
+    vi.stubGlobal("location", { assign, pathname: "/clickvisual/v2/ask", search: "?alertAnalysis=opaque" });
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ code: 302, data: "" }))));
+    await expect(client.get("/api/v2/troubleshoot/sessions")).rejects.toThrow("需要重新登录");
+    expect(assign).toHaveBeenCalledWith("/clickvisual/v2/login?redirect=%2Fclickvisual%2Fv2%2Fask%3FalertAnalysis%3Dopaque");
+  });
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -47,7 +54,7 @@ describe("http client", () => {
     );
 
     await expect(client.get("/api/v2/reports/list")).rejects.toThrow("需要重新登录");
-    expect(assign).toHaveBeenCalledWith("/console/v2/login");
+    expect(assign).toHaveBeenCalledWith("/console/v2/login?redirect=%2Fconsole%2Fv2%2Freports");
   });
 
   it("falls back to the default login route when redirect payload is empty", async () => {
@@ -75,6 +82,6 @@ describe("http client", () => {
     );
 
     await expect(client.get("/api/v2/reports/list")).rejects.toThrow("需要重新登录");
-    expect(assign).toHaveBeenCalledWith("/console/v2/login");
+    expect(assign).toHaveBeenCalledWith("/console/v2/login?redirect=%2Fconsole%2Fv2%2Freports");
   });
 });

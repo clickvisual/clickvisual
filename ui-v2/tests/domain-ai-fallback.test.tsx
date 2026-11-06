@@ -96,13 +96,13 @@ describe("v2 domain ai actions and fallback readiness", () => {
     expect(scoped.getByRole("button", { name: "新增数据源" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "新增 DingTalk" })).toBeInTheDocument();
     expect(scoped.getByRole("button", { name: "手动同步数据结构" })).toBeInTheDocument();
-    expect(scoped.getByRole("heading", { name: "统一 AI 配置" })).toBeInTheDocument();
+    expect(scoped.getByRole("link", { name: "模型配置" })).toHaveAttribute("href", "/v2/settings/models");
+    expect(scoped.queryByRole("heading", { name: "统一 AI 配置" })).not.toBeInTheDocument();
     expect(scoped.getByRole("heading", { name: "数据源" })).toBeInTheDocument();
     expect(scoped.getByRole("heading", { name: "DingTalk 通知" })).toBeInTheDocument();
     expect(scoped.getByRole("heading", { name: "系统状态" })).toBeInTheDocument();
     expect(scoped.getByText("生产 ClickHouse")).toBeInTheDocument();
     expect(scoped.getByText("告警群通知")).toBeInTheDocument();
-    expect(scoped.getByDisplayValue("gpt-4o-mini")).toBeInTheDocument();
     expectNoGenericFallbackState();
   });
 });

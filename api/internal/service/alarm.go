@@ -549,6 +549,9 @@ func (i *alert) Update(uid, alarmId int, req view.ReqAlarmCreate) (err error) {
 	ups["channel_ids"] = db2.Ints(req.ChannelIds)
 	ups["duty_officers"] = db2.Ints(req.DutyOfficers)
 	ups["is_disable_resolve"] = req.IsDisableResolve
+	if req.AICooldownSeconds != nil {
+		ups["ai_cooldown_seconds"] = *req.AICooldownSeconds
+	}
 	tableIds := db2.Ints{}
 	for _, f := range req.Filters {
 		tableIds = append(tableIds, f.Tid)

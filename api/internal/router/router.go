@@ -18,6 +18,7 @@ import (
 	queryv2 "github.com/clickvisual/clickvisual/api/internal/api/apiv2/query"
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/component/core"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/config"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/router/middlewares"
 	"github.com/clickvisual/clickvisual/api/internal/ui/v2dist"
@@ -46,7 +47,7 @@ func GetServerRouter() *egin.Component {
 		}
 		path := strings.Replace(c.Request.URL.Path, appSubUrl, "", 1)
 		if shouldRedirectDefaultV2Entry(path, c.Request.URL.RawQuery) {
-			c.Redirect(http.StatusFound, buildDefaultV2QueryRedirectURL(appSubUrl, c.Request.URL.RawQuery))
+			c.Redirect(http.StatusFound, buildDefaultV2RedirectURL(appSubUrl, path, c.Request.URL.RawQuery))
 			return
 		}
 		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d, public", maxAge))
@@ -115,8 +116,12 @@ func shouldRedirectDefaultV2Entry(pathValue string, rawQuery string) bool {
 	return true
 }
 
-func buildDefaultV2QueryRedirectURL(appSubURL string, rawQuery string) string {
-	target := strings.TrimRight(appSubURL, "/") + "/v2/query"
+func buildDefaultV2RedirectURL(appSubURL, pathValue, rawQuery string) string {
+	route := "/v2/ask"
+	if pathValue == "/query" || pathValue == "/query/" || config.IsPrivateLiteMode() {
+		route = "/v2/query"
+	}
+	target := strings.TrimRight(appSubURL, "/") + route
 	values, err := url.ParseQuery(rawQuery)
 	if err == nil {
 		values.Del("ui")
