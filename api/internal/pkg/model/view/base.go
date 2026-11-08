@@ -1,6 +1,7 @@
 package view
 
 import (
+	"context"
 	"fmt"
 
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
@@ -50,27 +51,29 @@ func (i *IndexItem) Name() string {
 
 type (
 	ReqQuery struct {
-		Tid           int      `json:"tid" form:"tid"`
-		Database      string   `form:"database"`
-		Table         string   `form:"table"`
-		DatabaseTable string   `form:"databaseTable"`
-		Field         string   `form:"field"`
-		Query         string   `form:"query"`
-		TimeField     string   `form:"timeField"`
-		TimeFieldType int      `form:"timeFieldType"`
-		ST            int64    `form:"st"`
-		ET            int64    `form:"et"`
-		Page          uint32   `form:"page"`
-		PageSize      uint32   `form:"pageSize"`
-		AlarmMode     int      `form:"alarmMode"`
-		Filters       []string `form:"filters[]"`
-		GroupByCond   string   `form:"groupByCond"`
-		IsQueryCount  int      `form:"isQueryCount"` // 是否请求日志总数 0 不请求 1 请求
-		Date          string   `form:"date"`
-		K8SContainer  []string `form:"k8sContainer"`
-		Dir           string   `json:"dir"`
-		Path          string   `form:"path" json:"path"`
-		Interval      int64    `json:"interval"`
+		// Context is internal request state and cannot be set by clients.
+		Context       context.Context `json:"-" form:"-"`
+		Tid           int             `json:"tid" form:"tid"`
+		Database      string          `form:"database"`
+		Table         string          `form:"table"`
+		DatabaseTable string          `form:"databaseTable"`
+		Field         string          `form:"field"`
+		Query         string          `form:"query"`
+		TimeField     string          `form:"timeField"`
+		TimeFieldType int             `form:"timeFieldType"`
+		ST            int64           `form:"st"`
+		ET            int64           `form:"et"`
+		Page          uint32          `form:"page"`
+		PageSize      uint32          `form:"pageSize"`
+		AlarmMode     int             `form:"alarmMode"`
+		Filters       []string        `form:"filters[]"`
+		GroupByCond   string          `form:"groupByCond"`
+		IsQueryCount  int             `form:"isQueryCount"` // 是否请求日志总数 0 不请求 1 请求
+		Date          string          `form:"date"`
+		K8SContainer  []string        `form:"k8sContainer"`
+		Dir           string          `json:"dir"`
+		Path          string          `form:"path" json:"path"`
+		Interval      int64           `json:"interval"`
 	}
 
 	RespQuery struct {
@@ -342,3 +345,10 @@ type (
 		List  []RespUserSimpleInfo `json:"list"`
 	}
 )
+
+func (q ReqQuery) QueryContext() context.Context {
+	if q.Context != nil {
+		return q.Context
+	}
+	return context.Background()
+}

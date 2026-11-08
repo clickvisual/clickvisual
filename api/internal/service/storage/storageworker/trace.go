@@ -1,6 +1,7 @@
 package storageworker
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/queryguard"
 )
 
 var _ iWorker = (*Trace)(nil)
@@ -46,14 +48,19 @@ func (w *Trace) Stop() {
 }
 
 func (w *Trace) run() {
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	monitor := queryguard.Start("trace.query", 0, 0, w.db)
+	defer monitor.Finish(nil)
 	elog.Info("workerTrace", elog.FieldComponent("run"), elog.FieldName("gogogo"))
 	var dependencies []view.JaegerDependencyDataModel
 	query := fmt.Sprintf(queryJaegerCallCountSql, time.Now().Format("2006-01-02 15:04:05"), w.source.String(), w.source.String())
-	res, err := w.db.Query(query)
+	res, err := w.db.QueryContext(ctx, query)
 	if err != nil {
 		elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
 		return
 	}
+	defer res.Close()
 	elog.Debug("workerTrace", elog.FieldComponent("sql"), elog.String("query", query))
 	for res.Next() {
 		var timestamp time.Time
@@ -89,6 +96,14 @@ func (w *Trace) run() {
 			Time:              t,
 		})
 	}
+	if err = res.Err(); err != nil {
+		elog.Error("workerTrace", elog.FieldErr(err))
+		return
+	}
+	if err = res.Close(); err != nil {
+		elog.Error("workerTrace", elog.FieldErr(err))
+		return
+	}
 	reflectLen := len(dependencies)
 	if reflectLen == 0 {
 		elog.Warn("workerTrace", elog.FieldComponent("run"), elog.FieldName("dependencies"), elog.String("dependencies", "empty"))
@@ -100,7 +115,7 @@ func (w *Trace) run() {
 		if ends > reflectLen {
 			ends = reflectLen
 		}
-		err = w.batchInsert(dependencies[i:ends])
+		err = w.batchInsertContext(ctx, dependencies[i:ends])
 		if err != nil {
 			elog.Error("Trace", elog.FieldComponent("run"), elog.FieldName("batchInsert"), elog.FieldErr(err))
 			return
@@ -109,18 +124,26 @@ func (w *Trace) run() {
 }
 
 func (w *Trace) batchInsert(req []view.JaegerDependencyDataModel) error {
-	scope, err := w.db.Begin()
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	return w.batchInsertContext(ctx, req)
+}
+
+func (w *Trace) batchInsertContext(ctx context.Context, req []view.JaegerDependencyDataModel) error {
+	scope, err := w.db.BeginTx(ctx, nil)
 	if err != nil {
 		elog.Error("workerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("begin"), elog.FieldErr(err))
 		return err
 	}
-	batch, err := scope.Prepare("INSERT INTO " + w.target.String())
+	defer scope.Rollback()
+	batch, err := scope.PrepareContext(ctx, "INSERT INTO "+w.target.String())
 	if err != nil {
 		elog.Error("workerTrace", elog.FieldComponent("batchInsert"), elog.FieldName("prepare"), elog.FieldErr(err))
 		return err
 	}
+	defer batch.Close()
 	for _, dependency := range req {
-		_, err = batch.Exec(
+		_, err = batch.ExecContext(ctx,
 			dependency.Timestamp,
 			dependency.Parent,
 			dependency.Child,

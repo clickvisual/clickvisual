@@ -1,6 +1,7 @@
 package view
 
 import (
+	"context"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 )
 
@@ -181,13 +182,14 @@ type (
 	}
 
 	ReqPermission struct {
-		UserId      int      `json:"userId"`                      // request userId
-		ObjectType  string   `json:"objectType" valid:"required"` // the type of ObjectIdx. its value must be a valid PermittedPrefix
-		ObjectIdx   string   `json:"objectIdx"`                   // referId(e.g. aid) or other NameStr(e.g. configResourceName, url etc.)
-		SubResource string   `json:"subResource"`                 // the subResource of target Object(Type+Idx). If target Obj has no subResource, please set it to "*"
-		Acts        []string `json:"acts"`                        // require(or want) actions. i.e. the key of PermittedActMap
-		DomainType  string   `json:"domainType"`                  // env or ent. i.e. the keys of PermittedDomPrefixMap
-		DomainId    string   `json:"domainId"`                    // envId or entId based on DomainType respectively
+		Context     context.Context `json:"-" form:"-"`
+		UserId      int             `json:"userId"`                      // request userId
+		ObjectType  string          `json:"objectType" valid:"required"` // the type of ObjectIdx. its value must be a valid PermittedPrefix
+		ObjectIdx   string          `json:"objectIdx"`                   // referId(e.g. aid) or other NameStr(e.g. configResourceName, url etc.)
+		SubResource string          `json:"subResource"`                 // the subResource of target Object(Type+Idx). If target Obj has no subResource, please set it to "*"
+		Acts        []string        `json:"acts"`                        // require(or want) actions. i.e. the key of PermittedActMap
+		DomainType  string          `json:"domainType"`                  // env or ent. i.e. the keys of PermittedDomPrefixMap
+		DomainId    string          `json:"domainId"`                    // envId or entId based on DomainType respectively
 	}
 
 	ReqPmsCommonInfo struct {

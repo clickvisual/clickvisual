@@ -19,6 +19,7 @@ import (
 	db2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	view2 "github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/queryguard"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
@@ -73,8 +74,13 @@ func (c *Databend) Conn() *sql.DB {
 }
 
 func (c *Databend) Chart(param view2.ReqQuery) (res []*view2.HighChart, q string, err error) {
+	ctx, cancel := queryguard.WithTimeout(param.QueryContext())
+	defer cancel()
+	param.Context = ctx
+	defer func() { err = queryguard.Error(ctx, err) }()
+
 	q = c.chartSQL(param)
-	charts, err := c.doQuery(q)
+	charts, err := c.doQueryContext(ctx, q)
 	if err != nil {
 		elog.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return nil, q, err
@@ -99,9 +105,14 @@ func (c *Databend) Chart(param view2.ReqQuery) (res []*view2.HighChart, q string
 	return res, q, nil
 }
 
-func (c *Databend) Count(param view2.ReqQuery) (uint64, error) {
+func (c *Databend) Count(param view2.ReqQuery) (res uint64, err error) {
+	ctx, cancel := queryguard.WithTimeout(param.QueryContext())
+	defer cancel()
+	param.Context = ctx
+	defer func() { err = queryguard.Error(ctx, err) }()
+
 	q := c.countSQL(param)
-	sqlCountData, err := c.doQuery(q)
+	sqlCountData, err := c.doQueryContext(ctx, q)
 	if err != nil {
 		return 0, err
 	}
@@ -370,6 +381,11 @@ func (c *Databend) UpdateMergeTreeTable(tableInfo *db2.BaseTable, params view2.R
 }
 
 func (c *Databend) GetLogs(param view2.ReqQuery, tid int) (res view2.RespQuery, err error) {
+	ctx, cancel := queryguard.WithTimeout(param.QueryContext())
+	defer cancel()
+	param.Context = ctx
+	defer func() { err = queryguard.Error(ctx, err) }()
+
 	res.Logs = make([]map[string]interface{}, 0)
 	res.Keys = make([]*db2.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
@@ -390,7 +406,7 @@ func (c *Databend) GetLogs(param view2.ReqQuery, tid int) (res view2.RespQuery, 
 	if optimizeSQL != "" {
 		execSQL = optimizeSQL
 	}
-	res.Logs, err = c.doQuery(execSQL)
+	res.Logs, err = c.doQueryContext(ctx, execSQL)
 	if err != nil {
 		return
 	}
@@ -418,7 +434,7 @@ func (c *Databend) GetLogs(param view2.ReqQuery, tid int) (res view2.RespQuery, 
 	// Read the index data
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	res.Keys, _ = db2.IndexList(conds)
+	res.Keys, _ = db2.IndexListContext(ctx, conds)
 	// keys sort by the first letter
 	sort.Slice(res.Keys, func(i, j int) bool {
 		return res.Keys[i].Field < res.Keys[j].Field
@@ -450,13 +466,13 @@ func (c *Databend) logsSQL(param view2.ReqQuery, tid int) (sql, optSQL, original
 	st := time.Now()
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	views, _ := db2.ViewList(invoker.Db, conds)
+	views, _ := db2.ViewList(db2.QueryMetadata(param.QueryContext()), conds)
 	c1 := time.Since(st).Milliseconds()
 	orderByField := param.TimeField
 	if len(views) > 0 {
 		orderByField = db2.TimeFieldNanoseconds
 	}
-	selectFields := genSelectFields(tid)
+	selectFields := genSelectFieldsContext(param.QueryContext(), tid)
 	c2 := time.Since(st).Milliseconds()
 	// Request for the first 100 pages of data
 	// optimizing, the idea is to reduce the number of fields involved in operation;
@@ -490,6 +506,10 @@ func (c *Databend) logsSQL(param view2.ReqQuery, tid int) (sql, optSQL, original
 }
 
 func (c *Databend) GetTraceGraph(ctx context.Context) (resp []view2.RespJaegerDependencyDataModel, err error) {
+	ctx, cancel := queryguard.WithTimeout(ctx)
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+
 	dependencies := make([]view2.JaegerDependencyDataModel, 0)
 	resp = make([]view2.RespJaegerDependencyDataModel, 0)
 	st := ctx.Value("st")
@@ -501,11 +521,12 @@ func (c *Databend) GetTraceGraph(ctx context.Context) (resp []view2.RespJaegerDe
 
 	elog.Debug("databend", elog.FieldComponent("GetTraceGraph"), elog.FieldName("sql"), elog.String("sql", querySQL))
 
-	res, err := c.db.Query(querySQL)
+	res, err := c.db.QueryContext(ctx, querySQL)
 	if err != nil {
 		elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
 		return nil, err
 	}
+	defer res.Close()
 	for res.Next() {
 		var timestamp time.Time
 		var parent string
@@ -539,6 +560,9 @@ func (c *Databend) GetTraceGraph(ctx context.Context) (resp []view2.RespJaegerDe
 			ClientSuccessRate: clientSuccessRate,
 			Time:              t,
 		})
+	}
+	if err = res.Err(); err != nil {
+		return nil, err
 	}
 	return transformJaegerDependencies(dependencies), nil
 }
@@ -665,16 +689,22 @@ func (c *Databend) DeleteTraceJaegerDependencies(database, cluster, table string
 }
 
 func (c *Databend) GetCreateSQL(database, table string) (resp string, err error) {
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+
 	querySQL := fmt.Sprintf("SHOW CREATE table `%s`.`%s`;", database, table)
-	res, err := c.db.Query(querySQL)
+	res, err := c.db.QueryContext(ctx, querySQL)
 	if err != nil {
 		return "", errors.Wrap(err, "db query")
 	}
+	defer res.Close()
 	for res.Next() {
 		if err = res.Scan(&resp); err != nil {
 			return "", errors.Wrap(err, "row scan")
 		}
 	}
+	err = res.Err()
 	return
 }
 
@@ -935,13 +965,25 @@ func (c *Databend) doQuery(sql string) (res []map[string]interface{}, err error)
 }
 
 func (c *Databend) doQueryContext(ctx context.Context, sql string) (res []map[string]interface{}, err error) {
+	ctx, cancel := queryguard.WithTimeout(ctx)
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	finish := queryguard.Observe(ctx, "databend.query", c.id, c.db)
+	defer func() { finish(queryguard.Error(ctx, err)) }()
+
 	res = make([]map[string]interface{}, 0)
 	rows, err := c.db.QueryContext(ctx, sql)
 	if err != nil {
 		return res, errors.Wrap(err, sql)
 	}
 	defer func() { _ = rows.Close() }()
-	cts, _ := rows.ColumnTypes()
+	cts, err := rows.ColumnTypes()
+	if err != nil {
+		return res, err
+	}
 	var (
 		fields = make([]string, len(cts))
 		values = make([]interface{}, len(cts))
@@ -976,7 +1018,7 @@ func (c *Databend) doQueryContext(ctx context.Context, sql string) (res []map[st
 func (c *Databend) timeFieldEqual(param view2.ReqQuery, tid int) string {
 	var res string
 	s := c.logsTimelineSQL(param, tid)
-	out, err := c.doQuery(s)
+	out, err := c.doQueryContext(param.QueryContext(), s)
 	if err != nil {
 		elog.Error("timeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("sql", s), elog.String("error", err.Error()))
 		return res
@@ -1007,7 +1049,7 @@ func (c *Databend) timeFieldEqual(param view2.ReqQuery, tid int) string {
 func (c *Databend) logsTimelineSQL(param view2.ReqQuery, tid int) (sql string) {
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	views, _ := db2.ViewList(invoker.Db, conds)
+	views, _ := db2.ViewList(db2.QueryMetadata(param.QueryContext()), conds)
 	orderByField := param.TimeField
 	if len(views) > 0 {
 		orderByField = db2.TimeFieldNanoseconds
@@ -1026,7 +1068,7 @@ func (c *Databend) queryTransform(params view2.ReqQuery, isOptimized bool) strin
 	if isOptimized {
 		params.Query = queryTransformHash(params) // hash transform
 	}
-	table, _ := db2.TableInfo(invoker.Db, params.Tid)
+	table, _ := db2.TableInfo(db2.QueryMetadata(params.QueryContext()), params.Tid)
 	query := queryTransformLike(table.CreateType, table.RawLogField, params.Query) // _raw_log_ like
 	if query == "" {
 		return query

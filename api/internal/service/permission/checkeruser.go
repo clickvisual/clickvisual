@@ -60,9 +60,10 @@ func (s *defaultChecker) Check(reqPms view.ReqPermission) error {
 	var reqRules [][]interface{}
 	reqRules = append(reqRules, pmsplugin.Convert2InterfaceSlice(items.ReqSub, items.ReqObj, items.ReqAct, items.ReqDom))
 	reqRules = append(reqRules, checkAsterisk(reqPms)) // add * permission check
-	pmsPassed, err := pmsplugin.EnforceOneInMany(reqRules...)
+	pmsPassed, err := pmsplugin.EnforceOneInManyContext(reqPms.Context, reqRules...)
 	if err != nil {
 		elog.Warn("reqPerm not pass", zap.Error(err))
+		return err
 	}
 	if !pmsPassed {
 		return errors.New(MsgNoPermission)
