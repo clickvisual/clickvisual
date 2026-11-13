@@ -1,6 +1,7 @@
 package base
 
 import (
+	"context"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/queryguard"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/utils"
 	"github.com/clickvisual/clickvisual/api/internal/service"
 	"github.com/clickvisual/clickvisual/api/internal/service/event"
@@ -356,9 +358,18 @@ func TableDelete(c *core.Context) {
 // @Tags         LOGSTORE
 // @Summary	 	 日志搜索
 func TableLogs(c *core.Context) {
+	ctx, cancel := queryguard.WithTimeout(c.Request.Context())
+	defer cancel()
+	pool, _ := invoker.Db.DB()
+	monitor := queryguard.Start("TableLogs", cast.ToInt(c.Param("id")), 0, pool)
+	var err error
+	ctx = queryguard.WithMonitor(ctx, monitor)
+	defer func() { monitor.Finish(queryguard.Error(ctx, err)) }()
+	monitor.Stage("bind", nil)
+
 	st := time.Now()
 	var param view.ReqQuery
-	err := c.Bind(&param)
+	err = c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter", err)
 		return
@@ -368,7 +379,18 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	monitor.Stage("metadata", nil)
+	param.Context = ctx
+	tableInfo, err := db.TableInfo(db.QueryMetadata(ctx), id)
+	if err = queryguard.Error(ctx, err); err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if tableInfo.Database == nil {
+		c.JSONE(core.CodeErr, "table database not found", nil)
+		return
+	}
+	monitor.Instance(tableInfo.Database.Iid)
 	// default time field
 	param.TimeField = db.TimeFieldSecond
 	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
@@ -382,7 +404,9 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
+	monitor.Stage("permission", nil)
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		Context:     ctx,
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -391,14 +415,16 @@ func TableLogs(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, "permission verification failed", err)
+		c.JSONE(1, queryguard.Error(ctx, err).Error(), nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	monitor.Stage("load", nil)
+	op, err := service.InstanceManager.LoadContext(ctx, tableInfo.Database.Iid)
 	if err != nil {
-		c.JSONE(core.CodeErr, "clickhouse i/o timeout", err)
+		c.JSONE(core.CodeErr, queryguard.Error(ctx, err).Error(), nil)
 		return
 	}
+	monitor.Stage("prepare", op.Conn())
 	firstTry, err := op.Prepare(param, &tableInfo, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "param prepare failed", err)
@@ -408,6 +434,7 @@ func TableLogs(c *core.Context) {
 		c.JSONE(core.CodeErr, "Query parameter error. Refer to the ClickHouse WHERE syntax. https://clickhouse.com/docs/zh/sql-reference/statements/select/where/", nil)
 		return
 	}
+	monitor.Stage("logs", op.Conn())
 	res, err := op.GetLogs(firstTry, tableInfo.ID)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), err)
@@ -416,7 +443,8 @@ func TableLogs(c *core.Context) {
 	if tableInfo.V3TableType == db.V3TableTypeJaegerJSON {
 		res.IsTrace = 1
 	}
-	list, err := db.HiddenFieldList(egorm.Conds{"tid": egorm.Cond{
+	monitor.Stage("hidden_fields", pool)
+	list, err := db.HiddenFieldListContext(ctx, egorm.Conds{"tid": egorm.Cond{
 		Op:  "=",
 		Val: tableInfo.ID,
 	}})
@@ -425,7 +453,13 @@ func TableLogs(c *core.Context) {
 			res.HiddenFields = append(res.HiddenFields, list[i].Field)
 		}
 	}
+	if ctx.Err() != nil {
+		c.JSONE(core.CodeErr, queryguard.Error(ctx, ctx.Err()).Error(), nil)
+		return
+	}
+	err = nil
 	if param.IsQueryCount == 1 {
+		monitor.Stage("count", op.Conn())
 		res.Count, err = op.Count(firstTry)
 		if err != nil {
 			c.JSONE(core.CodeErr, err.Error(), err)
@@ -433,8 +467,9 @@ func TableLogs(c *core.Context) {
 		}
 	}
 	res.Cost = time.Since(st).Milliseconds()
+	monitor.Stage("event", nil)
 	event.Event.InquiryCMDB(c.User(), db.OpnTablesLogsQuery, map[string]interface{}{"param": param})
-	c.JSONOK(res)
+	err = writeQuerySuccess(c, ctx, "", res)
 }
 
 // QueryComplete
@@ -481,8 +516,17 @@ func QueryComplete(c *core.Context) {
 // @Tags         LOGSTORE
 // @Summary	     日志趋势图
 func TableCharts(c *core.Context) {
+	ctx, cancel := queryguard.WithTimeout(c.Request.Context())
+	defer cancel()
+	pool, _ := invoker.Db.DB()
+	monitor := queryguard.Start("TableCharts", cast.ToInt(c.Param("id")), 0, pool)
+	var err error
+	ctx = queryguard.WithMonitor(ctx, monitor)
+	defer func() { monitor.Finish(queryguard.Error(ctx, err)) }()
+	monitor.Stage("bind", nil)
+
 	var param view.ReqQuery
-	err := c.Bind(&param)
+	err = c.Bind(&param)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: ", err)
 		return
@@ -492,7 +536,18 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "params error", nil)
 		return
 	}
-	tableInfo, _ := db.TableInfo(invoker.Db, id)
+	monitor.Stage("metadata", nil)
+	param.Context = ctx
+	tableInfo, err := db.TableInfo(db.QueryMetadata(ctx), id)
+	if err = queryguard.Error(ctx, err); err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return
+	}
+	if tableInfo.Database == nil {
+		c.JSONE(core.CodeErr, "table database not found", nil)
+		return
+	}
+	monitor.Instance(tableInfo.Database.Iid)
 	param.TimeField = db.TimeFieldSecond
 	if tableInfo.CreateType == constx.TableCreateTypeExist && tableInfo.TimeField != "" {
 		param.TimeField = tableInfo.TimeField
@@ -505,7 +560,9 @@ func TableCharts(c *core.Context) {
 		c.JSONE(core.CodeErr, "db and table are required fields", nil)
 		return
 	}
+	monitor.Stage("permission", nil)
 	if err = permission.Manager.CheckNormalPermission(view.ReqPermission{
+		Context:     ctx,
 		UserId:      c.Uid(),
 		ObjectType:  pmsplugin.PrefixInstance,
 		ObjectIdx:   strconv.Itoa(tableInfo.Database.Iid),
@@ -514,14 +571,16 @@ func TableCharts(c *core.Context) {
 		DomainType:  pmsplugin.PrefixTable,
 		DomainId:    strconv.Itoa(tableInfo.ID),
 	}); err != nil {
-		c.JSONE(1, "checkNormalPermission", err)
+		c.JSONE(1, queryguard.Error(ctx, err).Error(), nil)
 		return
 	}
-	op, err := service.InstanceManager.Load(tableInfo.Database.Iid)
+	monitor.Stage("load", nil)
+	op, err := service.InstanceManager.LoadContext(ctx, tableInfo.Database.Iid)
 	if err != nil {
-		c.JSONE(core.CodeErr, "instanceManagerLoad", err)
+		c.JSONE(core.CodeErr, queryguard.Error(ctx, err).Error(), nil)
 		return
 	}
+	monitor.Stage("prepare", op.Conn())
 	param, err = op.Prepare(param, &tableInfo, false)
 	if err != nil {
 		c.JSONE(core.CodeErr, "invalid parameter: "+err.Error(), nil)
@@ -530,16 +589,18 @@ func TableCharts(c *core.Context) {
 	param.GroupByCond, param.Interval = op.CalculateInterval(param.ET-param.ST, clickhouse.TransferGroupTimeField(param.TimeField, tableInfo.TimeFieldType))
 	interval := param.Interval
 
+	monitor.Stage("charts", op.Conn())
 	charts, sql, err := op.Chart(param)
 	if err != nil {
 		c.JSONE(core.CodeErr, err.Error(), sql)
 		return
 	}
+	monitor.Stage("response", nil)
 	res := view.HighCharts{
 		Histograms: make([]*view.HighChart, 0),
 	}
 	if len(charts) == 0 {
-		c.JSONE(core.CodeOK, sql, res)
+		err = writeQuerySuccess(c, ctx, sql, res)
 		return
 	}
 	chartMap := make(map[int64]*view.HighChart)
@@ -547,6 +608,10 @@ func TableCharts(c *core.Context) {
 	var firstFrom int64
 	var latestFrom int64
 	for i, chart := range charts {
+		if err = queryguard.Error(ctx, nil); err != nil {
+			c.JSONE(core.CodeErr, err.Error(), nil)
+			return
+		}
 		chartMap[chart.From] = chart
 		res.Count += chart.Count
 		if i == 0 {
@@ -565,6 +630,10 @@ func TableCharts(c *core.Context) {
 		// 说明有很多数据需要填充
 		fillNum := (firstFrom - st) / interval
 		for i := int64(0); i < (fillNum); i++ {
+			if err = queryguard.Error(ctx, nil); err != nil {
+				c.JSONE(core.CodeErr, err.Error(), nil)
+				return
+			}
 			from := firstFrom - interval*(i+1)
 			if from < st {
 				from = st
@@ -583,6 +652,10 @@ func TableCharts(c *core.Context) {
 		// 说明有很多数据需要填充
 		fillNum := (et - latestFrom) / interval
 		for i := int64(0); i < (fillNum); i++ {
+			if err = queryguard.Error(ctx, nil); err != nil {
+				c.JSONE(core.CodeErr, err.Error(), nil)
+				return
+			}
 			// to := latestFrom + interval*(i+2)
 			from := latestFrom + interval*(i+1)
 			// if to > st {
@@ -598,6 +671,10 @@ func TableCharts(c *core.Context) {
 		}
 	}
 	for i := firstFrom; i < latestFrom; i += interval {
+		if err = queryguard.Error(ctx, nil); err != nil {
+			c.JSONE(core.CodeErr, err.Error(), nil)
+			return
+		}
 		if _, ok := chartMap[i]; !ok {
 			chartMap[i] = &view.HighChart{
 				Count: 0,
@@ -608,6 +685,10 @@ func TableCharts(c *core.Context) {
 	}
 	fillCharts := make([]*view.HighChart, 0)
 	for _, chart := range chartMap {
+		if err = queryguard.Error(ctx, nil); err != nil {
+			c.JSONE(core.CodeErr, err.Error(), nil)
+			return
+		}
 		fillCharts = append(fillCharts, chart)
 	}
 	sort.Slice(fillCharts, func(i int, j int) bool {
@@ -619,6 +700,10 @@ func TableCharts(c *core.Context) {
 		fillCharts[0].To = et
 	} else if l > 1 {
 		for i := range fillCharts {
+			if err = queryguard.Error(ctx, nil); err != nil {
+				c.JSONE(core.CodeErr, err.Error(), nil)
+				return
+			}
 			if i == 0 {
 				fillCharts[0].From = st
 				fillCharts[0].To = fillCharts[1].From
@@ -630,7 +715,7 @@ func TableCharts(c *core.Context) {
 		}
 	}
 	res.Histograms = fillCharts
-	c.JSONOK(res)
+	err = writeQuerySuccess(c, ctx, "", res)
 }
 
 // TableIndexes
@@ -964,4 +1049,20 @@ func TableDeps(c *core.Context) {
 		return
 	}
 	c.JSONOK(res)
+}
+
+// writeQuerySuccess checks the shared budget after response construction, including
+// the empty-chart success branch. Returning the error also completes diagnostics.
+func writeQuerySuccess(c *core.Context, ctx context.Context, message string, data any) error {
+	queryguard.Stage(ctx, "response", nil)
+	if err := queryguard.Error(ctx, nil); err != nil {
+		c.JSONE(core.CodeErr, err.Error(), nil)
+		return err
+	}
+	if message != "" {
+		c.JSONE(core.CodeOK, message, data)
+	} else {
+		c.JSONOK(data)
+	}
+	return nil
 }

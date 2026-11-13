@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/ego-component/egorm"
@@ -8,8 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 const (
@@ -69,8 +68,12 @@ func IndexInfo(db *gorm.DB, id int) (resp BaseIndex, err error) {
 }
 
 func IndexList(conds egorm.Conds) (resp []*BaseIndex, err error) {
+	return IndexListContext(context.Background(), conds)
+}
+
+func IndexListContext(ctx context.Context, conds egorm.Conds) (resp []*BaseIndex, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(BaseIndex{}).Where(sql, binds...).Find(&resp).Error; err != nil {
+	if err = QueryMetadata(ctx).Model(BaseIndex{}).Where(sql, binds...).Find(&resp).Error; err != nil {
 		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}

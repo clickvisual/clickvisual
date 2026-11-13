@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	chdriver "github.com/ClickHouse/clickhouse-go/v2"
 	"reflect"
 	"sort"
 	"strconv"
@@ -25,6 +26,7 @@ import (
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/dto"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
+	"github.com/clickvisual/clickvisual/api/internal/pkg/queryguard"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/factory/builder/bumo"
@@ -51,12 +53,19 @@ func NewClickHouse(db *sql.DB, ins *db.BaseInstance) (*ClickHouseX, error) {
 }
 
 func (c *ClickHouseX) ClusterInfo() (clusters map[string]dto.ClusterInfo, err error) {
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	monitor := queryguard.Start("clickhouse.ClusterInfo", 0, c.id, c.db)
+	defer func() { monitor.Finish(queryguard.Error(ctx, err)) }()
+
 	// query databases
-	rows, err := c.db.Query("SELECT cluster,shard_num,shard_weight,replica_num,host_name,host_address,port from `system`.`clusters`")
+	rows, err := c.db.QueryContext(ctx, "SELECT cluster,shard_num,shard_weight,replica_num,host_name,host_address,port from `system`.`clusters`")
 	if err != nil {
 		elog.Error("ClickHouse", elog.Any("step", "query"), elog.FieldErr(err))
 		return
 	}
+	defer rows.Close()
 	dbClusterList := make([]view.Cluster, 0)
 	for rows.Next() {
 		var cluster string
@@ -68,8 +77,7 @@ func (c *ClickHouseX) ClusterInfo() (clusters map[string]dto.ClusterInfo, err er
 		var port int
 		errScan := rows.Scan(&cluster, &shard_num, &shard_weight, &replica_num, &host_name, &host_address, &port)
 		if errScan != nil {
-			elog.Error("source", elog.FieldErr(err))
-			continue
+			return nil, errScan
 		}
 		if strings.HasPrefix(cluster, "test_") {
 			continue
@@ -82,6 +90,9 @@ func (c *ClickHouseX) ClusterInfo() (clusters map[string]dto.ClusterInfo, err er
 			HostAddress: host_address,
 			Port:        port,
 		})
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 	clusters = make(map[string]dto.ClusterInfo, 0)
 	for _, dbCluster := range dbClusterList {
@@ -155,15 +166,23 @@ func (c *ClickHouseX) GetMetricsSamples() error {
 }
 
 func (c *ClickHouseX) Version() (ver string, err error) {
-	res, err := c.db.Query("select version() as ver")
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	monitor := queryguard.Start("clickhouse.Version", 0, c.id, c.db)
+	defer func() { monitor.Finish(queryguard.Error(ctx, err)) }()
+
+	res, err := c.db.QueryContext(ctx, "select version() as ver")
 	if err != nil {
 		return "", errors.Wrap(err, "db query")
 	}
+	defer res.Close()
 	for res.Next() {
 		if err = res.Scan(&ver); err != nil {
 			return "", errors.Wrap(err, "row scan")
 		}
 	}
+	err = res.Err()
 	return
 }
 
@@ -712,6 +731,11 @@ func (c *ClickHouseX) DoSQLContext(ctx context.Context, sql string) (res view.Re
 }
 
 func (c *ClickHouseX) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery, err error) {
+	ctx, cancel := queryguard.WithTimeout(param.QueryContext())
+	defer cancel()
+	param.Context = ctx
+	defer func() { err = queryguard.Error(ctx, err) }()
+
 	res.Logs = make([]map[string]interface{}, 0)
 	res.Keys = make([]*db.BaseIndex, 0)
 	res.Terms = make([][]string, 0)
@@ -732,7 +756,7 @@ func (c *ClickHouseX) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery,
 	if optimizeSQL != "" {
 		execSQL = optimizeSQL
 	}
-	res.Logs, err = c.doQueryWithRetry(execSQL, false)
+	res.Logs, err = c.doQueryWithRetryContext(ctx, execSQL, false)
 	if err != nil {
 		return
 	}
@@ -765,7 +789,7 @@ func (c *ClickHouseX) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery,
 	// Read the index data
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	res.Keys, _ = db.IndexList(conds)
+	res.Keys, _ = db.IndexListContext(ctx, conds)
 	// keys sort by the first letter
 	sort.Slice(res.Keys, func(i, j int) bool {
 		return res.Keys[i].Field < res.Keys[j].Field
@@ -793,8 +817,13 @@ func (c *ClickHouseX) GetLogs(param view.ReqQuery, tid int) (res view.RespQuery,
 }
 
 func (c *ClickHouseX) Chart(param view.ReqQuery) (res []*view.HighChart, q string, err error) {
+	ctx, cancel := queryguard.WithTimeout(param.QueryContext())
+	defer cancel()
+	param.Context = ctx
+	defer func() { err = queryguard.Error(ctx, err) }()
+
 	q = c.chartSQL(param)
-	charts, err := c.doQueryWithRetry(q, false)
+	charts, err := c.doQueryWithRetryContext(ctx, q, false)
 	if err != nil {
 		elog.Error("Count", elog.Any("sql", q), elog.Any("error", err.Error()))
 		return nil, q, err
@@ -822,8 +851,13 @@ func (c *ClickHouseX) Chart(param view.ReqQuery) (res []*view.HighChart, q strin
 }
 
 func (c *ClickHouseX) Count(param view.ReqQuery) (res uint64, err error) {
+	ctx, cancel := queryguard.WithTimeout(param.QueryContext())
+	defer cancel()
+	param.Context = ctx
+	defer func() { err = queryguard.Error(ctx, err) }()
+
 	q := c.countSQL(param)
-	sqlCountData, err := c.doQueryWithRetry(q, false)
+	sqlCountData, err := c.doQueryWithRetryContext(ctx, q, false)
 	if err != nil {
 		return 0, err
 	}
@@ -1460,6 +1494,12 @@ func (c *ClickHouseX) DeleteTraceJaegerDependencies(database, cluster, table str
 }
 
 func (c *ClickHouseX) GetTraceGraph(ctx context.Context) (resp []view.RespJaegerDependencyDataModel, err error) {
+	ctx, cancel := queryguard.WithTimeout(ctx)
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	monitor := queryguard.Start("clickhouse.GetTraceGraph", 0, c.id, c.db)
+	defer func() { monitor.Finish(queryguard.Error(ctx, err)) }()
+
 	dependencies := make([]view.JaegerDependencyDataModel, 0)
 	resp = make([]view.RespJaegerDependencyDataModel, 0)
 	st := ctx.Value("st")
@@ -1471,11 +1511,12 @@ func (c *ClickHouseX) GetTraceGraph(ctx context.Context) (resp []view.RespJaeger
 
 	elog.Debug("clickHouse", elog.FieldComponent("GetTraceGraph"), elog.FieldName("sql"), elog.String("sql", querySQL))
 
-	res, err := c.db.Query(querySQL)
+	res, err := c.db.QueryContext(ctx, querySQL)
 	if err != nil {
 		elog.Error("workerTrace", elog.FieldComponent("run"), elog.FieldName("query"), elog.FieldErr(err))
 		return nil, err
 	}
+	defer res.Close()
 	for res.Next() {
 		var timestamp time.Time
 		var parent string
@@ -1510,20 +1551,31 @@ func (c *ClickHouseX) GetTraceGraph(ctx context.Context) (resp []view.RespJaeger
 			Time:              t,
 		})
 	}
+	if err = res.Err(); err != nil {
+		return nil, err
+	}
 	return transformJaegerDependencies(dependencies), nil
 }
 
 func (c *ClickHouseX) GetCreateSQL(database, table string) (resp string, err error) {
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	monitor := queryguard.Start("clickhouse.GetCreateSQL", 0, c.id, c.db)
+	defer func() { monitor.Finish(queryguard.Error(ctx, err)) }()
+
 	querySQL := fmt.Sprintf("SHOW CREATE table `%s`.`%s`;", database, table)
-	res, err := c.db.Query(querySQL)
+	res, err := c.db.QueryContext(ctx, querySQL)
 	if err != nil {
 		return "", errors.Wrap(err, "db query")
 	}
+	defer res.Close()
 	for res.Next() {
 		if err = res.Scan(&resp); err != nil {
 			return "", errors.Wrap(err, "row scan")
 		}
 	}
+	err = res.Err()
 	return
 }
 
@@ -2046,7 +2098,7 @@ func (c *ClickHouseX) switcherRollback(tid int, key string) {
 func (c *ClickHouseX) logsTimelineSQL(param view.ReqQuery, tid int) (sql string) {
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	views, _ := db.ViewList(invoker.Db, conds)
+	views, _ := db.ViewList(db.QueryMetadata(param.QueryContext()), conds)
 	orderByField := param.TimeField
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
@@ -2065,13 +2117,13 @@ func (c *ClickHouseX) logsSQL(param view.ReqQuery, tid int) (sql, optSQL, origin
 	st := time.Now()
 	conds := egorm.Conds{}
 	conds["tid"] = tid
-	views, _ := db.ViewList(invoker.Db, conds)
+	views, _ := db.ViewList(db.QueryMetadata(param.QueryContext()), conds)
 	c1 := time.Since(st).Milliseconds()
 	orderByField := param.TimeField
 	if len(views) > 0 {
 		orderByField = db.TimeFieldNanoseconds
 	}
-	selectFields := genSelectFields(tid)
+	selectFields := genSelectFieldsContext(param.QueryContext(), tid)
 	c2 := time.Since(st).Milliseconds()
 	// Request for the first 100 pages of data
 	// optimizing, the idea is to reduce the number of fields involved in operation;
@@ -2108,7 +2160,7 @@ func (c *ClickHouseX) queryTransform(params view.ReqQuery, isOptimized bool) str
 	if isOptimized {
 		params.Query = queryTransformHash(params) // hash transform
 	}
-	table, _ := db.TableInfo(invoker.Db, params.Tid)
+	table, _ := db.TableInfo(db.QueryMetadata(params.QueryContext()), params.Tid)
 	query := queryTransformLike(table.CreateType, table.RawLogField, params.Query) // _raw_log_ like
 	if query == "" {
 		return query
@@ -2162,20 +2214,21 @@ func (c *ClickHouseX) doQueryWithRetry(sql string, isShowNull bool) (res []map[s
 }
 
 func (c *ClickHouseX) doQueryWithRetryContext(ctx context.Context, sql string, isShowNull bool) (res []map[string]interface{}, err error) {
-	res, err = c.doQueryContext(ctx, sql, isShowNull)
-	if err != nil {
-		elog.Error("doQueryFailed", elog.Any("step", "doQuery"), elog.Any("sql", sql), l.E(err))
-		// 重试十次
-		maxRetries := 10
-		for i := 0; i < maxRetries; i++ {
-			if ctx.Err() != nil {
-				return res, err
-			}
-			res, err = c.doQueryContext(ctx, sql, isShowNull)
-			if err == nil || !strings.Contains(err.Error(), "password is incorrect") {
-				return res, err
-			}
-			elog.Error("doQueryWithRetry", elog.Any("step", "retry"), elog.Any("attempt", i+1), elog.Any("sql", sql), l.E(err))
+	ctx, cancel := queryguard.WithTimeout(ctx)
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	finish := queryguard.Observe(ctx, "clickhouse.query", c.id, c.db)
+	defer func() { finish(queryguard.Error(ctx, err)) }()
+	for attempt := 0; attempt <= 10; attempt++ {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+		res, err = c.doQueryContext(ctx, sql, isShowNull)
+		if err == nil || ctx.Err() != nil || !isAuthenticationError(err) {
+			return res, err
 		}
 	}
 	return res, err
@@ -2186,13 +2239,23 @@ func (c *ClickHouseX) doQuery(sql string, isShowNull bool) (res []map[string]int
 }
 
 func (c *ClickHouseX) doQueryContext(ctx context.Context, sql string, isShowNull bool) (res []map[string]interface{}, err error) {
+	ctx, cancel := queryguard.WithTimeout(ctx)
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	res = make([]map[string]interface{}, 0)
 	rows, err := c.db.QueryContext(ctx, sql)
 	if err != nil {
 		return res, errors.Wrap(err, sql)
 	}
 	defer func() { _ = rows.Close() }()
-	cts, _ := rows.ColumnTypes()
+	cts, err := rows.ColumnTypes()
+	if err != nil {
+		return res, err
+	}
 	var (
 		fields = make([]string, len(cts))
 		values = make([]interface{}, len(cts))
@@ -2231,7 +2294,7 @@ func (c *ClickHouseX) doQueryContext(ctx context.Context, sql string, isShowNull
 func (c *ClickHouseX) timeFieldEqual(param view.ReqQuery, tid int) string {
 	var res string
 	s := c.logsTimelineSQL(param, tid)
-	out, err := c.doQueryWithRetry(s, false)
+	out, err := c.doQueryWithRetryContext(param.QueryContext(), s, false)
 	if err != nil {
 		elog.Error("timeFieldEqual", elog.Any("step", "logsSQL"), elog.Any("sql", s), elog.String("error", err.Error()))
 		return res
@@ -2290,4 +2353,10 @@ func (c *ClickHouseX) CalculateInterval(interval int64, timeField string) (strin
 		return fmt.Sprintf("toStartOfInterval(%s, INTERVAL 6 hour)", timeField), 21600
 	}
 	return fmt.Sprintf("toStartOfInterval(%s, INTERVAL 1 day)", timeField), 86400
+}
+
+// Classify the driver exception rather than formatted SQL in wrapped errors.
+func isAuthenticationError(err error) bool {
+	var exception *chdriver.Exception
+	return errors.As(err, &exception) && exception.Code == 516
 }

@@ -1,13 +1,12 @@
 package db
 
 import (
+	"context"
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 )
 
 func (b *BaseHiddenField) TableName() string {
@@ -44,8 +43,12 @@ func HiddenFieldDeleteByFields(db *gorm.DB, fields []string) (err error) {
 }
 
 func HiddenFieldList(conds egorm.Conds) (resp []*BaseHiddenField, err error) {
+	return HiddenFieldListContext(context.Background(), conds)
+}
+
+func HiddenFieldListContext(ctx context.Context, conds egorm.Conds) (resp []*BaseHiddenField, err error) {
 	sql, binds := egorm.BuildQuery(conds)
-	if err = invoker.Db.Model(BaseHiddenField{}).Where(sql, binds...).Find(&resp).Error; err != nil {
+	if err = QueryMetadata(ctx).Model(BaseHiddenField{}).Where(sql, binds...).Find(&resp).Error; err != nil {
 		err = errors.Wrapf(err, "conds: %v", conds)
 		return
 	}

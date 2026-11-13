@@ -1,6 +1,7 @@
 package databend
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -10,7 +11,6 @@ import (
 	"github.com/ego-component/egorm"
 	"github.com/gotomicro/ego/core/elog"
 
-	"github.com/clickvisual/clickvisual/api/internal/invoker"
 	constx2 "github.com/clickvisual/clickvisual/api/internal/pkg/constx"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/db"
 	"github.com/clickvisual/clickvisual/api/internal/pkg/model/view"
@@ -190,8 +190,9 @@ func adaSelectPart(in string) (out string) {
 	return fmt.Sprintf("%s,%s FROM %s", arr[0], onlySelect, arr[1])
 }
 
-func genSelectFields(tid int) string {
-	tableInfo, _ := db.TableInfo(invoker.Db, tid)
+func genSelectFields(tid int) string { return genSelectFieldsContext(context.Background(), tid) }
+func genSelectFieldsContext(ctx context.Context, tid int) string {
+	tableInfo, _ := db.TableInfo(db.QueryMetadata(ctx), tid)
 	if tableInfo.CreateType == constx2.TableCreateTypeCV {
 		if tableInfo.SelectFields != "" {
 			return tableInfo.SelectFields
@@ -237,7 +238,7 @@ func queryTransformHash(params view.ReqQuery) string {
 	conds := egorm.Conds{}
 	conds["tid"] = params.Tid
 	conds["hash_typ"] = egorm.Cond{Op: "!=", Val: 0}
-	indexes, _ := db.IndexList(conds)
+	indexes, _ := db.IndexListContext(params.QueryContext(), conds)
 	for _, index := range indexes {
 		if index.HashTyp == 0 {
 			continue

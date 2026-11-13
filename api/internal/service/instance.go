@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"sort"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/pkg/errors"
 
+	"github.com/clickvisual/clickvisual/api/internal/pkg/queryguard"
 	"github.com/clickvisual/clickvisual/api/internal/service/inquiry/local"
 
 	"github.com/clickvisual/clickvisual/api/internal/invoker"
@@ -79,25 +81,33 @@ func (i *instanceManager) Delete(key string) {
 }
 
 func (i *instanceManager) Add(obj *db.BaseInstance) error {
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	return i.AddContext(ctx, obj)
+}
+
+func (i *instanceManager) AddContext(ctx context.Context, obj *db.BaseInstance) error {
 	switch obj.Datasource {
 	case db.DatasourceClickHouse:
 		// Test connection, storage
-		chDb, err := ClickHouseLink(obj.GetDSN())
+		chDb, err := ClickHouseLinkContext(ctx, obj.GetDSN())
 		if err != nil {
 			return err
 		}
 		ch, err := clickhouse.NewClickHouse(chDb, obj)
 		if err != nil {
+			_ = chDb.Close()
 			return err
 		}
 		i.dss.Store(obj.DsKey(), ch)
 	case db.DatasourceDatabend:
-		databendDb, err := DatabendLink(obj.GetDSN())
+		databendDb, err := DatabendLinkContext(ctx, obj.GetDSN())
 		if err != nil {
 			return err
 		}
 		dd, err := databend.NewDatabend(databendDb, obj)
 		if err != nil {
+			_ = databendDb.Close()
 			return err
 		}
 		i.dss.Store(obj.DsKey(), dd)
@@ -113,14 +123,20 @@ func (i *instanceManager) Add(obj *db.BaseInstance) error {
 }
 
 func (i *instanceManager) Load(id int) (factory.Operator, error) {
-	instance, err := db.InstanceInfo(invoker.Db, id)
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	return i.LoadContext(ctx, id)
+}
+
+func (i *instanceManager) LoadContext(ctx context.Context, id int) (factory.Operator, error) {
+	instance, err := db.InstanceInfo(db.QueryMetadata(ctx), id)
 	if err != nil {
 		return nil, err
 	}
 	obj, ok := i.dss.Load(db.InstanceKey(id))
 	if !ok {
 		// try again
-		if err = i.Add(&instance); err != nil {
+		if err = i.AddContext(ctx, &instance); err != nil {
 			return nil, err
 		}
 		obj, _ = i.dss.Load(db.InstanceKey(id))
@@ -208,14 +224,25 @@ func InstanceViewPmsWithSubResource(uid int, iid int, subResource string) bool {
 }
 
 func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
-	conn, err = sql.Open("clickhouse", utils.ClickhouseDsnConvert(dsn))
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	return ClickHouseLinkContext(ctx, dsn)
+}
+
+func ClickHouseLinkContext(ctx context.Context, dsn string) (conn *sql.DB, err error) {
+	ctx, cancel := queryguard.WithTimeout(ctx)
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	conn, err = openClickHouseDB(utils.ClickhouseDsnConvert(dsn))
 	if err != nil {
 		return nil, errors.Wrap(err, "sql.Open")
 	}
 	conn.SetMaxIdleConns(5)
 	conn.SetMaxOpenConns(10)
 	conn.SetConnMaxLifetime(time.Minute * 3)
-	if err = conn.Ping(); err != nil {
+	queryguard.Stage(ctx, "connect", conn)
+	if err = conn.PingContext(ctx); err != nil {
+		_ = conn.Close()
 		return nil, errors.Wrap(err, "clickhouse link")
 	}
 	return
@@ -223,12 +250,23 @@ func ClickHouseLink(dsn string) (conn *sql.DB, err error) {
 
 // DatabendLink 这里 dsn 好像写任意地址都能测试成功
 func DatabendLink(dsn string) (conn *sql.DB, err error) {
-	conn, err = sql.Open("databend", dsn)
+	ctx, cancel := queryguard.WithTimeout(context.Background())
+	defer cancel()
+	return DatabendLinkContext(ctx, dsn)
+}
+
+func DatabendLinkContext(ctx context.Context, dsn string) (conn *sql.DB, err error) {
+	ctx, cancel := queryguard.WithTimeout(ctx)
+	defer cancel()
+	defer func() { err = queryguard.Error(ctx, err) }()
+	conn, err = databend.OpenDB(dsn)
 	if err != nil {
 		return nil, errors.Wrap(err, "sql.Open")
 	}
 
-	if err = conn.Ping(); err != nil {
+	queryguard.Stage(ctx, "connect", conn)
+	if err = conn.PingContext(ctx); err != nil {
+		_ = conn.Close()
 		return nil, errors.Wrap(err, "databend link")
 	}
 	return

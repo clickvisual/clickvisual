@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/persist"
@@ -688,7 +689,16 @@ func IsRootWithoutCheckingSysLock(uid int) bool {
 
 // EnforceOneInMany : check many rules, if one of them has passed then return true.
 func EnforceOneInMany(rules ...[]interface{}) (bool, error) {
-	enforcerLock.Lock()
+	return EnforceOneInManyContext(context.Background(), rules...)
+}
+
+func EnforceOneInManyContext(ctx context.Context, rules ...[]interface{}) (bool, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if err := lockEnforcerContext(ctx); err != nil {
+		return false, err
+	}
 	defer enforcerLock.Unlock()
 	results, err := enforcer.BatchEnforce(rules)
 	for _, isPass := range results {
@@ -710,6 +720,31 @@ func EnforcerLoadPolicy() {
 		elog.Debug("Casbin watcher.Update")
 		if err != nil {
 			elog.Debug("Casbin watcher.Update failed", elog.FieldErr(err))
+		}
+	}
+}
+
+// lockEnforcerContext avoids leaving goroutines waiting on a held permission lock.
+func lockEnforcerContext(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if enforcerLock.TryLock() {
+		return nil
+	}
+	ticker := time.NewTicker(10 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			if enforcerLock.TryLock() {
+				return nil
+			}
 		}
 	}
 }
